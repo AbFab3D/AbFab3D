@@ -13,6 +13,7 @@ package abfab3d.opencl;
 
 import com.jogamp.opencl.CLContext;
 import com.jogamp.opencl.CLProgram;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
@@ -49,7 +50,7 @@ public class ProgramLoader {
             InputStream is = getStreamFor(filename[i]);
             String st = IOUtils.toString(is, "UTF-8");
             if (unroll) {
-                st = unrollIncludes(st);
+                st = unrollIncludes(filename[i],st);
             }
             bldr.append("// Include: ");
             bldr.append(filename[i]);
@@ -72,7 +73,7 @@ public class ProgramLoader {
             InputStream is = getStreamFor(filename[i]);
             String st = IOUtils.toString(is, "UTF-8");
             if (unroll) {
-                st = unrollIncludes(st);
+                st = unrollIncludes(filename[i],st);
             }
             bldr.append("// Include: ");
             bldr.append(filename[i]);
@@ -106,7 +107,7 @@ public class ProgramLoader {
                 InputStream is = getStreamFor(name);
                 String st = IOUtils.toString(is, "UTF-8");
                 if (unroll) {
-                    st = unrollIncludes(st);
+                    st = unrollIncludes(name,st);
                 }
 
                 bldr.append("// Include: ");
@@ -160,7 +161,8 @@ public class ProgramLoader {
      * @param file
      * @return
      */
-    protected static String unrollIncludes(String file) throws IOException {
+    protected static String unrollIncludes(String filename, String file) throws IOException {
+        String path = FilenameUtils.getPath(filename);
         StringBuilder sb = new StringBuilder();
         int pos = file.indexOf("#include");
 
@@ -172,8 +174,9 @@ public class ProgramLoader {
             int pos2 = file.indexOf("\"",pos+len+1);
             String fname = file.substring(pos+len,pos2);
             sb.append("//Inlined file: " +fname + "\n");
-            InputStream is = getStreamFor(fname);
+            InputStream is = getStreamFor(path + fname);
             String inline = IOUtils.toString(is, "UTF-8");
+            inline = unrollIncludes(path+fname,inline);
             last = pos2+1;
             sb.append(inline);
 

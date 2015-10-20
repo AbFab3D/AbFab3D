@@ -21,7 +21,7 @@ import static abfab3d.util.Output.fmt;
  * 
  * @author Vladimir Bulatov
  */
-public class Grid2DByte extends BaseAttributeGrid implements Grid2D {
+public class Grid2DByte extends BaseGrid2D implements Grid2D {
     protected byte[] data;
 
     /**
@@ -31,7 +31,21 @@ public class Grid2DByte extends BaseAttributeGrid implements Grid2D {
      * @param height The number of voxels in height
      */
     public Grid2DByte(int width, int height){
-        super(width, height, 1, 1., 1., null);
+        super(width, height, 1.);
+        if((long)height*width > Integer.MAX_VALUE)
+            throw new RuntimeException(fmt("grid size: [%d x %d] exceeds maximum [46340 x 46340]", width, height));
+        data = new byte[height * width];
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param width The number of voxels in width
+     * @param height The number of voxels in height
+     * @param pixel The size of the pixel in meters
+     */
+    public Grid2DByte(int width, int height, double pixel){
+        super(width, height, pixel);
         if((long)height*width > Integer.MAX_VALUE)
             throw new RuntimeException(fmt("grid size: [%d x %d] exceeds maximum [46340 x 46340]", width, height));
         data = new byte[height * width];
@@ -43,9 +57,8 @@ public class Grid2DByte extends BaseAttributeGrid implements Grid2D {
      * @param grid The grid
      */
     public Grid2DByte(Grid2DByte grid) {
-        super(grid.getWidth(), grid.getHeight(), 1, 1., 1., null);
+        super(grid.getWidth(), grid.getHeight(), grid.getVoxelSize());
         this.data = grid.data.clone();
-        BaseGrid.copyBounds(grid, this);        
     }
 
 
@@ -55,39 +68,13 @@ public class Grid2DByte extends BaseAttributeGrid implements Grid2D {
      *
      * @param w The number of voxels in width
      * @param h The number of voxels in height
-     * @param d The number of voxels in depth
      * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
      */
-    public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
+    public Grid2D createEmpty(int w, int h, double pixel) {
 
-        Grid ret_val = new Grid2DByte(w,h);
+        Grid2D ret_val = new Grid2DByte(w,h,pixel);
         
         return ret_val;
-    }
-
-    /**
-     * Get the attribute of the voxel.
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate (this param is ignored) 
-     * @return The voxel material
-     */
-    public final long getAttribute(int x, int y, int z) {
-        return getAttribute(x,y);
-    }
-
-    /**
-     * Set the attribute of voxel 
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param attribute value of attribute 
-     */
-    public final void setAttribute(int x, int y, int z, long attribute) {
-        setAttribute(x,y,attribute);
     }
 
     /**

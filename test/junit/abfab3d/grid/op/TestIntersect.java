@@ -65,9 +65,9 @@ public class TestIntersect extends BaseTestAttributeGrid {
 
         assertEquals(size2, dest.getWidth());
 
-        int expected_marked = grid1.findCount(Grid.VoxelClasses.INSIDE);
+        int expected_marked = grid1.findCount(VoxelClasses.INSIDE);
 
-        assertEquals(expected_marked, dest.findCount(Grid.VoxelClasses.INSIDE));
+        assertEquals(expected_marked, dest.findCount(VoxelClasses.INSIDE));
 
         // check filled voxel state and material
         for (int x=0; x<size2; x++) {
@@ -116,9 +116,9 @@ public class TestIntersect extends BaseTestAttributeGrid {
 
         assertEquals(size2, dest.getWidth());
 
-        int expected_marked = grid1.findCount(Grid.VoxelClasses.INSIDE);
+        int expected_marked = grid1.findCount(VoxelClasses.INSIDE);
 
-        assertEquals(expected_marked, dest.findCount(Grid.VoxelClasses.INSIDE));
+        assertEquals(expected_marked, dest.findCount(VoxelClasses.INSIDE));
 
         // check filled voxel state and material
         for (int x=0; x<size2; x++) {
@@ -167,9 +167,9 @@ public class TestIntersect extends BaseTestAttributeGrid {
 
         assertEquals(size2, dest.getWidth());
 
-        int expected_marked = grid1.findCount(Grid.VoxelClasses.INSIDE);
+        int expected_marked = grid1.findCount(VoxelClasses.INSIDE);
 
-        assertEquals(expected_marked, dest.findCount(Grid.VoxelClasses.INSIDE));
+        assertEquals(expected_marked, dest.findCount(VoxelClasses.INSIDE));
 
         // check filled voxel state and material
         for (int x=0; x<size2; x++) {

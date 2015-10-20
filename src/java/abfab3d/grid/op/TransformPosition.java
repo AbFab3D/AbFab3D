@@ -63,7 +63,7 @@ public class TransformPosition implements Operation, ClassTraverser {
     public Grid execute(Grid dest) {
         this.dest = dest;
 
-        src.find(Grid.VoxelClasses.INSIDE, this);
+        src.find(VoxelClasses.INSIDE, this);
 
         return dest;
     }

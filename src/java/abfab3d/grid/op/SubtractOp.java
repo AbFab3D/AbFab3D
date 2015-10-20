@@ -74,7 +74,7 @@ public class SubtractOp implements Operation, ClassTraverser {
 
         // TODO: Make sure the grids are the same size
 
-        src.find(Grid.VoxelClasses.INSIDE, this);
+        src.find(VoxelClasses.INSIDE, this);
 
         printf("subtract: %d ms\n", (time() - t0));
 

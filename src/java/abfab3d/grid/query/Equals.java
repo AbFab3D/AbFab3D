@@ -18,7 +18,7 @@ package abfab3d.grid.query;
 import java.util.HashSet;
 
 import abfab3d.grid.*;
-import abfab3d.grid.Grid.VoxelClasses;
+import abfab3d.grid.VoxelClasses;
 import abfab3d.path.Path;
 
 /**

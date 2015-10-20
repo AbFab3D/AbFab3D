@@ -149,11 +149,13 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
        
      */
     public void getPointsInGridUnits(double pntx[],double pnty[],double pntz[]){
+        long t0 = System.nanoTime();
         //
         // coordinates are in grid units 
         //
         m_points.getPoints(pntx, pnty, pntz);
-        
+        printf("getPointsInGridUnits.  time: %f ms\n", (System.nanoTime() - t0) / 1e6);
+
     }
 
 

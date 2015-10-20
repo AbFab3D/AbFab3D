@@ -17,6 +17,7 @@ package abfab3d.mesh;
 import abfab3d.grid.ClassTraverser;
 import abfab3d.grid.Grid;
 import abfab3d.grid.GridShortIntervals;
+import abfab3d.grid.VoxelClasses;
 import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.io.input.MeshRasterizer;
 import abfab3d.io.input.STLRasterizer;
@@ -511,7 +512,7 @@ public class TestMeshDecimator extends TestCase {
 
         //writeIsosurface(grid1, gbounds, voxelSize, gridX, gridY, gridZ, "/tmp/diff_orig.stl");
 
-        //int count1 = grid1.findCount(Grid.VoxelClasses.INSIDE);
+        //int count1 = grid1.findCount(VoxelClasses.INSIDE);
 
         printf("MODEL_FACE_COUNT: %d\n", fcount);
         //printf("MODEL_VOXELS_COUNT: %d VOLUME: %7.2f mm^3\n", count1, count1*voxelVolume* MM3);
@@ -521,18 +522,18 @@ public class TestMeshDecimator extends TestCase {
             fcount = fcount/2;
             md.processMesh(mesh, fcount);
             //Grid grid2 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
-            //int count2 = grid2.findCount(Grid.VoxelClasses.INSIDE);
+            //int count2 = grid2.findCount(VoxelClasses.INSIDE);
 
             //printf("count2: %d volume2: %7.2f mm^3\n", count2, count2*voxelVolume* MM3);
             t0 = currentTimeMillis();
             //Grid gridDiff = new ArrayAttributeGridByte(gridX, gridY, gridZ, voxelSize, voxelSize);
             //Grid gridDiff = new GridShortIntervals(gridX, gridY, gridZ, voxelSize, voxelSize);
             //getDifference(grid1, grid2, gridDiff);
-            //int countDiff = gridDiff.findCount(Grid.VoxelClasses.INSIDE);
+            //int countDiff = gridDiff.findCount(VoxelClasses.INSIDE);
             //ErosionMask err = new ErosionMask(1);
             //err.execute(gridDiff);
             //printf("difference found: %d ms\n",(currentTimeMillis() - t0));
-            //int countEroded = gridDiff.findCount(Grid.VoxelClasses.INSIDE);
+            //int countEroded = gridDiff.findCount(VoxelClasses.INSIDE);
             //double erodedVolume = countEroded*voxelVolume*MM3;
             //double differenceVolume = countDiff*voxelVolume*MM3;
             printf("CURRENT_FACE_COUNT: %d\n", mesh.getFaceCount());
@@ -570,8 +571,8 @@ public class TestMeshDecimator extends TestCase {
      */
     public void getDifference(Grid grid1, Grid grid2, Grid difference){
 
-        grid1.findInterruptible(Grid.VoxelClasses.INSIDE, new GridDifference(grid2,difference));
-        grid2.findInterruptible(Grid.VoxelClasses.INSIDE, new GridDifference(grid1,difference));
+        grid1.findInterruptible(VoxelClasses.INSIDE, new GridDifference(grid2,difference));
+        grid2.findInterruptible(VoxelClasses.INSIDE, new GridDifference(grid1,difference));
 
     }
 

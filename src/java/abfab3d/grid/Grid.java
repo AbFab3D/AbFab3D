@@ -32,8 +32,7 @@ public interface Grid extends Cloneable {
     // The voxel is an interior voxel
     public static final byte INSIDE = 1;
 
-    // Classes of voxels
-    public enum VoxelClasses {ALL, INSIDE, OUTSIDE};
+
 
     /** The value for a voxel with no specified material */
     public static final int NO_MATERIAL = 0;

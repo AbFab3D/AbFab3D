@@ -13,7 +13,7 @@
 package abfab3d.grid;
 
 // External Imports
-import abfab3d.grid.Grid.VoxelClasses;
+import abfab3d.grid.VoxelClasses;
 import abfab3d.util.Bounds;
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -123,42 +123,42 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
             wrapper.setState(-1,0,0, Grid.INSIDE);
             fail("Negative width voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
-            assertEquals("No voxels should have been set", 0, wrapper.findCount(Grid.VoxelClasses.INSIDE));
+            assertEquals("No voxels should have been set", 0, wrapper.findCount(VoxelClasses.INSIDE));
         }
 
         try {
             wrapper.setState(width,0,0, Grid.INSIDE);
             fail("Voxel coord greater than width-1 should throw exception");
         } catch (IllegalArgumentException e) {
-            assertEquals("No voxels should have been set", 0, wrapper.findCount(Grid.VoxelClasses.INSIDE));
+            assertEquals("No voxels should have been set", 0, wrapper.findCount(VoxelClasses.INSIDE));
         }
 
         try {
             wrapper.setState(0,-1,0, Grid.INSIDE);
             fail("Negative height voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
-            assertEquals("No voxels should have been set", 0, wrapper.findCount(Grid.VoxelClasses.INSIDE));
+            assertEquals("No voxels should have been set", 0, wrapper.findCount(VoxelClasses.INSIDE));
         }
 
         try {
             wrapper.setState(0,height,0, Grid.INSIDE);
             fail("Voxel coord greater than height-1 should throw exception");
         } catch (IllegalArgumentException e) {
-            assertEquals("No voxels should have been set", 0, wrapper.findCount(Grid.VoxelClasses.INSIDE));
+            assertEquals("No voxels should have been set", 0, wrapper.findCount(VoxelClasses.INSIDE));
         }
 
         try {
             wrapper.setState(0,0,-1, Grid.INSIDE);
             fail("Negative depth voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
-            assertEquals("No voxels should have been set", 0, wrapper.findCount(Grid.VoxelClasses.INSIDE));
+            assertEquals("No voxels should have been set", 0, wrapper.findCount(VoxelClasses.INSIDE));
         }
 
         try {
             wrapper.setState(0,0,depth, Grid.INSIDE);
             fail("Voxel coord greater than depth-1 should throw exception");
         } catch (IllegalArgumentException e) {
-            assertEquals("No voxels should have been set", 0, wrapper.findCount(Grid.VoxelClasses.INSIDE));
+            assertEquals("No voxels should have been set", 0, wrapper.findCount(VoxelClasses.INSIDE));
         }
 
         //-------------------------------------------------------
@@ -248,42 +248,42 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
             wrapper.setStateWorld(-hres, 0.0, 0.0, Grid.INSIDE);
             fail("Negative width world coord did not throw exception");
         } catch (IllegalArgumentException e) {
-            assertEquals("No voxels should have been set", 0, wrapper.findCount(Grid.VoxelClasses.INSIDE));
+            assertEquals("No voxels should have been set", 0, wrapper.findCount(VoxelClasses.INSIDE));
         }
 
         try {
             wrapper.setStateWorld(width + 2 * hres, 0, 0, Grid.INSIDE);
             fail("World coord greater than width+2*hres should throw exception");
         } catch (IllegalArgumentException e) {
-            assertEquals("No voxels should have been set", 0, wrapper.findCount(Grid.VoxelClasses.INSIDE));
+            assertEquals("No voxels should have been set", 0, wrapper.findCount(VoxelClasses.INSIDE));
         }
 
         try {
             wrapper.setStateWorld(0, -vres, 0, Grid.INSIDE);
             fail("Negative height world coord did not throw exception");
         } catch (IllegalArgumentException e) {
-            assertEquals("No voxels should have been set", 0, wrapper.findCount(Grid.VoxelClasses.INSIDE));
+            assertEquals("No voxels should have been set", 0, wrapper.findCount(VoxelClasses.INSIDE));
         }
 
         try {
             wrapper.setStateWorld(0, height + 2 * vres, 0, Grid.INSIDE);
             fail("Voxel world greater than height+2*vres should throw exception");
         } catch (IllegalArgumentException e) {
-            assertEquals("No voxels should have been set", 0, wrapper.findCount(Grid.VoxelClasses.INSIDE));
+            assertEquals("No voxels should have been set", 0, wrapper.findCount(VoxelClasses.INSIDE));
         }
 
         try {
             wrapper.setStateWorld(0, 0, -hres, Grid.INSIDE);
             fail("Negative depth world coord did not throw exception");
         } catch (IllegalArgumentException e) {
-            assertEquals("No voxels should have been set", 0, wrapper.findCount(Grid.VoxelClasses.INSIDE));
+            assertEquals("No voxels should have been set", 0, wrapper.findCount(VoxelClasses.INSIDE));
         }
 
         try {
             wrapper.setStateWorld(0, 0, depth + 2 * hres, Grid.INSIDE);
             fail("World coord greater than depth+2*hres should throw exception");
         } catch (IllegalArgumentException e) {
-            assertEquals("No voxels should have been set", 0, wrapper.findCount(Grid.VoxelClasses.INSIDE));
+            assertEquals("No voxels should have been set", 0, wrapper.findCount(VoxelClasses.INSIDE));
         }
 
         //-------------------------------------------------------

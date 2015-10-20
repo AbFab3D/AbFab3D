@@ -13,11 +13,14 @@
 package abfab3d.datasources;
 
 
+import abfab3d.grid.Grid2D;
+import abfab3d.grid.Grid2DShort;
 import abfab3d.util.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 import javax.vecmath.Vector3d;
 
@@ -220,11 +223,27 @@ public class Image3D extends TransformableDataSource {
      */
     public Image3D(ImageWrapper imwrapper, double sx, double sy, double sz, double voxelSize) {
         initParams();
-        setImage(imwrapper.getImage());
+        setImage(imwrapper);
         setSize(sx, sy, sz);
         setVoxelSize(voxelSize);
     }
-    
+
+    /**
+     * Image3D with given image path and size
+     *
+     * @param grid grid representation of image
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box.
+     * @param voxelSize size of voxel to be used for image voxelization
+     */
+    public Image3D(Grid2D grid, double sx, double sy, double sz, double voxelSize) {
+        initParams();
+        setImage(grid);
+        setSize(sx, sy, sz);
+        setVoxelSize(voxelSize);
+    }
+
     protected void initParams(){
         super.addParams(m_aparam);
     }
@@ -321,13 +340,17 @@ public class Image3D extends TransformableDataSource {
      * @noRefGuide
      */
     public void setImage(BufferedImage image) {
-
         m_image = image;
 
     }
 
     public void setImage(ImageWrapper wrapper) {
-        m_image = wrapper.getImage();
+        //m_image = wrapper.getImage();   old way
+        m_image = Grid2DShort.convertGridToImage(wrapper.getGrid());
+    }
+
+    public void setImage(Grid2D grid) {
+        m_image = Grid2DShort.convertGridToImage(grid);
     }
 
     /**
@@ -515,6 +538,9 @@ public class Image3D extends TransformableDataSource {
         long t0 = time();
 
         BufferedImage image = null;
+
+        printf("Image3D.  buff_image: %s\n",image);
+
         if (m_image != null) {
             // image was supplied via memory 
             image = m_image;
@@ -546,6 +572,13 @@ public class Image3D extends TransformableDataSource {
         short imageDataShort[] = ImageUtil.getGray16Data(image);
         imageData = new ImageGray16(imageDataShort, image.getWidth(), image.getHeight());
 
+        if (DEBUG) {
+            try {
+                imageData.write("/tmp/image3d.png", 0xFF);
+            } catch(IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
         printf("image data size: done in %d ms\n", (time() - t0));
 
         if (!useGrayscale) {

@@ -21,6 +21,8 @@ import java.io.File;
 import java.io.IOException;
 
 
+import abfab3d.grid.Grid2D;
+import abfab3d.grid.Grid2DShort;
 import abfab3d.param.ObjectParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.DoubleParameter;
@@ -28,6 +30,7 @@ import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.BooleanParameter;
 
+import abfab3d.util.ImageUtil;
 import abfab3d.util.Vec;
 import abfab3d.util.ImageGray16;
 
@@ -238,8 +241,11 @@ public class ImageMap extends TransformableDataSource {
 
         } else if(imageSource instanceof ImageWrapper){
 
-            m_imageData = new ImageGray16(((ImageWrapper)imageSource).getImage());
-            
+           m_imageData = new ImageGray16(((ImageWrapper)imageSource).getImage());
+        } else if (imageSource instanceof Grid2DShort) {
+            long t0 = System.currentTimeMillis();
+            m_imageData = new ImageGray16(Grid2DShort.convertGridToImage((Grid2DShort)imageSource));
+            printf("Convert to grid.  time: %d ms\n",(System.currentTimeMillis() - t0));
         }
 
         if (m_imageData == null) {
@@ -248,6 +254,7 @@ public class ImageMap extends TransformableDataSource {
             printf("Converted to string: " + file);
             try {
                 m_imageData = new ImageGray16(ImageIO.read(new File(file)));
+
             } catch(IOException e) {
                 // empty 1x1 image
                 m_imageData = new ImageGray16();

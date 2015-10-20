@@ -22,6 +22,19 @@ package abfab3d.grid;
    @author Vladimir Bulatov 
  */
 public interface Grid2D {
+    /**
+     * Get the number of height cells.
+     *
+     * @return the val
+     */
+    public int getHeight();
+
+    /**
+     * Get the number of width cells.
+     *
+     * @return the val
+     */
+    public int getWidth();
 
     /**
      * Get the attribute of the voxel, 2D version
@@ -40,5 +53,33 @@ public interface Grid2D {
      * @param attribute value of attribute 
      */
     public void setAttribute(int x, int y, long attribute);
-    
+
+    /**
+     * Create an empty grid of the specified size.  Reuses
+     * the grid type and material type(byte, short, int).
+     *
+     * @param w The number of voxels in width
+     * @param h The number of voxels in height
+     * @param pixel The pixel size in meters
+     */
+    public Grid2D createEmpty(int w, int h, double pixel);
+
+    /**
+     * Get the voxel size in xz.
+     *
+     * @return The value
+     */
+    public double getVoxelSize();
+
+    /**
+     assign to the grid a description of a voxel attributes
+     @param description The attirbute description
+     */
+    public void setAttributeDesc(AttributeDesc description);
+
+    /**
+     @return voxel attribute description assigned to the grid
+     */
+    public AttributeDesc getAttributeDesc();
+
 }

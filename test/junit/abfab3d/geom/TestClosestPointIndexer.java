@@ -55,10 +55,10 @@ public class TestClosestPointIndexer extends TestCase {
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestDistanceToTriangleSet.class);
+        return new TestSuite(TestClosestPointIndexer.class);
     }
 
-    void testNothing()throws Exception{
+    public void testNothing()throws Exception{
         // to make tester happy 
     }
 

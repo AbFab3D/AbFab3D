@@ -165,15 +165,15 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         int expectedOutCount = expectedAllCount - expectedMrkCount;
 
         resetCounts();
-        grid.find(Grid.VoxelClasses.ALL, this);
+        grid.find(VoxelClasses.ALL, this);
         assertEquals("All voxel count is not " + expectedAllCount, expectedAllCount, allCount);
 
         resetCounts();
-        grid.find(Grid.VoxelClasses.INSIDE, this);
+        grid.find(VoxelClasses.INSIDE, this);
         assertEquals("Marked voxel count is not " + expectedMrkCount, expectedMrkCount, mrkCount);
 
         resetCounts();
-        grid.find(Grid.VoxelClasses.OUTSIDE, this);
+        grid.find(VoxelClasses.OUTSIDE, this);
         assertEquals("Outside voxel count is not " + expectedOutCount, expectedOutCount, outCount);
     }
 
@@ -194,7 +194,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         }
 
         FindIterateTester ft = new FindIterateTester(vcSetInt);
-        grid.find(Grid.VoxelClasses.INSIDE, ft);
+        grid.find(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with INSIDE state",
                 ft.foundAllVoxels());
@@ -202,7 +202,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         // make sure that finding a voxel not in the list returns false
         grid.setState(10, 6, 2, Grid.INSIDE);
         ft = new FindIterateTester(vcSetInt);
-        grid.find(Grid.VoxelClasses.INSIDE, ft);
+        grid.find(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state iterator should return false",
                 ft.foundAllVoxels());
@@ -210,7 +210,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         // make sure that not finding a voxel in the list returns false
         grid.setState(1, 5, 6, Grid.INSIDE);
         ft = new FindIterateTester(vcSetInt);
-        grid.find(Grid.VoxelClasses.INSIDE, ft);
+        grid.find(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state iterator should return false",
                 ft.foundAllVoxels());
@@ -245,7 +245,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         }
 
         FindIterateTester ft = new FindIterateTester(vcSetInt);
-        grid.find(Grid.VoxelClasses.INSIDE, ft);
+        grid.find(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
@@ -271,7 +271,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         }
 
         FindIterateTester ft = new FindIterateTester(vcSetInt);
-        grid.findInterruptible(Grid.VoxelClasses.INSIDE, ft);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with INSIDE state",
                 ft.foundAllVoxels());
@@ -281,7 +281,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         grid.setState(5, 2, 2, Grid.OUTSIDE);
         grid.setState(1, 3, 3, Grid.INSIDE);
         ft = new FindIterateTester(vcSetInt);
-        grid.findInterruptible(Grid.VoxelClasses.INSIDE, ft);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state interruptible iterator should return false",
                 ft.foundAllVoxels());
@@ -292,7 +292,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         // do this by changing one of the interior voxels to outside state
         grid.setState(1, 5, 6, Grid.OUTSIDE);
         ft = new FindIterateTester(vcSetInt);
-        grid.findInterruptible(Grid.VoxelClasses.INSIDE, ft);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state interruptible iterator should return false", ft.foundAllVoxels());
     }
@@ -324,7 +324,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         }
 
         FindIterateTester ft = new FindIterateTester(vcSetInt);
-        grid.findInterruptible(Grid.VoxelClasses.INSIDE, ft);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
@@ -357,9 +357,9 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         int expectedMrkCount = expectedIntCount + expectedExtCount;
         int expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
-        assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(Grid.VoxelClasses.ALL));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(Grid.VoxelClasses.INSIDE));
-        assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(Grid.VoxelClasses.OUTSIDE));
+        assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(VoxelClasses.ALL));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.INSIDE));
+        assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(VoxelClasses.OUTSIDE));
 
         // change one of the interior voxel rows to outside
         for (int y = 0; y < height; y++) {
@@ -373,9 +373,9 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         expectedMrkCount = expectedIntCount + expectedExtCount;
         expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
-        assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(Grid.VoxelClasses.ALL));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(Grid.VoxelClasses.INSIDE));
-        assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(Grid.VoxelClasses.OUTSIDE));
+        assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(VoxelClasses.ALL));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.INSIDE));
+        assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(VoxelClasses.OUTSIDE));
     }
 
 

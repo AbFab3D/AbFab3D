@@ -88,10 +88,10 @@ public class ErosionMask implements Operation, AttributeOperation {
         if(m_nnCount == 0){
             
             // spherical erosion 
-            m_grid.find(Grid.VoxelClasses.INSIDE, new CustomVoxelsCollector(m_grid, m_surfaceMask, MaskFactory.makeBall(m_iterCount), m_voxelChecker));
-            //m_grid.find(Grid.VoxelClasses.INSIDE, new SphericalVoxelsCollector(m_grid, m_surfaceMask, m_iterCount, m_voxelChecker));
+            m_grid.find(VoxelClasses.INSIDE, new CustomVoxelsCollector(m_grid, m_surfaceMask, MaskFactory.makeBall(m_iterCount), m_voxelChecker));
+            //m_grid.find(VoxelClasses.INSIDE, new SphericalVoxelsCollector(m_grid, m_surfaceMask, m_iterCount, m_voxelChecker));
             // set marked voxels as OUTSIDE
-            m_surfaceMask.find(Grid.VoxelClasses.INSIDE, new VoxelStateSetter(m_grid, Grid.OUTSIDE));
+            m_surfaceMask.find(VoxelClasses.INSIDE, new VoxelStateSetter(m_grid, Grid.OUTSIDE));
             m_surfaceMask.clear();
             
         } else {
@@ -138,12 +138,12 @@ public class ErosionMask implements Operation, AttributeOperation {
         //} else {
             // no surface calculated yet. Scan the whole grid to find marked voxels     
 
-        m_grid.find(Grid.VoxelClasses.INSIDE, new SurfaceVoxelsCollector(m_grid, m_surfaceMask, nnCount));
+        m_grid.find(VoxelClasses.INSIDE, new SurfaceVoxelsCollector(m_grid, m_surfaceMask, nnCount));
         
         //}
 
         // set marked voxels as OUTSIDE
-        m_surfaceMask.find(Grid.VoxelClasses.INSIDE, new VoxelStateSetter(m_grid, Grid.OUTSIDE));
+        m_surfaceMask.find(VoxelClasses.INSIDE, new VoxelStateSetter(m_grid, Grid.OUTSIDE));
 
         m_surfaceMask.clear();
 

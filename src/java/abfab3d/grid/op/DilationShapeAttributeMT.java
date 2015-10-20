@@ -241,7 +241,7 @@ public class DilationShapeAttributeMT implements Operation, AttributeOperation {
                     // end of processing 
                     break;
                 }
-                grid.findAttribute(Grid.VoxelClasses.INSIDE, this, 0, m_nx - 1, slice.ymin, slice.ymax);
+                grid.findAttribute(VoxelClasses.INSIDE, this, 0, m_nx - 1, slice.ymin, slice.ymax);
             }
         }
             
@@ -321,7 +321,7 @@ public class DilationShapeAttributeMT implements Operation, AttributeOperation {
                 } else if(res == RESULT_OK){
 
                     //printf("%s: [%d,%d]\n", Thread.currentThread(), slice.ymin, slice.ymax);
-                    surface.findAttribute(Grid.VoxelClasses.INSIDE, this, 0, m_nx - 1, slice.ymin, slice.ymax);
+                    surface.findAttribute(VoxelClasses.INSIDE, this, 0, m_nx - 1, slice.ymin, slice.ymax);
 
                 } if(res == RESULT_BUSY){
                     try {Thread.sleep(1);} catch(Exception e){}

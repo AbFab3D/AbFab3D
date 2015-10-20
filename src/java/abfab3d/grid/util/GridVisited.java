@@ -203,7 +203,7 @@ import abfab3d.grid.*;
 
         this.grid = grid;
 
-        grid.findInterruptible(Grid.VoxelClasses.INSIDE, this);
+        grid.findInterruptible(VoxelClasses.INSIDE, this);
 
         grid = null;
         gridAtt = null;
@@ -222,7 +222,7 @@ import abfab3d.grid.*;
         this.gridAtt = grid;
         this.grid = grid;
 
-        gridAtt.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat, this);
+        gridAtt.findAttributeInterruptible(VoxelClasses.INSIDE, mat, this);
 
         grid = null;
         gridAtt = null;

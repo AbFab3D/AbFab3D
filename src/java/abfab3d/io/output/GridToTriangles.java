@@ -17,6 +17,7 @@ import javax.vecmath.Vector3d;
 
 import abfab3d.grid.Grid;
 import abfab3d.grid.ClassTraverser;
+import abfab3d.grid.VoxelClasses;
 import abfab3d.util.TriangleCollector;
 
 
@@ -77,7 +78,7 @@ public class GridToTriangles implements ClassTraverser {
         this.out = out;
                 
         // traverse the grid with triMaker 
-        grid.findInterruptible(Grid.VoxelClasses.INSIDE, this);
+        grid.findInterruptible(VoxelClasses.INSIDE, this);
         
     }
     

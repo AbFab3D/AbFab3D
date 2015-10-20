@@ -12,13 +12,7 @@
 
 package abfab3d.grid.op;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Operation;
-import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.GridBitIntervals;
-import abfab3d.grid.ClassTraverser;
-import abfab3d.grid.GridBit;
+import abfab3d.grid.*;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
@@ -82,10 +76,10 @@ public class ErosionShape implements Operation, AttributeOperation {
         
         GridBitIntervals m_surface = new GridBitIntervals(grid.getWidth(), grid.getHeight(), grid.getDepth());
         long t0 = time();
-        grid.find(Grid.VoxelClasses.INSIDE, new SurfaceFinder(grid, m_surface));
+        grid.find(VoxelClasses.INSIDE, new SurfaceFinder(grid, m_surface));
         printf("surface: %d ms\n", (time()-t0));
         t0 = time();
-        m_surface.find(Grid.VoxelClasses.INSIDE, new ShapeEroder(grid, m_voxelShape, m_voxelChecker));
+        m_surface.find(VoxelClasses.INSIDE, new ShapeEroder(grid, m_voxelShape, m_voxelChecker));
         printf("erosion: %d ms\n", (time()-t0));
         
         m_surface.release();

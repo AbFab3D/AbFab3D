@@ -241,13 +241,13 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         }
 
         FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetIntMat1);
-        grid.findAttribute(Grid.VoxelClasses.INSIDE, mat1, ft);
+        grid.findAttribute(VoxelClasses.INSIDE, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
 
         ft = new FindAttributeIterateTester(vcSetIntMat2);
-        grid.findAttribute(Grid.VoxelClasses.INSIDE, mat2, ft);
+        grid.findAttribute(VoxelClasses.INSIDE, mat2, ft);
 
         assertTrue("Found state iterator did not find all voxels with INSIDE state and material " + mat2,
                 ft.foundAllVoxels());
@@ -255,7 +255,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         // make sure that finding a voxel not in the list returns false
         grid.setData(10, 6, 2, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetIntMat1);
-        grid.findAttribute(Grid.VoxelClasses.INSIDE, mat1, ft);
+        grid.findAttribute(VoxelClasses.INSIDE, mat1, ft);
 
         assertFalse("Found state and material iterator should return false",
                 ft.foundAllVoxels());
@@ -263,7 +263,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         // make sure that not finding a voxel in the list returns false
         grid.setData(1, 5, 6, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetIntMat2);
-        grid.findAttribute(Grid.VoxelClasses.INSIDE, ft);
+        grid.findAttribute(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state and material iterator should return false",
                 ft.foundAllVoxels());
@@ -297,7 +297,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         }
 
         FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetIntMat1);
-        grid.findAttribute(Grid.VoxelClasses.INSIDE, mat1, ft);
+        grid.findAttribute(VoxelClasses.INSIDE, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
@@ -332,17 +332,17 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         }
 
         FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetIntMat1);
-        grid.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat1, ft);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, mat1, ft);
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
 
         ft = new FindAttributeIterateTester(vcSetIntMat1);
-        grid.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat1, ft);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, mat1, ft);
         assertTrue("Found iterator did not find all voxels with INSIDE state and material " + mat1,
                 ft.foundAllVoxels());
 
         ft = new FindAttributeIterateTester(vcSetIntMat2);
-        grid.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat2, ft);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, mat2, ft);
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat2,
                 ft.foundAllVoxels());
 
@@ -351,7 +351,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         grid.setData(5, 2, 2, Grid.OUTSIDE, 0);
         grid.setData(1, 3, 3, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetIntMat1);
-        grid.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat1, ft);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, mat1, ft);
 
         assertFalse("Found state and material interruptible iterator should return false",
                 ft.foundAllVoxels());
@@ -362,7 +362,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         // do this by changing one of the interior and mat2 voxels
         grid.setData(1, 5, 6, Grid.OUTSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetIntMat2);
-        grid.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat2, ft);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, mat2, ft);
 
         assertFalse("Found state and material iterator should return false", ft.foundAllVoxels());
 
@@ -395,7 +395,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         }
 
         FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetIntMat1);
-        grid.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat1, ft);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());

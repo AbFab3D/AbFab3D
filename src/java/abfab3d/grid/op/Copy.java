@@ -26,7 +26,7 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class Copy implements Operation, AttributeOperation, ClassTraverser, ClassAttributeTraverser {
+public class Copy implements Operation, AttributeOperation, Operation2D, ClassTraverser, ClassAttributeTraverser {
     /** The x location */
     private int x0;
 
@@ -38,6 +38,7 @@ public class Copy implements Operation, AttributeOperation, ClassTraverser, Clas
 
     /** The src grid */
     private Grid src;
+    private Grid2D src2d;
 
     /** The dest grid */
     private Grid destGrid;
@@ -50,8 +51,17 @@ public class Copy implements Operation, AttributeOperation, ClassTraverser, Clas
         this.z0 = z;
     }
 
+    public Copy(Grid2D src, int x, int y) {
+        this.src2d = src;
+        this.x0 = x;
+        this.y0 = y;
+    }
+
     public Copy(Grid src) {
         this.src = src;
+    }
+    public Copy(Grid2D src) {
+        this.src2d = src;
     }
 
     /**
@@ -63,7 +73,7 @@ public class Copy implements Operation, AttributeOperation, ClassTraverser, Clas
      */
     public AttributeGrid execute(AttributeGrid dest) {
         destGridAtt = dest;
-        ((AttributeGrid)src).findAttribute(Grid.VoxelClasses.INSIDE, this);
+        ((AttributeGrid)src).findAttribute(VoxelClasses.INSIDE, this);
 
         destGridAtt = null;
         return dest;
@@ -78,9 +88,29 @@ public class Copy implements Operation, AttributeOperation, ClassTraverser, Clas
      */
     public Grid execute(Grid dest) {
         destGrid = dest;
-        src.find(Grid.VoxelClasses.INSIDE, this);
+        src.find(VoxelClasses.INSIDE, this);
 
         destGrid = null;
+        return dest;
+    }
+
+    /**
+     * Execute an operation on a grid.  If the operation changes the grid
+     * dimensions then a new one will be returned from the call.
+     *
+     * @param dest The grid to use for grid dest
+     * @return The new grid
+     */
+    public Grid2D execute(Grid2D dest) {
+        int w = src2d.getWidth();
+        int h = src2d.getHeight();
+
+        for(int y=0; y < h; y++) {
+            for(int x=0; x < w; x++) {
+                dest.setAttribute(x0 + x, y0 + y, src2d.getAttribute(x,y));
+            }
+        }
+
         return dest;
     }
 

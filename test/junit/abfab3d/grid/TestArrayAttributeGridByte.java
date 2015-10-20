@@ -61,7 +61,7 @@ public class TestArrayAttributeGridByte extends BaseTestAttributeGrid {
         FindIterateTester ft = new FindIterateTester(vcSetMat1,true);
 
         long t0 = time();
-        grid.findMT(Grid.VoxelClasses.INSIDE,ft, 0);
+        grid.findMT(VoxelClasses.INSIDE,ft, 0);
 
         System.out.println("Count: " + ft.getIterateCount() + " time: " + (time() - t0));
         assertEquals("Total count", grid.getWidth() * 2, ft.getIterateCount());
@@ -108,7 +108,7 @@ public class TestArrayAttributeGridByte extends BaseTestAttributeGrid {
         //GridShortIntervals grid = getSphereIntervalGrid(0.01*Units.MM);
         ArrayAttributeGridByte grid = getSphereGrid(0.01*Units.MM);
 */
-        long count = grid.findCount(Grid.VoxelClasses.INSIDE);
+        long count = grid.findCount(VoxelClasses.INSIDE);
         long voxels =  (long) grid.getWidth()* grid.getHeight() * grid.getDepth();
         printf("Inside count: %d filled: %3.2f\n",count,(((float)count / voxels) * 100.0f));
 
@@ -141,11 +141,11 @@ public class TestArrayAttributeGridByte extends BaseTestAttributeGrid {
         float max_speedup = 0;
         for(int i=0; i < TIMES; i++) {
             long t0 = time();
-            grid.findMT(Grid.VoxelClasses.INSIDE,ft_ct, 0);
+            grid.findMT(VoxelClasses.INSIDE,ft_ct, 0);
             long mt_time = time() - t0;
 
             t0 = time();
-            grid.find(Grid.VoxelClasses.INSIDE,ft_ct);
+            grid.find(VoxelClasses.INSIDE,ft_ct);
             long st_time = time() - t0;
 
             float speedup = (float) st_time / mt_time;

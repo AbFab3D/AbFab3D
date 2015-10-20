@@ -63,7 +63,7 @@ import abfab3d.grid.*;
       * @param grid
       * @param target
       */
-    public GridVisitedIndexed(Grid grid, Grid.VoxelClasses target) {
+    public GridVisitedIndexed(Grid grid, VoxelClasses target) {
         if (grid instanceof AttributeGrid) {
             this.gridAtt = (AttributeGrid) grid;
         }
@@ -88,7 +88,7 @@ import abfab3d.grid.*;
       * @param target
       * @param mat
       */
-    public GridVisitedIndexed(AttributeGrid grid, Grid.VoxelClasses target, long mat) {
+    public GridVisitedIndexed(AttributeGrid grid, VoxelClasses target, long mat) {
         if (grid instanceof AttributeGrid) {
             this.gridAtt = (AttributeGrid) grid;
         }

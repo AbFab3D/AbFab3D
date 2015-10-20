@@ -59,26 +59,27 @@ public class TestGrid2DInt extends TestCase {
         attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24, 0));
         attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "d", 8, 24));
 
-        AttributeGrid grid = new Grid2DInt(nx, ny);
+        Grid2D grid = new Grid2DInt(nx, ny);
         grid.setAttributeDesc(attDesc);
-
-        Grid2D g2 = (Grid2D)grid;
 
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){
                 long xx  = x;
                 long yy = y;
                 long att = ( (((xx) & 0xFF) << 8) | (((yy) & 0xFF) << 24) | (((xx+yy) & 0xFF) << 16) | ((( xx-yy) & 0xFF ) ) )  & INTMASK;
-                g2.setAttribute(x,y,att);
-                long a = g2.getAttribute(x,y);
+                grid.setAttribute(x,y,att);
+                long a = grid.getAttribute(x,y);
                 if(a != att) 
                     assertTrue(fmt("%d != %d\n",a, att), a == att);
             }
         }
+
+        /*
         if(DEBUG_WRITE){
             SVXWriter svx = new SVXWriter(2);
             svx.write(grid, "/tmp/testOut/testSmallGrid.svx");
         }
+        */
     }
 
     public void _testLargeGrid(){

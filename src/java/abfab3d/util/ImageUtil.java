@@ -11,14 +11,12 @@
  ****************************************************************************/
 
 package abfab3d.util;
+
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.Graphics2D;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferUShort;
-import java.awt.image.DataBufferByte;
+import java.awt.image.*;
 
 import static java.lang.Math.max;
 import static abfab3d.util.Output.printf;
@@ -187,8 +185,8 @@ public class ImageUtil {
         int b2 = getBlue(c2);
         int a2 = getAlpha(c2);
         
-        int r3 = combineInt(r1,r2,a2);
-        int g3 = combineInt(g1,g2,a2);
+        int r3 = combineInt(r1, r2, a2);
+        int g3 = combineInt(g1, g2, a2);
         int b3 = combineInt(b1,b2,a2);
 
         return (r3 + g3 + b3)/3;
@@ -528,11 +526,11 @@ public class ImageUtil {
         
         double r = max(0, hueToRGB(p, q, hue + (1./3.)));
         double g = max(0, hueToRGB(p, q, hue));
-        double b = max(0, hueToRGB(p, q, hue - (1./3.)));
+        double b = max(0, hueToRGB(p, q, hue - (1. / 3.)));
         
         return makeRGB((int)(r*MAXC),(int)(g*MAXC),(int)(b*MAXC));
     }
-    
+
     private static double hueToRGB(double p, double q, double h)  {
 
         if (h < 0) h += 1;
@@ -555,7 +553,7 @@ public class ImageUtil {
         return p;
     }
 
-    // unsigned byte to unsignes short conversion 
+    // unsigned byte to unsigned short conversion
     // with scaling to map 0xFF to 0xFFFF 
     final static int ub2us(int ub){
         int b = (ub & 0xFF);

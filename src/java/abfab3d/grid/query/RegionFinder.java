@@ -113,7 +113,7 @@ public class RegionFinder {
         this.grid = grid;
         regions = new ArrayList<Region>();
 
-        visited = new GridVisitedIndexed(grid, Grid.VoxelClasses.INSIDE);
+        visited = new GridVisitedIndexed(grid, VoxelClasses.INSIDE);
 
         VoxelCoordinate vc;
 
@@ -189,7 +189,7 @@ public class RegionFinder {
         this.grid = grid;
         regions = new ArrayList<Region>();
 
-        visited = new GridVisitedIndexed(grid, Grid.VoxelClasses.INSIDE, mat);
+        visited = new GridVisitedIndexed(grid, VoxelClasses.INSIDE, mat);
 
         VoxelCoordinate vc;
 

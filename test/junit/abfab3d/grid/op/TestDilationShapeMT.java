@@ -156,7 +156,7 @@ public class TestDilationShapeMT extends TestCase {
         for(int k = maxDilation-1; k < maxDilation; k++){
             int s = size+2*(maxDilation+1);
             AttributeGrid grid = makeBlock(gridType,s,s,s, maxDilation);
-            printf("dilation size: %d  volume: %d \n",k,grid.findCount(Grid.VoxelClasses.INSIDE));
+            printf("dilation size: %d  volume: %d \n",k,grid.findCount(VoxelClasses.INSIDE));
             DilationShapeMT dilm = new DilationShapeMT();
             dilm.setVoxelShape(VoxelShapeFactory.getBall(k,0,0));
             dilm.setThreadCount(cores);
@@ -164,7 +164,7 @@ public class TestDilationShapeMT extends TestCase {
             long t0 = time();
             grid = dilm.execute(grid);
             printf("DilationShapeMT: %dms\n",(time() - t0));
-            int dilatedVolumeMT =  grid.findCount(Grid.VoxelClasses.INSIDE);
+            int dilatedVolumeMT =  grid.findCount(VoxelClasses.INSIDE);
             printf("DilationShape DilationShapeMT: %d\n",dilatedVolumeMT);
 
             grid = makeBlock(gridType,s,s,s, maxDilation);

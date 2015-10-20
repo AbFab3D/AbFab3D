@@ -58,7 +58,7 @@ public class TestTriangleMeshShellBuilder extends TestCase {
         return new TestSuite(TestTriangleMeshShellBuilder.class);
     }
 
-    void testNothing()throws Exception{
+    public void testNothing()throws Exception{
         // to make tester happy 
     }
 

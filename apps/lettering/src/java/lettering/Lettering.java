@@ -301,7 +301,7 @@ System.out.println("translate: " + x + " " + y + " " + z);
 
     }
     private void write(Grid grid, String type, OutputStream os, ErrorReporter console) {
-        System.out.println("exterior voxels: " + grid.findCount(Grid.VoxelClasses.INSIDE));
+        System.out.println("exterior voxels: " + grid.findCount(VoxelClasses.INSIDE));
         // Output File
 //        BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
 //        RegionsX3DExporter exporter = new RegionsX3DExporter(type, os, console);

@@ -16,7 +16,7 @@ package abfab3d.grid;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import abfab3d.grid.Grid.VoxelClasses;
+import abfab3d.grid.VoxelClasses;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 

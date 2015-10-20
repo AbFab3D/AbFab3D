@@ -17,13 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors; 
 import java.util.concurrent.TimeUnit;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Operation;
-import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.GridBitIntervals;
-import abfab3d.grid.ClassTraverser;
-import abfab3d.grid.GridBit;
+import abfab3d.grid.*;
 import abfab3d.util.AbFab3DGlobals;
 
 import static abfab3d.util.Output.printf;
@@ -149,7 +143,7 @@ public class ErosionShapeMT implements Operation, AttributeOperation {
             e.printStackTrace();
         }
 
-        //grid.find(Grid.VoxelClasses.INSIDE, new SurfaceFinder(grid, m_surface));
+        //grid.find(VoxelClasses.INSIDE, new SurfaceFinder(grid, m_surface));
         printf("surface: %d ms\n", (time()-t0));
 
         t0 = time();
@@ -181,7 +175,7 @@ public class ErosionShapeMT implements Operation, AttributeOperation {
         }
 
 
-        //surface.find(Grid.VoxelClasses.INSIDE, new ShapeEroder(grid, m_voxelShape, m_voxelChecker));
+        //surface.find(VoxelClasses.INSIDE, new ShapeEroder(grid, m_voxelShape, m_voxelChecker));
 
         printf("erosion: %d ms\n", (time()-t0));
         
@@ -255,7 +249,7 @@ public class ErosionShapeMT implements Operation, AttributeOperation {
                 if(slice == null)
                     break;
                 
-                surface.find(Grid.VoxelClasses.INSIDE, this, 0, m_nx-1, slice.ymin, slice.ymax);
+                surface.find(VoxelClasses.INSIDE, this, 0, m_nx-1, slice.ymin, slice.ymax);
                 
             }                        
         }
@@ -330,7 +324,7 @@ public class ErosionShapeMT implements Operation, AttributeOperation {
                     // end of processing 
                     break;
                 }
-                grid.find(Grid.VoxelClasses.INSIDE, this, 0, m_nx-1, slice.ymin, slice.ymax);
+                grid.find(VoxelClasses.INSIDE, this, 0, m_nx-1, slice.ymin, slice.ymax);
             }
         }
             

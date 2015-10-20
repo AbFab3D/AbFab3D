@@ -18,13 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Operation;
-import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.GridBitIntervals;
-import abfab3d.grid.ClassTraverser;
-import abfab3d.grid.GridBit;
+import abfab3d.grid.*;
 import abfab3d.util.AbFab3DGlobals;
 
 import static abfab3d.util.Output.printf;
@@ -330,7 +324,7 @@ public class DilationShapeMT implements Operation, AttributeOperation {
                     // end of processing 
                     break;
                 }
-                grid.find(Grid.VoxelClasses.INSIDE, this, 0, m_nx-1, slice.ymin, slice.ymax);
+                grid.find(VoxelClasses.INSIDE, this, 0, m_nx-1, slice.ymin, slice.ymax);
             }
         }
             
@@ -408,7 +402,7 @@ public class DilationShapeMT implements Operation, AttributeOperation {
                 } else if(res == RESULT_OK){
 
                     //printf("%s: [%d,%d]\n", Thread.currentThread(), slice.ymin, slice.ymax);
-                    surface.find(Grid.VoxelClasses.INSIDE, this, 0, m_nx-1, slice.ymin, slice.ymax);
+                    surface.find(VoxelClasses.INSIDE, this, 0, m_nx-1, slice.ymin, slice.ymax);
 
                 } if(res == RESULT_BUSY){
                     try {Thread.sleep(1);} catch(Exception e){}

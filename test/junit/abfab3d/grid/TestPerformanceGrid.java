@@ -151,7 +151,7 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
         setY(grid, Grid.INSIDE, 0);
         setZ(grid, Grid.INSIDE, 0);
 
-        grid.findCount(Grid.VoxelClasses.INSIDE);
+        grid.findCount(VoxelClasses.INSIDE);
 
 //        assertTrue("stop",1 == 0);
     }
@@ -448,13 +448,13 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
-            grid.findCount(Grid.VoxelClasses.INSIDE);
+            grid.findCount(VoxelClasses.INSIDE);
         }
 
         long stime = System.nanoTime();
 
         for(int i=0; i < times; i++) {
-            grid.findCount(Grid.VoxelClasses.INSIDE);
+            grid.findCount(VoxelClasses.INSIDE);
         }
 
         long totalTime1 = System.nanoTime() - stime;
@@ -471,13 +471,13 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
-            grid.findCount(Grid.VoxelClasses.INSIDE);
+            grid.findCount(VoxelClasses.INSIDE);
         }
 
         stime = System.nanoTime();
 
         for(int i=0; i < times; i++) {
-            grid.findCount(Grid.VoxelClasses.INSIDE);
+            grid.findCount(VoxelClasses.INSIDE);
         }
 
         long totalTime2 = System.nanoTime() - stime;
@@ -499,13 +499,13 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
-            grid.findCount(Grid.VoxelClasses.INSIDE);
+            grid.findCount(VoxelClasses.INSIDE);
         }
 
         stime = System.nanoTime();
 
         for(int i=0; i < times; i++) {
-            grid.findCount(Grid.VoxelClasses.INSIDE);
+            grid.findCount(VoxelClasses.INSIDE);
         }
 
         long totalTime3 = System.nanoTime() - stime;
@@ -988,7 +988,7 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
                 rx,ry,rz,rangle,innerMaterial,solid);
 
         tmc.generate(grid);
-        //System.out.println("interior cnt: " + grid.findCount(Grid.VoxelClasses.INSIDE) + " solid: " + solid);
+        //System.out.println("interior cnt: " + grid.findCount(VoxelClasses.INSIDE) + " solid: " + solid);
     }
 
     /**

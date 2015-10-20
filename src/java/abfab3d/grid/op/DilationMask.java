@@ -12,14 +12,7 @@
 
 package abfab3d.grid.op;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Operation;
-import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.GridBitIntervals;
-import abfab3d.grid.ClassTraverser;
-import abfab3d.grid.GridBit;
-import abfab3d.grid.VoxelStateSetter;
+import abfab3d.grid.*;
 
 import static abfab3d.util.Output.printf;
 
@@ -96,10 +89,10 @@ public class DilationMask implements Operation, AttributeOperation {
             // spherical dilation 
             m_marked =  new GridBitIntervals(m_nx, m_ny, m_nz);
             
-            //m_grid.find(Grid.VoxelClasses.OUTSIDE, new CustomOutsideVoxelProcesser(m_grid, m_marked, makeBall(m_iterCount), m_voxelChecker));
-            m_grid.find(Grid.VoxelClasses.INSIDE, new CustomInsideVoxelProcesser(m_grid, m_marked, MaskFactory.makeBall(m_iterCount), m_voxelChecker));
-            //m_grid.find(Grid.VoxelClasses.INSIDE, new SphericalVoxelProcesser(m_grid, m_marked, m_iterCount, m_voxelChecker));
-            m_marked.find(Grid.VoxelClasses.INSIDE, new VoxelStateSetter(m_grid, Grid.INSIDE));
+            //m_grid.find(VoxelClasses.OUTSIDE, new CustomOutsideVoxelProcesser(m_grid, m_marked, makeBall(m_iterCount), m_voxelChecker));
+            m_grid.find(VoxelClasses.INSIDE, new CustomInsideVoxelProcesser(m_grid, m_marked, MaskFactory.makeBall(m_iterCount), m_voxelChecker));
+            //m_grid.find(VoxelClasses.INSIDE, new SphericalVoxelProcesser(m_grid, m_marked, m_iterCount, m_voxelChecker));
+            m_marked.find(VoxelClasses.INSIDE, new VoxelStateSetter(m_grid, Grid.INSIDE));
            
         } else {
             
@@ -148,18 +141,18 @@ public class DilationMask implements Operation, AttributeOperation {
             // we have surface voxels calculated on previous step 
             // scan only surface voxels 
             m_marked.clear();
-            m_surface.find(Grid.VoxelClasses.INSIDE, new BodyVoxelProcesser(m_grid, m_marked, nnCount));
+            m_surface.find(VoxelClasses.INSIDE, new BodyVoxelProcesser(m_grid, m_marked, nnCount));
 
         } else {
             
             // no surface calculated yet. Scan the whole grid to find marked voxels 
             m_surface = new GridBitIntervals(m_nx, m_ny, m_nz);
             m_marked =  new GridBitIntervals(m_nx, m_ny, m_nz);
-            m_grid.find(Grid.VoxelClasses.INSIDE, new BodyVoxelProcesser(m_grid, m_marked, m_nnCount));
+            m_grid.find(VoxelClasses.INSIDE, new BodyVoxelProcesser(m_grid, m_marked, m_nnCount));
             
         }
 
-        m_marked.find(Grid.VoxelClasses.INSIDE, new VoxelStateSetter(m_grid, Grid.INSIDE));
+        m_marked.find(VoxelClasses.INSIDE, new VoxelStateSetter(m_grid, Grid.INSIDE));
         
         // swap pointers surface <-> marked
         GridBitIntervals t = m_surface;

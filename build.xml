@@ -89,6 +89,15 @@
         <compilejava package="abfab3d/util"
             jars="xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar"
         />
+        <compilejava package="abfab3d/opencl"
+                     jars="jocl.jar commons-io-2.4.jar"
+                />
+        <compilejava package="abfab3d/random"
+                     jars=""
+                />
+        <compilejava package="abfab3d/sample"
+                     jars=""
+                />
         <compilejava package="abfab3d/geomutil"
             jars=""
         />
@@ -110,9 +119,6 @@
         <compilejava package="abfab3d/grid"
             jars=""
         />
-        <compilejava package="abfab3d/opencl"
-                     jars="jocl.jar commons-io-2.4.jar" 
-                />
         <compilejava package="abfab3d/datasources"
             jars="jafama.jar vecmath.jar"
         />
@@ -274,6 +280,8 @@
                 abfab3d/opencl/*
                 abfab3d/path/*
                 abfab3d/util/*
+                abfab3d/random/*
+                abfab3d/sample/*
                 abfab3d/param/*
                 abfab3d/geomutil/*
                 "
@@ -599,6 +607,7 @@
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/input" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/transform" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/util" jars="**/*.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/random" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geomutil" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geom" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/datasources" jars="**/*.jar" />
@@ -740,6 +749,13 @@
             </classpath>
         </java>
     </target>
-    
+
+    <target name="kernels" >
+        <!-- <delete dir="/tmp/openCL_cache" /> -->
+        <copy todir="${classes.dir}">
+            <fileset dir="${src.dir}/opencl"/>
+        </copy>
+    </target>
+
 </project>
 

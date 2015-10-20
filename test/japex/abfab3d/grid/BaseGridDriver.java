@@ -234,7 +234,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
                 rx,ry,rz,rangle,innerMaterial,solid);
 
         tmc.generate(grid);
-        //System.out.println("interior cnt: " + grid.findCount(Grid.VoxelClasses.INSIDE) + " solid: " + solid);
+        //System.out.println("interior cnt: " + grid.findCount(VoxelClasses.INSIDE) + " solid: " + solid);
     }
 
     public static void writeLinkedCubes(Grid grid) {
@@ -388,7 +388,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
      * @param grid
      */
     protected void readExterior(Grid grid) {
-        grid.find(Grid.VoxelClasses.INSIDE, new CountTraverser());
+        grid.find(VoxelClasses.INSIDE, new CountTraverser());
     }
 
     /**
@@ -397,7 +397,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
      * @param grid
      */
     protected void readInterior(Grid grid) {
-        grid.find(Grid.VoxelClasses.INSIDE, new CountTraverser());
+        grid.find(VoxelClasses.INSIDE, new CountTraverser());
     }
 
     protected void clearMemory() {

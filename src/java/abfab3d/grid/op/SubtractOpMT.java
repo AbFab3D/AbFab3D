@@ -200,7 +200,7 @@ public class SubtractOpMT implements Operation {
                     // end of processing
                     break;
                 }
-                src.find(Grid.VoxelClasses.INSIDE, this, 0, nx - 1, slice.ymin, slice.ymax);
+                src.find(VoxelClasses.INSIDE, this, 0, nx - 1, slice.ymin, slice.ymax);
             }
         }
 

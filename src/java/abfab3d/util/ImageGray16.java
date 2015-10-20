@@ -13,7 +13,6 @@
 package abfab3d.util;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 
 import java.io.File;
@@ -26,6 +25,8 @@ import java.util.Arrays;
 import static abfab3d.util.ImageUtil.us2i; 
 import static abfab3d.util.ImageUtil.ub2i; 
 import static abfab3d.util.MathUtil.clamp;
+
+import static abfab3d.util.Output.printf;
 
 /**
    gray scale image represented as array of unsigned short
@@ -192,7 +193,12 @@ public class ImageGray16 {
 
         // use gaussian blur instead of distance transform 
         double[] kernel = MathUtil.getGaussianKernel(size, 0.001);
-        convolute(kernel);        
+        convolute(kernel);
+
+        System.out.printf("Writing blur");
+        try { write("/tmp/blur.png",255); } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
     }
     
     
@@ -280,26 +286,54 @@ public class ImageGray16 {
         DataBufferInt dbi = (DataBufferInt)(outImage.getRaster().getDataBuffer());
 
         int[] imageData = dbi.getData();
-        
+
         for(int y = 0; y < m_height; y++){
             for(int x = 0; x < m_width; x++){
-                
+
                 int cc = data[x + y * m_width];
                 if(cc < 0) cc = -cc;
                 if(cc > maxDataValue) cc = maxDataValue;
-                
-                imageData[x + y * m_width] = makeColor( (int)(((maxDataValue - cc) * 255)/maxDataValue));
-                
+
+                int gray =  (int)(((maxDataValue - cc) * 255)/maxDataValue);
+                imageData[x + y * m_width] = makeColor(gray);
             }
         }
+
         ImageIO.write(outImage, "PNG", new File(fileName));
     }
-    
-    static final int makeColor(int gray){
 
-        return 0xFF000000 | (gray << 16) | (gray << 8) | gray;
+    /**
+     * Write a debug version of the map out in a range of 0-255 grey per channel
+     *
+     * @param fileName
+     * @throws IOException
+     */
+    public void write(String fileName) throws IOException {
 
+        BufferedImage outImage = new BufferedImage(m_width, m_height, BufferedImage.TYPE_INT_ARGB);
+
+        DataBufferInt dbi = (DataBufferInt)(outImage.getRaster().getDataBuffer());
+
+        int[] imageData = dbi.getData();
+
+        for(int y = 0; y < m_height; y++){
+            for(int x = 0; x < m_width; x++){
+
+                int cc = getDataI(x,y);
+                int gray =  (int)((cc / 65535.0) * 255);
+
+                imageData[x + y * m_width] = makeColor(gray);
+            }
+        }
+
+        ImageIO.write(outImage, "PNG", new File(fileName));
     }
 
+    static final int makeColor(int gray){
+
+        int ret_val = 0xFF000000 | (gray << 16) | (gray << 8) | gray;
+        return ret_val;
+
+    }
 
 } // class ImageGray16

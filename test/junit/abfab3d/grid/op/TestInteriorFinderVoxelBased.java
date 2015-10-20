@@ -25,7 +25,7 @@ import junit.framework.TestSuite;
 
 // Internal Imports
 import abfab3d.grid.*;
-import abfab3d.grid.Grid.VoxelClasses;
+import abfab3d.grid.VoxelClasses;
 import abfab3d.io.output.BoxesX3DExporter;
 
 /**

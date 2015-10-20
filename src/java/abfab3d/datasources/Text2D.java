@@ -80,7 +80,7 @@ public class Text2D extends BaseParameterizable {
     static int m_hAlignValues[] = new int[]{ALIGN_LEFT,ALIGN_CENTER,ALIGN_RIGHT};
     static int m_vAlignValues[] = new int[]{ALIGN_TOP,ALIGN_CENTER,ALIGN_BOTTOM};
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     static int debugCount = 1000;
 
     // arbitrary font size, text is scaled to fit the box, but the size is affecting text rasterization somewhat 
@@ -145,6 +145,11 @@ public class Text2D extends BaseParameterizable {
     public Text2D(String text){
         super.addParams(m_aparam);
         mp_text.setValue(text);        
+    }
+
+    public void setText(String val) {
+        m_bitmap = null;
+        mp_text.setValue(val);
     }
 
     public void setFontName(String val) {
@@ -221,8 +226,10 @@ public class Text2D extends BaseParameterizable {
     }
 
     public BufferedImage getImage(){
+
         if(m_bitmap == null)
             initialize();
+
         return m_bitmap;
     }
 
@@ -266,7 +273,6 @@ public class Text2D extends BaseParameterizable {
        @noRefGuide
      */
     public int initialize(){
-        
         double voxelSize = mp_voxelSize.getValue();
 
         String fontName = mp_fontName.getValue();

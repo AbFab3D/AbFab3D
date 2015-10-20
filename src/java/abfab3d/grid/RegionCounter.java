@@ -332,7 +332,7 @@ public class RegionCounter {
 
         GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(),grid.getDepth(), GridBitIntervals.ORIENTATION_Y);
         ComponentsFinder cf = new ComponentsFinder(grid, mask, new AttributeTesterValue(material));
-        grid.find(Grid.VoxelClasses.INSIDE, cf);
+        grid.find(VoxelClasses.INSIDE, cf);
         cf.releaseReferences();
         return cf.getComponents();
 
@@ -345,7 +345,7 @@ public class RegionCounter {
 
         GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(),grid.getDepth(), GridBitIntervals.ORIENTATION_Y);
         ComponentsFinder cf = new ComponentsFinder(grid, mask, materialTester);
-        grid.find(Grid.VoxelClasses.ALL, cf);
+        grid.find(VoxelClasses.ALL, cf);
         cf.releaseReferences();
         return cf.getComponents();
 
@@ -358,7 +358,7 @@ public class RegionCounter {
 
         GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(),grid.getDepth(), GridBitIntervals.ORIENTATION_Y);
         ComponentsFinderState cf = new ComponentsFinderState(grid, mask, state);
-        grid.find(Grid.VoxelClasses.INSIDE, cf);
+        grid.find(VoxelClasses.INSIDE, cf);
         cf.releaseReferences();
         return cf.getComponents();
 

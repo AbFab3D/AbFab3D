@@ -143,7 +143,7 @@ System.out.println("Outer material: " + material);
 //  but y and z axis should flip non agreements on interior
 //  or perhaps we need to go back to 3 axis calcs that are then ORed
 
-System.out.println("XAXIS Interior: " + result.findCount(Grid.VoxelClasses.INSIDE));
+System.out.println("XAXIS Interior: " + result.findCount(VoxelClasses.INSIDE));
         // March across YAXIS
         for(int x=0; x < width; x++) {
             for(int z=0; z < depth; z++) {
@@ -213,7 +213,7 @@ System.out.println("outside to inside at: " + x + " " + y + " " + z);
             }
         }
 
-System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INSIDE));
+System.out.println("YAXIS Interior: " + result.findCount(VoxelClasses.INSIDE));
 
 //System.out.println("*****");
 
@@ -286,9 +286,9 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INSID
             }
         }
 
-System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INSIDE));
+System.out.println("ZAXIS Interior: " + result.findCount(VoxelClasses.INSIDE));
 
-        result.findAttribute(Grid.VoxelClasses.INSIDE, this);
+        result.findAttribute(VoxelClasses.INSIDE, this);
         gridOp = null;
 
         return grid;

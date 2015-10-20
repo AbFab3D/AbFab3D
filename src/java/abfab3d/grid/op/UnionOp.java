@@ -83,7 +83,7 @@ public class UnionOp implements Operation, AttributeOperation {
 
         // TODO: Make sure the grids are the same size
 
-        gridB.find(Grid.VoxelClasses.INSIDE, new Handler(gridA));
+        gridB.find(VoxelClasses.INSIDE, new Handler(gridA));
 
         return grid;
     }
@@ -103,7 +103,7 @@ public class UnionOp implements Operation, AttributeOperation {
 
         // TODO: Make sure the grids are the same size
 
-        gridBAtt.findAttribute(Grid.VoxelClasses.INSIDE, new AttributeHandler((AttributeGrid)gridA,material));
+        gridBAtt.findAttribute(VoxelClasses.INSIDE, new AttributeHandler((AttributeGrid)gridA,material));
 
         return grid;
     }

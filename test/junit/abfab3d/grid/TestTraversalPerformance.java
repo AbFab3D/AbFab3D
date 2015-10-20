@@ -286,7 +286,7 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
 
         gm.makeGrid(grid);
 
-        long filled = grid.findCount(Grid.VoxelClasses.INSIDE);
+        long filled = grid.findCount(VoxelClasses.INSIDE);
         long voxels = ((long) grid.getWidth() * grid.getHeight() * grid.getDepth());
         printf("Filled: %d  Total: %d   Density Actual: %f Requested: %f Expected: %f\n", filled, voxels, (float) filled / voxels, density, expected_density);
     }
@@ -520,7 +520,7 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
     private long getNumMarked(Grid grid, int xmin, int xmax, int ymin, int ymax) {
         Counter counter = new Counter();
 
-        grid.find(Grid.VoxelClasses.INSIDE, counter, xmin, xmax, ymin, ymax);
+        grid.find(VoxelClasses.INSIDE, counter, xmin, xmax, ymin, ymax);
 
         return counter.getCount();
     }

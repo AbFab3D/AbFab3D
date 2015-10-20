@@ -53,9 +53,9 @@ public class ConnectDiagonal implements Operation, ClassTraverser, ClassAttribut
         cnt = 0;
 
         if (grid instanceof AttributeGrid) {
-            ((AttributeGrid)grid).findAttribute(Grid.VoxelClasses.INSIDE, this);
+            ((AttributeGrid)grid).findAttribute(VoxelClasses.INSIDE, this);
         } else {
-            grid.find(Grid.VoxelClasses.INSIDE, this);
+            grid.find(VoxelClasses.INSIDE, this);
         }
 
         System.out.println("Voxels fixed: " + cnt);

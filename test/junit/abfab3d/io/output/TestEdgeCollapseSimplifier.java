@@ -35,7 +35,7 @@ import org.web3d.vrml.sav.BinaryContentHandler;
 
 // Internal Imports
 import abfab3d.grid.*;
-import abfab3d.grid.Grid.VoxelClasses;
+import abfab3d.grid.VoxelClasses;
 import abfab3d.io.output.BoxesX3DExporter;
 import toxi.geom.Line3D;
 import toxi.geom.Vec3D;

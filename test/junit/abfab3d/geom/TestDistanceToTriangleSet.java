@@ -64,14 +64,14 @@ public class TestDistanceToTriangleSet extends TestCase {
         return new TestSuite(TestDistanceToTriangleSet.class);
     }
 
-    void testNothing()throws Exception{
-        // to make tester happy 
+    public void testNothing()throws Exception{
+        // to make tester happy
     }
 
     /**
      * Test that the mesh is close to the input mesh
      */
-    public void testMeshDistance() {
+    public void _testMeshDistance() {
         String path = "test/models";
 
         String[] file = new String[] {
@@ -86,7 +86,7 @@ public class TestDistanceToTriangleSet extends TestCase {
          };
 
         for(int i=0; i < file.length; i++) {
-            double d = calcMeshDistance(path,file[i], vs[i],0);
+            double d = calcMeshDistance(path, file[i], vs[i], 0);
 
             assertTrue(file + " contains too much error", (d < 2.0 * vs[i]));
         }

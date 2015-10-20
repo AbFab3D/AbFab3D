@@ -17,7 +17,7 @@ package abfab3d.grid.query;
 // Internal Imports
 
 import abfab3d.grid.*;
-import abfab3d.grid.Grid.VoxelClasses;
+import abfab3d.grid.VoxelClasses;
 
 import java.util.HashMap;
 import java.util.Map;
