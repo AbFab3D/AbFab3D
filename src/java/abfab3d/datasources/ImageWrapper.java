@@ -44,13 +44,7 @@ public class ImageWrapper {
     public Grid2D getGrid() {
         if (grid != null) return grid;
 
-        // assume greyscale for now
-        grid = new Grid2DShort(image.getWidth(), image.getHeight());
-
-        // I assume this is in Java image coordinates 0,0 in upper left
-        short imageDataShort[] = ImageUtil.getGray16Data(image);
-
-        ((Grid2DShort)grid).copyData(imageDataShort);
+        grid = Grid2DShort.convertImageToGrid(image);
 
         return grid;
     }
