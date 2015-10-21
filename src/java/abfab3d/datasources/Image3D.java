@@ -347,8 +347,7 @@ public class Image3D extends TransformableDataSource {
     }
 
     public void setImage(ImageWrapper wrapper) {
-        //m_image = wrapper.getImage();   old way
-        m_image = Grid2DShort.convertGridToImage(wrapper.getGrid());
+        m_image = wrapper.getImage();
     }
 
     public void setImage(Grid2D grid) {
