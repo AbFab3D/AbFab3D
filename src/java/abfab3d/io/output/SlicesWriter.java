@@ -307,7 +307,7 @@ public class SlicesWriter {
             //
             if(sliceBitCount < 8 ) {
                 if(shift < (8-sliceBitCount)) {
-                    // we potentially have unwritend currentByte 
+                    // we potentially have unwritten currentByte 
                     sliceData[pos] = (byte)(currentByte);
                 }
             }            

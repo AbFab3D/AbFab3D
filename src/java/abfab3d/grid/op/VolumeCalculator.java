@@ -42,7 +42,7 @@ public class VolumeCalculator  {
      */
     public double getVolume(AttributeGrid grid){
 
-        DensityMaker dm = grid.getAttributeDesc().getDensityChannel();
+        AttributeChannel dm = grid.getAttributeDesc().getDensityChannel();
         if(dm == null) 
             throw new RuntimeException("grid has no density channel");
         int 
@@ -57,7 +57,7 @@ public class VolumeCalculator  {
         for(int y=0; y < ny; y++) {
             for(int x=0; x < nx; x++) {
                 for(int z=0; z < nz; z++) {
-                    volume += dm.makeDensity(grid.getAttribute(x,y,z));
+                    volume += dm.getValue(grid.getAttribute(x,y,z));
                 }
             }
         }

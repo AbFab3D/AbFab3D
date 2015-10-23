@@ -17,6 +17,8 @@ import java.util.Vector;
 
 import abfab3d.util.Vec;
 
+import static abfab3d.util.Output.fmt;
+
 /**
  * A description of a grid attribute
  *
@@ -65,6 +67,17 @@ public class AttributeDesc  {
 
     }
 
+    public String toString(){
+        StringBuffer sb = new StringBuffer();
+        sb.append("AttributeDesc[");
+        for(int i = 0; i < m_channels.size(); i++){
+            sb.append(m_channels.get(i).toString());
+            if(i < m_channels.size()-1)sb.append(",");
+        }
+        sb.append("]");        
+        return sb.toString();
+    }
+
     public static class DefaultAttributeMaker implements AttributeMaker {
         int resolution[];
         public DefaultAttributeMaker(AttributeDesc attDesc){
@@ -91,7 +104,7 @@ public class AttributeDesc  {
 
     public static AttributeDesc getDefaultAttributeDesc(int bitCount){
         AttributeDesc at = new AttributeDesc();
-        at.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", bitCount, 0));
+        at.addChannel(new AttributeChannelUnsigned(AttributeChannel.DENSITY, "density", bitCount, 0));
         return at;
     }
 }

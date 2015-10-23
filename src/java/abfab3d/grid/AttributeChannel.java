@@ -22,7 +22,7 @@ import abfab3d.util.MathUtil;
  *
  * @author Vladimir Bulatov
  */
-public class AttributeChannel  implements LongConverter,DensityMaker {
+public abstract class AttributeChannel  implements LongConverter { // , ValueMaker { 
     
     // standard chnnel types
     public static final String DENSITY = "DENSITY";
@@ -40,11 +40,14 @@ public class AttributeChannel  implements LongConverter,DensityMaker {
      int m_shift;
      // bit count of the channel 
      int m_bits;
-     // bitmask to extract channel bits from long
-     long m_mask;
-     // maximal value to be stored in the chanel  
-     long m_maxValue;
-     double m_conversionFactor;
+    // mask toi get sing bit 
+    long m_signMask;
+     // bitmask to extract channel bits from unsigned long
+    long m_mask;
+    long m_complementMask;
+    long m_maxValue;
+    double m_maxDoubleValue;
+    double m_conversionFactor;
 
      public AttributeChannel(String type, String name, int bits, int shift){
 
@@ -53,7 +56,10 @@ public class AttributeChannel  implements LongConverter,DensityMaker {
          m_shift = shift;
          m_bits = bits;
          m_mask = MathUtil.getBitMask(bits);
+         m_complementMask = ~m_mask;
+         m_signMask = 1 << (bits-1);
          m_maxValue = (1 << bits)-1;
+         m_maxDoubleValue = 1.;
          m_conversionFactor = 1./m_maxValue;
      }
 
@@ -80,22 +86,35 @@ public class AttributeChannel  implements LongConverter,DensityMaker {
          return m_type;
      }
 
-     public String getName(){
-         return m_name;
-     }
-
-     /**
-        extracts value of this channel from the attribute  
-        @Override         
-     */
-     public long get(long att){
-
-         return (att >> m_shift) & m_mask;
-
-     }
-
-     public double makeDensity(long att){
-         return m_conversionFactor*get(att);
+    public String getName(){
+        return m_name;
     }
+    
+    public String toString(){
+        return  getType() + ":" + getName() + ":" + getBitCount();
+    }
+
+    /**
+       method of interface LongConverter 
+    */
+    public long get(long att){
+        return getBits(att);
+    }
+
+    /**
+       convert attribute bits into double value  
+    */
+    public abstract double getValue(long attribute);
+
+    /**
+       extract value bits out of attribute 
+    */
+    public abstract long getBits(long attribute);
+
+    /**
+       convert double value ino attribute bits
+    */
+    public abstract long makeBits(double value);
+    
 }
 

@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Units.MM;
 
 /**
  * Test Expand operation
@@ -46,7 +47,7 @@ public class TestExpand extends TestCase {
             ioe.printStackTrace();
         }
 
-        Grid2D grid = Grid2DShort.convertImageToGrid(image);
+        Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
 
         Expand expand = new Expand(new int[] {0,1,0,0});
@@ -78,7 +79,7 @@ public class TestExpand extends TestCase {
             ioe.printStackTrace();
         }
 
-        Grid2D grid = Grid2DShort.convertImageToGrid(image);
+        Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
 
         Expand expand = new Expand(new int[] {2,2,2,2},0);

@@ -18,6 +18,7 @@ import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.AttributeChannelUnsigned;
 import abfab3d.grid.BaseTestAttributeGrid;
 import abfab3d.grid.Grid;
 
@@ -79,7 +80,7 @@ public class TestDilationDistance extends BaseTestAttributeGrid {
         double s = gridWidth/2;
 
         AttributeDesc attDesc = new AttributeDesc();
-        attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8,0));
+        attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.DENSITY, "dens", 8,0));
 
         double bounds[] = new double[]{-s,s, -s, s, -s,s };
 

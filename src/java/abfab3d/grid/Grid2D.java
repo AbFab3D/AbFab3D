@@ -12,6 +12,7 @@
 
 package abfab3d.grid;
 
+import abfab3d.util.Bounds;
 
 
 /**
@@ -35,6 +36,19 @@ public interface Grid2D {
      * @return the val
      */
     public int getWidth();
+
+    /**
+     * Get the grid bounds in world coordinates.
+     *
+     */
+    public Bounds getGridBounds();
+
+    /**
+     * Set the grid bounds in world coordinates.
+     *
+     */
+    public void setGridBounds(Bounds bounds);
+
 
     /**
      * Get the attribute of the voxel, 2D version

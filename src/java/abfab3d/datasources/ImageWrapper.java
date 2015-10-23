@@ -17,12 +17,16 @@ import abfab3d.grid.Grid2DShort;
 import abfab3d.util.ImageGray16;
 import abfab3d.util.ImageUtil;
 
+
 import java.awt.image.BufferedImage;
+
+import static abfab3d.util.Units.MM;
 
 public class ImageWrapper {
     
     BufferedImage image;
     Grid2D grid;
+    static final double DEFAULT_PIXEL_SIZE = 0.1*MM;
 
     public ImageWrapper(BufferedImage image){
         this.image = image;
@@ -44,7 +48,7 @@ public class ImageWrapper {
     public Grid2D getGrid() {
         if (grid != null) return grid;
 
-        grid = Grid2DShort.convertImageToGrid(image);
+        grid = Grid2DShort.convertImageToGrid(image, DEFAULT_PIXEL_SIZE);
 
         return grid;
     }
