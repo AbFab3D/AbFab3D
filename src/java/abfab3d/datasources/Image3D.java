@@ -158,6 +158,8 @@ public class Image3D extends TransformableDataSource {
     //double[] cc = new double[4];
     double color[] = new double[4];
 
+    private boolean imageDirty = false;
+
     /**
      * @noRefGuide
      */
@@ -342,16 +344,22 @@ public class Image3D extends TransformableDataSource {
      * @noRefGuide
      */
     public void setImage(BufferedImage image) {
+        if (image != m_image) {
+            printf("Dirty image\n");
+            imageDirty = true;
+        }
         m_image = image;
-
     }
 
     public void setImage(ImageWrapper wrapper) {
+        if (m_image != wrapper.getImage()) imageDirty = true;
+
         m_image = wrapper.getImage();
     }
 
     public void setImage(Grid2D grid) {
         m_image = Grid2DShort.convertGridToImage(grid);
+        imageDirty = true;
     }
 
     /**
@@ -479,6 +487,7 @@ public class Image3D extends TransformableDataSource {
 
         if(needToPrepareImage()){
             int res = prepareImage();
+            imageDirty = false;
             if(res != RESULT_OK){ 
                 // something wrong with the image 
                 imageWidth = 2;
@@ -537,7 +546,7 @@ public class Image3D extends TransformableDataSource {
      */
     protected boolean needToPrepareImage(){
         return 
-            (m_imageData == null) || 
+            imageDirty || (m_imageData == null) ||
             !m_savedParamString.equals(getParamString(m_aparam));
         
     }
