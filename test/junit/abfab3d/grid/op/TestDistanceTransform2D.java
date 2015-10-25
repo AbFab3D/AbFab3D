@@ -70,12 +70,12 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
 
     public void test2(){
 
-        AttributeChannel at = new AttributeChannelSigned(AttributeChannel.DISTANCE, "distance", 6, 0, 10.);
+        AttributeChannel at = new AttributeChannel(AttributeChannel.DISTANCE, "distance", 10, 0, 1.,10.);
         for(int i = -100; i < 100; i++){
             double v = 0.2*i;
             long bits = at.makeBits(v);
             double v1 = at.getValue(bits);
-            printf("%7.2f -> %4x (%6s) -> %7.2f\n", v, bits, Long.toBinaryString(bits), v1);
+            printf("%7.2f -> %4x (%12s) -> %7.2f\n", v, bits, Long.toBinaryString(bits), v1);
         }
     } 
 
