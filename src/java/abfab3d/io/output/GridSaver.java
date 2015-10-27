@@ -150,9 +150,20 @@ public class GridSaver {
 
     	// TODO: Handle other file types
         WingedEdgeTriangleMesh mesh = getMesh(grid);            
+
+        printf("min shell Volume: %f  max shellCount: %d\n",m_minShellVolume,m_maxShellsCount);
+        if (m_minShellVolume != VOLUME_UNDEFINED || m_maxShellsCount != SHELLS_COUNT_UNDEFINED) {
+
+            ShellResults sr = GridSaver.getLargestShells(mesh, m_maxShellsCount, m_minShellVolume);
+            mesh = sr.getLargestShell();
+            int regions_removed = sr.getShellsRemoved();
+            if(DEBUG) printf("maxShells: %d minVol: %4.2f shells removed: %d\n",m_maxShellsCount,m_minShellVolume,regions_removed);
+        }
+
         STLWriter stl = new STLWriter(os, mesh.getTriangleCount());
         mesh.getTriangles(stl);
         stl.close();
+
 /*
         // Write output to a file
         switch(type){
@@ -205,7 +216,7 @@ public class GridSaver {
 
         double voxelSize = grid.getVoxelSize();
 
-        if(DEBUG)printf("error factor: %f\n",m_meshErrorFactor);
+        if(DEBUG)printf("getMesh.  error factor: %f\n",m_meshErrorFactor);
         double maxDecimationError = m_meshErrorFactor * voxelSize * voxelSize;
 
         // Write out the grid to an STL file
@@ -225,10 +236,11 @@ public class GridSaver {
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
         
         if (m_minShellVolume != VOLUME_UNDEFINED || m_maxShellsCount != SHELLS_COUNT_UNDEFINED) {
+
             ShellResults sr = GridSaver.getLargestShells(mesh, m_maxShellsCount, m_minShellVolume);
             mesh = sr.getLargestShell();
             int regions_removed = sr.getShellsRemoved();
-            if(DEBUG) printf("shells removed: %d\n",regions_removed);
+            if(DEBUG) printf("maxShells: %d minVol: %4.2f shells removed: %d\n",m_maxShellsCount,m_minShellVolume,regions_removed);
         }
 
         return mesh;
@@ -651,7 +663,7 @@ public class GridSaver {
 
             //System.out.println("   vol: " + (volume / Units.CM3));
             if (volume >= minVolume) {
-                //System.out.println("Keeping shell: " + volume / Units.CM3);
+                System.out.println("Keeping shell: " + volume / Units.CM3);
                 saved_shells.add(new ShellData(shells[i],volume));
                 if (cnt < numShells) {
                     face_count += shells[i].faceCount;
