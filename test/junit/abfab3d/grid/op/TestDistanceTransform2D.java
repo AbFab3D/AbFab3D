@@ -14,7 +14,6 @@ package abfab3d.grid.op;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.AttributeChannel;
-import abfab3d.grid.AttributeChannelSigned;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.ValueMaker;
@@ -56,19 +55,39 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
 
     double pixelSize = 0.1*MM;
 
-    public void test1() throws Exception {
+    public void testNothing() {
+
+    }
+
+    public void _test1() throws Exception {
+
         String imagePath = "test/images/white_pixel.png";
         BufferedImage image = ImageIO.read(new File(imagePath)); 
         String imageType = ImageUtil.getImageTypeName(image.getType());
         printf("image: %s [%d x %d] %s\n", imagePath, image.getWidth(), image.getHeight(), imageType);
         Grid2D grid = Grid2DShort.convertImageToGrid(image, pixelSize);
-        printf("grid: bounds: [%s] att: %s \n", grid.getGridBounds(), grid.getAttributeDesc());
-        printGridAtt(grid);
-        //printGridValue(grid, grid.getAttributeDesc().getChannel(0));
-        printGridValue(grid, new AttributeChannelSigned(AttributeChannel.DISTANCE, "distance", 16, 0));
+        printf("grid bounds: [%s] att: %s \n", grid.getGridBounds(), grid.getAttributeDesc());
+        if(false)printGridAtt(grid);
+        AttributeChannel dataChannel = new AttributeChannel(AttributeChannel.DISTANCE, "distance", 16, 0, 0., 1.);
+        if(false)printGridValue(grid, grid.getAttributeDesc().getChannel(0));
+        if(false)printGridValue(grid, dataChannel);
+
+        DistanceTransform2D dt = new DistanceTransform2D(10*MM, 10*MM, 0.999); 
+        dt.setDataChannel(dataChannel);
+        
+        dt.execute(grid);
+        
+        Grid2D indexGrid = dt.getIndexGrid();
+        printf("indexGrid: \n");
+        printGridAtt(indexGrid);
+
+        Grid2D distanceGrid = dt.getDistanceGrid();
+        printf("distanceGrid: \n");
+        printGridAtt(distanceGrid);
+        
     }
 
-    public void test2(){
+    public void _test2(){
 
         AttributeChannel at = new AttributeChannel(AttributeChannel.DISTANCE, "distance", 10, 0, 1.,10.);
         for(int i = -100; i < 100; i++){
@@ -85,7 +104,8 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
         printf("printGridAtt()\n");
         for(int y = 0; y < ymax; y++){
             for(int x = 0; x < xmax; x++){
-                printf(" %4x ", grid.getAttribute(x,y));
+                //printf(" %4x ", grid.getAttribute(x,y));
+                printf(" %4d ", grid.getAttribute(x,y));
             }
             printf("\n");
         }
@@ -97,8 +117,8 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
         printf("printGridValue()\n");
         for(int y = 0; y < ymax; y++){
             for(int x = 0; x < xmax; x++){
-                //printf("%5.1e ", vm.makeValue(grid.getAttribute(x,y)));
-                printf("%4d ", vm.get(grid.getAttribute(x,y)));
+                printf("%5.1f ", vm.getValue(grid.getAttribute(x,y)));
+                //printf("%4d ", vm.get(grid.getAttribute(x,y)));
             }
             printf("\n");
         }
@@ -106,8 +126,8 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
 
     public static void main(String arg[]) throws Exception{
 
-        //new TestDistanceTransform2D().test1();
-        new TestDistanceTransform2D().test2();
+        new TestDistanceTransform2D()._test1();
+        //new TestDistanceTransform2D().test2();
                     
 
     }

@@ -18,6 +18,7 @@ import abfab3d.grid.Operation;
 import abfab3d.grid.AttributeOperation;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridInt;
+import abfab3d.grid.op.ClosestPointIndexer;
 
 import abfab3d.util.Bounds;
 import abfab3d.util.TriangleProducer;

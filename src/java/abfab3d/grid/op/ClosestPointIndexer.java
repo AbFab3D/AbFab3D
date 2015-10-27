@@ -11,7 +11,7 @@
  ****************************************************************************/
 
 
-package abfab3d.geom;
+package abfab3d.grid.op;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -32,7 +32,7 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 
 /**
-   methods to find index of closes point for each point on grid 
+   methods to find index of closest point for each point on grid 
    points are given as array of coordinates
    result is grid which contains indices of the closest point to the center of voxel
    the algorithm is originated from 
@@ -50,14 +50,13 @@ import static abfab3d.util.Output.time;
    The algorithm takes partially initialized grid of closest point indexes. Used point indices start from 1. Index 0 is used to represent non initialized point. 
    
 
-
    @author Vladimir Bulatov
  */
 public class ClosestPointIndexer {
     
 
     static final double EPS = 1.e-5;  // tolerance for parabolas intersection 
-    static final double INF = 1.e10;  // infinity 
+    static public final double INF = 1.e10;  // infinity 
     static final double HALF = 0.5;
     static final boolean DEBUG = true;
     static boolean DEBUG1 = false;

@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.geom;
+package abfab3d.grid.op;
 
 import java.awt.Graphics2D;
 import java.awt.Color;

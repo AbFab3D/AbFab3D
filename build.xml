@@ -131,12 +131,12 @@
         <compilejava package="abfab3d/grid/query"
             jars=""
         />
-        <compilejava package="abfab3d/geom"
-            jars=""
-        />
         <compilejava package="abfab3d/mesh"
                      jars=""
                 />
+        <compilejava package="abfab3d/geom"
+            jars=""
+        />
         <compilejava package="abfab3d/io/input"
             jars="commons-compress-1.9.jar vecmath.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar commons-io-2.4.jar"
         />

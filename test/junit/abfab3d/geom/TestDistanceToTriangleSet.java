@@ -18,6 +18,7 @@ import java.io.IOException;
 import abfab3d.grid.*;
 import abfab3d.grid.op.DensityGridExtractor;
 import abfab3d.grid.op.DistanceTransformLayered;
+import abfab3d.grid.op.ClosestPointIndexer;
 import abfab3d.grid.query.Equals;
 import abfab3d.io.input.*;
 import abfab3d.io.output.MeshMakerMT;
@@ -27,6 +28,7 @@ import abfab3d.util.*;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
+
 
 import javax.vecmath.Vector3d;
 

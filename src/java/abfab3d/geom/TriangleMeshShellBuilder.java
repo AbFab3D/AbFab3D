@@ -367,6 +367,8 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
             
             // scan over neighborhood of the voxel 
             int ncount = m_neighbors.length;
+
+            int index = 0; // point was not added yet 
             
             for(int i = 0; i < ncount; i+=3){
                 int 
@@ -387,7 +389,10 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
                         if(newdist < olddist){
                             // better point found
                             m_distanceGrid.setAttribute(vx, vy, vz, newdist);
-                            int index = m_points.add(pointInTriangle[0],pointInTriangle[1],pointInTriangle[2]);
+                            if(index == 0) {
+                                // point is being added first time 
+                                index = m_points.add(pointInTriangle[0],pointInTriangle[1],pointInTriangle[2]);
+                            }
                             m_indexGrid.setAttribute(vx, vy, vz, index);
                         }
                         //if(false) printf("     v: (%2d %2d %2d) dist: %5.2f pnt: [%5.2f, %5.2f,%5.2f] index: %3d \n", 

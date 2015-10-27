@@ -57,7 +57,6 @@ import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.ArrayAttributeGridLong;
 import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.AttributeChannel;
-import abfab3d.grid.AttributeChannelUnsigned;
 
 import abfab3d.util.TriangleProducer;
 import abfab3d.util.TriangleCollector;
@@ -222,7 +221,7 @@ public class TestTextureRenderer extends TestCase {
 
         
         AttributeDesc attDesc = new AttributeDesc();
-        attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.COLOR, "color", 24, 0));
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24, 0));
         dataGrid.setAttributeDesc(attDesc);
         new SVXWriter().write(dataGrid, "/tmp/slices/dataGrid.svx");
 
@@ -328,7 +327,7 @@ public class TestTextureRenderer extends TestCase {
         AttributeGrid colorGrid = makeColorGrid_2(bounds, vs);
 
         AttributeDesc attDesc = new AttributeDesc();
-        attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.COLOR, "color", 24, 0));
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24, 0));
         colorGrid.setAttributeDesc(attDesc);
         new SVXWriter(2).write(colorGrid, baseDir + "colorGrid.svx");
 

@@ -104,7 +104,7 @@ public class AttributeDesc  {
 
     public static AttributeDesc getDefaultAttributeDesc(int bitCount){
         AttributeDesc at = new AttributeDesc();
-        at.addChannel(new AttributeChannelUnsigned(AttributeChannel.DENSITY, "density", bitCount, 0));
+        at.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "density", bitCount, 0, 0., 1.));
         return at;
     }
 }

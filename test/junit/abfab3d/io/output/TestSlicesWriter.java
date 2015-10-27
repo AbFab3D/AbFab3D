@@ -39,7 +39,6 @@ import abfab3d.grid.ArrayAttributeGridLong;
 import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.AttributeChannel;
-import abfab3d.grid.AttributeChannelUnsigned;
 import abfab3d.util.Bounds;
 
 
@@ -153,11 +152,11 @@ public class TestSlicesWriter extends TestCase {
         printf("gm.makeGrid() done\n");
         if(useSVXWriter) {
             AttributeDesc attDesc = new AttributeDesc();
-            attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.DENSITY, "dens", 8, 0));
-            attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.MATERIAL+"1", "mat1", 1,7));
-            attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.MATERIAL+"2", "mat2", 1,6));
-            attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.MATERIAL+"3", "mat3", 1,5));
-            attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.MATERIAL+"4", "mat4", 1,4));            
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"1", "mat1", 1,7));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"2", "mat2", 1,6));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"3", "mat3", 1,5));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"4", "mat4", 1,4));            
             grid.setAttributeDesc(attDesc);
             new SVXWriter().write(grid, "/tmp/slices/torus.svx");
 
@@ -697,9 +696,9 @@ public class TestSlicesWriter extends TestCase {
         printf("gm.makeGrid() done\n");
         if(useSVXWriter) {
             AttributeDesc attDesc = new AttributeDesc();
-            attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.DENSITY, "dens", 8, 0));
-            attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.MATERIAL+"1", "mat1", 2,8));
-            attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.MATERIAL+"1", "mat2", 2,10));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"1", "mat1", 2,8));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"1", "mat2", 2,10));
             grid.setAttributeDesc(attDesc);
             new SVXWriter().write(grid, "/tmp/slices/sphere_torus.svx");
         }
@@ -749,8 +748,8 @@ public class TestSlicesWriter extends TestCase {
        
         printf("gm.makeGrid() done\n");
         AttributeDesc attDesc = new AttributeDesc();
-        attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.DENSITY, "dens", 8, 0));
-        attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.COLOR, "color", 24,8));
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24,8));
         grid.setAttributeDesc(attDesc);
         new SVXWriter().write(grid, "/tmp/slices/compositionAoutB.svx");        
     }
@@ -805,8 +804,8 @@ public class TestSlicesWriter extends TestCase {
         gm.makeGrid(grid);               
         printf("gm.makeGrid() done\n");
         AttributeDesc attDesc = new AttributeDesc();
-        attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.DENSITY, "dens", 8, 0));
-        attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.COLOR, "color", 24,8));
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24,8));
         grid.setAttributeDesc(attDesc);
         new SVXWriter().write(grid, "/tmp/slices/comp3BoutA.svx");        
     }
@@ -859,8 +858,8 @@ public class TestSlicesWriter extends TestCase {
 
 
             AttributeDesc attDesc = new AttributeDesc();
-            attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.DENSITY, "dens", 8, 0));
-            attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.COLOR, "color", 24,8));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24,8));
 
             grid.setAttributeDesc(attDesc);
 
@@ -919,8 +918,8 @@ public class TestSlicesWriter extends TestCase {
             gm.makeGrid(grid);               
 
             AttributeDesc attDesc = new AttributeDesc();
-            attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.DENSITY, "dens", 8, 0));
-            attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.COLOR, "color", 24,8));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24,8));
 
             grid.setAttributeDesc(attDesc);
             if(useSVXWriter){
@@ -978,7 +977,7 @@ public class TestSlicesWriter extends TestCase {
         gm.makeGrid(grid);               
         
         AttributeDesc attDesc = new AttributeDesc();
-        attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.DENSITY, "dens", 8, 0));
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
         //attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24,8));
         
         grid.setAttributeDesc(attDesc);

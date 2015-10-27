@@ -22,6 +22,7 @@ import javax.vecmath.Vector3d;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridInt;
+import abfab3d.grid.op.ClosestPointIndexer;
 
 import abfab3d.util.Bounds;
 import abfab3d.util.PointMap;
