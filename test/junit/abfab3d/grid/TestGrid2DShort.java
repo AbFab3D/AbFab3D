@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Units.MM;
 
 // Internal Imports
 
@@ -89,7 +90,7 @@ public class TestGrid2DShort extends TestCase {
             ioe.printStackTrace();
         }
 
-        Grid2D grid = Grid2DShort.convertImageToGrid(image);
+        Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
         // test that 0,0 is not zero
 

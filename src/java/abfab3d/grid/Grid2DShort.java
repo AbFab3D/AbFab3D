@@ -14,6 +14,7 @@ package abfab3d.grid;
 
 
 import abfab3d.util.ImageUtil;
+import abfab3d.util.Bounds;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -164,19 +165,21 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
      * @param image
      * @return
      */
-    public static Grid2DShort convertImageToGrid(BufferedImage image) {
-        int w = image.getWidth(null);
-        int h = image.getHeight(null);
-
+    public static Grid2DShort convertImageToGrid(BufferedImage image, double pixelSize) {
+        
+        int w = image.getWidth();
+        int h = image.getHeight();
+        
         Grid2DShort grid = new Grid2DShort(w,h);
-
+        grid.setGridBounds(new Bounds(0, w*pixelSize, 0, h*pixelSize, 0, pixelSize)); 
+        grid.setAttributeDesc( AttributeDesc.getDefaultAttributeDesc(16));
         short data[] = ImageUtil.getGray16Data(image);
-
+        int h1 = h-1;
         // Need to convert from 0,0 upper left to 0,0 lower left
         for(int y=0; y < h; y++) {
             for(int x=0; x < w; x++) {
                 short d = data[x + y * w];
-                grid.setAttribute(x, h - y - 1, d);
+                grid.setAttribute(x, h1 - y, d);
             }
         }
 

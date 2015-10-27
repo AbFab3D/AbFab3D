@@ -183,7 +183,7 @@ public class Bounds implements Cloneable {
     }
 
     /**
-       conversion of grid cordinates to world coordinates 
+       conversion of grid coordinates to world coordinates 
      */
     public void toWorldCoord(Vector3d pnt){
 

@@ -1,6 +1,7 @@
 package abfab3d.io.output;
 
 import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.AttributeChannelUnsigned;
 import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ModelWriter;
@@ -31,7 +32,7 @@ public class VoxelModelWriter implements ModelWriter {
     public void execute(AttributeGrid grid) throws IOException {
         // TODO: Not sure how these should be sourced yet
         AttributeDesc attDesc = new AttributeDesc();
-        attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+        attDesc.addChannel(new AttributeChannelUnsigned(AttributeChannel.DENSITY, "dens", 8, 0));
         grid.setAttributeDesc(attDesc);
 
         SVXWriter writer = new SVXWriter();

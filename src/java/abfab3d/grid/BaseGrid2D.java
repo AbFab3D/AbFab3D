@@ -46,7 +46,7 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
     protected int height;
 
     /**
-     * The horizontal voxel size
+     * The voxel size
      */
     protected double pixelSize;
 
@@ -60,6 +60,7 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
      */
     protected double xorig = 0.;
     protected double yorig = 0.;
+    protected double zorig = 0.;  
 
     // attribute descriptor used for this grid
     protected AttributeDesc m_attributeDesc = AttributeDesc.getDefaultAttributeDesc(8);
@@ -107,10 +108,10 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
      *
      * @return The voxel data
      */
-    public VoxelData getVoxelData() {
+    //public VoxelData getVoxelData() {
         // This is a default impl.  For larger sizes the grid is expected to implement.
-        return new VoxelDataByte();
-    }
+    //    return new VoxelDataByte();
+    //}
 
     /**
      * Get the grid coordinates for a world coordinate.
@@ -119,55 +120,23 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
      * @param y      The y value in world coords
      * @param coords The ans is placed into this preallocated array(3).
      */
-    public void getGridCoords(double x, double y, int[] coords) {
-        coords[0] = (int) ((x - xorig) / pixelSize);
-        coords[1] = (int) ((y - yorig) / pixelSize);
-    }
+    //public void getGridCoords(double x, double y, int[] coords) {
+    //    coords[0] = (int) ((x - xorig) / pixelSize);
+    //    coords[1] = (int) ((y - yorig) / pixelSize);
+    //}
 
     /**
-     * Get the world coordinates of from the grid coordinates without half voxel shift 
+     * Get the world coordinates of center of grid voxel 
      * 
      * @param x      The x value in grid coords
      * @param y      The y value in grid coords
      * @param coords The ans is placed into this preallocated array(3).
      */
-    public void getWorldCoords(int x, int y, double[] coords) {
+    //public void getWorldCoords(int x, int y, double[] coords) {
 
-        coords[0] = x * pixelSize + hpixelSize + xorig;
-        coords[1] = y * pixelSize + hpixelSize + yorig;
-    }
-
-    /**
-     * Get the grid bounds in world coordinates.
-     *
-     * @param min The min coordinate
-     * @param max The max coordinate
-     */
-    public void getGridBounds(double[] min, double[] max) {
-        min[0] = xorig;
-        min[1] = yorig;
-        min[2] = 0;
-
-        max[0] = width * pixelSize + xorig;
-        max[1] = height * pixelSize + yorig;
-        max[2] = pixelSize;
-    }
-
-
-    /**
-     * Get the grid bounds in world coordinates.
-     *
-     * @param bounds array {xmin, xmax, zmin, ymax, zmin, zmax}
-     */
-    public void getGridBounds(double[] bounds) {
-        Bounds b = getGridBounds();
-        bounds[0] = b.xmin;
-        bounds[1] = b.xmax;
-        bounds[2] = b.zmin;
-        bounds[3] = b.ymax;
-        bounds[4] = b.zmin;
-        bounds[5] = b.zmax;
-    }
+    //        coords[0] = x * pixelSize + hpixelSize + xorig;
+    //    coords[1] = y * pixelSize + hpixelSize + yorig;
+    //}
 
     /**
      * Get the grid bounds in world coordinates.
@@ -176,8 +145,8 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
 
         Bounds bounds = new Bounds(xorig, xorig + width * pixelSize,
                                    yorig, yorig + height * pixelSize,
-                                   0, 0);
-        bounds.setGridSize(width, height, 0);
+                                   zorig, zorig + pixelSize);
+        bounds.setGridSize(width, height, 1);
         return bounds;
     }
 
@@ -192,7 +161,7 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
 
         xorig = bounds.xmin;
         yorig = bounds.ymin;
-
+        zorig = bounds.zmin;
         pixelSize = (bounds.xmax - bounds.xmin) / width;
 
         if(DEBUG)printf("getGridBounds() returns: %s\n", getGridBounds());
@@ -203,9 +172,9 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
      *
      * @param bounds array {xmin, xmax, zmin, ymax, zmin, zmax}
      */
-    public void setGridBounds(double[] bounds) {
-        setGridBounds(new Bounds(bounds));
-    }
+    //public void setGridBounds(double[] bounds) {
+    //    setGridBounds(new Bounds(bounds));
+    //}
 
     /**
      * Determine if a voxel coordinate is inside the grid space.
@@ -215,31 +184,7 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
      * @return True if the coordinate is inside the grid space
      */
     public boolean insideGrid(int x, int y) {
-        if (x >= 0 && x < width &&
-                y >= 0 && y < height
-                ) {
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Determine if a voxel coordinate is inside the grid space.
-     *
-     * @param wx The x world coordinate
-     * @param wy The y world coordinate
-     * @return True if the coordinate is inside the grid space
-     */
-    public boolean insideGridWorld(double wx, double wy) {
-
-        int x = (int) ((wx - xorig) / pixelSize);
-        int y = (int) ((wy - yorig) / pixelSize);
-
-        if (x >= 0 && x < width &&
-                y >= 0 && y < height
-                ) {
+        if (x >= 0 && x < width && y >= 0 && y < height ) {
 
             return true;
         }
@@ -291,13 +236,6 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
      */
     public AttributeDesc getAttributeDesc(){
         return m_attributeDesc;
-    }
-
-    /**
-       round double to the closest integer
-     */
-    public static int roundSize(double s){
-        return (int)(s+0.5);
     }
 
 }
