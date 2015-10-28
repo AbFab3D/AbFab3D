@@ -101,6 +101,7 @@ public class PointMap {
     public int add(double x, double y, double z) {
 
         int hash = calcHash(x,y,z);
+        //printf("add(%7.5f, %7.5f, %7.5f) hash: %x eps: %e\n",x,y,z,hash, epsilon);
 
         int index = (hash & 0x7FFFFFFF) % table.length;
 
@@ -297,10 +298,11 @@ public class PointMap {
     // this hash value is better suited to finite precision \
     // we round each coordinate to nearest int in epsilon units 
     public int calcHash(double x, double y, double z){
+        //printf("xh: %4x yh: %4x \n", (int)(x/epsilon), (int)(y/epsilon));
         return 
-            (((int)(x/epsilon))<<20) + 
+            (((int)(z/epsilon))<<20) + 
             (((int)(y/epsilon))<<10) + 
-            (((int)(z/epsilon)));
+            (((int)(x/epsilon)));
     }
 
     // this 

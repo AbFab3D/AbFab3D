@@ -12,6 +12,8 @@
 
 package abfab3d.grid;
 
+import abfab3d.util.Bounds;
+
 
 import static abfab3d.util.Output.fmt;
 
@@ -32,9 +34,7 @@ public class Grid2DByte extends BaseGrid2D implements Grid2D {
      */
     public Grid2DByte(int width, int height){
         super(width, height, 1.);
-        if((long)height*width > Integer.MAX_VALUE)
-            throw new RuntimeException(fmt("grid size: [%d x %d] exceeds maximum [46340 x 46340]", width, height));
-        data = new byte[height * width];
+        allocateData();
     }
 
     /**
@@ -46,9 +46,7 @@ public class Grid2DByte extends BaseGrid2D implements Grid2D {
      */
     public Grid2DByte(int width, int height, double pixel){
         super(width, height, pixel);
-        if((long)height*width > Integer.MAX_VALUE)
-            throw new RuntimeException(fmt("grid size: [%d x %d] exceeds maximum [46340 x 46340]", width, height));
-        data = new byte[height * width];
+        allocateData();
     }
 
     /**
@@ -58,10 +56,25 @@ public class Grid2DByte extends BaseGrid2D implements Grid2D {
      */
     public Grid2DByte(Grid2DByte grid) {
         super(grid.getWidth(), grid.getHeight(), grid.getVoxelSize());
+        copyBounds(grid);
         this.data = grid.data.clone();
     }
 
 
+    /**
+       @param bounds grid bounds 
+       @param pxiel size of grid pixel
+     */
+    public Grid2DByte(Bounds bounds, double pixel) {
+        super(bounds, pixel);
+        allocateData();
+    }
+
+    protected void allocateData() {
+        if((long)height*width > Integer.MAX_VALUE)
+            throw new RuntimeException(fmt("grid size: [%d x %d] exceeds maximum [46340 x 46340]", width, height));
+        data = new byte[height * width];
+    }
     /**
      * Create an empty grid of the specified size.  Reuses
      * the grid type and material type(byte, short, int).

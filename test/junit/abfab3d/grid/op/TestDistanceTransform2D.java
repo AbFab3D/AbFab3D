@@ -71,8 +71,9 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
         AttributeChannel dataChannel = new AttributeChannel(AttributeChannel.DISTANCE, "distance", 16, 0, 0., 1.);
         if(false)printGridValue(grid, grid.getAttributeDesc().getChannel(0));
         if(false)printGridValue(grid, dataChannel);
+        double thershold = 0.01;
 
-        DistanceTransform2D dt = new DistanceTransform2D(10*MM, 10*MM, 0.999); 
+        DistanceTransform2D dt = new DistanceTransform2D(1*MM, 1*MM, thershold); 
         dt.setDataChannel(dataChannel);
         
         dt.execute(grid);
@@ -83,7 +84,8 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
 
         Grid2D distanceGrid = dt.getDistanceGrid();
         printf("distanceGrid: \n");
-        printGridAtt(distanceGrid);
+        printGridAttShort(distanceGrid);
+        //printGridValue(distanceGrid);
         
     }
 
@@ -106,6 +108,18 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
             for(int x = 0; x < xmax; x++){
                 //printf(" %4x ", grid.getAttribute(x,y));
                 printf(" %4d ", grid.getAttribute(x,y));
+            }
+            printf("\n");
+        }
+    }
+    void printGridAttShort(Grid2D grid){
+        int xmax = 20; 
+        int ymax = 20;
+        printf("printGridAtt()\n");
+        for(int y = 0; y < ymax; y++){
+            for(int x = 0; x < xmax; x++){
+                //printf(" %4x ", grid.getAttribute(x,y));
+                printf(" %4d ", (short)(grid.getAttribute(x,y)));
             }
             printf("\n");
         }

@@ -161,12 +161,10 @@ public class ClosestPointIndexer {
      *  @param indexGrid - on input has indices of closest points in thin layer around the surface, 
      *                   - on output has indices of closest point for each grid point 
      */
-    public static void PI2(int npnt, double coordx[], double coordy[], AttributeGrid indexGrid){
+    public static void PI2(int npnt, double coordx[], double coordy[], Grid2D indexGrid){
         
         int nx = indexGrid.getWidth();
         int ny = indexGrid.getHeight();
-
-        Grid2D indexGrid2 = (Grid2D)indexGrid;
             
         // maximal dimension 
         int nm = max(nx, ny);
@@ -182,7 +180,7 @@ public class ClosestPointIndexer {
             int pcnt = 0;
             // prepare 1D chain of points 
             for(int ix = 0; ix < nx; ix++){
-                int ind = (int)indexGrid2.getAttribute(ix, iy);
+                int ind = (int)indexGrid.getAttribute(ix, iy);
                 if(ind > 0){
                     ipnt[pcnt] = ind;
                     double y = coordy[ind]-(iy+HALF);
@@ -194,7 +192,7 @@ public class ClosestPointIndexer {
                 PI1(nx,pcnt, ipnt, coordx, value1, gpnt, v, w);
                 // write chain of indices back into 2D grid 
                 for(int ix = 0; ix < nx; ix++){
-                    indexGrid2.setAttribute(ix, iy, gpnt[ix]);
+                    indexGrid.setAttribute(ix, iy, gpnt[ix]);
                 }            
             }
         }
@@ -204,7 +202,7 @@ public class ClosestPointIndexer {
             int pcnt = 0;
             // prepare 1D chain of points 
             for(int iy = 0; iy < ny; iy++){
-                int ind = (int)indexGrid2.getAttribute(ix, iy);
+                int ind = (int)indexGrid.getAttribute(ix, iy);
                 if(ind > 0){
                     ipnt[pcnt] = ind;
                     double x = coordx[ind]-(ix+HALF);
@@ -216,7 +214,7 @@ public class ClosestPointIndexer {
                 PI1(ny, pcnt, ipnt, coordy, value1, gpnt, v, w);
                 // write chain of indices back into 2D grid 
                 for(int iy = 0; iy < ny; iy++){
-                    indexGrid2.setAttribute(ix, iy, gpnt[iy]);
+                    indexGrid.setAttribute(ix, iy, gpnt[iy]);
                 }            
             }
         }
@@ -556,6 +554,7 @@ public class ClosestPointIndexer {
         }
     }
 
+
     /**
        convert points in grid goordinates into world coordinates 
      */
@@ -574,6 +573,25 @@ public class ClosestPointIndexer {
             pntx[i] = pntx[i]*vs + xmin;
             pnty[i] = pnty[i]*vs + ymin;
             pntz[i] = pntz[i]*vs + zmin;
+        }
+    }
+
+    /**
+       convert points in grid goordinates into world coordinates 
+     */
+    public static void getPointsInWorldUnits(Grid2D grid, double pntx[], double pnty[]){
+
+        Bounds bounds = grid.getGridBounds();
+        double xmin = bounds.xmin;
+        double ymin = bounds.ymin;
+
+        double vs = grid.getVoxelSize();
+        int count = pntx.length;
+
+        // first point is not used 
+        for(int i = 1; i < count; i++){
+            pntx[i] = pntx[i]*vs + xmin;
+            pnty[i] = pnty[i]*vs + ymin;
         }
     }
 
@@ -829,6 +847,60 @@ public class ClosestPointIndexer {
         }
     }
 
+    /**
+       calculates distance grid from given closest point grid and interior grid 
+       distanceGrid value are mapped and clamped to the interval [-maxInDistance, maxOutDistance]*(subvoxelResolution/voxelSize)
+       points are in given in world units
+       
+       @param indexGrid contains indices of closest point. index = 0 meand closesnt point is undefined
+       @param pntx x-coordinates of points in world units
+       @param pnty y-coordinates of points in world units
+       @param interiorGrid grid of voxles whcuh are in the shape interior 
+     */
+    public static void makeDistanceGrid2D(Grid2D indexGrid, 
+                                          double pntx[], double pnty[],
+                                          Grid2D interiorGrid, 
+                                          Grid2D distanceGrid, 
+                                          double maxInDistance, 
+                                          double maxOutDistance, 
+                                          int subvoxelResolution){
+        int 
+            nx = indexGrid.getWidth(),
+            ny = indexGrid.getHeight();
+        double vs = indexGrid.getVoxelSize();
+        
+        int maxDist = (int)Math.ceil(maxOutDistance * subvoxelResolution/vs);
+        int minDist = -(int)Math.ceil(maxInDistance * subvoxelResolution/vs);
+        double dscale = subvoxelResolution/vs;
+        
+        double coord[] = new double[3];
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                int ind = (int)indexGrid.getAttribute(x,y);
+                if(ind > 0) {
+                    indexGrid.getWorldCoords(x, y, coord);
+                    int dist = iround(dscale*distance(coord[0],coord[1], pntx[ind],pnty[ind]));
+                    if(interiorGrid != null && interiorGrid.getAttribute(x,y) != 0)
+                        dist = -dist;
+                    if(dist < minDist)
+                        dist = minDist;
+                    if(dist > maxDist)
+                        dist = maxDist;
+                    distanceGrid.setAttribute(x,y,dist);
+                }  else {
+                    // point is undefined 
+                    if(interiorGrid != null && interiorGrid.getAttribute(x,y) != 0){
+                        // interior 
+                        distanceGrid.setAttribute(x,y,minDist);
+                    } else {
+                        // exterior 
+                        distanceGrid.setAttribute(x,y,maxDist);
+                    }
+                }
+            } // for(x
+        } // for(y 
+    }
+
     static void printArray(String title, int count, int index[], double coord[]){
 
         printf(title);
@@ -838,15 +910,26 @@ public class ClosestPointIndexer {
         printf("\n");
     }
 
+    /**
+       distance between 2D points 
+     */
+    static final double distance(double vx, double vy, double px, double py){
+        vx -= px;
+        vy -= py;
+        return sqrt(vx*vx + vy*vy);
+    }
 
-    static double distance(double vx, double vy, double vz, double px, double py, double pz){
+    /**
+       distance between 3D points 
+    */
+    static final double distance(double vx, double vy, double vz, double px, double py, double pz){
         vx -= px;
         vy -= py;
         vz -= pz;
         return sqrt(vx*vx + vy*vy + vz*vz);
     }
 
-    static double distance2(int vx,int vy, double pntx[],double pnty[],int ind){
+    static final double distance2(int vx,int vy, double pntx[],double pnty[],int ind){
         double 
             x = vx + HALF,
             y = vy + HALF;
@@ -855,7 +938,7 @@ public class ClosestPointIndexer {
         return x*x + y*y;        
     }
 
-    static double distance2(int vx,int vy,int vz, double pntx[],double pnty[],double pntz[], int ind){
+    static final double distance2(int vx,int vy,int vz, double pntx[],double pnty[],double pntz[], int ind){
         double 
             x = vx + HALF,
             y = vy + HALF,

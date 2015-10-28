@@ -42,9 +42,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
      */
     public Grid2DShort(int width, int height){
         super(width, height,1.);
-        if((long)height*width > Integer.MAX_VALUE)
-            throw new RuntimeException(fmt("grid size: [%d x %d] exceeds maximum [46340 x 46340]", width, height));
-        data = new short[height * width];
+        allocateData();
     }
 
     /**
@@ -56,9 +54,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
      */
     public Grid2DShort(int width, int height, double pixel){
         super(width, height,pixel);
-        if((long)height*width > Integer.MAX_VALUE)
-            throw new RuntimeException(fmt("grid size: [%d x %d] exceeds maximum [46340 x 46340]", width, height));
-        data = new short[height * width];
+        allocateData();
     }
 
     /**
@@ -68,9 +64,18 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
      */
     public Grid2DShort(Grid2DShort grid) {
         super(grid.getWidth(), grid.getHeight(), 1.);
+        copyBounds(grid);
         this.data = grid.data.clone();
     }
-
+    
+    /**
+       @param bounds grid bounds 
+       @param pxiel size of grid pixel
+     */
+    public Grid2DShort(Bounds bounds, double pixel) {
+        super(bounds, pixel);
+        allocateData();
+    }
 
     /**
      * Create an empty grid of the specified size.  Reuses
@@ -84,6 +89,13 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
         Grid2D ret_val = new Grid2DShort(w,h,pixel);
         
         return ret_val;
+    }
+
+    protected void allocateData(){
+        
+        if((long)height*width > Integer.MAX_VALUE)
+            throw new RuntimeException(fmt("grid size: [%d x %d] exceeds maximum [46340 x 46340]", width, height));
+        data = new short[height * width];
     }
 
     /**

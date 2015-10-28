@@ -22,6 +22,7 @@ import abfab3d.grid.AttributeChannel;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DInt;
 import abfab3d.grid.Grid2DShort;
+import abfab3d.grid.Grid2DByte;
 import abfab3d.grid.Operation2D;
 import abfab3d.grid.util.GridUtil;
 
@@ -68,7 +69,7 @@ public class DistanceTransform2D implements Operation2D {
     static final double TOL = 1.e-2;
     static final double HALF = 0.5; // half voxel offset to the center of voxel
 
-    double m_layerThickness = 5.;  
+    double m_layerThickness = 1.5;  
     int m_neighbors[]; // offsets to neighbors 
 
     double m_maxInDistance = 0;
@@ -80,8 +81,7 @@ public class DistanceTransform2D implements Operation2D {
     int m_subvoxelResolution = 100;
     int nx, ny, nz;
     int m_surfaceValue;
-    // center of corner voxel (0,0,0)
-    double m_xmin, m_ymin, m_zmin;
+
     double m_voxelSize;
     // surface threshold
     double m_threshold;
@@ -96,6 +96,9 @@ public class DistanceTransform2D implements Operation2D {
     Grid2D m_indexGrid;
     Grid2D m_distanceGrid;
 
+    // sign of input data inside of shape 
+    int m_interiorSign = 1;
+    
     /**
      @param inDistance maximal distance to calculate transform inside of the shape. Measured in meters
      @param outDistance maximal distance to calculate transform outside of the shape. Measured in meters
@@ -111,6 +114,14 @@ public class DistanceTransform2D implements Operation2D {
 
     public void setDataChannel(AttributeChannel dataChannel){
         m_dataChannel = dataChannel;
+    }
+
+    
+    /**
+       set sign to be used for interior of the input shape
+     */
+    public void setInteriorSign(int interiorSign){
+        m_interiorSign = interiorSign;
     }
 
     /**
@@ -129,36 +140,50 @@ public class DistanceTransform2D implements Operation2D {
         m_nx = grid.getWidth();
         m_ny = grid.getHeight();
         
-        m_neighbors = Neighborhood.makeDisk(m_layerThickness);
+        m_neighbors = Neighborhood.makeDisk(m_layerThickness+1);
 
-        m_indexGrid = new Grid2DInt(m_nx, m_ny, m_voxelSize);
+        Bounds bounds = grid.getGridBounds();
+
+        m_indexGrid = new Grid2DInt(bounds, m_voxelSize);
         m_distanceGrid = new Grid2DShort(m_nx, m_ny, m_voxelSize);
         //GridUtil.fill(m_distanceGrid, (long)((m_maxOutDistance/m_voxelSize) * m_subvoxelResolution));
         GridUtil.fill(m_distanceGrid, (long)(m_layerThickness * m_subvoxelResolution));
 
-        m_points = new PointMap(1./m_subvoxelResolution);
+        m_points = new PointMap(1.24/m_subvoxelResolution);
         m_points.add(0, 0, 0);
         
         // find surface points 
         // initialize distanceas in thin layer around surface 
         initializeSurfaceLayer(grid);
-        if(DEBUG) {
-            int pcnt = m_points.getPointCount();
+        int pcnt = m_points.getPointCount();
+        double px[] = new double[pcnt];
+        double py[] = new double[pcnt];
+        m_points.getPoints(px, py);
+
+        if(DEBUG) {            
             printf("points count: %d\n", pcnt);
-            double px[] = new double[pcnt];
-            double py[] = new double[pcnt];
-            m_points.getPoints(px, py);
-            
             for(int i = 1; i < pcnt; i++){
                 // start from 1, pnt[0] - is dummy 
                 printf("(%5.2f %5.2f)\n", px[i],py[i]);
             }
         }
-        // distribute distances to the whole grid 
 
+        // distribute distances to the whole grid 
+        ClosestPointIndexer.PI2(pcnt, px, py, m_indexGrid);
+
+        ClosestPointIndexer.getPointsInWorldUnits(m_indexGrid, px, py);
+
+        Grid2D interiorGrid = makeInteriorGrid(grid, m_dataChannel, m_threshold, m_interiorSign);
+        ClosestPointIndexer.makeDistanceGrid2D(m_indexGrid, px,py, 
+                                               interiorGrid, 
+                                               m_distanceGrid, 
+                                               m_maxInDistance, 
+                                               m_maxOutDistance, 
+                                               m_subvoxelResolution);
+        
         if(DEBUG)printf("DistanceTransformIndexed2D.execute() time: %d ms\n", (time() - t0));
         
-        return null;
+        return m_distanceGrid;
 
     }
 
@@ -241,7 +266,7 @@ public class DistanceTransform2D implements Operation2D {
                         if(index == 0){
                             // point is being added first time 
                             index = m_points.add(px, py, 0.);
-                            printf("adding new point (%7.4f, %7.4f) %d \n", px, py, index);
+                            printf("adding new point (%7.4f, %7.4f) index: %d \n", px, py, index);
                         }
                         m_indexGrid.setAttribute(vx, vy, index);
                     }                    
@@ -250,8 +275,25 @@ public class DistanceTransform2D implements Operation2D {
         }
     }
 
-    void distributeDistances(Grid2D indexGrid, Grid2D distanceGrid){
-        
-    } 
+    Grid2D makeInteriorGrid(Grid2D grid, AttributeChannel dataConverter, double threshold, int interiorSign){
+
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        Grid2D interiorGrid = new Grid2DByte(grid.getGridBounds(),grid.getVoxelSize());
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                double d = interiorSign*(dataConverter.getValue(grid.getAttribute(x,y))-threshold);                
+                if(d <= 0.) {
+                    // exterior 
+                    interiorGrid.setAttribute(x,y,0);
+                } else {
+                    // interior 
+                    interiorGrid.setAttribute(x,y,1);
+                }
+            }
+        }        
+        return interiorGrid;
+    }
+    
     
 } // class DistanceTransformIndexed2D 

@@ -91,8 +91,8 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
      */
     public BaseGrid2D(Bounds bounds, double pixel) {
         
-        width = bounds.getWidthVoxels(pixel);
-        height = bounds.getHeightVoxels(pixel);
+        this.width = bounds.getWidthVoxels(pixel);
+        this.height = bounds.getHeightVoxels(pixel);
         this.pixelSize = pixel;
         this.hpixelSize = pixelSize / 2.0;
         this.xorig = bounds.xmin;
@@ -219,6 +219,20 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
         return pixelSize;
     }
 
+    /**
+     * Get the world coordinates of from the grid coordinates without half voxel shift 
+     * 
+     * @param x      The x value in grid coords
+     * @param y      The y value in grid coords
+     * @param coords The ans is placed into this preallocated array(2).
+     */
+    public void getWorldCoords(int x, int y, double[] coords) {
+
+        coords[0] = x * pixelSize + hpixelSize + xorig;
+        coords[1] = y * pixelSize + hpixelSize + yorig;
+
+    }
+
     public abstract Object clone();
 
     /**
@@ -236,6 +250,15 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
      */
     public AttributeDesc getAttributeDesc(){
         return m_attributeDesc;
+    }
+
+    /**
+       copy grid bounds from srcGrid to this
+     */
+    public void copyBounds(Grid2D srcGrid){
+
+        this.setGridBounds(srcGrid.getGridBounds());
+
     }
 
 }

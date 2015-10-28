@@ -86,6 +86,15 @@ public interface Grid2D {
     public double getVoxelSize();
 
     /**
+     * Get the world coordinates for a grid coordinate.
+     *
+     * @param x The x value in grid coords
+     * @param y The y value in grid coords
+     * @param coords The ans is placed into this preallocated array(3).
+     */
+    public void getWorldCoords(int x, int y, double[] coords);
+
+    /**
      assign to the grid a description of a voxel attributes
      @param description The attirbute description
      */
