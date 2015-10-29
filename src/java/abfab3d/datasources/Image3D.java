@@ -15,6 +15,7 @@ package abfab3d.datasources;
 
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
+import abfab3d.grid.op.DistanceTransform2D;
 import abfab3d.util.*;
 
 import javax.imageio.ImageIO;
@@ -158,7 +159,7 @@ public class Image3D extends TransformableDataSource {
     //double[] cc = new double[4];
     double color[] = new double[4];
 
-    private boolean imageDirty = false;
+    private boolean m_imageModified = false;
 
     /**
      * @noRefGuide
@@ -346,20 +347,21 @@ public class Image3D extends TransformableDataSource {
     public void setImage(BufferedImage image) {
         if (image != m_image) {
             printf("Dirty image\n");
-            imageDirty = true;
+            m_imageModified = true;
         }
         m_image = image;
     }
 
     public void setImage(ImageWrapper wrapper) {
-        if (m_image != wrapper.getImage()) imageDirty = true;
+        if (m_image != wrapper.getImage()) 
+            m_imageModified = true;
 
         m_image = wrapper.getImage();
     }
 
     public void setImage(Grid2D grid) {
         m_image = Grid2DShort.convertGridToImage(grid);
-        imageDirty = true;
+        m_imageModified = true;
     }
 
     /**
@@ -487,7 +489,7 @@ public class Image3D extends TransformableDataSource {
 
         if(needToPrepareImage()){
             int res = prepareImage();
-            imageDirty = false;
+            m_imageModified = false;
             if(res != RESULT_OK){ 
                 // something wrong with the image 
                 imageWidth = 2;
@@ -546,7 +548,7 @@ public class Image3D extends TransformableDataSource {
      */
     protected boolean needToPrepareImage(){
         return 
-            imageDirty || (m_imageData == null) ||
+            m_imageModified || (m_imageData == null) ||
             !m_savedParamString.equals(getParamString(m_aparam));
         
     }

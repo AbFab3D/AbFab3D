@@ -119,9 +119,6 @@
         <compilejava package="abfab3d/grid"
             jars=""
         />
-        <compilejava package="abfab3d/datasources"
-            jars="jafama.jar vecmath.jar"
-        />
         <compilejava package="abfab3d/grid/util"
             jars=""
         />
@@ -130,6 +127,9 @@
         />
         <compilejava package="abfab3d/grid/query"
             jars=""
+        />
+        <compilejava package="abfab3d/datasources"
+            jars="jafama.jar vecmath.jar"
         />
         <compilejava package="abfab3d/mesh"
                      jars=""

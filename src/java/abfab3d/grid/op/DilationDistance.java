@@ -16,9 +16,6 @@ package abfab3d.grid.op;
 
 // Internal Imports
 
-import abfab3d.datasources.DataSourceGrid;
-import abfab3d.datasources.Subtraction;
-import abfab3d.datasources.Union;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.AttributeOperation;
 import abfab3d.grid.Grid;

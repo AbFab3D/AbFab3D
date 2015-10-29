@@ -119,8 +119,8 @@ public class ImageGray16 {
     }
 
     /**
-       converts the image inot black and white based on given 
-       threshold form (0,1) 
+       converts the image into black and white based on given 
+       threshold. Threshold should be in (0,1) 
      */
     public void makeBlackWhite(double threshold){
 

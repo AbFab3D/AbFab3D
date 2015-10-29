@@ -16,9 +16,6 @@ package abfab3d.grid.op;
 
 // Internal Imports
 
-import abfab3d.datasources.DataSourceGrid;
-import abfab3d.datasources.Plane;
-import abfab3d.datasources.Subtraction;
 import abfab3d.grid.*;
 import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.Long2Short;
