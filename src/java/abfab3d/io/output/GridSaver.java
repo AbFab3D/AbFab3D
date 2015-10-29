@@ -114,7 +114,6 @@ public class GridSaver {
         return TYPE_UNKNOWN;
     }
         
-    
     public void write(AttributeGrid grid, String outFile) throws IOException {
 
         // Write output to a file
@@ -144,6 +143,34 @@ public class GridSaver {
             }
             break;
         }
+    }
+    
+    public WingedEdgeTriangleMesh writeAsMesh(AttributeGrid grid, String outFile) throws IOException {
+    	WingedEdgeTriangleMesh mesh = null;
+    	
+        // Write output to a file
+        int type = getOutputType(outFile);        
+        switch(type){
+        default: 
+            throw new RuntimeException(fmt("unknow output file type: '%s'",outFile));
+        case TYPE_STL:           
+            {
+                mesh = getMesh(grid);            
+                STLWriter stl = new STLWriter(outFile);
+                mesh.getTriangles(stl);
+                stl.close();
+            } 
+            break;
+        case TYPE_X3D:
+        case TYPE_X3DB:
+            {
+                mesh = getMesh(grid);                        
+                writeMesh(mesh, outFile);
+            } 
+            break;
+        }
+        
+        return mesh;
     }
     
     public void write(AttributeGrid grid, OutputStream os, int type) throws IOException {
