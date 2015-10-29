@@ -1198,8 +1198,22 @@ public class MathUtil {
     /**
        
      */
-    public static final double lerp(double x1, double x2, double t){
-        return x1 + t * (x2-x1);
+    public static final double lerp(double v1, double v2, double t){
+        return v1 + t * (v2-v1);
+    }
+
+    /**
+       bilinear interpolation between 4 values 
+       
+       v01   v11
+       v00   v10
+
+       
+     */
+    public static final double lerp2(double v00, double v10, double v11, double v01, double x, double y){
+                
+        return lerp(lerp(v00, v10, x), lerp(v01, v11, x), y);
+
     }
 
 

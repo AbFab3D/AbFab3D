@@ -153,9 +153,9 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     }
     
     /**
-       convert double value ino attribute bits
+       convert double value into attribute bits
     */
-    public long makeBits(double value){
+    public long makeAtt(double value){
         value = (clamp(value, m_minValue, m_maxValue)-m_value0)*m_D2B;
         return (((long)(value + 0.5))& m_mask) << m_shift;
     }

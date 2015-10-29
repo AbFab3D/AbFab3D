@@ -21,6 +21,8 @@ import java.awt.image.*;
 import static java.lang.Math.max;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
+import static abfab3d.util.MathUtil.lerp;
+import static abfab3d.util.MathUtil.iround;
 
 
 /**
@@ -68,7 +70,19 @@ public class ImageUtil {
             ((g & 0xFF) << 8) |
             ((b & 0xFF) );    
     }
+
+    public static final int makeRGBA(double r, double g, double b, double a ){
+        return makeRGBA((int)(r*255), (int)(g*255), (int)(b*255),(int)(a*255));
+    }
     
+    public static final int lerpColors(int c1, int c2, double t){
+
+        return makeRGBA(iround(lerp(getRed(c1),getRed(c2),t)),
+                        iround(lerp(getGreen(c1),getGreen(c2),t)),
+                        iround(lerp(getBlue(c1),getBlue(c2),t)),
+                        iround(lerp(getAlpha(c1),getAlpha(c2),t)));
+    }
+
     public static void lerpColors(double c1[], double c2[], double x, double cout[]){
         
         for(int i = 0; i < 4; i++){

@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.vecmath.Point3d;
 
+import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.AttributeChannel;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DInt;
@@ -69,7 +70,8 @@ public class DistanceTransform2D implements Operation2D {
     static final double TOL = 1.e-2;
     static final double HALF = 0.5; // half voxel offset to the center of voxel
 
-    double m_layerThickness = 1.5;  
+    //double m_layerThickness = 1.5;  
+    double m_layerThickness = 0.7;  
     int m_neighbors[]; // offsets to neighbors 
 
     double m_maxInDistance = 0;
@@ -140,12 +142,17 @@ public class DistanceTransform2D implements Operation2D {
         m_nx = grid.getWidth();
         m_ny = grid.getHeight();
         
+        m_dataChannel = grid.getAttributeDesc().getChannel(0);
+
         m_neighbors = Neighborhood.makeDisk(m_layerThickness+1);
 
         Bounds bounds = grid.getGridBounds();
 
         m_indexGrid = new Grid2DInt(bounds, m_voxelSize);
         m_distanceGrid = new Grid2DShort(m_nx, m_ny, m_voxelSize);
+        AttributeChannel distChannel = new AttributeChannel(AttributeChannel.DISTANCE, "dist", 16, 0, -m_maxInDistance, m_maxOutDistance);
+        m_distanceGrid.setAttributeDesc(new AttributeDesc(distChannel));
+
         //GridUtil.fill(m_distanceGrid, (long)((m_maxOutDistance/m_voxelSize) * m_subvoxelResolution));
         GridUtil.fill(m_distanceGrid, (long)(m_layerThickness * m_subvoxelResolution));
 
@@ -160,7 +167,7 @@ public class DistanceTransform2D implements Operation2D {
         double py[] = new double[pcnt];
         m_points.getPoints(px, py);
 
-        if(DEBUG) {            
+        if(false) {            
             printf("points count: %d\n", pcnt);
             for(int i = 1; i < pcnt; i++){
                 // start from 1, pnt[0] - is dummy 
@@ -178,8 +185,7 @@ public class DistanceTransform2D implements Operation2D {
                                                interiorGrid, 
                                                m_distanceGrid, 
                                                m_maxInDistance, 
-                                               m_maxOutDistance, 
-                                               m_subvoxelResolution);
+                                               m_maxOutDistance);
         
         if(DEBUG)printf("DistanceTransformIndexed2D.execute() time: %d ms\n", (time() - t0));
         
@@ -235,11 +241,15 @@ public class DistanceTransform2D implements Operation2D {
         return v0/(v0-v1);
     }
 
+    final double _coeff(double v0, double v1){
+        return MathUtil.coeffIF((v0+m_threshold), (v1+m_threshold));
+    }
+
     // add point to the neigborhood in indexGrid 
     // and update layerDistanceGrid 
     final void addPoint(double px, double py){
 
-        printf("addPoint(%7.4f, %7.4f)\n", px, py);
+        //printf("addPoint(%7.4f, %7.4f)\n", px, py);
         int x0 = iround(px);
         int y0 = iround(py);
         int index = 0;
@@ -266,7 +276,7 @@ public class DistanceTransform2D implements Operation2D {
                         if(index == 0){
                             // point is being added first time 
                             index = m_points.add(px, py, 0.);
-                            printf("adding new point (%7.4f, %7.4f) index: %d \n", px, py, index);
+                            if(false)printf("adding new point (%7.4f, %7.4f) index: %d \n", px, py, index);
                         }
                         m_indexGrid.setAttribute(vx, vy, index);
                     }                    

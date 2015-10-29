@@ -28,6 +28,24 @@ public class AttributeDesc  {
 
     AttributeMaker m_attributeMaker; 
 
+    public AttributeDesc(){
+    }
+
+    public AttributeDesc(AttributeChannel channel){
+        addChannel(channel);
+    }
+
+    public AttributeDesc(AttributeChannel channel1, AttributeChannel channel2){
+        addChannel(channel1);
+        addChannel(channel2);
+    }
+
+    public AttributeDesc(AttributeChannel channel1, AttributeChannel channel2, AttributeChannel channel3){
+        addChannel(channel1);
+        addChannel(channel2);
+        addChannel(channel3);
+    }
+
     Vector<AttributeChannel> m_channels = new Vector<AttributeChannel>();
 
     public int size(){

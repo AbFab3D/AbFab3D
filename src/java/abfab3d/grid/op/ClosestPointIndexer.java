@@ -18,6 +18,9 @@ import static java.lang.Math.min;
 import static java.lang.Math.abs;
 
 import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.AttributeDesc;
+
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.Grid2D;
 
@@ -862,39 +865,42 @@ public class ClosestPointIndexer {
                                           Grid2D interiorGrid, 
                                           Grid2D distanceGrid, 
                                           double maxInDistance, 
-                                          double maxOutDistance, 
-                                          int subvoxelResolution){
+                                          double maxOutDistance){
+
         int 
             nx = indexGrid.getWidth(),
             ny = indexGrid.getHeight();
         double vs = indexGrid.getVoxelSize();
         
-        int maxDist = (int)Math.ceil(maxOutDistance * subvoxelResolution/vs);
-        int minDist = -(int)Math.ceil(maxInDistance * subvoxelResolution/vs);
-        double dscale = subvoxelResolution/vs;
-        
+        //int maxDist = (int)Math.ceil(maxOutDistance * subvoxelResolution/vs);
+        //int minDist = -(int)Math.ceil(maxInDistance * subvoxelResolution/vs);
+        //double dscale = subvoxelResolution/vs;
+
+        AttributeChannel distChannel = distanceGrid.getAttributeDesc().getChannel(0);
+
+        long intAtt = distChannel.makeAtt(-maxInDistance);
+        long extAtt = distChannel.makeAtt(maxOutDistance);
+
+
         double coord[] = new double[3];
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){
                 int ind = (int)indexGrid.getAttribute(x,y);
                 if(ind > 0) {
                     indexGrid.getWorldCoords(x, y, coord);
-                    int dist = iround(dscale*distance(coord[0],coord[1], pntx[ind],pnty[ind]));
+                    //int dist = iround(dscale*distance(coord[0],coord[1], pntx[ind],pnty[ind]));
+                    double dist = distance(coord[0],coord[1], pntx[ind],pnty[ind]);
                     if(interiorGrid != null && interiorGrid.getAttribute(x,y) != 0)
                         dist = -dist;
-                    if(dist < minDist)
-                        dist = minDist;
-                    if(dist > maxDist)
-                        dist = maxDist;
-                    distanceGrid.setAttribute(x,y,dist);
+                    distanceGrid.setAttribute(x,y,distChannel.makeAtt(dist));
                 }  else {
                     // point is undefined 
                     if(interiorGrid != null && interiorGrid.getAttribute(x,y) != 0){
                         // interior 
-                        distanceGrid.setAttribute(x,y,minDist);
+                        distanceGrid.setAttribute(x,y,intAtt);
                     } else {
                         // exterior 
-                        distanceGrid.setAttribute(x,y,maxDist);
+                        distanceGrid.setAttribute(x,y,extAtt);
                     }
                 }
             } // for(x
