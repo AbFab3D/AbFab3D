@@ -22,6 +22,9 @@ import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
 
+import abfab3d.util.ImageGray16;
+
+
 import static abfab3d.util.ImageUtil.us2i;
 import static abfab3d.util.Output.fmt;
 
@@ -32,6 +35,9 @@ import static abfab3d.util.Output.fmt;
  * @author Alan Hudson
  */
 public class Grid2DShort extends BaseGrid2D implements Grid2D {
+
+    static final long MAX_USHORT = 0xFFFF;
+
     protected short[] data;
 
     /**
@@ -43,6 +49,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
     public Grid2DShort(int width, int height){
         super(width, height,1.);
         allocateData();
+        setAttributeDesc(AttributeDesc.getDefaultAttributeDesc(16));
     }
 
     /**
@@ -55,6 +62,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
     public Grid2DShort(int width, int height, double pixel){
         super(width, height,pixel);
         allocateData();
+        setAttributeDesc(AttributeDesc.getDefaultAttributeDesc(16));
     }
 
     /**
@@ -66,6 +74,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
         super(grid.getWidth(), grid.getHeight(), 1.);
         copyBounds(grid);
         this.data = grid.data.clone();
+        setAttributeDesc(grid.getAttributeDesc());
     }
     
     /**
@@ -75,6 +84,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
     public Grid2DShort(Bounds bounds, double pixel) {
         super(bounds, pixel);
         allocateData();
+        setAttributeDesc(AttributeDesc.getDefaultAttributeDesc(16));
     }
 
     /**
@@ -87,7 +97,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
      */
     public Grid2D createEmpty(int w, int h, double pixel) {
         Grid2D ret_val = new Grid2DShort(w,h,pixel);
-        
+        ret_val.setAttributeDesc(AttributeDesc.getDefaultAttributeDesc(16));
         return ret_val;
     }
 
@@ -108,7 +118,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
     public final long getAttribute(int x, int y) {
 
         int idx = y * width + x;
-        return ((int)data[idx] & 0xFFFF);
+        return ((int)data[idx] & MAX_USHORT);
     }
 
     /**
@@ -120,7 +130,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
      */
     public final void setAttribute(int x, int y, long attribute) {
         int idx = y * width + x;
-        data[idx] = (short) (attribute & 0xFFFF);
+        data[idx] = (short) (attribute & MAX_USHORT);
     }
 
     /**
@@ -191,6 +201,29 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
         for(int y=0; y < h; y++) {
             for(int x=0; x < w; x++) {
                 short d = data[x + y * w];
+                grid.setAttribute(x, h1 - y, d);
+            }
+        }
+
+        return grid;
+    }
+
+    public static Grid2DShort convertImageToGrid(ImageGray16 image, boolean invertImage, double pixelSize) {
+        
+        int w = image.getWidth();
+        int h = image.getHeight();
+        
+        Grid2DShort grid = new Grid2DShort(w,h);
+        grid.setGridBounds(new Bounds(0, w*pixelSize, 0, h*pixelSize, 0, pixelSize)); 
+        grid.setAttributeDesc( AttributeDesc.getDefaultAttributeDesc(16));
+        short data[] = image.getData();
+        int h1 = h-1;
+        // Need to convert from 0,0 upper left to 0,0 lower left
+        for(int y=0; y < h; y++) {
+            int x0 = y * w;
+            for(int x=0; x < w; x++) {
+                long d = data[x + x0] & MAX_USHORT;
+                if(invertImage) d = MAX_USHORT - d;
                 grid.setAttribute(x, h1 - y, d);
             }
         }

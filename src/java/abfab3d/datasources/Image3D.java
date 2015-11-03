@@ -15,6 +15,8 @@ package abfab3d.datasources;
 
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
+import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.op.DistanceTransform2D;
 import abfab3d.util.*;
 
@@ -103,7 +105,9 @@ public class Image3D extends TransformableDataSource {
 
     static final double PIXEL_NORM = 1. / 255.;
     static final double SHORT_NORM = 1. / 0xFFFF;
-    static double EPSILON = 1.e-3;
+    public static final double DEFAULT_PIXEL_SIZE = 0.1*MM;
+
+    //static double EPSILON = 1.e-3;
     static final double MAX_PIXELS_PER_VOXEL = 3.;
 
     public static final double DEFAULT_VOXEL_SIZE = 0.1*MM;
@@ -139,10 +143,16 @@ public class Image3D extends TransformableDataSource {
     private double xscale, yscale, zscale;
     private boolean useGrayscale = true;
     private int imageWidth, imageHeight, imageWidth1, imageHeight1;
-    private ImageGray16 m_imageData = null;
+    
+    // the image data is stored in the Grid2D 
+    protected Grid2D m_imageGrid = null; 
+    // converted to get physical value from grid attribute 
+    protected AttributeChannel m_dataChannel;
+
+    // caching thge image params 
     private String m_savedParamString = "";
 
-
+    // image is stored in mipmap 
     private ImageMipMapGray16 m_mipMap;
 
     private double m_pixelWeightNonlinearity = 0.;
@@ -150,16 +160,23 @@ public class Image3D extends TransformableDataSource {
     private double m_backgroundColor[] = new double[]{255., 255., 255., 255.};
     private int m_backgroundColorInt = 0xFFFFFFFF;
 
+    // minimal value of distance 
+    private double m_minDistance;
+
+    private double m_maxDistance;
+
+
     private double imageThickness;
 
     private double m_imageThreshold = 0.5; // this is for black and white case. below threshold we have solid voxel, above - empty voxel  
+    // maximal distance to calculate distance transform 
+    // it mostly affect precision of stored distrance, because distance is stored in 16 bits of short
+    private double m_maxOutDistancePixels = 100;
+    private double m_maxInDistancePixels = 100;
 
-    // scratch vars
-    //double[] ci = new double[4];
-    //double[] cc = new double[4];
-    double color[] = new double[4];
+    private boolean m_imageModified = true;
 
-    private boolean m_imageModified = false;
+    private static Grid2D m_emptyGrid = new Grid2DShort(1,1,DEFAULT_PIXEL_SIZE);
 
     /**
      * @noRefGuide
@@ -429,12 +446,19 @@ public class Image3D extends TransformableDataSource {
         m_pixelWeightNonlinearity = value;
     }
 
+    /**
+       returns physical data value which corresponds to the given attribute value 
+     */
+    public double getPhysicalValue(long attribute){
+        return m_dataChannel.getValue(attribute);
+    }
+
     public int getBitmapWidth(){
-        return m_imageData.getWidth();
+        return m_imageGrid.getWidth();
     }
 
     public int getBitmapHeight(){
-        return m_imageData.getHeight();
+        return m_imageGrid.getHeight();
     }
 
     public void getBitmapData(byte data[]){
@@ -443,12 +467,12 @@ public class Image3D extends TransformableDataSource {
 
     public void getBitmapDataUByte(byte data[]){
 
-        int nx = m_imageData.getWidth();
-        int ny = m_imageData.getHeight();
+        int nx = m_imageGrid.getWidth();
+        int ny = m_imageGrid.getHeight();
         double base = m_baseThreshold;
         for(int y = 0;  y < ny; y++){
             for(int x = 0;  x < nx; x++){
-                double d = getImageHeight(x,y);
+                double d = getImageValue(x,y);
                 // normalization to byte 
                 data[x + y * nx] = (byte)((int)(d * 0xFF) & 0xFF); 
             }
@@ -457,23 +481,25 @@ public class Image3D extends TransformableDataSource {
     // store bitmap data as 16 bit shorts 
     public void getBitmapDataUShort(byte data[]){
 
-        int nx = m_imageData.getWidth();
-        int ny = m_imageData.getHeight();
+        int nx = m_imageGrid.getWidth();
+        int ny = m_imageGrid.getHeight();
         int nx2 = nx*2;
         
-        double base = m_baseThreshold;
         for(int y = 0;  y < ny; y++){
             for(int x = 0;  x < nx; x++){
-                double d = getImageHeight(x,y);
+
+                long id = m_imageGrid.getAttribute(x,y); 
+                
+                //double d = getImageValue(x,y);
                 // normalization to byte 
-                int id = ((int)(d * 0xFFFF)) & 0xFFFF;
+                //int id = ((int)(d * 0xFFFF)) & 0xFFFF;
                 int ind = 2*x + y * nx2;
                 data[ind] = (byte)(id & 0xFF); 
                 data[ind + 1] = (byte)((id >> 8) & 0xFF);  
             }
         }
     }
-
+    
     /**
      * @noRefGuide
      */
@@ -500,7 +526,8 @@ public class Image3D extends TransformableDataSource {
         }
  
         
-        if(m_sizeX == 0.){ // width undefined - get it from image aspect ratio 
+        if(m_sizeX == 0.){ 
+            // width undefined - get it from image aspect ratio 
             if(m_sizeY == 0.){ 
                 // both sizes are undefined - do something reasonable 
                 m_sizeX = imageWidth*DEFAULT_VOXEL_SIZE;
@@ -509,7 +536,8 @@ public class Image3D extends TransformableDataSource {
                 
                 m_sizeX = (m_sizeY * imageWidth) / imageHeight;
             }            
-        } else if(m_sizeY == 0.0){ // height is undefined - get it from the image aspect ratio 
+        } else if(m_sizeY == 0.0){ 
+            // height is undefined - get it from the image aspect ratio 
             m_sizeY = (m_sizeX * imageHeight) / imageWidth;            
         }
         
@@ -548,7 +576,7 @@ public class Image3D extends TransformableDataSource {
      */
     protected boolean needToPrepareImage(){
         return 
-            m_imageModified || (m_imageData == null) ||
+            m_imageModified || 
             !m_savedParamString.equals(getParamString(m_aparam));
         
     }
@@ -562,12 +590,13 @@ public class Image3D extends TransformableDataSource {
         printf("Image3D.savedParamString:\n%s",m_savedParamString);
     }
 
+
     /**
      * @noRefGuide
      */
     private int prepareImage(){
 
-        printf("Image3D.prepareImage();\n");
+        if(DEBUG)printf("Image3D.prepareImage();\n");
 
         long t0 = time();
 
@@ -592,8 +621,9 @@ public class Image3D extends TransformableDataSource {
                 printf("ERROR READING IMAGE: '%s' msg: %s\n", m_imagePath,e.getMessage());
                 StackTraceElement[] st = Thread.currentThread().getStackTrace();
                 int len = Math.min(10, st.length);
-                for (int i = 1; i < len; i++) printf("\t\t %s\n", st[i]);
-                m_imageData = new ImageGray16(); // default black 1x1 image 
+                for (int i = 1; i < len; i++) 
+                    printf("\t\t %s\n", st[i]);
+                m_imageGrid = m_emptyGrid;
                 //e.printStackTrace();
                 return RESULT_ERROR;
             }
@@ -603,39 +633,35 @@ public class Image3D extends TransformableDataSource {
 
         long t1 = time();
         short imageDataShort[] = ImageUtil.getGray16Data(image);
-        m_imageData = new ImageGray16(imageDataShort, image.getWidth(), image.getHeight());
+        ImageGray16 imageData = new ImageGray16(imageDataShort, image.getWidth(), image.getHeight());
 
-        printf("imageSata done in %d ms\n", (time() - t1));
-
-        if (!useGrayscale) {
-            m_imageData.makeBlackWhite(m_imageThreshold);
-        }
+        if(DEBUG)printf("imageSata done in %d ms\n", (time() - t1));
 
         if (m_voxelSize > 0.0) {
             // we have finite voxel size, try to scale the image down to reasonable size 
-            double pixelSize = (m_sizeX / (m_imageData.getWidth() * m_xTilesCount));
+            double pixelSize = (m_sizeX / (imageData.getWidth() * m_xTilesCount));
             double pixelsPerVoxel = m_voxelSize / pixelSize;
-            printf("pixelsPerVoxel: %f\n", pixelsPerVoxel);
+            if(DEBUG)printf("pixelsPerVoxel: %f\n", pixelsPerVoxel);
 
             if (pixelsPerVoxel > MAX_PIXELS_PER_VOXEL) {
 
                 double newPixelSize = m_voxelSize / MAX_PIXELS_PER_VOXEL;
                 int newWidth = (int) Math.ceil((m_sizeX / m_xTilesCount) / newPixelSize);
-                int newHeight = (m_imageData.getHeight() * newWidth) / m_imageData.getWidth();
-                printf("resampling image[%d x %d] -> [%d x %d]\n",
-                        m_imageData.getWidth(), m_imageData.getHeight(), newWidth, newHeight);
+                int newHeight = (imageData.getHeight() * newWidth) / imageData.getWidth();
+                if(DEBUG)printf("resampling image[%d x %d] -> [%d x %d]\n",
+                        imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
                 t1 = time();
                 //short[] newData = getScaledDownData(imageDataShort, imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
-                short[] newData = getScaledDownDataBlack(imageDataShort, m_imageData.getWidth(), m_imageData.getHeight(), newWidth, newHeight);
+                short[] newData = getScaledDownDataBlack(imageDataShort, imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
 
-                printf("resampling image[%d x %d] -> [%d x %d]  done in %d ms\n",
-                        m_imageData.getWidth(), m_imageData.getHeight(), newWidth, newHeight, (time() - t1));
-                m_imageData = new ImageGray16(newData, newWidth, newHeight);
+                if(DEBUG)printf("resampling image[%d x %d] -> [%d x %d]  done in %d ms\n",
+                        imageData.getWidth(), imageData.getHeight(), newWidth, newHeight, (time() - t1));
+                imageData = new ImageGray16(newData, newWidth, newHeight);
             }
         }
 
-        imageWidth = m_imageData.getWidth();
-        imageHeight = m_imageData.getHeight();
+        imageWidth = imageData.getWidth();
+        imageHeight = imageData.getHeight();
         imageWidth1 = imageWidth - 1;
         imageHeight1 = imageHeight - 1;
         
@@ -647,32 +673,81 @@ public class Image3D extends TransformableDataSource {
 
             double blurSizePixels = blurWidth / pixelSize;
             t1 = time();
-            m_imageData.gaussianBlur(blurSizePixels);
+            imageData.gaussianBlur(blurSizePixels);
 
-            printf("Image3D image[%d x %d] gaussian blur: %7.2f pixels blur width: %10.5fmm time: %d ms\n", 
+            if(DEBUG)printf("Image3D image[%d x %d] gaussian blur: %7.2f pixels blur width: %10.5fmm time: %d ms\n", 
                    imageWidth, imageHeight, blurSizePixels, blurWidth/MM, (time() - t1));
 
         }
-        //char data[] = getBufferData(databuffer);
+
+        int res = 0;
+
+        if (!useGrayscale) {
+            res = makeImageBlack(imageData);
+        } else {
+            res = makeImageGray(imageData);            
+        }
+
+        if(DEBUG)printf("Image3D.prepareImage() time: %d ms\n", (time() - t0));
+        return res;
+
+    }
+
+    /**
+       makes data for black and white image 
+       data is represented as distance from 2D outline of the image 
+     */
+    protected int makeImageBlack(ImageGray16 image){
+
+        long t0 = time();
+        if(DEBUG)printf("makeImageBlack()\n");
+
+        int nx = image.getWidth();
+        int ny = image.getHeight();
+        double imagePixelSize = ((Vector3d)mp_size.getValue()).x/nx;
+
+        Grid2DShort imageGrid = Grid2DShort.convertImageToGrid(image, (m_imageType == IMAGE_TYPE_EMBOSSED), imagePixelSize);
+
+        double maxOutDistance = imagePixelSize*m_maxOutDistancePixels;
+        double maxInDistance = imagePixelSize*m_maxInDistancePixels;
+
+        DistanceTransform2D dt = new DistanceTransform2D(maxInDistance, maxOutDistance, m_imageThreshold); 
+        Grid2D distanceGrid = dt.execute(imageGrid);
+        m_imageGrid = distanceGrid;
+        m_dataChannel = m_imageGrid.getAttributeDesc().getChannel(0);
+
+        if(DEBUG)printf("makeImageBlack() done %d ms\n", time() -t0);
+
+        return RESULT_OK;
+        
+        
+    }
+
+    protected int makeImageGray(ImageGray16 image){
+
+        long t0 = time();
+        if(DEBUG)printf("makeImageGray()\n");
 
         if (m_interpolationType == INTERPOLATION_MIPMAP) {
 
             t0 = time();
-            m_mipMap = new ImageMipMapGray16(imageDataShort, imageWidth, imageHeight);
-            // release imageData pointer 
-            m_imageData = null;
+            if(true)throw new RuntimeException("INTERPOLATION_MIPMAP not implemented");
+            //m_mipMap = new ImageMipMapGray16(imageDataShort, imageWidth, imageHeight);
             
             if(DEBUG)printf("mipmap ready in %d ms\n", (time() - t0));
 
         } else {
-
-            m_mipMap = null;
+            
+            double imagePixelSize = ((Vector3d)mp_size.getValue()).x/image.getWidth();
+            m_imageGrid = Grid2DShort.convertImageToGrid(image, (m_imageType == IMAGE_TYPE_EMBOSSED), imagePixelSize);
+            m_dataChannel = m_imageGrid.getAttributeDesc().getChannel(0);
 
         }
-        
-        printf("Image3D.prepareImage() time: %d ms\n", (time() - t0));
-        return RESULT_OK;
 
+        if(DEBUG)printf("makeImageGray() done %d ms\n", time() -t0);
+
+        return RESULT_OK;
+                
     }
 
     /**
@@ -765,10 +840,10 @@ public class Image3D extends TransformableDataSource {
         double dy = imageY - iy;
         double dx1 = 1. - dx;
         double dy1 = 1. - dy;
-        double v00 = getImageHeight(ix, iy);
-        double v10 = getImageHeight(ix1, iy);
-        double v01 = getImageHeight(ix, iy1);
-        double v11 = getImageHeight(ix1, iy1);
+        double v00 = getImageValue(ix, iy);
+        double v10 = getImageValue(ix1, iy);
+        double v01 = getImageValue(ix, iy1);
+        double v11 = getImageValue(ix1, iy1);
 
         //if(debugCount-- > 0) printf("xyz: (%7.5f, %7.5f,%7.5f) ixy[%4d, %4d ] -> v00:%18.15f\n", x,y,z, ix, iy, v00);
 
@@ -856,16 +931,15 @@ public class Image3D extends TransformableDataSource {
     }
 
 
-    final double getImageHeight(int ix, int iy) {
-
-        double v = 0.;
+    final double getImageValue(int ix, int iy) {
 
         try {
-            v = m_imageData.getDataD(ix, iy);
+            return m_dataChannel.getValue(m_imageGrid.getAttribute(ix, iy));
         } catch (Exception e) {
             e.printStackTrace(Output.out);
         }
-
+        return 0.;
+        /*
         switch (m_imageType) {
             case IMAGE_TYPE_EMBOSSED:
                 v = 1. - v;
@@ -877,8 +951,7 @@ public class Image3D extends TransformableDataSource {
             case IMAGE_TYPE_ENGRAVED:
                 break;
         }
-
-        return v;
+        */
 
     }
 
@@ -929,8 +1002,8 @@ public class Image3D extends TransformableDataSource {
         z = (z - zmin) * zscale;
 
         if (x < 0. || x > 1. ||
-                y < 0. || y > 1. ||
-                z < 0. || z > 1.) {
+            y < 0. || y > 1. ||
+            z < 0. || z > 1.) {
             data.v[0] = 0;
             return RESULT_OK;
         }
@@ -1078,32 +1151,12 @@ public class Image3D extends TransformableDataSource {
         int yoffset0 = y0 * imageWidth;
         int yoffset1 = y1 * imageWidth;
 
-        double d00 = m_imageData.getDataD(x0, y0);
-        double d10 = m_imageData.getDataD(x1, y0);
-        double d01 = m_imageData.getDataD(x0, y1);
-        double d11 = m_imageData.getDataD(x1, y1);
+        double d00 = getImageValue(x0, y0);
+        double d10 = getImageValue(x1, y0);
+        double d01 = getImageValue(x0, y1);
+        double d11 = getImageValue(x1, y1);
         return (dx1 * (d00 * dy1 + d01 * dy) + dx * (d11 * dy + d10 * dy1));
         
-    }
-
-    double _getPixelLinear(double x, double y) {
-
-
-        x = x - imageWidth * Math.floor(x / imageWidth);
-        y = y - imageHeight * Math.floor(y / imageHeight);
-
-        int ix = (int) x;
-        int iy = (int) y;
-
-        double dx = x - ix;
-        double dy = y - iy;
-        double dx1 = 1 - dx;
-        double dy1 = 1 - dy;
-
-
-        int i0 = ix + iy * imageWidth;
-        double v00 = 0., v10 = 0., v01 = 0., v11 = 0.;
-        return 0.;
     }
 
     final double getPixelBoxShort(double x, double y) {
@@ -1111,11 +1164,8 @@ public class Image3D extends TransformableDataSource {
         int ix = clamp((int) Math.floor(x), 0, imageWidth - 1);
         int iy = clamp((int) Math.floor(y), 0, imageHeight - 1);
 
-        return m_imageData.getDataD(ix, iy);
-
-
+        return getImageValue(ix, iy);
 
     }
 
 }  // class Image3D
-

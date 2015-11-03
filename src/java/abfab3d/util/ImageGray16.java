@@ -91,6 +91,10 @@ public class ImageGray16 {
         return m_height;
     }
 
+    public short[] getData(){
+        return data;
+    }
+
     public final double getDataD(int x, int y){
         
         return us2i(data[x + y * m_width])/MAX_USHORT_D;
