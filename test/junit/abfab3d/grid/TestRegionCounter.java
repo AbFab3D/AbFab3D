@@ -64,24 +64,24 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
         // single voxel
     	AttributeGrid grid = new ArrayAttributeGridByte(10, 10, 10, 0.001, 0.001);
         grid.setData(2, 2, 2, (byte)1, 3);
-        int count = RegionCounter.countComponents(grid, 3, 10, false);
+        int count = RegionCounter.countComponents(grid, 3, 10, false).getNumRegions();
         assertEquals("Region count is not 1", 1, count);
         
         // two side adjacent voxels (share a face)
         grid.setData(3, 2, 2, (byte)1, 3);
-        count = RegionCounter.countComponents(grid, 3, 10, false);
+        count = RegionCounter.countComponents(grid, 3, 10, false).getNumRegions();
         assertEquals("Region count is not 1", 1, count);
         
         // two diagonal adjacent voxels, same plane (share an edge)
         grid.setData(3, 2, 2, (byte)0, 0);
         grid.setData(3, 3, 2, (byte)1, 3);
-        count = RegionCounter.countComponents(grid, 3, 10, false);
+        count = RegionCounter.countComponents(grid, 3, 10, false).getNumRegions();
         assertEquals("Region count is not 2", 2, count);
         
         // two diagonal adjacent voxels, different plane (share a corner)
         grid.setData(3, 3, 2, (byte)0, 0);
         grid.setData(3, 3, 3, (byte)1, 3);
-        count = RegionCounter.countComponents(grid, 3, 10, false);
+        count = RegionCounter.countComponents(grid, 3, 10, false).getNumRegions();
         assertEquals("Region count is not 2", 2, count);
     }
     
@@ -93,11 +93,11 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
     	AttributeGrid grid = new ArrayAttributeGridByte(10, 10, 10, 0.001, 0.001);
         grid.setData(2, 2, 2, (byte)1, 3);
         grid.setData(4, 2, 2, (byte)1, 3);
-        int count = RegionCounter.countComponents(grid, 3, 10, false);
+        int count = RegionCounter.countComponents(grid, 3, 10, false).getNumRegions();
         assertEquals("Region count is not 2", 2, count);
         
         grid.setData(5, 2, 2, (byte)1, 3);
-        count = RegionCounter.countComponents(grid, 3, 10, false);
+        count = RegionCounter.countComponents(grid, 3, 10, false).getNumRegions();
         assertEquals("Region count is not 2", 2, count);
     }
     
@@ -110,18 +110,18 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
         grid.setData(2, 2, 2, (byte)1, 3);
         grid.setData(3, 2, 2, (byte)1, 4);
         
-        int count = RegionCounter.countComponents(grid, 3, 10, false);
+        int count = RegionCounter.countComponents(grid, 3, 10, false).getNumRegions();
         assertEquals("Region count is not 1", 1, count);
         
-        count = RegionCounter.countComponents(grid, 4, 10, false);
+        count = RegionCounter.countComponents(grid, 4, 10, false).getNumRegions();
         assertEquals("Region count is not 1", 1, count);
         
         grid.setData(4, 2, 2, (byte)1, 3);
         
-        count = RegionCounter.countComponents(grid, 3, 10, false);
+        count = RegionCounter.countComponents(grid, 3, 10, false).getNumRegions();
         assertEquals("Region count is not 2", 2, count);
         
-        count = RegionCounter.countComponents(grid, 4, 10, false);
+        count = RegionCounter.countComponents(grid, 4, 10, false).getNumRegions();
         assertEquals("Region count is not 1", 1, count);
     }
 
@@ -132,24 +132,24 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
         // single voxel
     	AttributeGrid grid = new ArrayAttributeGridByte(10, 10, 10, 0.001, 0.001);
         grid.setData(2, 2, 2, (byte)1, 3);
-        int count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false);
+        int count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false).getNumRegions();
         assertEquals("Region count is not 1", 1, count);
         
         // two side adjacent voxels (share a face)
         grid.setData(3, 2, 2, (byte)1, 3);
-        count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false);
+        count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false).getNumRegions();
         assertEquals("Region count is not 1", 1, count);
         
         // two diagonal adjacent voxels, same plane (share an edge)
         grid.setData(3, 2, 2, (byte)0, 0);
         grid.setData(3, 3, 2, (byte)1, 3);
-        count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false);
+        count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false).getNumRegions();
         assertEquals("Region count is not 2", 2, count);
         
         // two diagonal adjacent voxels, different plane (share a corner)
         grid.setData(3, 3, 2, (byte)0, 0);
         grid.setData(3, 3, 3, (byte)1, 3);
-        count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false);
+        count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false).getNumRegions();
         assertEquals("Region count is not 2", 2, count);
     }
     
@@ -161,11 +161,11 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
     	AttributeGrid grid = new ArrayAttributeGridByte(10, 10, 10, 0.001, 0.001);
         grid.setData(2, 2, 2, (byte)1, 3);
         grid.setData(4, 2, 2, (byte)1, 3);
-        int count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false);
+        int count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false).getNumRegions();
         assertEquals("Region count is not 2", 2, count);
         
         grid.setData(5, 2, 2, (byte)1, 3);
-        count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false);
+        count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false).getNumRegions();
         assertEquals("Region count is not 2", 2, count);
     }
     
@@ -177,12 +177,12 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
     	AttributeGrid grid = new ArrayAttributeGridByte(10, 10, 10, 0.001, 0.001);
         grid.setData(2, 2, 2, Grid.INSIDE, 3);
 
-        int count = RegionCounter.countComponents((Grid) grid, Grid.INSIDE, 10, false);
+        int count = RegionCounter.countComponents((Grid) grid, Grid.INSIDE, 10, false).getNumRegions();
         assertEquals("Region count is not 1", 1, count);
         
         grid.setData(4, 2, 2, Grid.INSIDE, 3);
         
-        count = RegionCounter.countComponents((Grid) grid, Grid.INSIDE, 10, false);
+        count = RegionCounter.countComponents((Grid) grid, Grid.INSIDE, 10, false).getNumRegions();
         assertEquals("Region count is not 2", 2, count);
     }
     
@@ -384,7 +384,8 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
         //grid.setAttributeWorld(0., 0., 0., mat);
         //grid.setAttributeWorld(vs,vs,vs, mat);
         //int count = RegionCounter.countComponents(grid, new AttributeTesterRange(0, 0));
-        int count = RegionCounter.countComponents(grid, new HalfSpaceAttributeTester((int)((ss+r2)/vs-1), 0));
+        RegionCounterResults rr = RegionCounter.countComponents(grid, new HalfSpaceAttributeTester((int)((ss+r2)/vs-1), 0));
+        int count = rr.getNumRegions();
         printf("components count: %d\n", count);
         //SVXWriter svx = new SVXWriter();
         //svx.write(grid, "/tmp/ss.svx");

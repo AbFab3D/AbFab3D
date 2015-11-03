@@ -25,6 +25,7 @@ import abfab3d.grid.Grid;
 import abfab3d.grid.ClassTraverser;
 
 import abfab3d.grid.Region;
+import abfab3d.util.Units;
 
 import static abfab3d.util.Output.printf;
 
@@ -36,31 +37,31 @@ import static abfab3d.util.Output.printf;
  */
 public class RegionCounter {
 
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
 
     /**
        components counting via various algoritms
 
 
      */
-    public static int countComponents(AttributeGrid grid, AttributeTester materialTester) {
+    public static RegionCounterResults countComponents(AttributeGrid grid, AttributeTester materialTester) {
         return countComponents(grid, materialTester, -1, false,ConnectedComponent.DEFAULT_ALGORITHM);        
     }
-    public static int countComponents(AttributeGrid grid, long material) {
+    public static RegionCounterResults countComponents(AttributeGrid grid, long material) {
         return countComponents(grid, new AttributeTesterValue(material), -1, false,ConnectedComponent.DEFAULT_ALGORITHM);
     }
 
-    public static int countComponents(AttributeGrid grid, long material, int minSize) {
+    public static RegionCounterResults countComponents(AttributeGrid grid, long material, int minSize) {
         return countComponents(grid, new AttributeTesterValue(material), minSize, -1, false, ConnectedComponent.DEFAULT_ALGORITHM);
     }
 
-    public static int countComponents(AttributeGrid grid, long material, int maxCount, boolean collectData) {
+    public static RegionCounterResults countComponents(AttributeGrid grid, long material, int maxCount, boolean collectData) {
 
         return countComponents(grid, new AttributeTesterValue(material), maxCount, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
 
     }
 
-    public static int countComponents(AttributeGrid grid, AttributeTester materialTester, int maxCount, boolean collectData, int algorithm) {
+    public static RegionCounterResults countComponents(AttributeGrid grid, AttributeTester materialTester, int maxCount, boolean collectData, int algorithm) {
 
         int nx = grid.getWidth();
         int ny = grid.getHeight();
@@ -70,6 +71,7 @@ public class RegionCounter {
 
         int compCount = 0;
         int volume = 0;
+        long largestVoxels = 0;
 
         if(DEBUG)printf("countComponents(tester: %s, maxCount:%d)\n", materialTester, maxCount);
 
@@ -84,10 +86,13 @@ public class RegionCounter {
                     if(materialTester.test(x,y,z,grid.getAttribute(x,y,z))){
                         
                         ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z, materialTester, collectData, algorithm);
-                        
-                        //printf("Component[%d] seed:(%d,%d,%d) volume: %d\n", (compCount++), x,y,z, sc.getVolume());
-                        volume+= sc.getVolume();
+
                         compCount++;
+                        if (DEBUG) printf("Component[%d] seed:(%d,%d,%d) voxels: %d volume: %4.4f cm^3\n", compCount, x,y,z, sc.getVolume(), sc.getVolume() * Math.pow(grid.getVoxelSize(),3) / Units.CM3);
+                        volume+= sc.getVolume();
+                        if (sc.getVolume() > largestVoxels) {
+                            largestVoxels = sc.getVolume();
+                        }
                         if(maxCount > 0 && compCount > maxCount)
                             break zcycle;
                     }
@@ -97,10 +102,18 @@ public class RegionCounter {
 
         mask.release();
 
-        return compCount;
+        RegionCounterResults ret_val = new RegionCounterResults();
+        ret_val.numRegions = compCount;
+        ret_val.totalVolume = volume;
+        ret_val.maxedCount = (maxCount > 0 && compCount > maxCount);
+        ret_val.largestRegionVoxels = largestVoxels;
+        ret_val.largestRegionVolume = largestVoxels * Math.pow(grid.getVoxelSize(),3);
+        ret_val.voxelSize = grid.getVoxelSize();
+
+        return ret_val;
     }
 
-    public static int countComponents(AttributeGrid grid, AttributeTester tester, int minSize, int maxCount, boolean collectData, int algorithm) {
+    public static RegionCounterResults countComponents(AttributeGrid grid, AttributeTester tester, int minSize, int maxCount, boolean collectData, int algorithm) {
 
         int nx = grid.getWidth();
         int ny = grid.getHeight();
@@ -109,6 +122,8 @@ public class RegionCounter {
         GridBit mask = new GridBitIntervals(nx,ny, nz);
 
         int compCount = 0;
+        int volume = 0;
+        long largestVoxels = 0;
 
         if(DEBUG)printf("countComponents(material: %s, minSize: %d maxCount:%d)\n", tester, minSize, maxCount);
 
@@ -128,8 +143,13 @@ public class RegionCounter {
                         ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z, tester, collectData, algorithm);
 
                         //printf("Component[%d] seed:(%d,%d,%d) volume: %d\n", (compCount++), x,y,z, sc.getVolume());
-                        if (sc.getVolume() > minSize) {
+                        if (sc.getVolume() >= minSize) {
                             compCount++;
+                            volume+= sc.getVolume();
+                            if (sc.getVolume() > largestVoxels) {
+                                largestVoxels = sc.getVolume();
+                            }
+
                             if(maxCount > 0 && compCount > maxCount)
                                 break zcycle;
                         }
@@ -140,7 +160,15 @@ public class RegionCounter {
 
         mask.release();
 
-        return compCount;
+        RegionCounterResults ret_val = new RegionCounterResults();
+        ret_val.numRegions = compCount;
+        ret_val.totalVolume = volume;
+        ret_val.maxedCount = (maxCount > 0 && compCount > maxCount);
+        ret_val.largestRegionVoxels = largestVoxels;
+        ret_val.largestRegionVolume = largestVoxels * Math.pow(grid.getVoxelSize(),3);
+        ret_val.voxelSize = grid.getVoxelSize();
+
+        return ret_val;
     }
 
     /**
@@ -148,21 +176,21 @@ public class RegionCounter {
 
 
      */
-    public static int countComponents(Grid grid, byte state) {
+    public static RegionCounterResults countComponents(Grid grid, byte state) {
         return countComponents(grid, state, -1, false);
     }
 
-    public static int countComponents(Grid grid, byte state,int minSize) {
+    public static RegionCounterResults countComponents(Grid grid, byte state,int minSize) {
         return countComponents(grid, state, minSize, -1, false, ConnectedComponentState.DEFAULT_ALGORITHM);
     }
 
-    public static int countComponents(Grid grid, byte state, int maxCount, boolean collectData) {
+    public static RegionCounterResults countComponents(Grid grid, byte state, int maxCount, boolean collectData) {
 
         return countComponents(grid, state, maxCount, collectData,ConnectedComponentState.DEFAULT_ALGORITHM);
 
     }
 
-    public static int countComponents(Grid grid, byte state, int maxCount, boolean collectData, int algorithm) {
+    public static RegionCounterResults countComponents(Grid grid, byte state, int maxCount, boolean collectData, int algorithm) {
 
         int nx1 = grid.getWidth()-1;
         int ny1 = grid.getHeight()-1;
@@ -173,6 +201,7 @@ public class RegionCounter {
         if(DEBUG)printf("countComponents(state: %d, macCount:%d)\n", state, maxCount);
         int compCount = 0;
         int volume = 0;
+        long largestVoxels = 0;
 
         zcycle:
 
@@ -192,6 +221,10 @@ public class RegionCounter {
 
                         volume+= sc.getVolume();
                         compCount++;
+                        if (sc.getVolume() > largestVoxels) {
+                            largestVoxels = sc.getVolume();
+                        }
+
                         if(maxCount > 0 && compCount > maxCount)
                             break zcycle;
                     }
@@ -201,10 +234,18 @@ public class RegionCounter {
 
         mask.release();
 
-        return compCount;
+        RegionCounterResults ret_val = new RegionCounterResults();
+        ret_val.numRegions = compCount;
+        ret_val.totalVolume = volume;
+        ret_val.maxedCount = (maxCount > 0 && compCount > maxCount);
+        ret_val.largestRegionVoxels = largestVoxels;
+        ret_val.largestRegionVolume = largestVoxels * Math.pow(grid.getVoxelSize(),3);
+        ret_val.voxelSize = grid.getVoxelSize();
+
+        return ret_val;
     }
 
-    public static int countComponents(Grid grid, byte state, int minSize, int maxCount, boolean collectData, int algorithm) {
+    public static RegionCounterResults countComponents(Grid grid, byte state, int minSize, int maxCount, boolean collectData, int algorithm) {
 
         int nx1 = grid.getWidth()-1;
         int ny1 = grid.getHeight()-1;
@@ -214,6 +255,8 @@ public class RegionCounter {
 
         if(DEBUG)printf("countComponents(state: %d, minSize: %d macCount:%d)\n", state, minSize, maxCount);
         int compCount = 0;
+        int volume = 0;
+        long largestVoxels = 0;
 
         zcycle:
 
@@ -233,6 +276,11 @@ public class RegionCounter {
 
                         if (sc.getVolume() >= minSize) {
                             compCount++;
+                            volume+= sc.getVolume();
+                            if (sc.getVolume() > largestVoxels) {
+                                largestVoxels = sc.getVolume();
+                            }
+
                             if(maxCount > 0 && compCount > maxCount)
                                 break zcycle;
                         }
@@ -243,7 +291,15 @@ public class RegionCounter {
 
         mask.release();
 
-        return compCount;
+        RegionCounterResults ret_val = new RegionCounterResults();
+        ret_val.numRegions = compCount;
+        ret_val.totalVolume = volume;
+        ret_val.maxedCount = (maxCount > 0 && compCount > maxCount);
+        ret_val.largestRegionVoxels = largestVoxels;
+        ret_val.largestRegionVolume = largestVoxels * Math.pow(grid.getVoxelSize(),3);
+        ret_val.voxelSize = grid.getVoxelSize();
+
+        return ret_val;
     }
 
     /**
@@ -667,4 +723,6 @@ public class RegionCounter {
             return components;
         }
     }
+
 }
+

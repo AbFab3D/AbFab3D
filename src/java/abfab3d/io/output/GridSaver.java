@@ -690,7 +690,7 @@ public class GridSaver {
 
             //System.out.println("   vol: " + (volume / Units.CM3));
             if (volume >= minVolume) {
-                System.out.println("Keeping shell: " + volume / Units.CM3);
+                System.out.println("Keeping shell: " + volume / Units.CM3 + " cm^3");
                 saved_shells.add(new ShellData(shells[i],volume));
                 if (cnt < numShells) {
                     face_count += shells[i].faceCount;
@@ -712,10 +712,10 @@ public class GridSaver {
             if (shell_cnt >= numShells) break;
         }
 
-        printf("extracting largest shells: %d\n",face_count);
+        printf("extracting largest shells: face: %d  shells: %d  removed: %d\n",face_count,shell_cnt,(shells.length - shell_cnt));
         mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
 
-        return new ShellResults(mesh, regions_removed);
+        return new ShellResults(mesh, shells.length - shell_cnt);
     }
 
     public static WingedEdgeTriangleMesh decimateMesh(WingedEdgeTriangleMesh mesh, double maxCollapseError ){
