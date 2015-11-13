@@ -20,7 +20,7 @@ package abfab3d.util;
  */
 public interface DataSource {
 
-    public static int 
+    public static final int 
         RESULT_OK = 0,     // success
         RESULT_ERROR = 1,  // error occurs 
         RESULT_OUTSIDE = 2; // argument is outside of the domain of data definition 

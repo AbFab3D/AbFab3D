@@ -15,12 +15,16 @@ package abfab3d.util;
 import javax.vecmath.Vector3d;
 
 import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Units.MM;
 
 public class Bounds implements Cloneable {
+
     public static final Bounds INFINITE = new Bounds(-1000,1000,-1000,1000,-1000,1000);
 
     public double xmin=0, xmax=1., ymin=0., ymax=1., zmin=0., zmax=1.;
     public int nx = 1, ny = 1, nz = 1;
+
+    protected double m_voxelSize = 0.1*MM;
 
     public Bounds(){        
     }
@@ -54,25 +58,51 @@ public class Bounds implements Cloneable {
         this.zmin = zmin;
         this.zmax = zmax;
     }
+
+
+    /**
+       returns volume of the bounds box 
+     */
+    public double getVolume(){
+
+        return (xmax-xmin)*(ymax -ymin)*(zmax-zmin);
+
+    }
+
+
+    public int[] getGridSize(double voxelSize){
+
+        return new int[]{
+            getWidthVoxels(voxelSize),
+            getHeightVoxels(voxelSize),
+            getDepthVoxels(voxelSize)
+        };
+
+    }
+
+    public double getVoxelSize(){
+        return m_voxelSize;
+    }
+
     /**
        @return width of bounds in voxels 
      */
-    public int getWidthVoxels(double voxel){
-        return roundSize((xmax-xmin)/voxel);
+    public int getWidthVoxels(double voxelSize){
+        return roundSize((xmax-xmin)/voxelSize);
     }
 
     /**
        @return height of bounds in voxels 
      */
-    public int getHeightVoxels(double voxel){
-        return roundSize((ymax-ymin)/voxel);
+    public int getHeightVoxels(double voxelSize){
+        return roundSize((ymax-ymin)/voxelSize);
     }
 
     /**
        @return depth of bounds in voxels 
      */
-    public int getDepthVoxels(double voxel){
-        return roundSize((zmax-zmin)/voxel);
+    public int getDepthVoxels(double voxelSize){
+        return roundSize((zmax-zmin)/voxelSize);
     }    
 
 
@@ -133,10 +163,23 @@ public class Bounds implements Cloneable {
         return (zmax+zmin)/2;
     }
 
+    /**
+       set voxel size to be used for this bounds 
+     */
+    public void setVoxelSize(double voxelSize){
+        m_voxelSize = voxelSize;
+        this.nx = getWidthVoxels(voxelSize);
+        this.ny = getHeightVoxels(voxelSize);
+        this.nz = getDepthVoxels(voxelSize);
+
+    }
+
     public void setGridSize(int width,int height, int depth){
         this.nx = width;
         this.ny = height;
         this.nz = depth;
+        this.m_voxelSize = (xmax - xmin)/nx;
+
     }
 
     public static final int roundSize(double s){        
@@ -205,6 +248,29 @@ public class Bounds implements Cloneable {
         ymax += margin;
         zmin -= margin;
         zmax += margin;
+
+    }
+
+    /**
+       round bounds using current voxel size 
+     */
+    public void roundBounds(){
+
+        roundBounds(m_voxelSize);
+
+    }
+
+    /**
+       round bounds using given voxel size 
+     */
+    public void roundBounds(double voxelSize){
+
+        xmin = voxelSize*Math.floor(xmin/voxelSize);
+        ymin = voxelSize*Math.floor(ymin/voxelSize);
+        zmin = voxelSize*Math.floor(zmin/voxelSize);
+        xmax = voxelSize*Math.ceil(xmax/voxelSize);
+        ymax = voxelSize*Math.ceil(ymax/voxelSize);
+        zmax = voxelSize*Math.ceil(zmax/voxelSize);
 
     }
 

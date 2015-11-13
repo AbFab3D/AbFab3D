@@ -1441,4 +1441,21 @@ public class MathUtil {
 
     }
 
+    /**
+       @return square of the argument 
+     */
+    public static final double sqr(double x){
+        return x*x;
+    }
+
+    /**
+       
+       @return maximal unsigned value represented via given bit count        
+     */
+    public static final long getMaxValue(int bitCount){
+        if(bitCount >= 64 || bitCount <= 0) 
+            throw new IllegalArgumentException(fmt("unsupported bit count: %d",bitCount));
+        return (1L << bitCount) - 1;
+    }
+
 }

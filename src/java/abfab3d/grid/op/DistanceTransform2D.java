@@ -71,7 +71,7 @@ public class DistanceTransform2D implements Operation2D {
     static final double HALF = 0.5; // half voxel offset to the center of voxel
 
     //double m_layerThickness = 1.5;  
-    double m_layerThickness = 0.7;  
+    double m_layerThickness = 2.7;  
     int m_neighbors[]; // offsets to neighbors 
 
     double m_maxInDistance = 0;
@@ -83,6 +83,10 @@ public class DistanceTransform2D implements Operation2D {
     int m_subvoxelResolution = 100;
     int nx, ny, nz;
     int m_surfaceValue;
+
+    static final int INTERP_THRESHOLD = 0, INTERP_LINEAR = 1, INTERP_IF = 2;
+
+    int m_interpolation = INTERP_THRESHOLD;
 
     double m_voxelSize;
     // surface threshold
@@ -125,6 +129,11 @@ public class DistanceTransform2D implements Operation2D {
     public void setInteriorSign(int interiorSign){
         m_interiorSign = interiorSign;
     }
+
+    public void setInterpolation(int interpolation){
+        m_interpolation = interpolation;
+    }
+
 
     /**
      * Execute an operation on a grid.  If the operation changes the grid
@@ -233,15 +242,31 @@ public class DistanceTransform2D implements Operation2D {
         }
     } 
 
+    final double coeff(double v0, double v1){
+        switch(m_interpolation){
+        default: 
+        case INTERP_LINEAR:
+            return coeff_linear(v0, v1);
+        case INTERP_IF:
+            return coeff_IF(v0, v1);
+        case INTERP_THRESHOLD:
+            return coeff_threshold(v0, v1);
+        }
+    }
+
+    final double coeff_threshold(double v0, double v1){
+        return (v0/(v0-v1) < 0.5)? 0: 1;
+    }
+
     /**
        root of linear map (0,1) -> (v0, v1) 
        v0 + x*(v1-v0) = 0
      */
-    final double coeff(double v0, double v1){
+    final double coeff_linear(double v0, double v1){
         return v0/(v0-v1);
     }
 
-    final double _coeff(double v0, double v1){
+    final double coeff_IF(double v0, double v1){
         return MathUtil.coeffIF((v0+m_threshold), (v1+m_threshold));
     }
 

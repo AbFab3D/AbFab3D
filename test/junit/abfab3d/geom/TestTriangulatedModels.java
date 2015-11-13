@@ -109,13 +109,13 @@ public class TestTriangulatedModels extends TestCase {
 
     }
 
-    public static void makeUnitSphere()throws Exception {
+    public static void makeSphere()throws Exception {
         
-        STLWriter stl = new STLWriter("/tmp/sphere_10mm_10_1.stl");
+        STLWriter stl = new STLWriter("/tmp/sphere_10cm.stl");
         
         int n = 10;
 
-        TriangulatedModels.Sphere s = new  TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 10, 0.1*MM);
+        TriangulatedModels.Sphere s = new  TriangulatedModels.Sphere(50*MM, new Vector3d(0,0,0), 10, 0.001*MM);
         s.getTriangles(stl);
 
         stl.close();              
@@ -182,8 +182,8 @@ public class TestTriangulatedModels extends TestCase {
 
     public static void main(String[] arg) throws Exception {
 
-        //makeUnitSphere();
-        new TestTriangulatedModels().testCylinder();
+        makeSphere();
+        //new TestTriangulatedModels().testCylinder();
         
 
     }

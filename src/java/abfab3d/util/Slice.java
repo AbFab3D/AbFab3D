@@ -12,20 +12,19 @@
 
 package abfab3d.util;
 
+
 /**
+   represents single slice to be processed by thread 
+*/
+public class Slice {
 
-   interface for objects, which require some kind of one time initialization before doing computationally intensive job 
-   
- */
-public interface Initializable {
+    public int smin;
+    public int smax;
+    
+    Slice(int smin, int smax){
+        this.smin = smin;
+        this.smax = smax;
+    }
 
-    public static final int 
-        RESULT_OK = DataSource.RESULT_OK,     // success
-        RESULT_ERROR  = DataSource.RESULT_ERROR;  // error
 
-    /**
-       
-     */
-    public int initialize();
-        
 }

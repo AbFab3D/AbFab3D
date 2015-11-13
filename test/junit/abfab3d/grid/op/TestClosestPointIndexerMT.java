@@ -17,7 +17,6 @@ import java.awt.Color;
 import java.awt.RenderingHints;
 
 import java.awt.image.BufferedImage;
-import java.util.Random;
 
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -28,6 +27,8 @@ import junit.framework.TestCase;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridInt;
+import abfab3d.grid.ArrayAttributeGridShort;
+import abfab3d.grid.util.GridUtil;
 
 import abfab3d.util.Bounds;
 
@@ -38,9 +39,9 @@ import static java.lang.Math.sin;
 import static java.lang.Math.cos;
 import static java.lang.Math.PI ;
 import static java.lang.Math.sqrt;
-import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.time;
 import static abfab3d.util.Units.MM;
 import static abfab3d.util.MathUtil.iround;
 
@@ -49,89 +50,156 @@ import static abfab3d.util.MathUtil.iround;
  *
  * @author Vladimir Bulatov
  */
-public class TestClosestPointIndexer extends TestCase {
+public class TestClosestPointIndexerMT extends TestCase {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestClosestPointIndexer.class);
+        return new TestSuite(TestClosestPointIndexerMT.class);
     }
 
     public void testNothing()throws Exception{
         // to make tester happy 
     }
 
+    
+    /**
+       this test compares result of MT and ST distance calculations 
+     */
+    void testMTvsSTprecision()throws Exception{
+        
+        if(DEBUG) printf("%s.testPrecisionMTvsST()\n", this.getClass().getName());
+        double vs = 0.5*MM;
+        double w = 10*MM; // half width 
+        //double firstLayerThickness = 0.7;
+        //double firstLayerThickness = 1.7;
+        double firstLayerThickness = 2.7;
+        //double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = -vs, zmax = 2*vs;
+        double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = -w, zmax = w;
+        int subvoxelResolution = 100;
+        int voxelSquareSize = 20;// for visualization 
+        boolean snapToGrid = false;
+        int iterationsCount = 0;
+        int threadCount = 4;
+        boolean writeViz = false;
+        boolean compareDistances = false;
+
+        Bounds bounds = new Bounds(xmin,xmax,ymin,ymax,zmin,zmax);
+        double pnts[];
+        pnts = makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128);
+        //double pnts[] = makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128);
+        //double pnts[]  = makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128);
+        //pnts = makeUnion(makeUnion(makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128),makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128)),makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128));
+        //double pnts[] = makeUnion(makeUnion(makeCircleZ(0.5*vs, 0.25*vs, 0.5*w, 0.9*w, 128),makeCircleZ(0.5*vs, 0.5*vs, 0.5*w, 0.9*w, 128)),makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128));
+
+        ArrayAttributeGridInt indexGrid1 = new ArrayAttributeGridInt(bounds, vs, vs);
+        ArrayAttributeGridInt indexGrid2 = new ArrayAttributeGridInt(bounds, vs, vs);
+
+
+        int pcount = pnts.length/3;
+        double pntx[] = new double[pcount];
+        double pnty[] = new double[pcount];
+        double pntz[] = new double[pcount];
+
+        ClosestPointIndexer.getPointsInGridUnits(indexGrid1, pnts, pntx, pnty, pntz);
+        if(snapToGrid){
+            ClosestPointIndexer.snapToVoxels(pntx);
+            ClosestPointIndexer.snapToVoxels(pnty);
+            ClosestPointIndexer.snapToVoxels(pntz);
+        }
+
+        ClosestPointIndexer.initFirstLayer(indexGrid1, pntx, pnty, pntz, firstLayerThickness, subvoxelResolution);
+        ClosestPointIndexer.initFirstLayer(indexGrid2, pntx, pnty, pntz, firstLayerThickness, subvoxelResolution);
+
+        for(int z = 0; z < indexGrid1.getDepth(); z++){
+            renderDiff(indexGrid1, z, pntx, pnty, pntz, voxelSquareSize, fmt("/tmp/dist/dist00_%02d.png",z), true);
+        }
+
+        int usedCount = ClosestPointIndexer.removeUnusedPoints(indexGrid1, pntx, pnty, pntz);
+        printf("grid: [%d x %d x %d] threads: %d points: %d usedPoints: %d \n", indexGrid1.getWidth(), indexGrid1.getHeight(), indexGrid1.getDepth(), threadCount, pcount, usedCount);
+
+        // distribute distances to the whole grid 
+        long t0 = time();
+        ClosestPointIndexer.PI3_sorted(pntx, pnty, pntz, indexGrid1);
+        printf("ClosestPointIndexer done: %d\n", (time() - t0));
+        t0 = time();
+        ClosestPointIndexerMT.PI3_MT(pntx, pnty, pntz, indexGrid2, threadCount);
+        printf("ClosestPointIndexerMT done: %d\n ", (time() - t0));
+        long diff = GridUtil.compareGrids(indexGrid1, indexGrid2);
+        printf("index difference count: %d\n", diff);
+
+        printf("maxDiff1: %6.4f\n", getMaxDiff(indexGrid1, pntx, pnty, pntz));
+        printf("maxDiff2: %6.4f\n", getMaxDiff(indexGrid1, pntx, pnty, pntz));
+            
+        if(writeViz){
+            for(int z = 0; z < indexGrid1.getDepth(); z++){
+                //renderDiff(indexGrid1, z, pntx, pnty, pntz, voxelSquareSize, fmt("/tmp/dist/dist01_%02d.png",z), true);
+                renderDiff(indexGrid2, z, pntx, pnty, pntz, voxelSquareSize, fmt("/tmp/dist/distDiff2_%02d.png",z), true);
+            }
+        }
+        
+        if(compareDistances){
+            AttributeGrid distGrid1 = new ArrayAttributeGridShort(bounds, vs, vs);
+            AttributeGrid distGrid2 = new ArrayAttributeGridShort(bounds, vs, vs);
+            ClosestPointIndexer.getPointsInWorldUnits(indexGrid1, pntx, pnty, pntz);
+            
+            ClosestPointIndexer.makeDistanceGrid(indexGrid1,pntx, pnty, pntz, null, distGrid1, w, w, subvoxelResolution);
+            ClosestPointIndexer.makeDistanceGrid(indexGrid2,pntx, pnty, pntz, null, distGrid2, w, w, subvoxelResolution);
+            long diffDist = GridUtil.compareGrids(distGrid1, distGrid2);
+            printf("distance difference count: %d\n", diffDist);
+        }
+        
+    }
+    
     void makeTestPoint()throws Exception{
         
         if(DEBUG) printf("%s.makeTestPoint()\n", this.getClass().getName());
         double vs = 0.05*MM;
-        //double w = 3*MM; // half width 
         double w = 10*MM; // half width 
-        //double firstLayerThickness = 0.9;
-        //double firstLayerThickness = 1.7;
-        //double firstLayerThickness = 2.7;
-        double firstLayerThickness = 3.7;
-        //double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = 0, zmax = vs;
-        double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = -w, zmax = w;
+        double firstLayerThickness = 2.5;//1.5;//3.5;//2.4;//1.8;//0.8
+        double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = -w, zmax = w;//10*vs;
         int subvoxelResolution = 100;
         double INF = 1.e5;// point to ignore 
-        int voxelSquareSize = 10;// for visualization 
+        int voxelSquareSize = 25;// for visualization 
         boolean snapToGrid = false;
         int iterationsCount = 0;
-        int sliceAxis = 1;
-        boolean writeViz = false;
-        boolean calcDiff = false;
+        int threadCount = 1;
 
-        Bounds bounds = new Bounds(xmin,xmax,ymin,ymax,zmin,zmax);
-        ArrayAttributeGridInt indexGrid = new ArrayAttributeGridInt(bounds, vs, vs);
-        double pnts[];
-        // = new double[]{0,0,0,
+        ArrayAttributeGridInt indexGrid = new ArrayAttributeGridInt(new Bounds(xmin,xmax,ymin,ymax,zmin,zmax), vs, vs);
+        double pnts[] = new double[]{0,0,0,
                                      //1*vs, 0*vs, 0.5*vs,  0.2*vs, -2.3*vs,  0.5*vs, 
                                      //1*vs, 0*vs, 0.5*vs,  0.2*vs, -2.4*vs,  0.5*vs, 
                                      //1*vs, 0*vs, 0.5*vs,  0.5*vs, -2.4*vs,  0.5*vs, / bad
                                      //7*vs, 0*vs, 0.5*vs,  6.5*vs, -2.4*vs,  0.5*vs, //6.5*vs, 2.4*vs,  0.5*vs, 
                                      
-        //7*vs, 0*vs, 0.5*vs, 
-        //                           6.5*vs, 2.4*vs,  0.5*vs, 
-        //                                     6.5*vs, -2.4*vs,  0.5*vs, 
+                                     7*vs, 0*vs, 0.5*vs, 
+                                     6.5*vs, 2.4*vs,  0.5*vs, 
+                                     6.5*vs, -2.4*vs,  0.5*vs, 
                                      
-                                         //                           -7*vs, 0*vs, 0.5*vs,                                      
-        //                           -6.5*vs, 2.4*vs,  0.5*vs, 
-        //                           -6.5*vs, -2.4*vs,  0.5*vs, 
-        //                           0, 7*vs,0.5*vs, 
-        //                           2.4*vs, 6.5*vs, 0.5*vs, 
-        //                           -2.4*vs,6.5*vs,  0.5*vs, 
-        //                           0, -7*vs,0.5*vs, 
-        //                           2.4*vs, -6.5*vs, 0.5*vs, 
-        //                           -2.4*vs,-6.5*vs,  0.5*vs, 
-        //                           
-        //};
+                                     -7*vs, 0*vs, 0.5*vs,                                      
+                                     -6.5*vs, 2.4*vs,  0.5*vs, 
+                                     -6.5*vs, -2.4*vs,  0.5*vs, 
+                                     0, 7*vs,0.5*vs, 
+                                     2.4*vs, 6.5*vs, 0.5*vs, 
+                                     -2.4*vs,6.5*vs,  0.5*vs, 
+                                     0, -7*vs,0.5*vs, 
+                                     2.4*vs, -6.5*vs, 0.5*vs, 
+                                     -2.4*vs,-6.5*vs,  0.5*vs, 
+                                     
+        };
         //pnts = makeCircle(0.2*vs, 0.6*vs, 0, 7*vs, 32);
-        //pnts = makeCircleZ(0.2*vs, 0.2*vs, 0.5*vs, 7*vs, 16);
-        //pnts = makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32);
-        //pnts = makeUnion(makeUnion(makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128),makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128)),makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128));
-        //pnts = makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128);
-        //pnts = new double[]{0,0,0, 0.5*vs, 1.5*vs, 0, 1.5*vs, 0.5*vs, 0, 1.5*vs, 1.5*vs, 0}; // 3pnt_centers
-        //pnts = new double[]{0,0,0, 0.5*vs, 1.75*vs, 0, 1.75*vs, 0.5*vs, 0, 1.25*vs, 1.25*vs, 0}; // 3_pnt_off center
-        //pnts = new double[]{0,0,0, 0.5*vs, 1.75*vs, 0, 1.75*vs, 0.5*vs, 0, 1.5*vs, 1.5*vs, 0}; // 3_pnt_off center
-        //pnts = new double[]{0,0,0, 0.5*vs, 1.6*vs, 0, 1.6*vs, 0.5*vs, 0, 1.5*vs, 1.5*vs, 0}; // 3_pnt_off center
-        //pnts = new double[]{0,0,0, 0.5*vs, 1.75*vs, 0.5*vs, 1.75*vs, 0.5*vs, 0.5*vs, 1.15*vs, 1.15*vs, 0.5*vs}; // 3_pnt_off center
-        //pnts = new double[]{0,0,0, 0.5*vs, 1.75*vs, 0.5*vs, 1.75*vs, 0.5*vs, 0.5*vs, 1.05*vs, 1.05*vs, 0.5*vs}; // 3_pnt_off center (test for firstLayerThickness = 0.7)
-        //pnts = makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128);
-        // large max error ( > 4) with a lot of sorting arrors  
-        //pnts = makeUnion(makeUnion(makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128),makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128)),makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128));
-        //pnts = makeUnion(makeUnion(makeCircleX(0.1*vs, 0.2*vs, 0.3*vs, 0.9*w, 128),makeCircleY(0.4*vs, 0.5*vs, 0.6*vs, 0.9*w, 128)),makeCircleZ(0.7*vs, 0.8*vs, 0.9*vs, 0.9*w, 128));
-        //pnts = makeUnion(makeUnion(makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 256),makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 256)),makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 256));
         //pnts = makeCircleZ(0.2*vs, 0.2*vs, 0.2*vs, 7*vs, 128);
         //pnts = makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 64);
+        //pnts = makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.8*w, 64);
         //pnts = makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.7*w, 80);
         //pnts = makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.7*w, 256);
         //pnts = makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32);
         //pnts = makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32);
         //pnts = makeUnion(makeUnion(makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32),makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32)),makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32));
+        pnts = makeUnion(makeUnion(makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128),makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128)),makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.9*w, 128));
         //pnts = makeUnion(makeUnion(makeCircleX(0.3*vs, 0.3*vs, 0.3*vs, 7*vs, 32),makeCircleY(0.3*vs, 0.3*vs, 0.3*vs, 7*vs, 32)),makeCircleZ(0.3*vs, 0.3*vs, 0.3*vs, 7*vs, 32));
         //pnts = makeUnion(makeUnion(makeCircleX(0.3*vs, 0.3*vs, 0.3*vs, 7*vs, 64),makeCircleY(0.3*vs, 0.3*vs, 0.3*vs, 7*vs, 64)),makeCircleZ(0.3*vs, 0.3*vs, 0.3*vs, 7*vs, 64));
         //pnts = makeUnion(makeUnion(makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 64),makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 64)),makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 64));
@@ -139,8 +207,8 @@ public class TestClosestPointIndexer extends TestCase {
         //pnts = makeUnion(makeCircle(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32),makeCircle(2.5*vs, 0.5*vs, 3.5*vs, 7*vs, 32));
         //pnts = makeUnion(makeCircle(-9.5*vs, 0.5*vs, 0, 7*vs, 32),makeCircle(9.5*vs, 0.5*vs, 0, 7*vs, 32));
         //pnts = makeUnion(makeUnion(makeCircle(-10.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32),makeCircle(11.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32)), 
-        //                 makeUnion(makeCircle(0.5*vs, -10.5*vs, 0.5*vs, 7*vs, 32),makeCircle(0.5*vs, 11.5*vs, 0.5*vs, 7*vs, 32)));
-        pnts = makeRandomPoints(bounds, 500, 121);
+        //                 makeUnion(makeCircle(0.5*vs, -10.5*vs, 0.5*vs, 7*vs, 32),makeCircle(0.5*vs, 11.5*vs, 0.5*vs, 7*vxs, 32)));
+        //pnts = makeRandomPoints();
         int pcount = pnts.length/3;
         //printf("pcount: %d\n", (pcount-1));
         double pntx[] = new double[pcount];
@@ -156,69 +224,28 @@ public class TestClosestPointIndexer extends TestCase {
 
         ClosestPointIndexer.initFirstLayer(indexGrid, pntx, pnty, pntz, firstLayerThickness, subvoxelResolution);
         int usedCount = ClosestPointIndexer.removeUnusedPoints(indexGrid, pntx, pnty, pntz);
-        printf("total points: %d,  used points: %d\n", pcount, usedCount);
+        printf("grid: [%d x %d x %d] threads: %d points: %d\n", 
+               indexGrid.getWidth(), indexGrid.getHeight(), indexGrid.getDepth(), threadCount, pcount);
 
-        int nx = indexGrid.getWidth();
-        int ny = indexGrid.getHeight();
         int nz = indexGrid.getDepth();
-        printf("grid [%d x %d x %d]\n ", nx, ny, nz);
+
         //if(true) printIndices(indexGrid);
-
-        if(writeViz) {
-            for(int z = 0; z < nz; z++){
-                renderDiff(indexGrid, z, pntx, pnty, pntz, voxelSquareSize, fmt("/tmp/dist/distDiff1_%02d.png",z), true, sliceAxis);
-            }
-        }
-        long t0 = time();
+        //for(int z = 0; z < nz; z++)renderDiff(indexGrid, z, pntx, pnty, pntz, voxelSquareSize, fmt("/tmp/dist/distDiff1_%02d.png",z), true);
+        
+        
         // distribute distances to the whole grid 
-        //ClosestPointIndexer.PI3_multiPass(pntx, pnty, pntz, indexGrid, iterationsCount);
+        long t0 = time();
+        ClosestPointIndexerMT.PI3_MT(pntx, pnty, pntz, indexGrid, threadCount);
         //ClosestPointIndexer.PI3(pntx, pnty, pntz, indexGrid);
-        ClosestPointIndexer.PI3_sorted(pntx, pnty, pntz, indexGrid);
-        //ClosestPointIndexer.PI3_neig(pntx, pnty, pntz, indexGrid);
-
-        printf("PI3() done: %d ms\n", (time() - t0));
-
+        printf("ClosestPointIndexer time: %d\n ", (time() - t0));
         //printIndices(indexGrid);
         //printDiff(indexGrid, pntx, pnty, pntz, true);
         //printDiff(indexGrid, pntx, pnty, pntz, false);
-        if(calcDiff){
-            double diff[] = getDiff(indexGrid, pntx, pnty, pntz);
-            printf("diff1:      %6.4f voxels\n", diff[0]);
-            printf("diff2:      %6.4f voxels\n", diff[1]);
-            printf("maxDiff:    %6.4f voxels\n", diff[2]);
-            printf("relDiff1:   %6.5f\n", diff[3]);
-            printf("relDiff2:   %6.5f\n", diff[4]);
-            printf("maxRelDiff: %6.5f\n", diff[5]);
-        }
-
-        if(writeViz) {
-            for(int z = 0; z < nz; z++){
-                renderDiff(indexGrid, z, pntx, pnty, pntz, voxelSquareSize, fmt("/tmp/dist/distDiff2_%02d.png",z), true, sliceAxis);
-            }
+        //printf("maxDiff: %10.3e\n", getMaxDiff(indexGrid, pntx, pnty, pntz));
+        for(int z = 0; z < nz; z++){
+            //renderDiff(indexGrid, z, pntx, pnty, pntz, voxelSquareSize, fmt("/tmp/dist/distDiff2_%02d.png",z), true);
         }
         
-    }
-
-    static double[] makeRandomPoints(Bounds bounds, int count, int seed){
-
-        double dx = bounds.xmax - bounds.xmin;
-        double dy = bounds.ymax - bounds.ymin;
-        double dz = bounds.zmax - bounds.zmin;
-        double x0 = bounds.xmin;
-        double y0 = bounds.ymin;
-        double z0 = bounds.zmin;
-
-        Random rnd = new Random(seed);
-        double coord[] = new double[3*(count+1)];
-        for(int k = 1; k < count; k++){
-            double x = x0 + rnd.nextDouble() * dx;
-            double y = x0 + rnd.nextDouble() * dy;
-            double z = x0 + rnd.nextDouble() * dz;
-            coord[3*k] = x;
-            coord[3*k + 1] = y;
-            coord[3*k + 2] = z;
-        }
-        return coord;
     }
 
     static double[] makeCircleX(double cx, double cy, double cz, double radius, int count){
@@ -294,7 +321,6 @@ public class TestClosestPointIndexer extends TestCase {
        
     }
 
-
     static void printDiff(AttributeGrid indexGrid, double pntx[], double pnty[], double pntz[], boolean printInd){
 
         int nx = indexGrid.getWidth();
@@ -345,20 +371,13 @@ public class TestClosestPointIndexer extends TestCase {
         printf("maxDiff: %10.3e\n", maxDiff);
     }
 
-    static double[] getDiff(AttributeGrid indexGrid, double pntx[], double pnty[], double pntz[]){
+    static double getMaxDiff(AttributeGrid indexGrid, double pntx[], double pnty[], double pntz[]){
 
         int nx = indexGrid.getWidth();
         int ny = indexGrid.getHeight();
         int nz = indexGrid.getDepth();
         double coord[] = new double[3];
         double maxDiff = 0;
-        double totalDiff2 = 0;
-        double totalDiff = 0;
-        double totalRelDiff = 0;
-        double totalRelDiff2 = 0;
-        double maxRelDiff = 0;
-
-        int diffCount = 0;
         for(int z = 0; z < nz; z++){
             for(int y = 0; y < ny; y++){
                 for(int x = 0; x < nx; x++){
@@ -372,32 +391,11 @@ public class TestClosestPointIndexer extends TestCase {
                         double edist = minDistance((x+0.5), (y+0.5), (z+0.5), pntx, pnty, pntz);
                         double diff = abs(dist - edist);
                         if(diff > maxDiff ) maxDiff = diff;
-                        totalDiff2 += diff*diff;
-                        totalDiff += diff;
-                        if(edist != 0.0){ 
-                            double relDiff = diff/edist;
-                            if(relDiff > maxRelDiff ) maxRelDiff = relDiff;
-                            totalRelDiff2 += relDiff*relDiff;
-                            totalRelDiff += relDiff;
-                        }
-                        diffCount++;
                     }
                 }
             }
         }
-        totalDiff /= diffCount;
-        totalDiff2 /= diffCount;
-        totalDiff2 = Math.sqrt(totalDiff2);
-
-        totalRelDiff /= diffCount;
-        totalRelDiff2 /= diffCount;
-        totalRelDiff2 = Math.sqrt(totalRelDiff2);
-        
-        //printf("diff1:   %7.5f\n", totalDiff);
-        //printf("diff2:   %7.5f\n", totalDiff2);
-        //printf("maxDiff: %7.5f\n", maxDiff);
-
-        return new double[]{totalDiff, totalDiff2, maxDiff, totalRelDiff, totalRelDiff2, maxRelDiff};
+        return maxDiff;
     }
     
     static Color[] getRainbowColors(int count){
@@ -408,24 +406,12 @@ public class TestClosestPointIndexer extends TestCase {
         return c;
     }
 
-    static void renderDiff(AttributeGrid indexGrid, int slice, double pntx[], double pnty[], double pntz[], int vs, String filePath, 
-                           boolean renderErrors, int axis) throws Exception {
+    static void renderDiff(AttributeGrid indexGrid, int z, double pntx[], double pnty[], double pntz[], int vs, String filePath, 
+                           boolean renderErrors) throws Exception {
 
-        int gx = indexGrid.getWidth();
-        int gy = indexGrid.getHeight();
-        int gz = indexGrid.getDepth();
-        double spx[], spy[], spz[]; // points coords in slice system
-        int nx, ny, nz;
-        switch(axis){
-        default:
-        case 2: nx = gx; ny = gy; nz = gz; spx = pntx; spy = pnty; spz = pntz;
-            break;
-        case 1: nx = gz; ny = gx; nz = gy; spx = pntz; spy = pntx; spz = pnty;
-            break;
-        case 0: nx = gy; ny = gz; nz = gx; spx = pnty; spy = pntz; spz = pntx;
-            break;
-        }
-        
+        int nx = indexGrid.getWidth();
+        int ny = indexGrid.getHeight();
+        int nz = indexGrid.getDepth();
 
         int picx = nx*vs;
         int picy = ny*vs;
@@ -438,7 +424,30 @@ public class TestClosestPointIndexer extends TestCase {
         Color pointColor = new Color(0,0,0);
         Color calcLineColor = new Color(255,0,0);
         Color exactLineColor = new Color(0,0,255);
-        Color colors[] = getRainbowColors(61);
+        Color colors[] = new Color[]{ new Color(255, 150, 150),
+                                      new Color(255, 255, 150),
+                                      new Color(150, 255, 150),
+                                      new Color(150, 255, 255),
+                                      new Color(200, 150, 255),
+                                      new Color(255, 150, 255),
+                                      new Color(200, 150, 150),
+                                      new Color(50, 150, 200),
+                                      new Color(250, 150, 150),
+                                      new Color(150, 250, 150),
+                                      new Color(200, 150, 150),
+                                      new Color(255, 200, 150),
+                                      new Color(255, 255, 150),
+                                      new Color(150, 255, 200),
+                                      new Color(100, 200, 255),
+                                      new Color(150, 150, 255),
+                                      new Color(230, 190, 255),
+                                      new Color(200, 150, 150),
+                                      new Color(150, 150, 200),
+                                      new Color(200, 250, 150),
+
+        };
+
+        colors = getRainbowColors(61);
 
         int pointSize = 4;
 
@@ -446,25 +455,18 @@ public class TestClosestPointIndexer extends TestCase {
         g.fillRect(0,0,picx, picy);
 
         g.setColor(voxelColor); 
+
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){
                 g.fillRect(x*vs,y*vs, vs-1, vs-1);                
             }
         }
-        for(int j = 0; j < ny; j++){
-
-            for(int i = 0; i < nx; i++){
-                int x,y,z;
-                switch(axis){
-                default:
-                case 2: x = i; y = j; z = slice; break;
-                case 1: x = j; y = slice; z = i; break;
-                case 0: x = slice; y = i; z = j; break;
-                }
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
                 int ind = (int)indexGrid.getAttribute(x,y,z);
                 if(ind != 0) {
                     g.setColor(colors[(ind-1)%colors.length]);
-                    g.fillRect(i*vs,j*vs, vs-1, vs-1);
+                    g.fillRect(x*vs,y*vs, vs-1, vs-1);
                 }
             }
         }        
@@ -472,28 +474,17 @@ public class TestClosestPointIndexer extends TestCase {
         g.setColor(pointColor); 
         for(int k = 1; k < pntx.length; k++){
 
-            int pz = (int)(spz[k]);
-            
-            if(pz == slice) {
+            int pz = (int)(pntz[k]);
+            if(pz == z) {
                 // point is in the z-slice 
-                int px = iround(vs*spx[k]);
-                int py = iround(vs*spy[k]);
-                
+                int px = iround(vs*pntx[k]);
+                int py = iround(vs*pnty[k]);
                 g.fillOval(px-pointSize/2, py-pointSize/2, pointSize,pointSize); 
             }
         }
 
-        for(int j = 0; j < ny; j++){
-            for(int i = 0; i < nx; i++){
-
-                int x,y,z;
-                switch(axis){
-                default:
-                case 2: x = i; y = j; z = slice; break;
-                case 1: x = j; y = slice; z = i; break;
-                case 0: x = slice; y = i; z = j; break;
-                }
-                
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
                 int ind = (int)indexGrid.getAttribute(x,y,z);
                 if(ind != 0) {
                     double 
@@ -509,11 +500,11 @@ public class TestClosestPointIndexer extends TestCase {
                     double edist = minDistance(x0, y0, z0, pntx, pnty, pntz);
                     int inde = minIndex(x0, y0, z0, pntx, pnty, pntz);
                     double error = abs(dist - edist);
-                    if(inde != ind &&  error > 0.00 && renderErrors) {
+                    if(inde != ind &&  error > 0.01 && renderErrors) {
                         g.setColor(pointColor); 
                         if(error > 0.8) error = 0.8;
                         double s = (vs*error);
-                        g.drawRect(iround(vs*(i+0.5)-s/2), iround(vs*(j+0.5)-s/2), iround(s), iround(s));
+                        g.drawRect(iround(vs*x0 - s/2), iround(vs*y0-s/2), iround(s), iround(s));
                         //g.setColor(calcLineColor); 
                         //g.drawLine(iround(vs*x0), iround(vs*y0), iround(vs*pntx[ind]), iround(vs*pnty[ind]));
                         //g.setColor(exactLineColor); 
@@ -562,7 +553,8 @@ public class TestClosestPointIndexer extends TestCase {
     public static void main(String arg[]) throws Exception {
 
         for(int i = 0; i < 4; i++){
-            new TestClosestPointIndexer().makeTestPoint();
+            //new TestClosestPointIndexerMT().makeTestPoint();
+            new TestClosestPointIndexerMT().testMTvsSTprecision();            
         }        
     }
 }

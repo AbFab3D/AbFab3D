@@ -44,4 +44,24 @@ import abfab3d.grid.*;
              }
          }         
      }
+
+     /**
+        returns count of different voxels in the grids 
+      */
+     public static long compareGrids(AttributeGrid grid, AttributeGrid grid1){
+         
+         int nx = grid.getWidth();
+         int ny = grid.getHeight();
+         int nz = grid.getDepth();
+         long count = 0;
+         for(int y = 0; y < ny; y++){
+             for(int x = 0; x < nx; x++){
+                 for(int z = 0; z < nz; z++){
+                     if(grid.getAttribute(x,y,z) != grid1.getAttribute(x,y,z))
+                         count++;
+                 }
+             }
+         }         
+         return count;
+     }
  }

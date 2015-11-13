@@ -33,6 +33,7 @@ import static java.lang.Math.sqrt;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
+import static abfab3d.util.MathUtil.sqr;
 
 /**
    methods to find index of closest point for each point on grid 
@@ -65,9 +66,9 @@ public class ClosestPointIndexer {
     static boolean DEBUG1 = false;
     static final boolean DEBUG_TIMING = true;
     static final int sm_iterationNeig[] = Neighborhood.makeBall(1.5); // neighborhood for iterations
-    // neighbors to collect for 1D pass 
-    //static final int[] sm_neig2 = new int[]{0,0,1,0,-1,0,0,1,0,-1};
-    static final int[] sm_neig2 = new int[]{0,0};
+
+    // neighbors to collect points for 1D pass 
+    static final int[] sm_neig2x = new int[]{0,0,0, 0, 1,0, 0,-1,0};
 
     private static long processed = 0;
     private static long changed = 0;
@@ -95,7 +96,7 @@ public class ClosestPointIndexer {
                              int gpindex[], 
                              int v[], 
                              double w[]){
-        //int ecount = 0;
+        int ecount = 0;
         //if(true) ecount = sortCoordinates(pointCount, index, coord, value);
 
         //if(DEBUG) printD("coord:", coord, pointCount);
@@ -121,6 +122,10 @@ public class ClosestPointIndexer {
                         // found place for new parabola in envelope 
                         break;
                     }
+                } else { 
+                    if(false) if(x0 != x1 && abs(value[p] - value[v[k]]) > EPS)  printf("no intersection: x0:%7.3f x1:%7.3f v0:%7.3f v1:%7.3f\n", x0, x1, value[p],value[v[k]]);
+                    //TODO process the case if parabolas have no intersection
+                    // in that case the parabola with smaller value replaces other in the envelope 
                 }
                 k--;
             }   
@@ -224,6 +229,69 @@ public class ClosestPointIndexer {
     }
 
 
+    public static void PI2_sorted(int npnt, double coordx[], double coordy[], Grid2D indexGrid){
+        
+        int nx = indexGrid.getWidth();
+        int ny = indexGrid.getHeight();
+            
+        // maximal dimension 
+        int nm = max(nx, ny);
+        // work arrays
+        int v[] = new int[nm];
+        double w[] = new double[nm+1];
+        int ipnt[] = new int[nm+1];
+        double values[] = new double[nm];
+        int gpnt[] = new int[nm];
+
+        // make 1D x transforms for each y row 
+        for(int iy = 0; iy < ny; iy++){
+            int pcnt = 0;
+            double vy = (iy+HALF);
+            // prepare 1D chain of points 
+            for(int ix = 0; ix < nx; ix++){
+                int ind = (int)indexGrid.getAttribute(ix, iy);
+                if(ind > 0){
+                    // non empty voxel 
+                    double dist = sqr(coordy[ind]-vy);
+                    pcnt = addPointSorted(coordx, ipnt, values, ind, dist, pcnt);
+                }
+            }
+            if(pcnt > 0){ 
+                PI1(nx,pcnt, ipnt, coordx, values, gpnt, v, w);
+                // write chain of indices back into 2D grid 
+                for(int ix = 0; ix < nx; ix++){
+                    int ind = gpnt[ix];
+                    if(ind != 0) indexGrid.setAttribute(ix, iy, ind);
+                }            
+            }
+        }
+        //if(true) return;
+        // make 1D y transforms for each x column 
+        for(int ix = 0; ix < nx; ix++){
+            int pcnt = 0;
+            double vx = ix + HALF;
+            // prepare 1D chain of points 
+            for(int iy = 0; iy < ny; iy++){
+                int ind = (int)indexGrid.getAttribute(ix, iy);
+                if(ind > 0){
+                    // non empty voxel 
+                    double dist = sqr(coordx[ind]-vx);
+                    pcnt = addPointSorted(coordy, ipnt, values, ind, dist, pcnt);
+
+                }
+            }
+            if(pcnt > 0){ 
+                PI1(ny, pcnt, ipnt, coordy, values, gpnt, v, w);
+                // write chain of indices back into 2D grid 
+                for(int iy = 0; iy < ny; iy++){
+                    int ind = gpnt[iy];
+                    if(ind != 0) indexGrid.setAttribute(ix, iy, ind);
+                }            
+            }
+        }
+    }
+
+
     /**
      *  calculates Indexed of closes point on 3D grid for a set of points 
      *  @param coordx  array of x coordinates. coordx[0] is unused 
@@ -254,14 +322,56 @@ public class ClosestPointIndexer {
         DT3sweepY(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
         DT3sweepZ(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
 
-        if(DEBUG_TIMING){t1 = time();printf("z-pass: %d ms\n", t1 - t0);t0 = t1;}
+        //if(DEBUG_TIMING){t1 = time();printf("z-pass: %d ms\n", t1 - t0);t0 = t1;}
         
-        //makeSmoothPass(indexGrid, coordx, coordy, coordz, sm_iterationNeig);
+        //makeIteration(indexGrid, workGrid, coordx, coordy, coordz, sm_iterationNeig);
         
         //DT3sweepX(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
         //DT3sweepY(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
 
     } // PI3()
+
+    /**
+       do the point indexing using neighbors columns
+       not implemented 
+     */
+    public static void PI3_neig(double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid){
+
+        int nx = indexGrid.getWidth();
+        int ny = indexGrid.getHeight();
+        int nz = indexGrid.getDepth();
+        int neigCount = 9;
+        // work array size 
+        int nm = max(max(nx, ny),nz)*neigCount; 
+        // work arrays
+        int v[] = new int[nm];
+        double w[] = new double[nm+1];
+        int ipnt[] = new int[nm+1];
+        double value[] = new double[nm];
+        int gpnt[] = new int[nm];
+        DT3sweepX_neig(coordx, coordy, coordz, indexGrid, v, w, ipnt, value, gpnt);
+
+    } // PI3_neig()
+
+    public static void PI3_sorted(double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid){
+
+        int nx = indexGrid.getWidth();
+        int ny = indexGrid.getHeight();
+        int nz = indexGrid.getDepth();
+        int neigCount = 9;
+        // work array size 
+        int nm = max(max(nx, ny),nz)*neigCount; 
+        // work arrays
+        int v[] = new int[nm];
+        double w[] = new double[nm+1];
+        int ipnt[] = new int[nm+1];
+        double value[] = new double[nm];
+        int gpnt[] = new int[nm];
+        DT3sweepX_sorted(0, nz, coordx, coordy, coordz, indexGrid, v, w, ipnt, value, gpnt);
+        DT3sweepY_sorted(0, nz, coordx, coordy, coordz, indexGrid, v, w, ipnt, value, gpnt);        
+        DT3sweepZ_sorted(0, ny, coordx, coordy, coordz, indexGrid, v, w, ipnt, value, gpnt);        
+
+    } // PI3_sorted()
 
 
     /**
@@ -290,21 +400,21 @@ public class ClosestPointIndexer {
         // do 3 series of sweeps in 3 different order 
         // this eliminates most of errors in calculations
         // XYZ 
-        DT3sweepX(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
-        DT3sweepY(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
-        DT3sweepZ(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
+        DT3sweepX_sorted(0, nz, coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
+        DT3sweepY_sorted(0, nz, coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
+        DT3sweepZ_sorted(0, ny, coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
         
         // YZX 
-        DT3sweepY(coordx, coordy, coordz, workGrid, v, w, ipnt, value1, gpnt);        
-        DT3sweepZ(coordx, coordy, coordz, workGrid, v, w, ipnt, value1, gpnt); 
-        DT3sweepX(coordx, coordy, coordz, workGrid, v, w, ipnt, value1, gpnt);                
+        DT3sweepY_sorted(0, nz, coordx, coordy, coordz, workGrid, v, w, ipnt, value1, gpnt);        
+        DT3sweepZ_sorted(0, ny, coordx, coordy, coordz, workGrid, v, w, ipnt, value1, gpnt); 
+        DT3sweepX_sorted(0, nz, coordx, coordy, coordz, workGrid, v, w, ipnt, value1, gpnt);                
         combineGrids(indexGrid, workGrid, coordx, coordy, coordz);
 
         // ZXY 
         workGrid.copyData(origGrid);
-        DT3sweepZ(coordx, coordy, coordz, workGrid, v, w, ipnt, value1, gpnt);        
-        DT3sweepX(coordx, coordy, coordz, workGrid, v, w, ipnt, value1, gpnt); 
-        DT3sweepY(coordx, coordy, coordz, workGrid, v, w, ipnt, value1, gpnt);        
+        DT3sweepZ_sorted(0, ny, coordx, coordy, coordz, workGrid, v, w, ipnt, value1, gpnt);        
+        DT3sweepX_sorted(0, nz, coordx, coordy, coordz, workGrid, v, w, ipnt, value1, gpnt); 
+        DT3sweepY_sorted(0, nz, coordx, coordy, coordz, workGrid, v, w, ipnt, value1, gpnt);        
         combineGrids(indexGrid, workGrid, coordx, coordy, coordz);
         
         /*
@@ -339,18 +449,25 @@ public class ClosestPointIndexer {
         }
 
         printf("processed: %d  changed: %d\n",processed,changed);
-    } // DT3_v2()
+    } // PI3_multiPass()
 
 
-    static int DT3sweepX(double coordx[], double coordy[], double coordz[], 
-                           AttributeGrid indexGrid, int v[], double w[], int ipnt[], double value[], int gpnt[]){
-        if(DEBUG) printf("DT3sweepX()\n");
+    
+    static int DT3sweepX(double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid, 
+                         int v[], double w[], int ipnt[], double value[], int gpnt[]){
+        return DT3sweepX(0, indexGrid.getDepth(),coordx, coordy, coordz, indexGrid, v, w, ipnt, value, gpnt);
+    }
+    
+    static int DT3sweepX(int zmin, int zmax, double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid, 
+                         int v[], double w[], int ipnt[], double value[], int gpnt[]){
+        if(false) printf("DT3sweepX(%d, %d)\n", zmin, zmax);
         int nx = indexGrid.getWidth();
         int ny = indexGrid.getHeight();
         int nz = indexGrid.getDepth();
         int ecount = 0;
         // make 1D X-transforms 
-        for(int iz = 0; iz < nz; iz++){
+        //for(int iz = 0; iz < nz; iz++){
+        for(int iz = zmin; iz < zmax; iz++){
             double vz = (iz+HALF);
             for(int iy = 0; iy < ny; iy++){
                 int pcnt = 0;
@@ -369,23 +486,55 @@ public class ClosestPointIndexer {
                 }
                 processed++;
                 if(pcnt > 0){ 
-                    if(false) {
-                        printInd("B:", iy, iz, indexGrid);
-                        printRow("  ", pcnt, coordx, ipnt);
-                    }
-                    
+                    //TODO remove sorting 
+                    sortCoordinates(pcnt, ipnt, coordx);
                     int changed = PI1(nx,pcnt, ipnt, coordx, value, gpnt, v, w);
                     // write chain of indices back into 3D grid 
-//                    for(int ix = 0; ix < nx; ix++){
-                    for(int ix = 0; ix < changed; ix++){
-                      indexGrid.setAttribute(ix, iy, iz, gpnt[ix]);
+                    for(int ix = 0; ix < nx; ix++){
+                        indexGrid.setAttribute(ix, iy, iz, gpnt[ix]);
                     }            
-                    if(false) {
-                        printTitle("A", nx);
-                        printD("w:", w, w.length);                    
-                        printInd("  ", iy, iz, indexGrid);
-                        printRow("  ", nx, coordx, gpnt);
+                }
+            }
+        }
+        if(DEBUG && ecount > 0) printf("sorting errors: %d\n", ecount);
+        return ecount;
+    }
+
+    // 
+    // does sorting of data in each row before passing it to PI1()
+    //
+    static int DT3sweepX_sorted(int zmin, int zmax, double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid, 
+                         int v[], double w[], int ipnt[], double value[], int gpnt[]){
+        if(false) printf("DT3sweepX(%d, %d)\n", zmin, zmax);
+        int nx = indexGrid.getWidth();
+        int ny = indexGrid.getHeight();
+        int nz = indexGrid.getDepth();
+        int ecount = 0;
+        // make 1D X-transforms 
+        //for(int iz = 0; iz < nz; iz++){
+        for(int iz = zmin; iz < zmax; iz++){
+            double vz = (iz+HALF);
+            for(int iy = 0; iy < ny; iy++){
+                int pcnt = 0;
+                double vy = (iy+HALF);
+                // prepare 1D chain of points 
+                for(int ix = 0; ix < nx; ix++){
+                    int ind = (int)indexGrid.getAttribute(ix, iy, iz);
+                    if(ind > 0){
+                        // non empty voxel 
+                        double dist = length2(coordy[ind]-vy, coordz[ind]-vz);
+                        pcnt = addPointSorted(coordx, ipnt, value, ind, dist, pcnt);
                     }
+
+                }
+                if(pcnt > 0){ 
+                    // TODO - remove sorting 
+                    if(false)sortCoordinates(pcnt, ipnt, coordx);
+                    PI1(nx,pcnt, ipnt, coordx, value, gpnt, v, w);
+                    // write chain of indices back into 3D grid 
+                    for(int ix = 0; ix < nx; ix++){                        
+                        indexGrid.setAttribute(ix, iy, iz, gpnt[ix]);
+                    }            
                 }
             }
         }
@@ -395,17 +544,20 @@ public class ClosestPointIndexer {
 
     //
     // makes X sweep collecting points from neighbours rows 
+    // not finished 
     // 
-    static int DT3sweepXneig(double coordx[], double coordy[], double coordz[], 
+    static int DT3sweepX_neig(double coordx[], double coordy[], double coordz[], 
                                AttributeGrid indexGrid, int v[], double w[], int ipnt[], double value[], int gpnt[]){
-        if(DEBUG) printf("DT3sweepX()\n");
+        //if(DEBUG) printf("DT3sweepX()\n");
         int nx = indexGrid.getWidth();
         int ny = indexGrid.getHeight();
         int nz = indexGrid.getDepth();
         int ecount = 0;
 
-        int neig[] = sm_neig2;
-        int neiglength = sm_neig2.length;
+        int neig[] = sm_neig2x;
+        int neiglength = neig.length;
+        
+        printGrid(indexGrid);
 
         // make 1D X-transforms 
         for(int iz = 0; iz < nz; iz++){
@@ -413,28 +565,39 @@ public class ClosestPointIndexer {
             for(int iy = 0; iy < ny; iy++){
                 int pcnt = 0;
                 double vy = (iy+HALF);
+                printf("ROW: iy: %d iz: %d\n", iy, iz);
                 // prepare 1D chain of points 
                 for(int ix = 0; ix < nx; ix++){
 
-                    for(int k = 0; k < neiglength; k += 2){
-                        int iyy = iy + neig[k];
-                        int izz = iz + neig[k+1];
+                    for(int k = 0; k < neiglength; k += 3){
+                        int iyy = iy + neig[k+1];
+                        int izz = iz + neig[k+2];
+                        //printf("(%2d %2d %2d)+[%2d %2d %2d]\n", iz, iy, ix, neig[k], neig[k+1], neig[k+2]);
+                        
                         if(iyy >= 00 && iyy < ny && izz >= 0 && izz < nz) {
                             int ind = (int)indexGrid.getAttribute(ix, iyy, izz);
+                            //if(iy == 6) printf("(%2d %2d %2d): k:%d ind:%d\n", ix, iyy, izz, k/3, ind);
                             if(ind != 0) {
-                                ipnt[pcnt] = ind;
-                                value[pcnt++] = distance2(iyy, izz, coordy, coordz, ind);
+                                // insert point in sorted order of x-coord 
+                                if(pcnt == 0 ){
+                                    // this is first point, store it  
+                                    ipnt[pcnt] = ind;
+                                    value[pcnt++] = distance2(iyy, izz, coordy, coordz, ind);                                    
+                                } else {
+                                    // we have sorted array of points with different 
+                                    //ipnt - index of point
+                                    // coordx[] - x-coordinates 
+                                    // we have to add only new points and insert it in correct order 
+                                    for(int c = pcnt-1; c >= 0; c--){
+                                        //ipnt[c] != 
+                                    }
+                                }
                             }
                         }
                     }
                 }
-                if(pcnt > 0){ 
-                    if(false) {
-                        printInd("B:", iy, iz, indexGrid);
-                        printRow("  ", pcnt, coordx, ipnt);
-                    }
-                    
-                    ecount += PI1(nx,pcnt, ipnt, coordx, value, gpnt, v, w);
+                if(pcnt > 0){                     
+                    PI1(nx,pcnt, ipnt, coordx, value, gpnt, v, w);
                     // write chain of indices back into 3D grid 
                     for(int ix = 0; ix < nx; ix++){
                         indexGrid.setAttribute(ix, iy, iz, gpnt[ix]);
@@ -448,20 +611,26 @@ public class ClosestPointIndexer {
                 }
             }
         }
-        if(DEBUG && ecount > 0) printf("sorting errors: %d\n", ecount);
-        return ecount;
+        return 0;
     }
     static int DT3sweepY(double coordx[], double coordy[], double coordz[], 
                             AttributeGrid indexGrid, int v[], double w[], int ipnt[], double value[], int gpnt[]){
+
+        return DT3sweepY(0, indexGrid.getDepth(), coordx, coordy, coordz, indexGrid, v, w, ipnt, value, gpnt);
+
+    }
+
+    static int DT3sweepY(int zmin, int zmax, double coordx[], double coordy[], double coordz[], 
+                            AttributeGrid indexGrid, int v[], double w[], int ipnt[], double value[], int gpnt[]){
         
-        if(DEBUG) printf("DT3sweepY()\n");
+        if(false) printf("DT3sweepY(%d, %d)\n", zmin, zmax);
         int nx = indexGrid.getWidth();
         int ny = indexGrid.getHeight();
         int nz = indexGrid.getDepth();
         int ecount = 0;
 
         // make 1D Y-transforms 
-        for(int iz = 0; iz < nz; iz++){
+        for(int iz = zmin; iz < zmax; iz++){
             double vz = (iz+HALF);
             for(int ix = 0; ix < nx; ix++){
                 double vx = (ix+HALF);
@@ -478,13 +647,11 @@ public class ClosestPointIndexer {
                         
                     }
                 }
-                processed++;
-
                 if(pcnt > 0){ 
-                    int changed = PI1(ny, pcnt, ipnt, coordy, value, gpnt, v, w);
+                    // sortCoordinates(pcnt, ipnt, coordy);
+                    PI1(ny, pcnt, ipnt, coordy, value, gpnt, v, w);
                     // write chain of indices back into 3D grid 
-//                    for(int iy = 0; iy < ny; iy++){
-                    for(int iy = 0; iy < changed; iy++){
+                    for(int iy = 0; iy < ny; iy++){
                       indexGrid.setAttribute(ix, iy, iz, gpnt[iy]);
                     }            
                 }
@@ -494,19 +661,61 @@ public class ClosestPointIndexer {
         return ecount;
     }
 
-
-    static int DT3sweepZ(double coordx[], double coordy[], double coordz[], 
-                            AttributeGrid indexGrid, int v[], double w[], int ipnt[], double value[], int gpnt[]){
-
-        if(DEBUG) printf("DT3sweepZ()\n");
-
+    static int DT3sweepY_sorted(int zmin, int zmax, double coordx[], double coordy[], double coordz[], 
+                                AttributeGrid indexGrid, int v[], double w[], int ipnt[], double value[], int gpnt[]){
+        
+        if(false) printf("DT3sweepY(%d, %d)\n", zmin, zmax);
         int nx = indexGrid.getWidth();
         int ny = indexGrid.getHeight();
         int nz = indexGrid.getDepth();
-        int ecount = 0;
+
+        // make 1D Y-transforms 
+        for(int iz = zmin; iz < zmax; iz++){
+            double vz = (iz+HALF);
+            for(int ix = 0; ix < nx; ix++){
+                double vx = (ix+HALF);
+                int pcnt = 0;
+                // prepare 1D chain of points 
+                for(int iy = 0; iy < ny; iy++){
+                    int ind = (int)indexGrid.getAttribute(ix, iy, iz);
+                    if(ind > 0){
+                        // non empty voxel 
+                        double dist = length2(coordx[ind]-vx, coordz[ind]-vz);
+                        pcnt = addPointSorted(coordy, ipnt, value, ind, dist, pcnt);
+                        
+                    }
+                }
+                if(pcnt > 0){ 
+                    //sortCoordinates(pcnt, ipnt, coordy);
+                    PI1(ny, pcnt, ipnt, coordy, value, gpnt, v, w);
+                    // write chain of indices back into 3D grid 
+                    for(int iy = 0; iy < ny; iy++){
+                      indexGrid.setAttribute(ix, iy, iz, gpnt[iy]);
+                    }            
+                }
+            }
+        }
+        return 0;
+    }
+
+
+    static int DT3sweepZ(double coordx[], double coordy[], double coordz[], 
+                         AttributeGrid indexGrid, int v[], double w[], int ipnt[], double value[], int gpnt[]){
+
+        return DT3sweepZ(0, indexGrid.getHeight(), coordx, coordy, coordz, indexGrid, v, w, ipnt, value, gpnt);
+
+    }
+
+    static int DT3sweepZ(int ymin, int ymax, double coordx[], double coordy[], double coordz[], 
+                            AttributeGrid indexGrid, int v[], double w[], int ipnt[], double value[], int gpnt[]){
+
+        if(false) printf("DT3sweepZ(%d, %d)\n", ymin, ymax);
+        int nx = indexGrid.getWidth();
+        int ny = indexGrid.getHeight();
+        int nz = indexGrid.getDepth();
 
         // make 1D Z-transforms 
-        for(int iy = 0; iy < ny; iy++){
+        for(int iy = ymin; iy < ymax; iy++){
             double vy = (iy+HALF);
             for(int ix = 0; ix < nx; ix++){
                 double vx = (ix+HALF);
@@ -522,20 +731,138 @@ public class ClosestPointIndexer {
                         pcnt++;
                     }
                 }
-                processed++;
-
                 if(pcnt > 0){ 
-                    int changed = PI1(nz, pcnt, ipnt, coordz, value, gpnt, v, w);
+                    PI1(nz, pcnt, ipnt, coordz, value, gpnt, v, w);
                     // write chain of indices back into 3D grid 
-                    for(int iz = 0; iz < changed; iz++){
+                    for(int iz = 0; iz < nz; iz++){
                         indexGrid.setAttribute(ix, iy, iz, gpnt[iz]);
                     }            
                 }
             }
         }
-        if(DEBUG && ecount > 0 ) printf("sorting errors: %d\n", ecount);
+        return 0;
+    }
+
+    static int DT3sweepZ_sorted(int ymin, int ymax, double coordx[], double coordy[], double coordz[], 
+                                AttributeGrid indexGrid, int v[], double w[], int ipnt[], double value[], int gpnt[]){
+
+        if(false) printf("DT3sweepZ(%d, %d)\n", ymin, ymax);
+
+        int nx = indexGrid.getWidth();
+        int ny = indexGrid.getHeight();
+        int nz = indexGrid.getDepth();
+        int ecount = 0;
+
+        // make 1D Z-transforms 
+        for(int iy = ymin; iy < ymax; iy++){
+            double vy = (iy+HALF);
+            for(int ix = 0; ix < nx; ix++){
+                double vx = (ix+HALF);
+                int pcnt = 0;
+                // prepare 1D chain of points 
+                for(int iz = 0; iz < nz; iz++){
+                    int ind = (int)indexGrid.getAttribute(ix, iy, iz);
+                    if(ind > 0){
+                        // non empty voxel 
+                        double dist = length2(coordx[ind]-vx, coordy[ind]-vy);
+                        pcnt = addPointSorted(coordz, ipnt, value, ind, dist, pcnt);
+                    }
+                }
+                if(pcnt > 0){ 
+                    PI1(nz, pcnt, ipnt, coordz, value, gpnt, v, w);
+                    // write chain of indices back into 3D grid 
+                    for(int iz = 0; iz < nz; iz++){
+                        indexGrid.setAttribute(ix, iy, iz, gpnt[iz]);
+                    }            
+                }
+            }
+        }
+        return 0;
+    }
+
+    
+    /**
+       add new point to 1D array of point in sorted order 
+       
+       points with equal coordx are treated as follows:
+       the point with smaller distance replaces point with larger distances 
+       
+       @param coordx array of all points coordinates 
+       @param ipnt  array of indices in sorted array. New point index is inserted into this array 
+       @param values array of point values. New point value is inserted into this array 
+       @param ind index of point being added 
+       @param value value of point being added 
+       @param pcnt  count of points stored in the arrays ipnt and values
+       @return new count of ponts in he array 
+     */
+    static final int addPointSorted(double coordx[], int ipnt[], double values[], int ind, double value, int pcnt){
+
+        double x = coordx[ind];
+        
+        if(pcnt == 0){
+            // first point is added (no sorting needed) 
+            ipnt[0] = ind;
+            values[0] = value;                            
+            pcnt = 1;
+        } else {
+            // array is non empty 
+            int k = pcnt; // place to add new point 
+            // find place to insert new point. the x-coord should be in accenting order 
+            while(k > 0 && x < coordx[ipnt[k-1]] - EPS ){
+                k--;
+            }
+            
+            if(k > 0 && abs(coordx[ipnt[k-1]] - x) < EPS){
+                // x-coord are equal 
+                if(value < values[k-1]) {
+                    // new point is better, it replaces old point at index k 
+                    ipnt[k-1] = ind;
+                    values[k-1] = value;
+                }
+            } else {
+                // shift old points and insert new point at index k 
+                for(int i = pcnt; i > k; i--){
+                    ipnt[i] = ipnt[i-1];
+                    values[i] = values[i-1]; 
+                }
+                ipnt[k] = ind;
+                values[k] = value;                 
+                pcnt++;
+            } 
+        }                        
+        return pcnt;
+    }
+
+    /**
+       sort coordinates and values in accending order 
+       return permutations count 
+       Note. sorting is disabled for now 
+     */
+    public static final int sortCoordinates(int count, int index[], double coord[]){
+        
+        if(true) return 0;
+        int ecount = 0;
+        for(int i = 1; i < count; i++){
+            if(coord[index[i]] < coord[index[i-1]] + EPS) {
+                //printf("%7.5f %7.5f\n ", coord[index[i]], coord[index[i-1]]);
+                ecount++;
+                if(false){
+                    //printArray("bad order", count, index, coord);
+                    //int t = index[i-1];
+                    //index[i-1] = index[i];
+                    //index[i] = t;
+                    //double tv = value[i-1];
+                    //value[i-1] = value[i];
+                    //value[i] = tv;
+                    //printArray("corrected:",count, index, coord);
+                }
+            }
+        }
+        if(ecount > 0) printf("sorting errors: %d\n", ecount);
         return ecount;
     }
+
+    
     /**
        convert single array of points into 3 arrays in grid units 
      */
@@ -651,7 +978,7 @@ public class ClosestPointIndexer {
 
         int neig[] = Neighborhood.makeBall(layerThickness+1);
         //printf("neig.length: %d\n", neig.length);
-        double tol = 0.01;
+        double tol = 1./subvoxelResolution;
         int 
             nx = indexGrid.getWidth(),
             ny = indexGrid.getHeight(),
@@ -667,7 +994,7 @@ public class ClosestPointIndexer {
         distanceGrid.fill((int)(subvoxelResolution*(layerThickness+0.5)));
 
         for(int index = 1; index < pcnt; index++){
-            //printf("index: %d\n", index);
+            //if(true)printf("index: %d\n", index);
             
             double 
                 x = pntx[index],
@@ -677,6 +1004,7 @@ public class ClosestPointIndexer {
                 ix = (int)x,
                 iy = (int)y,
                 iz = (int)z;
+            //if(true)printf("%d (%2d %2d %2d)\n", index, ix, iy, iz);
 
            int ncount = neig.length;
             
@@ -692,7 +1020,7 @@ public class ClosestPointIndexer {
                         dz = z - (vz+HALF);
                     double dist = sqrt(dx*dx + dy*dy + dz*dz);
                     //double dist = max(dx, max(dy,dz));
-                    //printf("dist: %5.2f \n", dist);
+                    //printf("[%2d,%2d,%2d]: dist: %5.2f \n", neig[k],neig[k+1],neig[k+2],dist);
                     if(dist <= layerThickness) {
                         int newdist = iround(dist*subvoxelResolution);
                         int olddist = (int)distanceGrid.getAttribute(vx, vy, vz);
@@ -747,7 +1075,7 @@ public class ClosestPointIndexer {
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){
                 for(int z = 0; z < nz; z++){
-                    // set this idex as used 
+                    // set this index as used 
                     indices[(int)indexGrid.getAttribute(x,y,z)] = 1;
                 }
             }
@@ -763,32 +1091,6 @@ public class ClosestPointIndexer {
             }    
         }        
         return usedcount;
-    }
-
-    /**
-       sort coordinates and values in accending order 
-       return permutations count 
-       Note. sorting is disabled for now 
-     */
-    public static int sortCoordinates(int count, int index[], double coord[], double value[]){
-        int ecount = 0;
-        for(int i = 1; i < count; i++){
-            if(coord[index[i]] < coord[index[i-1]]) {
-                ecount++;
-                if(false){
-                    printArray("bad order", count, index, coord);
-                    int t = index[i-1];
-                    index[i-1] = index[i];
-                    index[i] = t;
-                    double tv = value[i-1];
-                    value[i-1] = value[i];
-                    value[i] = tv;
-                    printArray("corrected:",count, index, coord);
-                }
-            }
-        }
-        
-        return ecount;
     }
 
     /**
@@ -955,6 +1257,12 @@ public class ClosestPointIndexer {
         return x*x + y*y + z*z;
 
     }
+
+    static final double length2(double dx, double dy){
+        return dx*dx + dy*dy;
+    }
+
+
     
     static void printI(int v[], int n){
         for(int i = 0; i < n; i++){
@@ -1016,4 +1324,16 @@ public class ClosestPointIndexer {
         }
         printf("\n");        
     }   
+    
+    static void printGrid(AttributeGrid grid){
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        for(int iy = 0; iy < ny; iy++){
+            for(int ix = 0; ix < nx; ix++){
+                printf("%d ",(int)grid.getAttribute(ix, iy, 0));
+            }
+            printf("\n");
+        }
+    }
+
 }

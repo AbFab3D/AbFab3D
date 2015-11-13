@@ -120,8 +120,12 @@ public class WaveletRasterizer implements TriangleCollector {
     /**
      * sets maximal values used to represent inside voxels
      */
-    public void setMaxAttributeValue(int value) {
-        maxAttributeValue = value;
+    public void setMaxAttributeValue(long value) {
+        maxAttributeValue = (int)value;
+    }
+
+    public void setInteriorValue(long value) {
+        maxAttributeValue = (int)value;
     }
 
     /**

@@ -70,9 +70,10 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
     public void _test1() throws Exception {
         
         //Grid2D grid = loadImageToGrid2D("test/images/white_pixel.png");
+        Grid2D grid = loadImageToGrid2D("test/images/letter_R.png");
         //Grid2D grid = loadImageToGrid2D("test/images/letter_R_500.png");
         //Grid2D grid = loadImageToGrid2D("test/images/letter_S_500.png");
-        Grid2D grid = loadImageToGrid2D("test/images/letter_S_blurred_500.png");
+        //Grid2D grid = loadImageToGrid2D("test/images/letter_S_blurred_500.png");
         //Grid2D grid = makeTestGrid(20,20);
 
         printf("grid bounds: [%s] att: %s \n", grid.getGridBounds(), grid.getAttributeDesc());
@@ -86,8 +87,9 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
 
         DistanceTransform2D dt = new DistanceTransform2D(maxInDistance, maxOutDistance, threshold); 
         //dt.setDataChannel(dataChannel);
-        
-        dt.execute(grid);
+        //dt.setInterpolation(DistanceTransform2D.INTERP_THRESHOLD);
+        dt.setInterpolation(DistanceTransform2D.INTERP_IF);
+        Grid2D distanceGrid = dt.execute(grid);
         
         Grid2D indexGrid = dt.getIndexGrid();
         if(false){
@@ -95,7 +97,7 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
             printGridAtt(indexGrid);
         }
 
-        Grid2D distanceGrid = dt.getDistanceGrid();
+        //Grid2D distanceGrid = dt.getDistanceGrid();
         if(false){
             printf("distanceGrid: \n");
             printGridValue(distanceGrid);
@@ -103,7 +105,7 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
         }
 
         //writeDistanceMap(distanceGrid, 10, 0.1*MM, "/tmp/distance.png");
-        writeDistanceMap(distanceGrid, 10, 1*MM, "/tmp/distance.png");
+        writeDistanceMap(distanceGrid, 10, 0.1*MM, "/tmp/distance.png");
 
         
     }

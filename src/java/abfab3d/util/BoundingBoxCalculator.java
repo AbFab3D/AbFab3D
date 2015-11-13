@@ -14,6 +14,7 @@ package abfab3d.util;
 
 import javax.vecmath.Vector3d;
 
+
 import static abfab3d.util.Output.printf;
 
 
@@ -76,8 +77,10 @@ public class BoundingBoxCalculator implements TriangleCollector {
         return bnds;
     }
 
-    public double [] getBounds(){
-        return getBounds(null);
+    public Bounds getBounds(){
+
+        return new Bounds(bounds);
+
     }
     
     public double[] getRoundedBounds(double voxelSize){

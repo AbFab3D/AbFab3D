@@ -83,7 +83,7 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
     static final int DEFAULT_SVR = 100;
     double m_layerThickness = 1;  // 2.0, 2.25, 2.45*, 2.84, 3.0 3.17 3.33*, 3.46, 3.62, 3.74*   * - good values 
     int m_neighbors[]; // offsets to neighbors 
-    int m_subvoxelResolution = DEFAULT_SVR;
+    long m_subvoxelResolution = DEFAULT_SVR;
     double m_voxelSize;
     Bounds m_bounds;
     // triangles ransterizer 
@@ -107,13 +107,15 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
 
     int m_triCount = 0; // count of processed triangles 
     
-    public TriangleMeshShellBuilder(AttributeGrid indexGrid, int subvoxelResolution){
+    public TriangleMeshShellBuilder(AttributeGrid indexGrid, long subvoxelResolution){
         m_indexGrid = indexGrid;
         m_subvoxelResolution = subvoxelResolution;
     }
     
     public void setShellHalfThickness(double shellHalfThickness){
+
         m_layerThickness = shellHalfThickness;
+
     }
 
     /**
@@ -137,13 +139,29 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
         coord = m_points.getPoints(coord);
         
         // transform points into world units 
-        for(int i = 0; i< coord.length; i += 3){
+        for(int i = 0; i < coord.length; i += 3){
             coord[i] = toWorldX(coord[i]);
             coord[i+1] = toWorldY(coord[i+1]);
             coord[i+2] = toWorldZ(coord[i+2]);
         }
         return coord;
     }
+
+    /**
+       
+     */
+    public void getPoints(double pntx[],double pnty[],double pntz[]){
+        //
+        // coordinates are in grid units 
+        //
+        m_points.getPoints(pntx, pnty, pntz);
+        for(int i = 0; i < pntx.length; i++){
+            pntx[i] = toWorldX(pntx[i]);
+            pnty[i] = toWorldX(pnty[i]);
+            pntz[i] = toWorldX(pntz[i]);
+        }
+    }
+
 
     /**
        
@@ -160,7 +178,7 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
 
 
     /**
-       this method has to be called before starting adding triangles 
+       this method MUST be called before starting adding triangles 
      */
     public boolean initialize(){
 
