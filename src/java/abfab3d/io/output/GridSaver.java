@@ -59,7 +59,9 @@ public class GridSaver {
     final static public double VOLUME_UNDEFINED  = -Double.MAX_VALUE;
     final static public int SHELLS_COUNT_UNDEFINED  = Integer.MAX_VALUE;
 
-
+    /** Skipp shell removal entirely if shell count is less than or equal to this value */
+    int m_minShellCount = 0;
+    
     int m_maxShellsCount = SHELLS_COUNT_UNDEFINED;
     double m_minShellVolume = VOLUME_UNDEFINED;
     
@@ -95,6 +97,9 @@ public class GridSaver {
     }
     public void setMaxShellsCount(int value){
         m_maxShellsCount = value;
+    }
+    public void setMinShellCount(int value){
+        m_minShellCount = value;
     }
     public void setMaxThreads(int value){
         m_maxThreads = value;
@@ -263,8 +268,7 @@ public class GridSaver {
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
         
         if (m_minShellVolume != VOLUME_UNDEFINED || m_maxShellsCount != SHELLS_COUNT_UNDEFINED) {
-
-            ShellResults sr = GridSaver.getLargestShells(mesh, m_maxShellsCount, m_minShellVolume);
+            ShellResults sr = GridSaver.getLargestShells(mesh, m_maxShellsCount, m_minShellVolume, m_minShellCount);
             mesh = sr.getLargestShell();
             int regions_removed = sr.getShellsRemoved();
             if(DEBUG) printf("maxShells: %d minVol: %4.2f shells removed: %d\n",m_maxShellsCount,m_minShellVolume,regions_removed);
@@ -676,6 +680,71 @@ public class GridSaver {
         ShellFinder.ShellInfo shells[] = shellFinder.findShells(mesh);
         printf("shellsCount: %d\n",shells.length);
 
+        int regions_removed = 0;
+
+        //System.out.println("Minimum volume: " + (minVolume / Units.CM3));
+        ArrayList<ShellData> saved_shells = new ArrayList<ShellData>();
+        int face_count = 0;
+        int cnt = 0;
+        for(int i=0; i < shells.length; i++) {
+            AreaCalculator ac = new AreaCalculator();
+            shellFinder.getShell(mesh, shells[i].startFace, ac);
+            mesh.getTriangles(ac);
+            double volume = ac.getVolume();
+
+            //System.out.println("   vol: " + (volume / Units.CM3));
+            if (volume >= minVolume) {
+                System.out.println("Keeping shell: " + volume / Units.CM3 + " cm^3");
+                saved_shells.add(new ShellData(shells[i],volume));
+                if (cnt < numShells) {
+                    face_count += shells[i].faceCount;
+                }
+                cnt++;
+            } else {
+                //System.out.println("Removing shell.  vol: " + (volume / Units.CM3));
+                regions_removed++;
+            }
+        }
+
+        Collections.sort(saved_shells, Collections.reverseOrder());
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(face_count);
+        int shell_cnt = 0;
+        for(ShellData sd : saved_shells) {
+            shellFinder.getShell(mesh, sd.info.startFace, its);
+            shell_cnt++;
+            if (shell_cnt >= numShells) break;
+        }
+
+        printf("extracting largest shells: face: %d  shells: %d  removed: %d\n",face_count,shell_cnt,(shells.length - shell_cnt));
+        mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
+
+        return new ShellResults(mesh, shells.length - shell_cnt);
+    }
+    
+    /**
+     * Returns up to numShells shells that are above the minimum volume.
+     * TODO: Commonize getLargestShells methods
+     *
+     * @param mesh The mesh
+     * @param numShells The maximum number of shells
+     * @param minVolume The minimum volume
+     */
+    public static ShellResults getLargestShells(WingedEdgeTriangleMesh mesh, int numShells, double minVolume, int minShellCount){
+
+        ShellFinder shellFinder = new ShellFinder();
+        ShellFinder.ShellInfo shells[] = shellFinder.findShells(mesh);
+        printf("shellsCount: %d\n",shells.length);
+        
+        if (shells.length <= minShellCount) {
+        	return new ShellResults(mesh, 0);
+        }
+
+        return extractShells(mesh, numShells, minVolume, shellFinder, shells);
+    }
+    
+    public static ShellResults extractShells(WingedEdgeTriangleMesh mesh, int numShells, double minVolume,
+    		ShellFinder shellFinder, ShellFinder.ShellInfo shells[]) {
         int regions_removed = 0;
 
         //System.out.println("Minimum volume: " + (minVolume / Units.CM3));
