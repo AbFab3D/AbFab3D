@@ -19,6 +19,7 @@ import abfab3d.geom.ZBuffer;
 import abfab3d.util.TriangleCollector;
 import abfab3d.util.Bounds;
 import abfab3d.util.Initializable;
+import abfab3d.util.DataSource;
 
 import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
@@ -74,7 +75,7 @@ public class DistanceRasterizer implements TriangleCollector, Initializable {
         m_shellBuilder.setShellHalfThickness(1.);
         m_shellBuilder.initialize();
         
-        return RESULT_OK;
+        return DataSource.RESULT_OK;
     }
 
 

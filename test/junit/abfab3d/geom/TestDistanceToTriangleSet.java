@@ -221,7 +221,7 @@ public class TestDistanceToTriangleSet extends TestCase {
 
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         loader.getTriangles(bb);
-        Bounds bounds = new Bounds(bb.getBounds());
+        Bounds bounds = bb.getBounds();
         printf("bounds: %s\n", bounds);
         double maxSize = max(max(bounds.getSizeX(),bounds.getSizeY()),bounds.getSizeZ());
         printf("max size: %7.2f mm\n", maxSize/MM);
@@ -314,7 +314,7 @@ public class TestDistanceToTriangleSet extends TestCase {
 
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         loader.getTriangles(bb);
-        Bounds bounds = new Bounds(bb.getBounds());
+        Bounds bounds = bb.getBounds();
         printf("bounds: %s\n", bounds);
         double maxSize = max(max(bounds.getSizeX(),bounds.getSizeY()),bounds.getSizeZ());
         printf("max size: %7.2f mm\n", maxSize/MM);
@@ -612,7 +612,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         STLReader stl = new STLReader(filePath);
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         stl.getTriangles(bb);
-        Bounds bounds = new Bounds(bb.getBounds());
+        Bounds bounds = bb.getBounds();
         printf("bounds: %s\n", bounds);
         double maxSize = max(max(bounds.getSizeX(),bounds.getSizeY()),bounds.getSizeZ());
         printf("max size: %7.2f mm\n", maxSize/MM);  
@@ -663,7 +663,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         STLReader stl = new STLReader(filePath);
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         stl.getTriangles(bb);
-        Bounds bounds = new Bounds(bb.getBounds());
+        Bounds bounds = bb.getBounds();
         printf("bounds: %s\n", bounds);
         double maxSize = max(max(bounds.getSizeX(),bounds.getSizeY()),bounds.getSizeZ());
         printf("max size: %7.2f mm\n", maxSize/MM);
@@ -716,7 +716,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         X3DReader loader = new X3DReader(filePath);
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         loader.getTriangles(bb);
-        Bounds bounds = new Bounds(bb.getBounds());
+        Bounds bounds = bb.getBounds();
         printf("bounds: %s\n", bounds);
         double maxSize = max(max(bounds.getSizeX(),bounds.getSizeY()),bounds.getSizeZ());
         printf("max size: %7.2f mm\n", maxSize/MM);

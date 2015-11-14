@@ -19,9 +19,9 @@ package abfab3d.util;
  */
 public interface Initializable {
 
-    public static final int 
-        RESULT_OK = DataSource.RESULT_OK,     // success
-        RESULT_ERROR  = DataSource.RESULT_ERROR;  // error
+    //public static final int 
+    //    RESULT_OK = DataSource.RESULT_OK,     // success
+    //    RESULT_ERROR  = DataSource.RESULT_ERROR;  // error
 
     /**
        
