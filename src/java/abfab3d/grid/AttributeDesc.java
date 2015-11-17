@@ -120,6 +120,10 @@ public class AttributeDesc  {
         return null;
     }
 
+    public AttributeChannel getDefaultChannel() {
+        return getChannel(0);
+    }
+
     public static AttributeDesc getDefaultAttributeDesc(int bitCount){
         AttributeDesc at = new AttributeDesc();
         at.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "density", bitCount, 0, 0., 1.));
