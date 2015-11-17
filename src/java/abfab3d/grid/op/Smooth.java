@@ -71,31 +71,32 @@ public class Smooth implements Operation2D {
 
         int ksize = kernel.length/2;
         int w1 = w-1;
+        int len = kernel.length;
+
+        double[] crow = new double[row.length];
 
         for(int y = 0; y < h; y++){
 
             // init accumulator array
             Arrays.fill(row, 0, w, 0.);
 
+            for(int x = 0; x < w; x++) {
+                crow[x] = channel.getValue(src.getAttribute(x, y));
+            }
+
             for(int x = 0; x < w; x++){
-
-                //int v = us2i(data[offsety + x]);
-
-                for(int k = 0; k < kernel.length; k++){
+                for(int k = 0; k < len; k++){
 
                     //int kx = x + k - ksize;
                     int xx = x - (k-ksize); //offsety + x + k;
 
                     xx = clamp(xx, 0, w1); // boundary conditions
-                    row[x] += (kernel[k] * channel.getValue(src.getAttribute(xx, y)));
-                    //row[x] += (kernel[k] * us2i((short)src.getAttribute(xx,y)));
-
+                    //row[x] += (kernel[k] * channel.getValue(src.getAttribute(xx, y)));
+                    row[x] += (kernel[k] * crow[xx]);
                 }
             }
             for(int x = 0; x < w; x++){
                 src.setAttribute(x,y,channel.makeAtt(row[x]));
-                //src.setAttribute(x,y,(short)(row[x]+0.5));
-
             }
         }
     }
@@ -107,28 +108,32 @@ public class Smooth implements Operation2D {
         int h = src.getHeight();
         int ksize = kernel.length/2;
         int h1 = h-1;
+        int len = kernel.length;
+
+        double[] crow = new double[row.length];
 
         for(int x = 0; x < w; x++){
             // init accumulator array
             Arrays.fill(row, 0, h, 0.);
 
+            for(int y = 0; y < h; y++) {
+                crow[y] = channel.getValue(src.getAttribute(x, y));
+            }
+
             for(int y = 0; y < h; y++){
 
                 //int v = us2i(data[y*w + x]);
 
-                for(int k = 0; k < kernel.length; k++){
+                for(int k = 0; k < len; k++){
                     int yy = y - (k-ksize);
                     yy = clamp(yy, 0, h1);
-                    row[y] += (kernel[k] * channel.getValue(src.getAttribute(x, yy)));
-                    //row[y] += (kernel[k] * us2i((short) src.getAttribute(x, yy)));
-
+                    //row[y] += (kernel[k] * channel.getValue(src.getAttribute(x, yy)));
+                    row[y] += (kernel[k] * crow[yy]);
                 }
             }
 
             for(int y = 0; y < h; y++){
                 src.setAttribute(x,y,channel.makeAtt(row[y]));
-                //src.setAttribute(x,y,(short)(row[y]+0.5));
-
             }
         }
     } // convolute y

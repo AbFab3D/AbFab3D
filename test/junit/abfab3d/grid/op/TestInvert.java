@@ -4,8 +4,6 @@ import abfab3d.grid.AttributeChannel;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.Operation2D;
-import abfab3d.util.ImageGray16;
-import abfab3d.util.ImageUtil;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -14,23 +12,22 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Units.MM;
 
 /**
- * Test Expand operation
+ * Test Invert operation
  *
  * @author Alan Hudson
  */
-public class TestSmooth extends TestCase {
+public class TestInvert extends TestCase {
     public static final boolean DEBUG = false;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestSmooth.class);
+        return new TestSuite(TestInvert.class);
     }
 
     /**
@@ -53,11 +50,11 @@ public class TestSmooth extends TestCase {
         Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
 
-        Operation2D smooth = new Smooth(0.1*MM);
-        grid = smooth.execute(grid);
+        Operation2D invert = new Invert();
+        grid = invert.execute(grid);
 
         if (DEBUG) Grid2DShort.write(grid, "/tmp/smooth_allblack.png");
-        assertTrue("All black",isConstant(grid,0,1e-5));
+        assertTrue("All black",isConstant(grid,1,1e-5));
 
     }
 
@@ -81,19 +78,17 @@ public class TestSmooth extends TestCase {
         Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
 
-        Operation2D smooth = new Smooth(0.1*MM);
-        grid = smooth.execute(grid);
+        Operation2D invert = new Invert();
+        grid = invert.execute(grid);
 
         if (DEBUG) Grid2DShort.write(grid, "/tmp/smooth_allwhite.png");
-
-        assertTrue("All White", isConstant(grid, 1, 1e-5));
-
+        assertTrue("All black", isConstant(grid, 0, 1e-5));
     }
 
     /**
      * @throws Exception
      */
-    public void testLine() throws Exception {
+    public void testR() throws Exception {
         String path = "test/images/LineLeftToRight.png";
 
         BufferedImage image = null;
@@ -109,24 +104,22 @@ public class TestSmooth extends TestCase {
         Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1 * MM);
 
 
+        AttributeChannel channel = grid.getAttributeDesc().getDefaultChannel();
+
+        double orig = channel.getValue(grid.getAttribute(grid.getWidth() / 2, grid.getHeight() / 2));
         double inten0 = getAverageIntensity(grid);
 
-        Operation2D smooth = new Smooth(1.5*MM);
-        grid = smooth.execute(grid);
+        Operation2D invert = new Invert();
+        grid = invert.execute(grid);
+
 
         double inten1 = getAverageIntensity(grid);
 
-        smooth = new Smooth(3.5*MM);
-        grid = smooth.execute(grid);
+        if (DEBUG) Grid2DShort.write(grid, "/tmp/invert.png");
+        assertTrue("Increasing intensity1", inten0 > inten1);
 
-        double inten2 = getAverageIntensity(grid);
-
-        printf("iten 0: %f 1: %f 2: %f\n",inten0,inten1,inten2);
-
-        assertTrue("Increasing intensity1", inten1 > inten0);
-        assertTrue("Increasing intensity2", inten2 > inten1);
-
-        if (DEBUG) Grid2DShort.write(grid, "/tmp/smooth.png");
+        double nval = channel.getValue(grid.getAttribute(grid.getWidth() / 2, grid.getHeight() / 2));
+        assertEquals("Inverted", orig, 1.0 - nval);
     }
 
     /**
@@ -145,46 +138,16 @@ public class TestSmooth extends TestCase {
         }
 
 
-        long lowest1 = Long.MAX_VALUE;
-        long tot;
-        double blurWidth = 1*MM;
-        int TIMES = 50;
-
-        for(int i=0; i < TIMES; i++) {
+        for(int i=0; i < 20; i++) {
             Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1 * MM);
 
+
             long t0 = System.currentTimeMillis();
-            Operation2D smooth = new Smooth(blurWidth);
-            grid = smooth.execute(grid);
-            tot = System.currentTimeMillis() - t0;
-            printf("time: %d ms\n", tot);
-            if (tot < lowest1) {
-                lowest1 = tot;
-            }
-            if (DEBUG) Grid2DShort.write(grid, "/tmp/smooth_r_new.png");
+            Operation2D invert = new Invert();
+            grid = invert.execute(grid);
+            printf("time: %d ms\n", (System.currentTimeMillis() - t0));
+            if (DEBUG) Grid2DShort.write(grid, "/tmp/smooth_r.png");
         }
-
-
-        long lowest2 = Long.MAX_VALUE;
-
-        for(int i=0; i < TIMES; i++) {
-            short imageDataShort[] = ImageUtil.getGray16Data(image);
-            ImageGray16 imageData = new ImageGray16(imageDataShort, image.getWidth(), image.getHeight());
-
-            double blurSizePixels = blurWidth / (0.1*MM);
-            long t0 = time();
-            imageData.gaussianBlur(blurSizePixels);
-            tot = System.currentTimeMillis() - t0;
-
-            printf("time: %d ms\n", tot);
-            if (tot < lowest2) {
-                lowest2 = tot;
-            }
-
-            if (DEBUG) imageData.write("/tmp/smooth_r_old.png");
-        }
-
-        printf("Speed new: %d ms  old: %d ms\n",lowest1,lowest2);
 
     }
 

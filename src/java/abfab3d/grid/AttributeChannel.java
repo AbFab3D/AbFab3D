@@ -131,21 +131,21 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     /**
        method of interface LongConverter 
     */
-    public long get(long att){
+    public final long get(long att){
         return getBits(att);
     }
 
     /**
        convert attribute bits into double value  
     */
-    public double getValue(long attribute){
+    public final double getValue(long attribute){
          return m_B2D*getBits(attribute)+m_value0;
     }
 
     /**
        extract value bits out of attribute 
     */
-     public long getBits(long att){
+     public final long getBits(long att){
 
          return (att >> m_shift) & m_mask;
          
@@ -163,7 +163,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     /**
        convert double value into attribute bits
     */
-    public long makeAtt(double value){
+    public final long makeAtt(double value){
         value = (clamp(value, m_minValue, m_maxValue)-m_value0)*m_D2B;
         return (((long)(value + 0.5))& m_mask) << m_shift;
     }
