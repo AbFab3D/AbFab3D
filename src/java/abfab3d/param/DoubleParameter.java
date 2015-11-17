@@ -11,6 +11,8 @@
  ****************************************************************************/
 package abfab3d.param;
 
+import abfab3d.util.Unit;
+
 // External Imports
 
 /**
@@ -19,9 +21,12 @@ package abfab3d.param;
  * @author Alan Hudson
  */
 public class DoubleParameter extends NumberParameter {
+	/*public enum Unit {NONE, M, CM, MM, M3, CM3, MM3, FT, IN, UM, PT}; */
+	
     public static final double DEFAULT_MIN_RANGE = Double.NEGATIVE_INFINITY;
     public static final double DEFAULT_MAX_RANGE = Double.POSITIVE_INFINITY;
     public static final double DEFAULT_STEP = 1;
+    public static final Unit DEFAULT_UNIT = Unit.NONE;
 
 
     /** Min range for numeric values */
@@ -32,6 +37,9 @@ public class DoubleParameter extends NumberParameter {
 
     /** The step size for changes */
     private double step;
+    
+    /** The parameters unit */
+    private Unit unit;
 
     public DoubleParameter(String name) {
         this(name, name);
@@ -56,14 +64,21 @@ public class DoubleParameter extends NumberParameter {
     public DoubleParameter(String name, String desc, double initialValue,
                            double minRange, double maxRange, double step) {
 
-        super(name, desc);
+    	this(name,desc,initialValue,minRange,maxRange,DEFAULT_STEP,DEFAULT_UNIT);
+    }
+    
+    public DoubleParameter(String name, String desc, double initialValue,
+            double minRange, double maxRange, double step, Unit unit) {
 
-        setMinRange(minRange);
-        setMaxRange(maxRange);
+    	super(name, desc);
 
-        defaultValue = initialValue;
-        setValue(initialValue);
-        this.step = step;
+    	setMinRange(minRange);
+    	setMaxRange(maxRange);
+
+    	defaultValue = initialValue;
+    	setValue(initialValue);
+    	this.step = step;
+    	this.unit = unit;
     }
 
     public DoubleParameter(DoubleParameter def, double initialValue) {
@@ -76,6 +91,7 @@ public class DoubleParameter extends NumberParameter {
         defaultValue = initialValue;
         setValue(initialValue);
         this.step = def.getStep();
+        this.unit = def.getUnit();
     }
 
     @Override
@@ -140,6 +156,14 @@ public class DoubleParameter extends NumberParameter {
 
     public void setStep(double step) {
         this.step = step;
+    }
+    
+    public Unit getUnit() {
+    	return unit;
+    }
+    
+    public void setUnit(Unit unit) {
+    	this.unit = unit;
     }
 
     /**
