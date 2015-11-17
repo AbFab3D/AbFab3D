@@ -63,12 +63,20 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
        
      */
     public AttributeChannel(String type, String name, int bits, int shift, double value0, double value1){
+        if (bits >= 64) {
+            throw new IllegalArgumentException("Class doesn't work for >= 64 bits");
+        }
+
         m_type = type;
         m_name = name;
         m_shift = shift;
         m_bits = bits;
         m_mask = MathUtil.getBitMask(bits);
-        m_maxLongValue = (1 << bits)-1;
+        if (bits == 64)
+            m_maxLongValue = Long.MAX_VALUE;
+        else
+            m_maxLongValue = (1l << bits)-1;
+
         if(value1 > value0){
             m_maxValue = value1;
             m_minValue = value0;
