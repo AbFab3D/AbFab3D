@@ -29,6 +29,21 @@ public class Bounds implements Cloneable {
     public Bounds(){        
     }
 
+    public Bounds(Bounds bounds){  
+
+        this.xmin = bounds.xmin;
+        this.xmax = bounds.xmax;
+        this.ymin = bounds.ymin;
+        this.ymax = bounds.ymax;
+        this.zmin = bounds.zmin;
+        this.zmax = bounds.zmax;
+        this.nx = bounds.nx;
+        this.ny = bounds.ny;
+        this.nz = bounds.nz;
+        this.m_voxelSize = bounds.m_voxelSize;
+
+    }
+
     public Bounds(double bounds[]){ 
         this.xmin = bounds[0];
         this.xmax = bounds[1];

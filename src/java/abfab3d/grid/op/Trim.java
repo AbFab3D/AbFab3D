@@ -22,10 +22,17 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class Trim implements Operation, AttributeOperation {
+public class Trim implements Operation, AttributeOperation, Operation2D {
     private static final boolean DEBUG = true;
 
+    private double threshold;  // Threshold for inside when using attribute grids
+
     public Trim() {
+        this(240f/255);
+    }
+
+    public Trim(double threshold) {
+        this.threshold = threshold;
     }
 
     /**
@@ -89,7 +96,7 @@ public class Trim implements Operation, AttributeOperation {
         }
 
         // Find yn range
-        loop: for(int y=height - 1; y < y0; y--) {
+        loop: for(int y=height - 1; y > y0; y--) {
             for(int x=x0; x < xn; x++) {
                 for(int z=0; z < depth; z++) {
                     src.getData(x,y,z,vd);
@@ -117,7 +124,7 @@ public class Trim implements Operation, AttributeOperation {
         }
 
         // Find zn range
-        loop:for(int z=depth - 1; z < z0; z--) {
+        loop:for(int z=depth - 1; z > z0; z--) {
             for(int y=y0; y < yn; y++) {
                 for(int x=x0; x > xn; x++) {
                     src.getData(x,y,z,vd);
@@ -222,7 +229,7 @@ public class Trim implements Operation, AttributeOperation {
         }
 
         // Find yn range
-        loop: for(int y=height - 1; y < y0; y--) {
+        loop: for(int y=height - 1; y > y0; y--) {
             for(int x=x0; x < xn; x++) {
                 for(int z=0; z < depth; z++) {
                     state = src.getState(x, y, z);
@@ -250,7 +257,7 @@ public class Trim implements Operation, AttributeOperation {
         }
 
         // Find zn range
-        loop:for(int z=depth - 1; z < z0; z--) {
+        loop:for(int z=depth - 1; z > z0; z--) {
             for(int y=y0; y < yn; y++) {
                 for(int x=x0; x > xn; x++) {
                     state = src.getState(x, y, z);
@@ -291,5 +298,92 @@ public class Trim implements Operation, AttributeOperation {
         }
 
         return dest;
+    }
+
+    /**
+     * Execute an operation on a grid.  If the operation changes the grid
+     * dimensions then a new one will be returned from the call.
+     *
+     * @param src The grid to use for grid src
+     * @return The new grid
+     */
+    public Grid2D execute(Grid2D src) {
+        int width = src.getWidth();
+        int height = src.getHeight();
+
+        int x0 = 0, xn = width;
+        int y0 = 0, yn = height;
+
+        AttributeChannel dataChannel = src.getAttributeDesc().getChannel(0);
+
+        // Find x0 range
+        loop: for(int x=0; x < width; x++) {
+            for(int y=0; y < height; y++) {
+                    double val = dataChannel.getValue(src.getAttribute(x,y));
+
+                    if (val <= threshold) {
+                        x0 = x;
+                        break loop;
+                    }
+            }
+        }
+
+        // Find xn range
+        loop: for(int x=width - 1; x > x0; x--) {
+            for(int y=0; y < height; y++) {
+                double val = dataChannel.getValue(src.getAttribute(x,y));
+
+                if (val <= threshold) {
+                    xn = x;
+                    break loop;
+                }
+            }
+        }
+
+        // Find y0 range
+        loop: for(int y=0; y < height; y++) {
+            for(int x=x0; x < xn; x++) {
+                double val = dataChannel.getValue(src.getAttribute(x,y));
+
+                if (val <= threshold) {
+                    y0 = y;
+                    break loop;
+                }
+            }
+        }
+
+        // Find yn range
+        loop: for(int y=height - 1; y > y0; y--) {
+            for(int x=x0; x < xn; x++) {
+                double val = dataChannel.getValue(src.getAttribute(x,y));
+
+                if (val <= threshold) {
+                    yn = y;
+                    break loop;
+                }
+            }
+        }
+
+        if (DEBUG) {
+            System.out.println("Trimming to: x: " + x0 + " " + xn + " y: " + y0 + " " + yn);
+        }
+
+        if (x0 == 0 && xn == width && y0 == 0 && yn == height) {
+            // no margin so return original
+            return src;
+        }
+
+        Grid2D dest = src.createEmpty(xn - x0 + 1, yn - y0 + 1, src.getVoxelSize());
+
+        for(int y=y0; y < yn; y++) {
+            for(int x=x0; x < xn; x++) {
+                long att = src.getAttribute(x, y);
+
+                dest.setAttribute(x - x0,y - y0,att);
+            }
+        }
+
+        return dest;
+
     }
 }
