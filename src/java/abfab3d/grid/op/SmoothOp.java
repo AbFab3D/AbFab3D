@@ -32,12 +32,12 @@ import static abfab3d.util.MathUtil.clamp;
  *
  * @author Alan Hudson
  */
-public class Smooth implements Operation2D {
+public class SmoothOp implements Operation2D {
     private static final boolean DEBUG = false;
 
     private double distance;  // distance in meters
 
-    public Smooth(double distance) {
+    public SmoothOp(double distance) {
         this.distance = distance;
     }
 
@@ -55,16 +55,14 @@ public class Smooth implements Operation2D {
 
         int s = Math.max(src.getWidth(), src.getHeight());
 
-        double row[] = new double[s];
-
-        convoluteX(src, kernel, row);
-        convoluteY(src,kernel, row);
+        convoluteX(src, kernel, s);
+        convoluteY(src,kernel, s);
 
         return src;
     }
 
 
-    private void convoluteX(Grid2D src, double kernel[], double row[]){
+    private void convoluteX(Grid2D src, double kernel[],int rlen){
         AttributeChannel channel = src.getAttributeDesc().getDefaultChannel();
         int w = src.getWidth();
         int h = src.getHeight();
@@ -73,35 +71,30 @@ public class Smooth implements Operation2D {
         int w1 = w-1;
         int len = kernel.length;
 
-        double[] crow = new double[row.length];
+        double[] crow = new double[rlen];
+        double sum;
 
         for(int y = 0; y < h; y++){
-
-            // init accumulator array
-            Arrays.fill(row, 0, w, 0.);
 
             for(int x = 0; x < w; x++) {
                 crow[x] = channel.getValue(src.getAttribute(x, y));
             }
 
             for(int x = 0; x < w; x++){
+                sum = 0;
                 for(int k = 0; k < len; k++){
 
-                    //int kx = x + k - ksize;
                     int xx = x - (k-ksize); //offsety + x + k;
 
                     xx = clamp(xx, 0, w1); // boundary conditions
-                    //row[x] += (kernel[k] * channel.getValue(src.getAttribute(xx, y)));
-                    row[x] += (kernel[k] * crow[xx]);
+                    sum += (kernel[k] * crow[xx]);
                 }
-            }
-            for(int x = 0; x < w; x++){
-                src.setAttribute(x,y,channel.makeAtt(row[x]));
+                src.setAttribute(x,y,channel.makeAtt(sum));
             }
         }
     }
 
-    private void convoluteY(Grid2D src,double kernel[], double row[]){
+    private void convoluteY(Grid2D src,double kernel[],int rlen){
         AttributeChannel channel = src.getAttributeDesc().getDefaultChannel();
 
         int w = src.getWidth();
@@ -110,30 +103,22 @@ public class Smooth implements Operation2D {
         int h1 = h-1;
         int len = kernel.length;
 
-        double[] crow = new double[row.length];
+        double[] crow = new double[rlen];
+        double sum;
 
         for(int x = 0; x < w; x++){
-            // init accumulator array
-            Arrays.fill(row, 0, h, 0.);
-
             for(int y = 0; y < h; y++) {
                 crow[y] = channel.getValue(src.getAttribute(x, y));
             }
 
             for(int y = 0; y < h; y++){
-
-                //int v = us2i(data[y*w + x]);
-
+                sum = 0;
                 for(int k = 0; k < len; k++){
                     int yy = y - (k-ksize);
                     yy = clamp(yy, 0, h1);
-                    //row[y] += (kernel[k] * channel.getValue(src.getAttribute(x, yy)));
-                    row[y] += (kernel[k] * crow[yy]);
+                    sum += (kernel[k] * crow[yy]);
                 }
-            }
-
-            for(int y = 0; y < h; y++){
-                src.setAttribute(x,y,channel.makeAtt(row[y]));
+                src.setAttribute(x,y,channel.makeAtt(sum));
             }
         }
     } // convolute y

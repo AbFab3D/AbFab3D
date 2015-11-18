@@ -62,7 +62,7 @@ public class TestDownsample extends BaseTestAttributeGrid {
         grid.setData(0,0,3,Grid.INSIDE, material);
 
 
-        Downsample ds = new Downsample(true);
+        DownsampleOp ds = new DownsampleOp(true);
         Grid dest = ds.execute(grid);
 
         assertEquals("Dest value000", Grid.INSIDE, dest.getState(0,0,0));
@@ -97,7 +97,7 @@ public class TestDownsample extends BaseTestAttributeGrid {
         grid.setData(3,0,3,Grid.INSIDE, material);
 
         System.out.println("Initial grid: \n" + grid.toStringSlice(0));
-        Downsample ds = new Downsample(true);
+        DownsampleOp ds = new DownsampleOp(true);
         Grid dest = ds.execute(grid);
         System.out.println("Dest grid: \n" + dest.toStringSlice(0));
 
@@ -129,7 +129,7 @@ public class TestDownsample extends BaseTestAttributeGrid {
         grid.setData(3,0,3,Grid.INSIDE, material);
 
         System.out.println("Initial grid: \n" + grid.toStringSlice(0));
-        Downsample ds = new Downsample(true);
+        DownsampleOp ds = new DownsampleOp(true);
         Grid dest = ds.execute(grid);
         System.out.println("Dest grid: \n" + dest.toStringSlice(0));
 
@@ -161,7 +161,7 @@ public class TestDownsample extends BaseTestAttributeGrid {
         grid.setData(3,0,3,Grid.INSIDE, material);
 
         System.out.println("Initial grid: \n" + grid.toStringSlice(0));
-        Downsample ds = new Downsample(true);
+        DownsampleOp ds = new DownsampleOp(true);
         Grid dest = ds.execute(grid);
         System.out.println("Dest grid: \n" + dest.toStringSlice(0));
 
@@ -195,7 +195,7 @@ public class TestDownsample extends BaseTestAttributeGrid {
         }
 
         System.out.println("Initial grid: \n" + grid.toStringSlice(0));
-        Downsample ds = new Downsample(true);
+        DownsampleOp ds = new DownsampleOp(true);
         Grid dest = ds.execute(grid);
         System.out.println("Dest grid: \n" + dest.toStringSlice(0));
 

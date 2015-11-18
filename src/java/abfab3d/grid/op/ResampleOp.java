@@ -24,7 +24,7 @@ import static abfab3d.util.ImageUtil.us2i;
  *
  * @author Alan Hudson
  */
-public class Resample implements Operation2D {
+public class ResampleOp implements Operation2D {
     private static final boolean DEBUG = true;
     public static final int WEIGHTING_MINIMUM = 0;  // take the minimum of all involved pixels
     public static final int WEIGHTING_AVERAGE = 1;  // take the average of all involved pixels
@@ -37,11 +37,11 @@ public class Resample implements Operation2D {
 
     private int minificationWeighting;
 
-    public Resample(int width, int height) {
+    public ResampleOp(int width, int height) {
         this(width,height,WEIGHTING_MINIMUM);
     }
 
-    public Resample(int width, int height,int minificationWeighting) {
+    public ResampleOp(int width, int height, int minificationWeighting) {
         this.width = width;
         this.height = height;
         this.minificationWeighting = minificationWeighting;

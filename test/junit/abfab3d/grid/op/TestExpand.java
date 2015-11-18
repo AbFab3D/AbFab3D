@@ -2,8 +2,6 @@ package abfab3d.grid.op;
 
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
-import abfab3d.util.ImageGray16;
-import abfab3d.util.ImageUtil;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -11,7 +9,6 @@ import junit.framework.TestSuite;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Units.MM;
@@ -50,8 +47,8 @@ public class TestExpand extends TestCase {
         Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
 
-        Expand expand = new Expand(new int[] {0,1,0,0});
-        grid = expand.execute(grid);
+        ExpandOp expandOp = new ExpandOp(new int[] {0,1,0,0});
+        grid = expandOp.execute(grid);
 
         Grid2DShort.write(grid, "/tmp/expand.png");
 
@@ -82,8 +79,8 @@ public class TestExpand extends TestCase {
         Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
 
-        Expand expand = new Expand(new int[] {2,2,2,2},0);
-        grid = expand.execute(grid);
+        ExpandOp expandOp = new ExpandOp(new int[] {2,2,2,2},0);
+        grid = expandOp.execute(grid);
 
         Grid2DShort.write(grid, "/tmp/expand_all.png");
 
