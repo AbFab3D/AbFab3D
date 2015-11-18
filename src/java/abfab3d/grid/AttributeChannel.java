@@ -63,12 +63,20 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
        
      */
     public AttributeChannel(String type, String name, int bits, int shift, double value0, double value1){
+        if (bits >= 64) {
+            throw new IllegalArgumentException("Class doesn't work for >= 64 bits");
+        }
+
         m_type = type;
         m_name = name;
         m_shift = shift;
         m_bits = bits;
         m_mask = MathUtil.getBitMask(bits);
-        m_maxLongValue = (1 << bits)-1;
+        if (bits == 64)
+            m_maxLongValue = Long.MAX_VALUE;
+        else
+            m_maxLongValue = (1l << bits)-1;
+
         if(value1 > value0){
             m_maxValue = value1;
             m_minValue = value0;
@@ -123,21 +131,21 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     /**
        method of interface LongConverter 
     */
-    public long get(long att){
+    public final long get(long att){
         return getBits(att);
     }
 
     /**
        convert attribute bits into double value  
     */
-    public double getValue(long attribute){
+    public final double getValue(long attribute){
          return m_B2D*getBits(attribute)+m_value0;
     }
 
     /**
        extract value bits out of attribute 
     */
-     public long getBits(long att){
+     public final long getBits(long att){
 
          return (att >> m_shift) & m_mask;
          
@@ -155,7 +163,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     /**
        convert double value into attribute bits
     */
-    public long makeAtt(double value){
+    public final long makeAtt(double value){
         value = (clamp(value, m_minValue, m_maxValue)-m_value0)*m_D2B;
         return (((long)(value + 0.5))& m_mask) << m_shift;
     }
