@@ -27,9 +27,15 @@ public class ImageWrapper {
     BufferedImage image;
     Grid2D grid;
     static final double DEFAULT_PIXEL_SIZE = 0.1*MM;
+    private double vs;
 
     public ImageWrapper(BufferedImage image){
         this.image = image;
+        vs = DEFAULT_PIXEL_SIZE;
+    }
+    public ImageWrapper(BufferedImage image, double vs){
+        this.image = image;
+        this.vs = vs;
     }
     public int getWidth(){
         return image.getWidth();
@@ -48,7 +54,7 @@ public class ImageWrapper {
     public Grid2D getGrid() {
         if (grid != null) return grid;
 
-        grid = Grid2DShort.convertImageToGrid(image, DEFAULT_PIXEL_SIZE);
+        grid = Grid2DShort.convertImageToGrid(image, vs);
 
         return grid;
     }

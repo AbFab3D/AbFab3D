@@ -50,7 +50,7 @@ public class TestInvert extends TestCase {
         Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
 
-        Operation2D invert = new Invert();
+        Operation2D invert = new InvertOp();
         grid = invert.execute(grid);
 
         if (DEBUG) Grid2DShort.write(grid, "/tmp/smooth_allblack.png");
@@ -78,7 +78,7 @@ public class TestInvert extends TestCase {
         Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
 
-        Operation2D invert = new Invert();
+        Operation2D invert = new InvertOp();
         grid = invert.execute(grid);
 
         if (DEBUG) Grid2DShort.write(grid, "/tmp/smooth_allwhite.png");
@@ -109,7 +109,7 @@ public class TestInvert extends TestCase {
         double orig = channel.getValue(grid.getAttribute(grid.getWidth() / 2, grid.getHeight() / 2));
         double inten0 = getAverageIntensity(grid);
 
-        Operation2D invert = new Invert();
+        Operation2D invert = new InvertOp();
         grid = invert.execute(grid);
 
 
@@ -141,9 +141,8 @@ public class TestInvert extends TestCase {
         for(int i=0; i < 20; i++) {
             Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1 * MM);
 
-
             long t0 = System.currentTimeMillis();
-            Operation2D invert = new Invert();
+            Operation2D invert = new InvertOp();
             grid = invert.execute(grid);
             printf("time: %d ms\n", (System.currentTimeMillis() - t0));
             if (DEBUG) Grid2DShort.write(grid, "/tmp/smooth_r.png");

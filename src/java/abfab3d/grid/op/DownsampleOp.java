@@ -24,7 +24,7 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class Downsample implements Operation, AttributeOperation {
+public class DownsampleOp implements Operation, AttributeOperation {
     /** Width of the grid under operation */
     private int width;
 
@@ -37,10 +37,10 @@ public class Downsample implements Operation, AttributeOperation {
     /** Should we prefer marked voxels when downsampling */
     private boolean preferMarked;
 
-    public Downsample() {
+    public DownsampleOp() {
     }
 
-    public Downsample(boolean preferMarked) {
+    public DownsampleOp(boolean preferMarked) {
         this.preferMarked = preferMarked;
     }
 

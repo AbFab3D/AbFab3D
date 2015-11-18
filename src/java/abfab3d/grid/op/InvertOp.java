@@ -25,10 +25,10 @@ import abfab3d.grid.Operation2D;
  *
  * @author Alan Hudson
  */
-public class Invert implements Operation2D {
+public class InvertOp implements Operation2D {
     private static final boolean DEBUG = false;
 
-    public Invert() {
+    public InvertOp() {
 
     }
 

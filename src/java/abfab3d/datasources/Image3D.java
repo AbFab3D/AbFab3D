@@ -16,14 +16,12 @@ package abfab3d.datasources;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.AttributeChannel;
-import abfab3d.grid.AttributeDesc;
-import abfab3d.grid.op.DistanceTransform2D;
+import abfab3d.grid.op.DistanceTransform2DOp;
 import abfab3d.util.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 
 import javax.vecmath.Vector3d;
 
@@ -260,6 +258,7 @@ public class Image3D extends TransformableDataSource {
      * @param voxelSize size of voxel to be used for image voxelization
      */
     public Image3D(Grid2D grid, double sx, double sy, double sz, double voxelSize) {
+        printf("Got Grid2D\n");
         initParams();
         setImage(grid);
         setSize(sx, sy, sz);
@@ -711,7 +710,7 @@ public class Image3D extends TransformableDataSource {
         double maxOutDistance = imagePixelSize*m_maxOutDistancePixels;
         double maxInDistance = imagePixelSize*m_maxInDistancePixels;
 
-        DistanceTransform2D dt = new DistanceTransform2D(maxInDistance, maxOutDistance, m_imageThreshold); 
+        DistanceTransform2DOp dt = new DistanceTransform2DOp(maxInDistance, maxOutDistance, m_imageThreshold);
         Grid2D distanceGrid = dt.execute(imageGrid);
         m_imageGrid = distanceGrid;
         m_dataChannel = m_imageGrid.getAttributeDesc().getChannel(0);

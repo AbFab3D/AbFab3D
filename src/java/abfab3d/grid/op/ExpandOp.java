@@ -29,13 +29,13 @@ import java.util.EnumSet;
  *
  * @author Alan Hudson
  */
-public class Expand implements Operation, Operation2D, AttributeOperation {
+public class ExpandOp implements Operation, Operation2D, AttributeOperation {
     private static final boolean DEBUG = true;
 
     private int[] distances;
     private long attribute;  //  the attribute value for new cells, defaults to white
 
-    public Expand(int[] distances) {
+    public ExpandOp(int[] distances) {
         this.distances = distances.clone();
 
         for(int i=0; i < distances.length; i++) {
@@ -45,7 +45,7 @@ public class Expand implements Operation, Operation2D, AttributeOperation {
         attribute = ImageGray16.MAX_USHORT_S;
     }
 
-    public Expand(int[] distances, long att) {
+    public ExpandOp(int[] distances, long att) {
         this.distances = distances.clone();
 
         for(int i=0; i < distances.length; i++) {
@@ -55,7 +55,7 @@ public class Expand implements Operation, Operation2D, AttributeOperation {
         this.attribute = att;
     }
 
-    public Expand(int l, int t, int r, int b) {
+    public ExpandOp(int l, int t, int r, int b) {
         this.distances = new int[] {l,t,r,b};
         for(int i=0; i < distances.length; i++) {
             if (distances[i] < 0) throw new IllegalArgumentException("Negative directions not supported yet");
@@ -63,7 +63,7 @@ public class Expand implements Operation, Operation2D, AttributeOperation {
         attribute = ImageGray16.MAX_USHORT_S;
     }
 
-    public Expand(int l, int t, int r, int b, long att) {
+    public ExpandOp(int l, int t, int r, int b, long att) {
         this.distances = new int[] {l,t,r,b};
         for(int i=0; i < distances.length; i++) {
             if (distances[i] < 0) throw new IllegalArgumentException("Negative directions not supported yet");

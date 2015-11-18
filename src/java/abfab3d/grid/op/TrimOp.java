@@ -22,16 +22,16 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class Trim implements Operation, AttributeOperation, Operation2D {
+public class TrimOp implements Operation, AttributeOperation, Operation2D {
     private static final boolean DEBUG = true;
 
     private double threshold;  // Threshold for inside when using attribute grids
 
-    public Trim() {
+    public TrimOp() {
         this(240f/255);
     }
 
-    public Trim(double threshold) {
+    public TrimOp(double threshold) {
         this.threshold = threshold;
     }
 

@@ -53,7 +53,7 @@ public class TestSmooth extends TestCase {
         Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
 
-        Operation2D smooth = new Smooth(0.1*MM);
+        Operation2D smooth = new SmoothOp(0.1*MM);
         grid = smooth.execute(grid);
 
         if (DEBUG) Grid2DShort.write(grid, "/tmp/smooth_allblack.png");
@@ -81,7 +81,7 @@ public class TestSmooth extends TestCase {
         Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
 
-        Operation2D smooth = new Smooth(0.1*MM);
+        Operation2D smooth = new SmoothOp(0.1*MM);
         grid = smooth.execute(grid);
 
         if (DEBUG) Grid2DShort.write(grid, "/tmp/smooth_allwhite.png");
@@ -111,12 +111,12 @@ public class TestSmooth extends TestCase {
 
         double inten0 = getAverageIntensity(grid);
 
-        Operation2D smooth = new Smooth(1.5*MM);
+        Operation2D smooth = new SmoothOp(1.5*MM);
         grid = smooth.execute(grid);
 
         double inten1 = getAverageIntensity(grid);
 
-        smooth = new Smooth(3.5*MM);
+        smooth = new SmoothOp(3.5*MM);
         grid = smooth.execute(grid);
 
         double inten2 = getAverageIntensity(grid);
@@ -154,7 +154,7 @@ public class TestSmooth extends TestCase {
             Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1 * MM);
 
             long t0 = System.currentTimeMillis();
-            Operation2D smooth = new Smooth(blurWidth);
+            Operation2D smooth = new SmoothOp(blurWidth);
             grid = smooth.execute(grid);
             tot = System.currentTimeMillis() - t0;
             printf("time: %d ms\n", tot);

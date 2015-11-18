@@ -62,7 +62,7 @@ import static abfab3d.util.MathUtil.iround;
  *
  * @author Vladimir Bulatov
  */
-public class DistanceTransform2D implements Operation2D {
+public class DistanceTransform2DOp implements Operation2D {
 
     public static boolean DEBUG = true;
     public static boolean DEBUG_TIMING = true;
@@ -109,7 +109,7 @@ public class DistanceTransform2D implements Operation2D {
      @param inDistance maximal distance to calculate transform inside of the shape. Measured in meters
      @param outDistance maximal distance to calculate transform outside of the shape. Measured in meters
     */
-    public DistanceTransform2D(double maxInDistance, double maxOutDistance, double threshold) {
+    public DistanceTransform2DOp(double maxInDistance, double maxOutDistance, double threshold) {
 
         //m_dataChannel = dataChannel;
         m_maxInDistance = maxInDistance;

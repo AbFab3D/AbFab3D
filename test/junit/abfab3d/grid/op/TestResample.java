@@ -15,7 +15,6 @@ package abfab3d.grid.op;
 // External Imports
 
 import abfab3d.grid.*;
-import abfab3d.grid.query.RegionFinder;
 import abfab3d.util.Bounds;
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -73,7 +72,7 @@ public class TestResample extends BaseTestAttributeGrid {
         grid.setAttribute(3, 3, channel.makeAtt(ival));
 
 
-        Operation2D rs = new Resample(w/2,h/2,Resample.WEIGHTING_MINIMUM);
+        Operation2D rs = new ResampleOp(w/2,h/2, ResampleOp.WEIGHTING_MINIMUM);
         Grid2DShort dest = (Grid2DShort) rs.execute(grid);
 
         printf("%4.5f %4.5f\n",channel.getValue(dest.getAttribute(0, 1)),channel.getValue(dest.getAttribute(1, 1)));
@@ -120,7 +119,7 @@ public class TestResample extends BaseTestAttributeGrid {
         grid.setAttribute(3, 3, channel.makeAtt(ival));
 
 
-        Operation2D rs = new Resample(w/2,h/2,Resample.WEIGHTING_AVERAGE);
+        Operation2D rs = new ResampleOp(w/2,h/2, ResampleOp.WEIGHTING_AVERAGE);
         Grid2DShort dest = (Grid2DShort) rs.execute(grid);
 
         printf("%4.5f %4.5f\n",channel.getValue(dest.getAttribute(0, 1)),channel.getValue(dest.getAttribute(1, 1)));
@@ -166,7 +165,7 @@ public class TestResample extends BaseTestAttributeGrid {
         grid.setAttribute(3, 3, channel.makeAtt(ival));
 
 
-        Operation2D rs = new Resample(w/2,h/2,Resample.WEIGHTING_MAXIMUM);
+        Operation2D rs = new ResampleOp(w/2,h/2, ResampleOp.WEIGHTING_MAXIMUM);
         Grid2DShort dest = (Grid2DShort) rs.execute(grid);
 
         printf("%4.5f %4.5f\n",channel.getValue(dest.getAttribute(0, 1)),channel.getValue(dest.getAttribute(1, 1)));

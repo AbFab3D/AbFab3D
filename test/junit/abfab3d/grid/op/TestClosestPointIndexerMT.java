@@ -69,7 +69,7 @@ public class TestClosestPointIndexerMT extends TestCase {
     /**
        this test compares result of MT and ST distance calculations 
      */
-    void testMTvsSTprecision()throws Exception{
+    void devTestMTvsSTprecision()throws Exception{
         
         if(DEBUG) printf("%s.testPrecisionMTvsST()\n", this.getClass().getName());
         double vs = 0.5*MM;
@@ -554,7 +554,7 @@ public class TestClosestPointIndexerMT extends TestCase {
 
         for(int i = 0; i < 4; i++){
             //new TestClosestPointIndexerMT().makeTestPoint();
-            new TestClosestPointIndexerMT().testMTvsSTprecision();            
+            new TestClosestPointIndexerMT().devTestMTvsSTprecision();
         }        
     }
 }

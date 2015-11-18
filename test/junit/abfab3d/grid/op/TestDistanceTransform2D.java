@@ -12,18 +12,15 @@
 
 package abfab3d.grid.op;
 
-import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.AttributeChannel;
 import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
-import abfab3d.grid.ValueMaker;
 
 import java.io.File;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 
 import abfab3d.util.ImageUtil;
@@ -38,11 +35,8 @@ import static java.lang.Math.abs;
 
 
 import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
 import static abfab3d.util.Units.MM;
 
-import static abfab3d.util.MathUtil.L2S;
 import static abfab3d.util.MathUtil.clamp;
 import static abfab3d.util.MathUtil.lerp2;
 import static abfab3d.util.ImageUtil.lerpColors;
@@ -85,10 +79,10 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
         double maxInDistance = 30*MM;
         double maxOutDistance = 30*MM;
 
-        DistanceTransform2D dt = new DistanceTransform2D(maxInDistance, maxOutDistance, threshold); 
+        DistanceTransform2DOp dt = new DistanceTransform2DOp(maxInDistance, maxOutDistance, threshold);
         //dt.setDataChannel(dataChannel);
         //dt.setInterpolation(DistanceTransform2D.INTERP_THRESHOLD);
-        dt.setInterpolation(DistanceTransform2D.INTERP_IF);
+        dt.setInterpolation(DistanceTransform2DOp.INTERP_IF);
         Grid2D distanceGrid = dt.execute(grid);
         
         Grid2D indexGrid = dt.getIndexGrid();

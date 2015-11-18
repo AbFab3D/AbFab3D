@@ -48,7 +48,7 @@ public class TestTrim extends TestCase {
         Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
 
-        Operation2D trim = new Trim();
+        Operation2D trim = new TrimOp();
         grid = trim.execute(grid);
 
         printf("final size: %d x %d\n",grid.getHeight(),grid.getWidth());
@@ -76,7 +76,7 @@ public class TestTrim extends TestCase {
         Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
 
 
-        Operation2D trim = new Trim();
+        Operation2D trim = new TrimOp();
         grid = trim.execute(grid);
 
         printf("final size: %d x %d\n",grid.getHeight(),grid.getWidth());
@@ -91,6 +91,33 @@ public class TestTrim extends TestCase {
                 assertTrue("Black",grid.getAttribute(i,j) == 0);
             }
         }
+    }
+
+    /**
+     * Testing handling of of different margins
+     * @throws Exception
+     */
+    public void _testR() throws Exception {
+        String path = "test/images/letter_R_500.png";
+
+        BufferedImage image = null;
+
+        try {
+            image = ImageIO.read(new File(path));
+
+        } catch (Exception ioe) {
+            ioe.printStackTrace();
+        }
+
+        Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1*MM);
+
+
+        Operation2D trim = new TrimOp();
+        grid = trim.execute(grid);
+
+        if (DEBUG) Grid2DShort.write(grid, "/tmp/trim_r.png");
+
+        assertTrue("Should be not black",grid.getAttribute(grid.getWidth()-1,0) > 0);
     }
 
 }
