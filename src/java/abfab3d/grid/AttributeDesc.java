@@ -65,6 +65,16 @@ public class AttributeDesc  {
     public AttributeChannel getChannel(int index){
         return m_channels.get(index);
     }
+
+    public AttributeChannel getChannelWithType(String channelType){
+        
+        for(int i = 0; i < m_channels.size(); i++){
+            AttributeChannel channel = m_channels.get(i);
+            if(channel.getType().equals(channelType))
+                return channel;
+        }
+        return null;
+    }
     
     public void addChannel(AttributeChannel channel){
 
