@@ -375,8 +375,10 @@ public class TrimOp implements Operation, AttributeOperation, Operation2D {
 
         Grid2D dest = src.createEmpty(xn - x0 + 1, yn - y0 + 1, src.getVoxelSize());
 
-        for(int y=y0; y < yn; y++) {
-            for(int x=x0; x < xn; x++) {
+        int h = yn+1;
+        int w = xn+1;
+        for(int y=y0; y < h; y++) {
+            for(int x=x0; x < w; x++) {
                 long att = src.getAttribute(x, y);
 
                 dest.setAttribute(x - x0,y - y0,att);
