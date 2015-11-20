@@ -23,7 +23,7 @@ import abfab3d.grid.*;
  * @author Alan Hudson
  */
 public class TrimOp implements Operation, AttributeOperation, Operation2D {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private double threshold;  // Threshold for inside when using attribute grids
 

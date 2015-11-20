@@ -131,7 +131,6 @@ public class Union  extends TransformableDataSource implements SNode {
         super.initialize();
         vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
 
-        printf("Init union.  size: %d\n",dataSources.size());
         for(int i = 0; i < vDataSources.length; i++){
             
             DataSource ds = vDataSources[i];

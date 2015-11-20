@@ -278,6 +278,91 @@ public class ImageGray16 {
     } // convolute y 
 
 
+    public void trim(int threshold) {
+        int width = m_width;
+        int height = m_height;
+
+        int x0 = 0, xn = width;
+        int y0 = 0, yn = height;
+
+        // Find x0 range
+        loop:
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int val = us2i(data[y*width + x]);
+                if (val <= threshold) {
+                    x0 = x;
+                    break loop;
+                }
+            }
+        }
+
+        // Find xn range
+        loop:
+        for (int x = width - 1; x > x0; x--) {
+            for (int y = 0; y < height; y++) {
+                int val = us2i(data[y * width + x]);
+
+                if (val <= threshold) {
+                    xn = x;
+                    break loop;
+                }
+            }
+        }
+
+        // Find y0 range
+        loop:
+        for (int y = 0; y < height; y++) {
+            for (int x = x0; x < xn; x++) {
+                int val = us2i(data[y * width + x]);
+
+                if (val <= threshold) {
+                    y0 = y;
+                    break loop;
+                }
+            }
+        }
+
+        // Find yn range
+        loop:
+        for (int y = height - 1; y > y0; y--) {
+            for (int x = x0; x < xn; x++) {
+                int val = us2i(data[y * width + x]);
+
+                if (val <= threshold) {
+                    yn = y;
+                    break loop;
+                }
+            }
+        }
+
+        System.out.println("Trimming to: x: " + x0 + " " + xn + " y: " + y0 + " " + yn);
+
+        if (x0 == 0 && xn == width && y0 == 0 && yn == height) {
+            // no margin so return original
+            return;
+        }
+
+        short[] dest = new short[(xn - x0 + 1) * (yn - y0 + 1)];
+
+        int new_width = (xn-x0) + 1;
+        int new_height = (yn-y0) + 1;
+
+        int h = yn + 1;
+        int w = xn + 1;
+        for (int y = y0; y < h; y++) {
+            for (int x = x0; x < w; x++) {
+                short att = data[y*width + x];
+
+                dest[(y - y0)*new_width + (x - x0)] = att;
+            }
+        }
+
+        m_width = new_width;
+        m_height = new_height;
+        data = dest;
+    }
+
     public void write(String fileName, int maxDataValue) throws IOException {
         
         BufferedImage outImage = new BufferedImage(m_width, m_height, BufferedImage.TYPE_INT_ARGB);

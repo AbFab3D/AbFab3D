@@ -22,6 +22,7 @@ import abfab3d.util.*;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 import javax.vecmath.Vector3d;
 
@@ -258,7 +259,6 @@ public class Image3D extends TransformableDataSource {
      * @param voxelSize size of voxel to be used for image voxelization
      */
     public Image3D(Grid2D grid, double sx, double sy, double sz, double voxelSize) {
-        printf("Got Grid2D\n");
         initParams();
         setImage(grid);
         setSize(sx, sy, sz);
@@ -317,6 +317,7 @@ public class Image3D extends TransformableDataSource {
      */
     public void setBlurWidth(double blurWidth) {
 
+        if (DEBUG) printf("Setting blurWidth: %f\n",blurWidth);
         mp_blurWidth.setValue(new Double(blurWidth));
 
     }
@@ -329,7 +330,6 @@ public class Image3D extends TransformableDataSource {
      * @noRefGuide
      */
     public void setBaseThreshold(double baseThreshold) {
-
         mp_baseThreshold.setValue(new Double(baseThreshold));
 
     }
@@ -362,7 +362,6 @@ public class Image3D extends TransformableDataSource {
      */
     public void setImage(BufferedImage image) {
         if (image != m_image) {
-            printf("Dirty image\n");
             m_imageModified = true;
         }
         m_image = image;
@@ -586,7 +585,7 @@ public class Image3D extends TransformableDataSource {
      */
     protected void saveImageData(){ 
         m_savedParamString = getParamString(m_aparam);
-        printf("Image3D.savedParamString:\n%s",m_savedParamString);
+        if (DEBUG) printf("Image3D.savedParamString:\n%s",m_savedParamString);
     }
 
 
@@ -674,6 +673,17 @@ public class Image3D extends TransformableDataSource {
             t1 = time();
             imageData.gaussianBlur(blurSizePixels);
 
+            /*
+            // TODO: do not checkin
+            if (DEBUG) {
+                try {
+                    printf("Dropping debug!!!\n");
+                    imageData.write("/tmp/blurred.png");
+                } catch(IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+            */
             if(DEBUG)printf("Image3D image[%d x %d] gaussian blur: %7.2f pixels blur width: %10.5fmm time: %d ms\n", 
                    imageWidth, imageHeight, blurSizePixels, blurWidth/MM, (time() - t1));
 
