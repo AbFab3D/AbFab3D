@@ -104,4 +104,31 @@ public class BaseParameterizable implements Parameterizable, SNode {
         }
         return sb.toString();
     }
+
+    /**
+     saves array of parameters into a string
+     */
+    public static String getParamString(Map<String,Parameter> params){
+        StringBuffer sb = new StringBuffer();
+        for(Parameter p : params.values()) {
+            sb.append(p.getName());
+            sb.append("=\"");
+            sb.append(p.getValue().toString());
+            sb.append("\";");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Output the hash and params for toString()
+     * @return
+     */
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
+        sb.append(",");
+        sb.append(getParamString(params));
+
+        return sb.toString();
+    }
 }
