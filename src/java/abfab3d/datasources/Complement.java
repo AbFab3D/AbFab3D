@@ -49,6 +49,23 @@ public class Complement extends TransformableDataSource {
     }
 
     /**
+     *  Set the source
+     *
+     * @param ds  data source
+     */
+    public void setSource(DataSource ds) {
+        mp_data.setValue(ds);
+    }
+
+    /**
+     * Get the source
+     * @return
+     */
+    public Object getSource() {
+        return mp_data.getValue();
+    }
+
+    /**
      * @noRefGuide
      */
     public int initialize() {

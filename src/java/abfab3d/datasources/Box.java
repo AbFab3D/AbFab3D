@@ -112,14 +112,52 @@ public class Box extends TransformableDataSource {
 
     }
 
+    /**
+     * Set the size of the box.
+     * @param val The size in meters
+     */
     public void setSize(Vector3d val) {
         mp_size.setValue(val);
     }
 
+    public Vector3d getSize() {
+        return mp_size.getValue();
+    }
+
+    /**
+     * Set the center of the coordinate system
+     * @param val The center
+     */
     public void setCenter(Vector3d val) {
         mp_center.setValue(val);
     }
 
+    /**
+     * Get the center of the coordinate system
+     * @return
+     */
+    public Vector3d getCenter() {
+        return mp_center.getValue();
+    }
+
+    /**
+     * Set the amount of rounding of the edges
+     * @param val
+     */
+    public void setRounding(double val) {
+        mp_rounding.setValue(val);
+    }
+
+    /**
+     * Get the amount of rounding of the edges
+     */
+    public double getRounding() {
+        return mp_rounding.getValue();
+    }
+
+    /**
+     * @noRefGuide;
+     */
     protected void initParams(){
         super.addParams(m_aparam);
     }

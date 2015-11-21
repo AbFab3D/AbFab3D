@@ -20,6 +20,7 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.AxisAngle4d;
 
 
+import abfab3d.param.Parameterizable;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
@@ -152,6 +153,11 @@ public class Composition  extends TransformableDataSource {
 
     }
 
+    public void setType(int val) {
+        // TODO: this node is not using parameters yet
+        m_type = val;
+    }
+
     /**
        add item to union. 
        @param shape item to add to union of multiple shapes 
@@ -159,7 +165,24 @@ public class Composition  extends TransformableDataSource {
     public void add(DataSource shape){
         dataSources.add(shape);
     }
-    
+
+    /**
+     * Set an item into the list
+     *
+     * @param idx The index, it must already exist
+     * @param src
+     */
+    public void set(int idx, DataSource src) {
+        dataSources.set(idx, src);
+    }
+
+    /**
+     * Clear the datasources
+     */
+    public void clear() {
+        dataSources.clear();
+    }
+
     /**
        @noRefGuide
     */
