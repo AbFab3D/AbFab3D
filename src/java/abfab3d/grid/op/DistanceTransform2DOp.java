@@ -64,7 +64,7 @@ import static abfab3d.util.MathUtil.iround;
  */
 public class DistanceTransform2DOp implements Operation2D {
 
-    public static boolean DEBUG = true;
+    public static boolean DEBUG = false;
     public static boolean DEBUG_TIMING = true;
     static int debugCount = 100;
     static final double TOL = 1.e-2;

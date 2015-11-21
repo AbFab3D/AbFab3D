@@ -80,7 +80,7 @@ public class Text2D extends BaseParameterizable {
     static int m_hAlignValues[] = new int[]{ALIGN_LEFT,ALIGN_CENTER,ALIGN_RIGHT};
     static int m_vAlignValues[] = new int[]{ALIGN_TOP,ALIGN_CENTER,ALIGN_BOTTOM};
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static int debugCount = 1000;
 
     // arbitrary font size, text is scaled to fit the box, but the size is affecting text rasterization somewhat 

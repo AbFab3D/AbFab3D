@@ -29,7 +29,7 @@ import abfab3d.grid.*;
  * @author Alan Hudson
  */
 public class RingSpaceWarp implements Operation, AttributeOperation {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private Grid src;
     private double radius;
