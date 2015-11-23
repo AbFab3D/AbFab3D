@@ -44,7 +44,11 @@ public class Vector3dParameter extends NumberParameter {
     }
 
     public void setValue(Vector3d vec) {
-        super.setValue(vec.clone());
+        if (vec != null) {
+            super.setValue(vec.clone());
+        } else {
+            super.setValue(vec);
+        }
     }
 
     /**
