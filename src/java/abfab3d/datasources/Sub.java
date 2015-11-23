@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2015
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -14,28 +14,16 @@ package abfab3d.datasources;
 
 
 import abfab3d.param.Parameter;
-import abfab3d.param.SNode;
 import abfab3d.param.SNodeParameter;
-import abfab3d.param.DoubleParameter;
 
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 
-import static java.lang.Math.abs;
-
-import static abfab3d.util.Output.printf;
-
-
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.step10;
-
-import static abfab3d.util.Units.MM;
-
 
 /**
 
-   subtract 2 data sources:  (source1 - source2)
+   Subtract 2 data sources:  (source1 - source2)
    <br/>
    
    @author Vladimir Bulatov
@@ -85,6 +73,56 @@ public class Sub extends TransformableDataSource {
         mp_d1.setValue(new Constant(data1));
         mp_d2.setValue(data2);
 
+    }
+
+    /**
+     *  Set source1
+     *
+     * @param ds  The data source
+     */
+    public void setSource1(DataSource ds) {
+        mp_d1.setValue(ds);
+    }
+
+    /**
+     * Set source1 to a constant value
+     * @param val The constant value
+     */
+    public void setSource1(double val) {
+        mp_d1.setValue(new Constant(val));
+    }
+
+    /**
+     *  Set source2
+     *
+     * @param ds  The data source
+     */
+    public void setSource2(DataSource ds) {
+        mp_d2.setValue(ds);
+    }
+
+    /**
+     * Get the first source
+     * @return
+     */
+    public Object getSource1() {
+        return mp_d1.getValue();
+    }
+
+    /**
+     * Set source2 to a constant value
+     * @param val The constant value
+     */
+    public void setSource2(double val) {
+        mp_d2.setValue(new Constant(val));
+    }
+
+    /**
+     * Get the second source
+     * @return
+     */
+    public Object getSource2() {
+        return mp_d2.getValue();
     }
 
     /**

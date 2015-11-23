@@ -51,13 +51,34 @@ public class VolumePatterns {
         public Balls(double period, double radius){
 
             this.period = period;
-            
-            RR = radius*radius;
-            
-            R2 = radius*2;
 
+            setRadius(radius);
         }
 
+        public void setPeriod(double val) {
+            period = val;
+        }
+
+        public double getPeriod() {
+            return period;
+        }
+
+        public void setRadius(double radius) {
+            RR = radius*radius;
+
+            R2 = radius*2;
+        }
+
+        public double getRadius() {
+            return R2 / 2;
+        }
+
+        /**
+         * @noRefGuide
+         * @param pnt
+         * @param data
+         * @return
+         */
         public int getDataValue(Vec pnt, Vec data){
             super.transform(pnt);
 
@@ -97,13 +118,33 @@ public class VolumePatterns {
         public CubicGrid(double period, double radius){
 
             this.period = period;
-            
-            RR = radius*radius;
-            
-            R2 = radius*2;
-
+            setRadius(radius);
         }
 
+        public void setPeriod(double val) {
+            period = val;
+        }
+
+        public double getPeriod() {
+            return period;
+        }
+
+        public void setRadius(double radius) {
+            RR = radius*radius;
+
+            R2 = radius*2;
+        }
+
+        public double getRadius() {
+            return R2 / 2;
+        }
+
+        /**
+         * @noRefGuide
+         * @param pnt
+         * @param data
+         * @return
+         */
         public int getDataValue(Vec pnt, Vec data){
             
             super.transform(pnt);
@@ -179,20 +220,47 @@ public class VolumePatterns {
             mp_period.setValue(value);
         }
 
+        public double getPeriod() {
+            return mp_period.getValue();
+        }
+
         public void setThickness(double value){
 
             mp_thickness.setValue(value);
 
         }
+        public double getThickness() {
+            return mp_thickness.getValue();
+        }
 
-        public void setCenter(Vector3d value) {
-            mp_center.setValue(value);
+        /**
+         * Set the center of the coordinate system
+         * @param val The center
+         */
+        public void setCenter(Vector3d val) {
+            mp_center.setValue(val);
+        }
+
+        /**
+         * Get the center of the coordinate system
+         * @return
+         */
+        public Vector3d getCenter() {
+            return mp_center.getValue();
         }
 
         public void setLevel(double value) {
             mp_level.setValue(value);
         }
 
+        public double getLevel() {
+            return mp_level.getValue();
+        }
+
+        /**
+         * noRefGuide
+         * @return
+         */
         public int initialize(){
 
             super.initialize();
@@ -211,6 +279,12 @@ public class VolumePatterns {
             return RESULT_OK;
         }
 
+        /**
+         * @noRefGuide
+         * @param pnt
+         * @param data
+         * @return
+         */
         public int getDataValue(Vec pnt, Vec data){
             
             super.transform(pnt);
@@ -265,6 +339,9 @@ public class VolumePatterns {
 
         }
 
+        /**
+         * @noRefGuide
+         */
         public int initialize(){
 
             super.initialize();
@@ -278,6 +355,9 @@ public class VolumePatterns {
             return RESULT_OK;
         }
 
+        /**
+         * @noRefGuide
+         */
         public int getDataValue(Vec pnt, Vec data){
 
             super.transform(pnt);
@@ -353,6 +433,9 @@ public class VolumePatterns {
             mp_thickness.setValue(thickness);
         }
 
+        /**
+         * @noRefGuide
+         */
         public int initialize(){
 
             super.initialize();
@@ -366,6 +449,9 @@ public class VolumePatterns {
             return RESULT_OK;
         }
 
+        /**
+         * @noRefGuide
+         */
         public int getDataValue(Vec pnt, Vec data){
 
             super.transform(pnt);
@@ -420,6 +506,9 @@ public class VolumePatterns {
             mp_thickness.setValue(thickness);
         }
 
+        /**
+         * @noRefGuide
+         */
         public int initialize(){
 
             super.initialize();
@@ -433,6 +522,9 @@ public class VolumePatterns {
             return RESULT_OK;
         }
 
+        /**
+         * @noRefGuide
+         */
         public int getDataValue(Vec pnt, Vec data){
 
             super.transform(pnt);
@@ -486,6 +578,9 @@ public class VolumePatterns {
             mp_thickness.setValue(thickness);
         }
 
+        /**
+         * @noRefGuide
+         */
         public int initialize(){
 
             super.initialize();
@@ -499,6 +594,9 @@ public class VolumePatterns {
             return RESULT_OK;
         }
 
+        /**
+         * @noRefGuide
+         */
         public int getDataValue(Vec pnt, Vec data){
 
             super.transform(pnt);
@@ -554,6 +652,9 @@ public class VolumePatterns {
             
         }
 
+        /**
+         * @noRefGuide
+         */
         public int initialize(){
 
             super.initialize();
@@ -567,6 +668,9 @@ public class VolumePatterns {
             return RESULT_OK;
         }
 
+        /**
+         * @noRefGuide
+         */
         public int getDataValue(Vec pnt, Vec data){
 
             super.transform(pnt);

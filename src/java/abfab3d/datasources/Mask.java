@@ -35,7 +35,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   makes mask out of given data source 
+   Makes a mask out of given data source.
    mask has values in the range (0,1) 
    returned value is calculated from source value v as follows:
    <pre>
@@ -47,7 +47,7 @@ import static abfab3d.util.Units.MM;
        return (threshold + thickness/2 - v)/thickness;
    </pre>
    
-   the mask can be used to convert distance function into density 
+   The mask is typically used to convert distance functions into density.
    
    @author Vladimir Bulatov
 
@@ -57,8 +57,6 @@ public class Mask extends TransformableDataSource {
     private DataSource m_dataSource;
     private double m_threshold;
     private double m_thickness2; // half thickness 
-
-    DataSource dataSource2;
 
     SNodeParameter mp_data = new SNodeParameter("source");
     DoubleParameter mp_threshold = new DoubleParameter("threshold", "mask surface threshold", 0.);
@@ -70,9 +68,6 @@ public class Mask extends TransformableDataSource {
         mp_thickness,
     };    
 
-    /**
-       
-     */
     public Mask(DataSource source, double threshold, double thickness){
 
         super.addParams(m_aparam);
@@ -82,19 +77,48 @@ public class Mask extends TransformableDataSource {
     }
 
     /**
-     *
+     * Set the source mask
      * @param ds  data source
      */
     public void setSource(DataSource ds) {
         mp_data.setValue(ds);
     }
 
+    /**
+     * Get the data source
+     */
+    public DataSource getSource() {
+        return (DataSource) mp_data.getValue();
+    }
+
+    /**
+     * Set the threshold
+     * @param val The threshold.  Default is 0.
+     */
     public void setThreshold(double val) {
         mp_threshold.setValue(new Double(val));
     }
 
+    /**
+     * Get the threshold
+     */
+    public double getThreshold() {
+        return mp_threshold.getValue();
+    }
+
+    /**
+     * Set the thickness.  Default is 0.1 mm.
+     * @param val The value in meters
+     */
     public void setThickness(double val) {
         mp_thickness.setValue(new Double(val));
+    }
+
+    /**
+     * Get the thickness
+     */
+    public double getThickness() {
+        return mp_thickness.getValue();
     }
 
     /**

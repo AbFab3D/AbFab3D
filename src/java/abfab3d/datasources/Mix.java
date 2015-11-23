@@ -38,7 +38,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   linear mix of two data sources  source1 + (source2 - source1)*mixer
+   Linear mix of two data sources  source1 + (source2 - source1)*mixer
    <br/>
    
    @author Vladimir Bulatov
@@ -60,9 +60,6 @@ public class Mix extends TransformableDataSource{
         mp_mixer,
     };    
 
-    /**
-       
-     */
     public Mix(DataSource source1, DataSource source2, DataSource mix){
 
         super.addParams(m_aparam);
@@ -72,9 +69,6 @@ public class Mix extends TransformableDataSource{
 
     }
 
-    /**
-       
-     */
     public Mix(DataSource source1, DataSource source2, double mix){
 
         super.addParams(m_aparam);
@@ -82,6 +76,81 @@ public class Mix extends TransformableDataSource{
         mp_d2.setValue(source2);
         mp_mixer.setValue(new Constant(mix));
 
+    }
+
+    /**
+     *  Set source1
+     *
+     * @param ds  The data source
+     */
+    public void setSource1(DataSource ds) {
+        mp_d1.setValue(ds);
+    }
+
+    /**
+     * Set source1 to a constant value
+     * @param val The constant value
+     */
+    public void setSource1(double val) {
+        mp_d1.setValue(new Constant(val));
+    }
+
+    /**
+     * Get the first source
+     * @return
+     */
+    public Object getSource1() {
+        return mp_d1.getValue();
+    }
+
+    /**
+     *  Set source2
+     *
+     * @param ds  The data source
+     */
+    public void setSource2(DataSource ds) {
+        mp_d2.setValue(ds);
+    }
+
+    /**
+     * Set source2 to a constant value
+     * @param val The constant value
+     */
+    public void setSource2(double val) {
+        mp_d2.setValue(new Constant(val));
+    }
+
+    /**
+     * Get the second source
+     * @return
+     */
+    public Object getSource2() {
+        return mp_d2.getValue();
+    }
+
+    /**
+     *  Set mixer
+     *
+     * @param ds  The data source
+     */
+    public void setMixer(DataSource ds) {
+        mp_mixer.setValue(ds);
+    }
+
+    /**
+     * Set mixer to a constant value
+     * @param val The constant value
+     */
+    public void setMixer(double val) {
+        mp_mixer.setValue(new Constant(val));
+    }
+
+    /**
+     * Get the mixer
+     * @return
+     */
+    public Object getMixer() {
+        return mp_mixer.getValue();
     }
 
     /**

@@ -110,6 +110,22 @@ public class Sphere extends TransformableDataSource {
     }
 
     /**
+     * Set the center of the coordinate system
+     * @param val The center
+     */
+    public void setCenter(Vector3d val) {
+        mp_center.setValue(val);
+    }
+
+    /**
+     * Get the center of the coordinate system
+     * @return
+     */
+    public Vector3d getCenter() {
+        return mp_center.getValue();
+    }
+
+    /**
      * @noRefGuide
      */
     protected void initParams(){
@@ -130,7 +146,8 @@ public class Sphere extends TransformableDataSource {
     }
     
     /**
-     * @noRefGuide
+     * Set the radius
+     * @param r The value in meters.  Default is 1mm.
      */
     public void setRadius(double r){
         if( r < 0){
@@ -146,13 +163,22 @@ public class Sphere extends TransformableDataSource {
         mp_radius.setValue(r);
 
     }
-    
+
+    /**
+     * Get the radius
+     */
+    public double getRadius() {
+        return mp_radius.getValue();
+    }
+
     /**
      * @noRefGuide
 
      * returns 1 if pnt is inside of ball
      * returns intepolated value if poiunt is within voxel size to the boundary
      * returns 0 if pnt is outside the ball
+     *
+     * @noRefGuide
      */
     public int getDataValue(Vec pnt, Vec data) {
         

@@ -13,34 +13,13 @@
 package abfab3d.datasources;
 
 
-//import java.awt.image.Raster;
-
-import java.util.Vector;
-
 import javax.vecmath.Vector3d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.AxisAngle4d;
-
 
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
-
-import abfab3d.util.PointToTriangleDistance;
-
 import static java.lang.Math.sqrt;
-import static java.lang.Math.atan2;
-import static java.lang.Math.abs;
-
-import static abfab3d.util.Output.printf;
-
-
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.MathUtil.step10;
 
 import static abfab3d.util.Units.MM;
@@ -88,7 +67,7 @@ public class Torus extends TransformableDataSource {
 
      */
     public Torus(double Rout, double Rin){
-        this(0,0,0,Rout,Rin);
+        this(0, 0, 0, Rout, Rin);
     }
 
     /**
@@ -101,7 +80,7 @@ public class Torus extends TransformableDataSource {
      */
     public Torus(double cx, double cy, double cz, double Rout, double Rin){
         initParams();
-        setCenter(cx, cy, cz);
+        setCenter(new Vector3d(cx,cy,cz));
         setRout(Rout);
         setRin(Rin);
     }
@@ -114,13 +93,19 @@ public class Torus extends TransformableDataSource {
     }
 
     /**
-       @noRefGuide
+     * Set the center of the coordinate system
+     * @param val The center
      */
-    public void setCenter(double cx, double cy, double cz) {
-        mp_center.setValue(new Vector3d(cx,cy,cz));
-        this.x0 = cx;
-        this.y0 = cy;
-        this.z0 = cz;
+    public void setCenter(Vector3d val) {
+        mp_center.setValue(val);
+    }
+
+    /**
+     * Get the center of the coordinate system
+     * @return
+     */
+    public Vector3d getCenter() {
+        return mp_center.getValue();
     }
 
     /**

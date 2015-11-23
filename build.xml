@@ -3,7 +3,7 @@
 <project basedir="." default="build" name="AbFab3D">
     <import file="build_common.xml" />
   
-    <description></description>
+    <description>AbFab3D Project</description>
 
     <property name="version" value="1.0.0" />
 
@@ -223,19 +223,32 @@
                  author="yes" >
             <fileset dir="${src.dir}" defaultexcludes="yes">
                 <include name="java/abfab3d/datasources/TransformableDataSource.java" />
+                <include name="java/abfab3d/datasources/Abs.java" />
+                <include name="java/abfab3d/datasources/Add.java" />
                 <include name="java/abfab3d/datasources/Box.java" />
                 <include name="java/abfab3d/datasources/Complement.java" />
+                <include name="java/abfab3d/datasources/Constant.java" />
                 <include name="java/abfab3d/datasources/Cone.java" />
                 <include name="java/abfab3d/datasources/Cylinder.java" />
                 <include name="java/abfab3d/datasources/DataSourceGrid.java" />
                 <include name="java/abfab3d/datasources/DataTransformer.java" />
-                <include name="java/abfab3d/datasources/ImageBitmap.java" />
+                <include name="java/abfab3d/datasources/Embossing.java" />
+                <include name="java/abfab3d/datasources/Image3D.java" />
+                <include name="java/abfab3d/datasources/ImageMap.java" />
                 <include name="java/abfab3d/datasources/Intersection.java" />
+                <include name="java/abfab3d/datasources/Mad.java" />
+                <include name="java/abfab3d/datasources/Mask.java" />
+                <include name="java/abfab3d/datasources/Max.java" />
+                <include name="java/abfab3d/datasources/Min.java" />
+                <include name="java/abfab3d/datasources/Mix.java" />
+                <include name="java/abfab3d/datasources/Mul.java" />
                 <include name="java/abfab3d/datasources/Plane.java" />
-                <include name="java/abfab3d/datasources/Ring.java" />
+<!--                <include name="java/abfab3d/datasources/Ring.java" /> -->
                 <include name="java/abfab3d/datasources/Sphere.java" />
+                <include name="java/abfab3d/datasources/Sub.java" />
                 <include name="java/abfab3d/datasources/Subtraction.java" />
                 <include name="java/abfab3d/datasources/Text.java" />
+                <include name="java/abfab3d/datasources/Text2D.java" />
                 <include name="java/abfab3d/datasources/Torus.java" />
                 <include name="java/abfab3d/datasources/Union.java" />
                 <include name="java/abfab3d/datasources/VolumePatterns.java" />

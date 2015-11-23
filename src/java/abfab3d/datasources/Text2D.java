@@ -32,6 +32,8 @@ import abfab3d.util.DataSource;
 import abfab3d.util.TextUtil;
 import abfab3d.util.Insets2;
 
+import javax.vecmath.Vector3d;
+
 import static java.lang.Math.abs;
 
 import static abfab3d.util.Output.printf;
@@ -147,11 +149,46 @@ public class Text2D extends BaseParameterizable {
         mp_text.setValue(text);        
     }
 
+    /**
+     * Get the font name
+     * @return
+     */
+    public String getFontName() {
+        return mp_fontName.getValue();
+    }
+
+    /**
+     * Set the font style
+     * @param fontStyle
+     */
+    public void setFontStyle(int fontStyle){
+        mp_fontStyle.setValue(new Integer(fontStyle));
+    }
+
+    /**
+     * Get the font style
+     * @return
+     */
+    public int getFontStyle() {
+        return mp_fontStyle.getValue();
+    }
+
+    /**
+     * Get the voxel size
+     * @return
+     */
+    public double getVoxelSize() {
+        return mp_voxelSize.getValue();
+    }
+
     public void setText(String val) {
         m_bitmap = null;
         mp_text.setValue(val);
     }
 
+    /**
+     * Set the font name.  The available fonts are server dependent.
+     */
     public void setFontName(String val) {
         m_bitmap = null;
         validateFontName(val);
@@ -163,6 +200,10 @@ public class Text2D extends BaseParameterizable {
         mp_fontStyle.setValue(val);
     }
 
+    /**
+     * Set the voxel size
+     * @param val The size in meters
+     */
     public void setVoxelSize(double val) {
         m_bitmap = null;
         mp_voxelSize.setValue(val);
@@ -173,9 +214,17 @@ public class Text2D extends BaseParameterizable {
         mp_spacing.setValue(val);
     }
 
+    public double getSpacing() {
+        return mp_spacing.getValue();
+    }
+
     public void setInset(double val) {
         m_bitmap = null;
         mp_inset.setValue(val);
+    }
+
+    public double getInset() {
+        return mp_inset.getValue();
     }
 
     public void set(String param, Object val) {
@@ -215,9 +264,17 @@ public class Text2D extends BaseParameterizable {
         mp_horizAlign.setValue(val.toUpperCase());
     }
 
+    public String getHorizAlign() {
+        return mp_horizAlign.getValue();
+    }
+
     public void setVertAlign(String val) {
         m_bitmap = null;
         mp_vertAlign.setValue(val.toUpperCase());
+    }
+
+    public String getVertAlign() {
+        return mp_vertAlign.getValue();
     }
 
     public void setFit(String val) {
@@ -225,6 +282,23 @@ public class Text2D extends BaseParameterizable {
         mp_fit.setValue(val.toUpperCase());
     }
 
+    public String getFit() {
+        return mp_fit.getValue();
+    }
+
+    public void setPreserveAspect(boolean val) {
+        m_bitmap = null;
+        mp_aspect.setValue(val);
+    }
+
+    public boolean getPreserveAspect() {
+        return mp_aspect.getValue();
+    }
+
+    /**
+     * @noRefGuide
+     * @return
+     */
     public BufferedImage getImage(){
 
         if(m_bitmap == null)
@@ -233,6 +307,9 @@ public class Text2D extends BaseParameterizable {
         return m_bitmap;
     }
 
+    /**
+     * @noRefGuide
+     */
     protected void initParams(){
         super.addParams(m_aparam);
     }
@@ -246,7 +323,9 @@ public class Text2D extends BaseParameterizable {
     /**
        calculates preferred width of text box with for given font, insets and height
        the returned width includes width of text and insets on all sides 
-       @return preferred text box width 
+       @return preferred text box width
+
+     @noRefGuide
      */
     public double getPreferredWidth(){
 

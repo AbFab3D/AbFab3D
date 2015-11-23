@@ -57,7 +57,7 @@ import static abfab3d.util.Output.time;
  * The 2D image is placed in the XY-plane and for each pixel of the image with coordinate (x,y) the column of voxel of size size.z
  * is formed in both sides of XY plane
  * </p>
- * the image can be periodicaly repeated in both X and Y directions 
+ * The image can be periodically repeated in both X and Y directions
  * 
  *
  * @author Vladimir Bulatov
@@ -126,78 +126,145 @@ public class ImageMap extends TransformableDataSource {
     }
 
 
-    public void setImageSource(Object val) {
+    /**
+     * Set the source image
+     * @param val
+     */
+    public void setImage(Object val) {
         mp_imageSource.setValue(val);
     }
 
-    public Object getImageSource() {
+    /**
+     * Get the source image
+     * @return
+     */
+    public Object getImage() {
         return mp_imageSource.getValue();
     }
 
+    /**
+     * Set center of the image box
+     * @param val The center in meters
+     */
     public void setCenter(Vector3d val) {
         mp_center.setValue(val);
     }
 
+    /**
+     * Get the center of the image box
+     */
     public Vector3d getCenter() {
         return mp_center.getValue();
     }
 
+    /**
+     * Set size of the image box
+     * @param val The size in meters
+     */
     public void setSize(Vector3d val) {
         mp_size.setValue(val);
     }
 
+    /**
+     * Get the size of the image box
+     */
     public Vector3d getSize() {
         return mp_size.getValue();
     }
 
+    /**
+     * Set whether the image repeats in the X direction
+     * @param val The value
+     */
     public void setRepeatX(boolean val) {
         mp_repeatX.setValue(val);
     }
 
+    /**
+     * Is repeatX set
+     */
     public boolean isRepeatX() {
         return mp_repeatX.getValue();
     }
 
+    /**
+     * Set whether the image repeats in the Y direction
+     * @param val The value
+     */
     public void setRepeatY(boolean val) {
         mp_repeatY.setValue(val);
     }
 
+    /**
+     * Is repeatY set
+     */
     public boolean isRepeatY() {
         return mp_repeatY.getValue();
     }
 
+    /**
+     * Set how far white pixels displace the image
+     * @param val The value in meters. Default is 0.
+     */
     public void setWhiteDisplacement(double val) {
         mp_whiteDisp.setValue(val);
     }
 
+    /**
+     * Get the white displacement
+     */
     public double getWhiteDisplacement() {
         return mp_whiteDisp.getValue();
     }
 
+    /**
+     * Set how far black pixels displace the image
+     * @param val The value in meters. Default is 0.001.
+     */
     public void setBlackDisplacement(double val) {
         mp_blackDisp.setValue(val);
     }
 
+    /**
+     * Get the black displacement
+     * @return
+     */
     public double getBlackDisplacement() {
         return mp_blackDisp.getValue();
     }
 
+    /**
+     * Set the blurring width to apply to the image
+     * @param val The width in meters.  Default is 0.
+     */
     public void setBlurWidth(double val) {
         mp_blurWidth.setValue(val);
     }
 
+    /**
+     * Get the blurWidth
+     */
     public double getBlurWidth() {
         return mp_blurWidth.getValue();
     }
-    
+
+    /**
+     * @noRefGuide
+     */
     public int getBitmapWidth(){
         return m_imageData.getWidth();
     }
 
+    /**
+     * @noRefGuide
+     */
     public int getBitmapHeight(){
         return m_imageData.getHeight();
     }
 
+    /**
+     * @noRefGuide
+     */
     public void getBitmapDataUByte(byte data[]){
 
         int nx = m_imageData.getWidth();
@@ -345,7 +412,10 @@ public class ImageMap extends TransformableDataSource {
         
         return RESULT_OK;
     }
-    
+
+    /**
+     * @noRefGuide
+     */
     public int getDataValue(Vec pnt, Vec dataValue){
 
         super.transform(pnt);

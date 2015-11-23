@@ -120,6 +120,9 @@ public class Box extends TransformableDataSource {
         mp_size.setValue(val);
     }
 
+    /**
+     * Get the size
+     */
     public Vector3d getSize() {
         return mp_size.getValue();
     }

@@ -58,6 +58,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
     /**
      * Transform the data source
+     * @noRefGuide
      * @param transform General transformation to apply to the object before it is rendered
      */
     public void setTransform(VecTransform transform){
@@ -65,6 +66,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
     }
 
     /**
+     * @noRefGuide
        @return Transformation the object
      */
     public VecTransform getTransform() {
@@ -73,7 +75,9 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
 
     /**
-     * set objects material 
+     * set objects material
+     *
+     * @noRefGuide
      * @param material Material to apply to the object after it is rendered
      */
     public void setMaterial(DataSource material){
@@ -81,7 +85,8 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
     }
 
     /**
-       @return Material of the object 
+     * @noRefGuide
+       @return Material of the object
      */
     public DataSource getMaterial() {
         return m_material;
@@ -89,6 +94,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
     /**
      * Get the bounds of this data source.  The data source can be infinite.
+     * @noRefGuide
      * @return
      */
     public Bounds getBounds() {
@@ -97,6 +103,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
     /**
      * Set the bounds of this data source.  For infinite bounds use Bounds.INFINITE
+     * @noRefGuide
      * @param bounds
      */
     public void setBounds(Bounds bounds) {
@@ -150,6 +157,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
     /**
        fills data with values from he material channel
+     * @noRefGuide
      */
     protected int getMaterialDataValue(Vec pnt, Vec data){
 

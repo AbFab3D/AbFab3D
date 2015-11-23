@@ -153,7 +153,6 @@ public class Cylinder extends TransformableDataSource {
     }
 
     /**
-
       @noRefGuide     
      */
     public int initialize() {
@@ -201,29 +200,50 @@ public class Cylinder extends TransformableDataSource {
     }
 
 
+    /**
+     * @noRefGuide
+     */
     public Matrix3d getRotation(){
         return m_rotation;
     }
 
+    /**
+     * @noRefGuide
+     */
     public double getHalfHeight(){
         return m_h2;
     }
 
+    /**
+     * @noRefGuide
+     */
     public double getMidRadius(){
         return m_R01;
     }
 
+    /**
+     * @noRefGuide
+     */
     public double getNormalY(){
         return m_normalY;
     }
+    /**
+     * @noRefGuide
+     */
     public double getNormalR(){
         return m_normalR;
     }
 
+    /**
+     * @noRefGuide
+     */
     public Vector3d getCenter(){
         return m_center;
     }
 
+    /**
+     * @noRefGuide
+     */
     public double getDistance(Vec pnt){
         Vec pntc = new Vec(pnt);
         canonicalTransform(pntc);

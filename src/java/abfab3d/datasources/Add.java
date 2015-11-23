@@ -24,7 +24,7 @@ import static abfab3d.util.Output.printf;
 
 /**
 
-   Makes sum of 2 data sources  source1 + source2
+   Makes sum of 2 data sources, source1 + source2.
    <br/>
    
    @author Vladimir Bulatov
@@ -44,7 +44,7 @@ public class Add extends TransformableDataSource {
     };    
 
     /**
-       
+     * Addition of two data sources.
      */
     public Add(DataSource d1, DataSource d2){
 
@@ -55,7 +55,7 @@ public class Add extends TransformableDataSource {
     }
 
     /**
-       
+     * Addition of source1 and a constant value.
      */
     public Add(DataSource d1, double d2){
 
@@ -66,7 +66,7 @@ public class Add extends TransformableDataSource {
     }
 
     /**
-       
+     * Addition of a constant value and source2.
      */
     public Add(double d1, DataSource d2){
 
@@ -77,12 +77,20 @@ public class Add extends TransformableDataSource {
     }
 
     /**
-     *  Set the first source
+     *  Set source1
      *
-     * @param ds  data source
+     * @param ds  The data source
      */
     public void setSource1(DataSource ds) {
         mp_d1.setValue(ds);
+    }
+
+    /**
+     * Set source1 to a constant value
+     * @param val The constant value
+     */
+    public void setSource1(double val) {
+        mp_d1.setValue(new Constant(val));
     }
 
     /**
@@ -91,6 +99,14 @@ public class Add extends TransformableDataSource {
      */
     public Object getSource1() {
         return mp_d1.getValue();
+    }
+
+    /**
+     * Set source2 to a constant value
+     * @param val The constant value
+     */
+    public void setSource2(double val) {
+        mp_d2.setValue(new Constant(val));
     }
 
     /**

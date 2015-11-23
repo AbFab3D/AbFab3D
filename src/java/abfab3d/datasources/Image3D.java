@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
 
 import abfab3d.param.DoubleParameter;
@@ -54,7 +55,7 @@ import static abfab3d.util.Output.time;
  * The image may be placed in 3 different places: on top side, on bottom side and on both sides.
  * </p>
  * <p>
- * The style of image may be emboss or engrave.
+ * The style of image may be embossed or engraved.
  * </p>
  * <p/>
  * <embed src="doc-files/Image3D_options.svg" type="image/svg+xml"/>
@@ -265,12 +266,18 @@ public class Image3D extends TransformableDataSource {
         setVoxelSize(voxelSize);
     }
 
+    /**
+     * @noRefGuide
+     */
     protected void initParams(){
         super.addParams(m_aparam);
     }
 
     /**
-     * set size of imagebox 
+     * Set size of the image box
+     * @param sx The x dimension in meters
+     * @param sy The y dimension in meters
+     * @param sz The z dimension in meters
      */
     public void setSize(double sx, double sy, double sz) {
 
@@ -282,7 +289,30 @@ public class Image3D extends TransformableDataSource {
     }
 
     /**
-     * set center of imagebox 
+     * Set size of the image box
+     * @param size The size in meters
+     */
+    public void setSize(Vector3d size) {
+
+        mp_size.setValue(size);
+
+        m_sizeX = size.x;
+        m_sizeY = size.y;
+        m_sizeZ = size.z;
+    }
+
+    /**
+     * Get the size of the image box
+     */
+    public Vector3d getSize() {
+        return mp_size.getValue();
+    }
+
+    /**
+     * Set center of the image box
+     * @param cx The x location in meters
+     * @param cy The y location in meters
+     * @param cz The z location in meters
      */
     public void setCenter(double cx, double cy, double cz) {
         mp_center.setValue(new Vector3d(cx, cy, cz));
@@ -293,7 +323,29 @@ public class Image3D extends TransformableDataSource {
     }
 
     /**
-     * set image tiling 
+     * Set center of the image box
+     * @param val The center in meters
+     */
+    public void setCenter(Vector3d val) {
+        mp_center.setValue(val);
+
+        m_centerX = val.x;
+        m_centerY = val.y;
+        m_centerZ = val.z;
+    }
+
+    /**
+     * Get center of the image box
+     * @return
+     */
+    public Vector3d getCenter() {
+        return mp_center.getValue();
+    }
+
+    /**
+     * Set image tiling
+     * @param tilesX the number of X tiles
+     * @param tilesY the number of Y tiles
      */
     public void setTiles(int tilesX, int tilesY) {
 
@@ -304,16 +356,50 @@ public class Image3D extends TransformableDataSource {
     }
 
     /**
+     * Set image tilingX
+     * @param val The value
+     */
+    public void setTilesX(int val) {
+
+        mp_tilesX.setValue(new Integer(val));
+        m_xTilesCount = val;
+    }
+
+    /**
+     * Get image tilingX
+     */
+    public int getTilesX() {
+        return mp_tilesX.getValue();
+    }
+
+    /**
+     * Set image tilingY
+     * @param val The value
+     */
+    public void setTilesY(int val) {
+        mp_tilesY.setValue(new Integer(val));
+        m_yTilesCount = val;
+    }
+
+    /**
+     * Get image tilingY
+     */
+    public int getTilesY() {
+        return mp_tilesY.getValue();
+    }
+
+    /**
      * Sets thickness of the solid base  relative to the bounding box thickness
      *
-     * @param baseThickness thickenss of solid base relative to the thickness of the bounding box. Default value is 0.
+     * @param baseThickness thickness of solid base relative to the thickness of the bounding box. Default value is 0.
      */
     public void setBaseThickness(double baseThickness) {
         mp_baseThickness.setValue(new Double(baseThickness));
     }
 
     /**
-     * @noRefGuide
+     * Set the blurring width to apply to the image
+     * @param blurWidth The width in meters.  Default is 0.
      */
     public void setBlurWidth(double blurWidth) {
 
@@ -322,29 +408,43 @@ public class Image3D extends TransformableDataSource {
 
     }
 
+    /**
+     * Get the blurring width to apply to the image
+     */
+    public double getBlurWidth() {
+        return mp_blurWidth.getValue();
+    }
+
+    /**
+     * Set the rounding applied to the image.
+     * @param rounding The rounding in meters
+     */
     public void setRounding(double rounding) {
         mp_rounding.setValue(new Double(rounding));
     }
 
     /**
-     * @noRefGuide
+     * Set the threshold for determining if a pixel creates geometry.  Threshold is a 0-1 double based on the
+     * incoming image intensity.  Default is 0.01 which means anything not exactly black.
      */
     public void setBaseThreshold(double baseThreshold) {
         mp_baseThreshold.setValue(new Double(baseThreshold));
-
-    }
-
-    public void setDistanceFactor(double value) {
-        mp_distanceFactor.setValue(new Double(value));
     }
 
     /**
      * @noRefGuide
      */
+    public void setDistanceFactor(double value) {
+        mp_distanceFactor.setValue(new Double(value));
+    }
+
+    /**
+     * Set the voxel size to use for the image
+     *
+     * @param vs The voxel size in meters
+     */
     public void setVoxelSize(double vs) {
-
         m_voxelSize = vs;
-
     }
 
 
@@ -451,18 +551,30 @@ public class Image3D extends TransformableDataSource {
         return m_dataChannel.getValue(attribute);
     }
 
+    /**
+     * @noRefGuide
+     */
     public int getBitmapWidth(){
         return m_imageGrid.getWidth();
     }
 
+    /**
+     * @noRefGuide
+     */
     public int getBitmapHeight(){
         return m_imageGrid.getHeight();
     }
 
+    /**
+     * @noRefGuide
+     */
     public void getBitmapData(byte data[]){
         getBitmapDataUByte(data);
     }
 
+    /**
+     * @noRefGuide
+     */
     public void getBitmapDataUByte(byte data[]){
 
         int nx = m_imageGrid.getWidth();
@@ -476,7 +588,11 @@ public class Image3D extends TransformableDataSource {
             }
         }
     }
+
     // store bitmap data as 16 bit shorts 
+    /**
+     * @noRefGuide
+     */
     public void getBitmapDataUShort(byte data[]){
 
         int nx = m_imageGrid.getWidth();
@@ -704,7 +820,8 @@ public class Image3D extends TransformableDataSource {
 
     /**
        makes data for black and white image 
-       data is represented as distance from 2D outline of the image 
+       data is represented as distance from 2D outline of the image
+       @noRefGuide
      */
     protected int makeImageBlack(ImageGray16 image){
 
@@ -732,6 +849,9 @@ public class Image3D extends TransformableDataSource {
         
     }
 
+    /**
+     * @noRefGuide
+     */
     protected int makeImageGray(ImageGray16 image){
 
         long t0 = time();
@@ -940,6 +1060,9 @@ public class Image3D extends TransformableDataSource {
     }
 
 
+    /**
+     * @noRefGuide
+     */
     final double getImageValue(int ix, int iy) {
 
         try {
@@ -1138,6 +1261,9 @@ public class Image3D extends TransformableDataSource {
     }
 
     // linear approximation
+    /**
+     * @noRefGuide
+     */
     final double getPixelLinearShort(double x, double y) {
 
         // offset by half pixel 
@@ -1168,6 +1294,9 @@ public class Image3D extends TransformableDataSource {
         
     }
 
+    /**
+     * @noRefGuide
+     */
     final double getPixelBoxShort(double x, double y) {
 
         int ix = clamp((int) Math.floor(x), 0, imageWidth - 1);

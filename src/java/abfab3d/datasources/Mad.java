@@ -35,7 +35,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   calculates: source * a + b
+   Multiply-accumulate operation.  Calculates: source * a + b
    <br/>
    
    @author Vladimir Bulatov
@@ -57,9 +57,6 @@ public class Mad extends TransformableDataSource{
         mp_b,
     };    
 
-    /**
-       
-     */
     public Mad(DataSource source, DataSource a, DataSource b){
 
         super.addParams(m_aparam);
@@ -76,6 +73,36 @@ public class Mad extends TransformableDataSource{
         mp_a.setValue(new Constant(a));
         mp_b.setValue(new Constant(b));
 
+    }
+
+    /**
+     * Set the value of the A param
+     */
+    public void setA(DataSource val) {
+        mp_a.setValue(val);
+    }
+
+    /**
+     * Set the value of the A param to a constant
+     * @param val The value
+     */
+    public void setA(double val) {
+        mp_a.setValue(new Constant(val));
+    }
+
+    /**
+     * Set the value of the B param
+     */
+    public void setB(DataSource val) {
+        mp_b.setValue(val);
+    }
+
+    /**
+     * Set the value of the B param to a constant
+     * @param val The value
+     */
+    public void setB(double val) {
+        mp_a.setValue(new Constant(val));
     }
 
     /**

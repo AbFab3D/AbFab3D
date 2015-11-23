@@ -59,7 +59,7 @@ public class Noise extends TransformableDataSource {  // Periodic noise in 3D
     IntParameter mp_seed = new IntParameter("seed","seed of random number generator",11);
     DoubleParameter mp_offset = new DoubleParameter("offset","offset in (result = value*factor+offset) ",0.);
     DoubleParameter mp_factor = new DoubleParameter("factor","factor in (result = value*factor+offset)",1.);
-    Vector3dParameter mp_size = new Vector3dParameter("size","size of grid",new Vector3d(10*MM,10*MM,10*MM));
+    Vector3dParameter mp_size = new Vector3dParameter("size","Physical size of grid",new Vector3d(10*MM,10*MM,10*MM));
 
     Parameter m_aparam[] = new Parameter[]{
         mp_nx,
