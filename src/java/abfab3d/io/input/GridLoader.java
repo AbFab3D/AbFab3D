@@ -150,8 +150,9 @@ public class GridLoader {
         printf("loadDistanceGrid(%s)\n",filePath);
 
         MeshReader reader = new MeshReader(filePath);
-
+        long t0 = time();
         Bounds bounds = getModelBounds(reader);
+        printf("getModelBounds(reader): %d ms\n",(time()-t0));
         
         int nx = bounds.getGridWidth();
         int ny = bounds.getGridHeight();
@@ -191,7 +192,9 @@ public class GridLoader {
         
         MeshReader reader = new MeshReader(filePath);
 
+        long t0 = time();
         Bounds bounds = getModelBounds(reader);
+        printf("getModelBounds(reader): %d ms\n",(time()-t0));
         
         int nx = bounds.getGridWidth();
         int ny = bounds.getGridHeight();
@@ -206,7 +209,7 @@ public class GridLoader {
             
         case RASTERIZER_DISTANCE:
             {
-                long t0 = time();
+                t0 = time();
                 DistanceRasterizer rasterizer = new DistanceRasterizer(bounds, nx, ny, nz);
                 //rasterizer.setSubvoxelResolution(getMaxValue(m_densityBitCount)); 
                 rasterizer.getDensity(reader, densityGrid);                
@@ -216,19 +219,23 @@ public class GridLoader {
 
         case RASTERIZER_WAVELET:
             {
+                t0 = time();
                 WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
                 rasterizer.setSubvoxelResolution(getMaxValue(m_densityBitCount));        
                 reader.getTriangles(rasterizer);        
                 rasterizer.getRaster(densityGrid);
+                printf("WaveletRasterizer() done %d ms\n", time() - t0);
             }
             break;
 
         case RASTERIZER_ZBUFFER:
             {
+                t0 = time();
                 MeshRasterizer rasterizer = new MeshRasterizer(bounds, nx, ny, nz);
                 rasterizer.setInteriorValue(getMaxValue(m_densityBitCount));        
                 reader.getTriangles(rasterizer);        
                 rasterizer.getRaster(densityGrid);
+                printf("ZBufferRasterizer() done %d ms\n", time() - t0);
             }            
         }
         
@@ -242,7 +249,7 @@ public class GridLoader {
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         meshReader.getTriangles(bb);
 
-        if(DEBUG)printf("model read time time: %d ms\n", (time() - t0));
+        //if(DEBUG)printf("model read time time: %d ms\n", (time() - t0));
         Bounds modelBounds = bb.getBounds(); 
         Bounds gridBounds = modelBounds.clone();
         double voxelSize = m_preferredVoxelSize;
