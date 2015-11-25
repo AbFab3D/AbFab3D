@@ -11,6 +11,8 @@
  ****************************************************************************/
 package abfab3d.opencl;
 
+import com.jogamp.opencl.CLResource;
+
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -39,7 +41,7 @@ public class CLResourceManager implements Runnable {
     private static ConcurrentHashMap<String,CLResourceManager> managers = new ConcurrentHashMap<String, CLResourceManager>();
 
     private CLResourceManager(long capacity) {
-        this(capacity,DEFAULT_TIMEOUT_MS);
+        this(capacity, DEFAULT_TIMEOUT_MS);
     }
 
     private CLResourceManager(long capacity, int timeout) {
@@ -109,6 +111,13 @@ public class CLResourceManager implements Runnable {
 
         CacheEntry ce = cache.get(resource);
         if (ce == null) return false;
+
+        // sanity check make sure jocl doesn think its release
+        if (resource instanceof OpenCLResource) {
+            OpenCLResource oclr = (OpenCLResource) resource;
+            if (oclr.getResource().isReleased()) return false;
+
+        }
         ce.lastAccess = System.currentTimeMillis();
 
         return true;
@@ -124,7 +133,8 @@ public class CLResourceManager implements Runnable {
         try {
             CacheEntry ce = cache.remove(resource);
             if (ce == null) {
-                throw new IllegalArgumentException("Resource not found: " + resource);
+                // already removed, ignore
+                return;
             }
             currBytes -= ce.size;
             resource.release();

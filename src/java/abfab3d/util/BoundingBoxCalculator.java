@@ -27,6 +27,7 @@ public class BoundingBoxCalculator implements TriangleCollector {
 
     static boolean DEBUG = false;
     int debugCount = 100;
+    private long triCount;
 
     protected double bounds[] = new double[]{
         Double.MAX_VALUE,-Double.MAX_VALUE,
@@ -47,7 +48,8 @@ public class BoundingBoxCalculator implements TriangleCollector {
     public boolean addTri(Vector3d v0,Vector3d v1,Vector3d v2){
         if(DEBUG && debugCount-- > 0)
             printf("bounds: %s, %s, %s, %s, %s, %s\n ", bounds[0],bounds[1],bounds[2],bounds[3],bounds[4],bounds[5]);
-        
+
+        triCount++;
         addVect(v0);
         addVect(v1);
         addVect(v2);
@@ -88,6 +90,14 @@ public class BoundingBoxCalculator implements TriangleCollector {
         System.arraycopy(bounds, 0, b, 0, 6);        
         b = MathUtil.roundBounds(b, voxelSize);
         return b;
+    }
+
+    /**
+     * Get the triangle count.  Only available after getTriangles has been called on the source
+     * @return
+     */
+    public long getTriangleCount() {
+        return triCount;
     }
 }
 
