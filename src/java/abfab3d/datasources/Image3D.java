@@ -66,7 +66,8 @@ import static abfab3d.util.Output.time;
  */
 public class Image3D extends TransformableDataSource {
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
+    final static boolean DEBUG_GRID = false;
 
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
     public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2;
@@ -139,7 +140,7 @@ public class Image3D extends TransformableDataSource {
     private double imageZScale; // conversion form (0,1) to (0, imageZsize)
 
     private double xscale, yscale, zscale;
-    private boolean useGrayscale = true;
+    private boolean m_useGrayscale = true;
     private int imageWidth, imageHeight, imageWidth1, imageHeight1;
     
     // the image data is stored in the Grid2D 
@@ -413,7 +414,6 @@ public class Image3D extends TransformableDataSource {
      */
     public void setUseGrayscale(boolean value) {
         
-        useGrayscale = value;
         mp_useGrayscale.setValue(new Boolean(value));
     }
 
@@ -505,12 +505,14 @@ public class Image3D extends TransformableDataSource {
     public int initialize() {
 
         super.initialize();
-
-        if(DEBUG)printf("%s.initilize()\n",this);
-
+        
+        if(DEBUG)printf("%s.initialize()\n",this);
+        
         m_baseThreshold = mp_baseThreshold.getValue();
         m_baseThickness = mp_baseThickness.getValue();
         m_imagePlace = mp_imagePlace.getValue();
+        m_useGrayscale = mp_useGrayscale.getValue();
+
 
         if(needToPrepareImage()){
             int res = prepareImage();
@@ -634,7 +636,7 @@ public class Image3D extends TransformableDataSource {
         short imageDataShort[] = ImageUtil.getGray16Data(image);
         ImageGray16 imageData = new ImageGray16(imageDataShort, image.getWidth(), image.getHeight());
 
-        if(DEBUG)printf("imageSata done in %d ms\n", (time() - t1));
+        if(DEBUG)printf("imageData done in %d ms\n", (time() - t1));
 
         if (m_voxelSize > 0.0) {
             // we have finite voxel size, try to scale the image down to reasonable size 
@@ -680,8 +682,7 @@ public class Image3D extends TransformableDataSource {
         }
 
         int res = 0;
-
-        if (!useGrayscale) {
+        if (!m_useGrayscale) {
             res = makeImageBlack(imageData);
         } else {
             res = makeImageGray(imageData);            
@@ -706,7 +707,15 @@ public class Image3D extends TransformableDataSource {
         double imagePixelSize = ((Vector3d)mp_size.getValue()).x/nx;
 
         Grid2DShort imageGrid = Grid2DShort.convertImageToGrid(image, (m_imageType == IMAGE_TYPE_EMBOSSED), imagePixelSize);
-
+        if(false) {
+            printf("imageGrid: \n");
+            for(int y = 0; y < imageGrid.getHeight(); y++){
+                for(int x = 0; x < imageGrid.getHeight(); x++){
+                    printf(" %4x", imageGrid.getAttribute(x,y));
+                }
+                printf("\n");
+            }
+        }
         double maxOutDistance = imagePixelSize*m_maxOutDistancePixels;
         double maxInDistance = imagePixelSize*m_maxInDistancePixels;
 
@@ -850,7 +859,7 @@ public class Image3D extends TransformableDataSource {
 
         double imageValue = 0.; // distance to the image 
 
-        if (!useGrayscale) {
+        if (!m_useGrayscale) {
 
             // black and white image 
             // image is precalculated to return normalized value of distance
@@ -1049,7 +1058,7 @@ public class Image3D extends TransformableDataSource {
         */
         double d = 0;
 
-        if (useGrayscale) {
+        if (m_useGrayscale) {
 
             // smooth transition 
             d = z - pixelValue;

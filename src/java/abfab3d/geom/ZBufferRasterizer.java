@@ -70,9 +70,9 @@ public class ZBufferRasterizer implements TriangleCollector {
     public ZBufferRasterizer(Bounds bounds){
         
         int 
-            nx = bounds.nx,
-            ny = bounds.ny,
-            nz = bounds.nz;
+            nx = bounds.getGridWidth(),
+            ny = bounds.getGridHeight(),
+            nz = bounds.getGridDepth();
 
         m_zbuffer = new ZBuffer(nx, ny, nz);
         

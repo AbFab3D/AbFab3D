@@ -86,7 +86,7 @@ public class DistanceTransform2DOp implements Operation2D {
 
     static final int INTERP_THRESHOLD = 0, INTERP_LINEAR = 1, INTERP_IF = 2;
 
-    int m_interpolation = INTERP_THRESHOLD;
+    int m_interpolation = INTERP_LINEAR;
 
     double m_voxelSize;
     // surface threshold

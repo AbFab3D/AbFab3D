@@ -145,8 +145,7 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
 
         Bounds bounds = new Bounds(xorig, xorig + width * pixelSize,
                                    yorig, yorig + height * pixelSize,
-                                   zorig, zorig + pixelSize);
-        bounds.setGridSize(width, height, 1);
+                                   zorig, zorig + pixelSize, pixelSize);
         return bounds;
     }
 

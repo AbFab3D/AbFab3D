@@ -17,6 +17,7 @@ import abfab3d.util.LongConverter;
 import abfab3d.util.MathUtil;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 import static abfab3d.util.MathUtil.clamp;
 
 /**
@@ -42,10 +43,11 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
      int m_shift;
      // bit count of the channel 
      int m_bits;
+
     // mask to get sign bit 
-    long m_signMask;
-    long m_complementMask;
-     // bitmask to extract channel bits from unsigned long
+    //long m_signMask;
+    //long m_complementMask;
+    // bitmask to extract channel bits from unsigned long
     long m_mask;
     long m_maxLongValue;
     double m_maxValue;
@@ -125,7 +127,15 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     }
     
     public String toString(){
-        return  getType() + ":" + getName() + ":" + getBitCount();
+        return  fmt("AttribiuteChannel(%s:%s:%d:%7.4f:%7.4f)", getType(),  getName(), getBitCount(), m_value0, m_value1);
+    }
+
+    public double getValue0(){
+        return m_value0;
+    }
+
+    public double getValue1(){
+        return m_value1;
     }
 
     /**
