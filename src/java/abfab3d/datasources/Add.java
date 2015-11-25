@@ -13,32 +13,18 @@
 package abfab3d.datasources;
 
 
-//import java.awt.image.Raster;
-
-
 import abfab3d.param.Parameter;
-import abfab3d.param.SNode;
 import abfab3d.param.SNodeParameter;
-import abfab3d.param.DoubleParameter;
 
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 
-import static java.lang.Math.abs;
-
 import static abfab3d.util.Output.printf;
-
-
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.step10;
-
-import static abfab3d.util.Units.MM;
-
 
 /**
 
-   makes sum of 2 data sources  source1 + source2
+   Makes sum of 2 data sources, source1 + source2.
    <br/>
    
    @author Vladimir Bulatov
@@ -58,7 +44,7 @@ public class Add extends TransformableDataSource {
     };    
 
     /**
-       
+     * Addition of two data sources.
      */
     public Add(DataSource d1, DataSource d2){
 
@@ -69,7 +55,7 @@ public class Add extends TransformableDataSource {
     }
 
     /**
-       
+     * Addition of source1 and a constant value.
      */
     public Add(DataSource d1, double d2){
 
@@ -80,7 +66,7 @@ public class Add extends TransformableDataSource {
     }
 
     /**
-       
+     * Addition of a constant value and source2.
      */
     public Add(double d1, DataSource d2){
 
@@ -88,6 +74,56 @@ public class Add extends TransformableDataSource {
         mp_d1.setValue(new Constant(d1));
         mp_d2.setValue(d2);
 
+    }
+
+    /**
+     *  Set source1
+     *
+     * @param ds  The data source
+     */
+    public void setSource1(DataSource ds) {
+        mp_d1.setValue(ds);
+    }
+
+    /**
+     * Set source1 to a constant value
+     * @param val The constant value
+     */
+    public void setSource1(double val) {
+        mp_d1.setValue(new Constant(val));
+    }
+
+    /**
+     * Get the first source
+     * @return
+     */
+    public Object getSource1() {
+        return mp_d1.getValue();
+    }
+
+    /**
+     * Set source2 to a constant value
+     * @param val The constant value
+     */
+    public void setSource2(double val) {
+        mp_d2.setValue(new Constant(val));
+    }
+
+    /**
+     *  Set the second source
+     *
+     * @param ds  data source
+     */
+    public void setSource2(DataSource ds) {
+        mp_d2.setValue(ds);
+    }
+
+    /**
+     * Get the second source
+     * @return
+     */
+    public Object getSource2() {
+        return mp_d2.getValue();
     }
 
     /**

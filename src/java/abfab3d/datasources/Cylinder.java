@@ -102,35 +102,57 @@ public class Cylinder extends TransformableDataSource {
     }
 
     /**
-     * 
+     * The the radius of vertex0
      */
     public void setRadius0(double r){
         mp_r0.setValue(r);
     }
 
     /**
-     * 
+     * The the radius of vertex1
      */
     public void setRadius1(double r){
         mp_r1.setValue(r);
     }
 
     /**
-     * 
+     * Set the vertex0 location
      */
     public void setV0(Vector3d v){
         mp_v0.setValue(v);
     }
 
     /**
-     * 
+     * Get the vertex0 location
+     * @return
+     */
+    public Vector3d getV0() {
+        return mp_v0.getValue();
+    }
+
+    /**
+     * Set the vertex1 location
      */
     public void setV1(Vector3d v){
         mp_v1.setValue(v);
     }
 
     /**
+     * Set the amount of rounding of the edges
+     * @param val
+     */
+    public void setRounding(double val) {
+        mp_rounding.setValue(val);
+    }
 
+    /**
+     * Get the amount of rounding of the edges
+     */
+    public double getRounding() {
+        return mp_rounding.getValue();
+    }
+
+    /**
       @noRefGuide     
      */
     public int initialize() {
@@ -178,29 +200,50 @@ public class Cylinder extends TransformableDataSource {
     }
 
 
+    /**
+     * @noRefGuide
+     */
     public Matrix3d getRotation(){
         return m_rotation;
     }
 
+    /**
+     * @noRefGuide
+     */
     public double getHalfHeight(){
         return m_h2;
     }
 
+    /**
+     * @noRefGuide
+     */
     public double getMidRadius(){
         return m_R01;
     }
 
+    /**
+     * @noRefGuide
+     */
     public double getNormalY(){
         return m_normalY;
     }
+    /**
+     * @noRefGuide
+     */
     public double getNormalR(){
         return m_normalR;
     }
 
+    /**
+     * @noRefGuide
+     */
     public Vector3d getCenter(){
         return m_center;
     }
 
+    /**
+     * @noRefGuide
+     */
     public double getDistance(Vec pnt){
         Vec pntc = new Vec(pnt);
         canonicalTransform(pntc);

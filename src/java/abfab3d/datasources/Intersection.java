@@ -13,9 +13,6 @@
 package abfab3d.datasources;
 
 
-//import java.awt.image.Raster;
-
-import java.util.List;
 import java.util.Vector;
 
 
@@ -28,18 +25,10 @@ import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 
-import static java.lang.Math.abs;
-
-import static abfab3d.util.Output.printf;
-
-
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.step10;
-
 
 /**
 
-   Intersection of multiple data sources
+   Intersection of multiple data sources.  The overlap of all data sources will be preserved.
    
    <embed src="doc-files/Intersection.svg" type="image/svg+xml"/> 
 
@@ -101,7 +90,7 @@ public class Intersection extends TransformableDataSource implements SNode {
     public void add(DataSource ds){
 
         dataSources.add(ds);
-        mp_dataSources.add((Parameterizable)ds);
+        mp_dataSources.add((Parameterizable) ds);
     }
 
     /**
@@ -110,11 +99,39 @@ public class Intersection extends TransformableDataSource implements SNode {
      * @param idx The index, it must already exist
      * @param src
      */
-    public void set(int idx, Parameterizable src) {
-
-        mp_dataSources.set(idx,src);
+    public void set(int idx, DataSource src) {
+        mp_dataSources.set(idx, (Parameterizable) src);
+        dataSources.set(idx, src);
     }
 
+    /**
+     * Clear the datasources
+     */
+    public void clear() {
+        mp_dataSources.clear();
+        dataSources.clear();
+    }
+
+    /**
+     * Set the blending width
+     *
+     * @param val The value in meters
+     */
+    public void setBlend(double val){
+        mp_blendWidth.setValue(val);
+    }
+
+    /**
+     * Get the blending width
+     * @return
+     */
+    public double getBlend() {
+        return mp_blendWidth.getValue();
+    }
+
+    /**
+     * @noRefGuide
+     */
     public int initialize(){
 
         super.initialize();
@@ -132,15 +149,11 @@ public class Intersection extends TransformableDataSource implements SNode {
     }
 
 
-    /**
-     * Set the blending width
-     */
-    public void setBlend(double r){
-        mp_blendWidth.setValue(r);
-    }
 
     /**
      * calculates intersection of all values
+     *
+     * @noRefGuide
      *
      */
     public int getDataValue(Vec pnt, Vec data) {
@@ -179,7 +192,9 @@ public class Intersection extends TransformableDataSource implements SNode {
         return RESULT_OK;
     }
 
-    @Override
+    /**
+     * @noRefGuide
+     */
     public SNode[] getChildren() {
         vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
 

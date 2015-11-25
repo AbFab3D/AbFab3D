@@ -74,13 +74,6 @@ public class Union  extends TransformableDataSource implements SNode {
     }
 
     /**
-     * Set the blending width
-     */
-    public void setBlend(double r){
-        mp_blendWidth.setValue(r);
-    }
-
-    /**
        union of two shapes 
      */
     public Union(DataSource shape1, DataSource shape2 ){
@@ -100,7 +93,7 @@ public class Union  extends TransformableDataSource implements SNode {
     }
 
     /**
-       add item to union. 
+       Add item to union.
        @param shape item to add to union of multiple shapes 
     */
     public void add(DataSource shape){
@@ -119,10 +112,33 @@ public class Union  extends TransformableDataSource implements SNode {
         dataSources.set(idx,src);
     }
 
+    /**
+     * Clear the datasources
+     */
     public void clear() {
         mp_dataSources.clear();
         dataSources.clear();
     }
+
+    /**
+     * Set the blending width
+     *
+     * @param val The value in meters
+     */
+    public void setBlend(double val){
+        mp_blendWidth.setValue(val);
+    }
+
+    /**
+     * Get the blending width
+     * @return
+     */
+    public double getBlend() {
+        return mp_blendWidth.getValue();
+    }
+
+
+
     /**
        @noRefGuide
     */
@@ -131,7 +147,6 @@ public class Union  extends TransformableDataSource implements SNode {
         super.initialize();
         vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
 
-        printf("Init union.  size: %d\n",dataSources.size());
         for(int i = 0; i < vDataSources.length; i++){
             
             DataSource ds = vDataSources[i];

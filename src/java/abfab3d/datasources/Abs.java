@@ -35,7 +35,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   return absolute value data source:  abs(source)
+   Return the absolute value of a data source.
    <br/>
    
    @author Vladimir Bulatov
@@ -52,13 +52,30 @@ public class Abs extends TransformableDataSource {
     };    
 
     /**
-       
+     * Create an Abs of a data source
      */
     public Abs(DataSource source){
 
         super.addParams(m_aparam);
         mp_data.setValue(source);
 
+    }
+
+    /**
+     *  Set the source
+     *
+     * @param ds  The data source
+     */
+    public void setSource(DataSource ds) {
+        mp_data.setValue(ds);
+    }
+
+    /**
+     * Get the source
+     * @return
+     */
+    public Object getSource() {
+        return mp_data.getValue();
     }
 
     /**

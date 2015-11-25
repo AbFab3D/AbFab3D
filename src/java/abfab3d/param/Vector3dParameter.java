@@ -40,7 +40,15 @@ public class Vector3dParameter extends NumberParameter {
 
     @Override
     public Vector3d getValue() {
-        return (Vector3d) value;
+        return (Vector3d) ((Vector3d)value).clone();
+    }
+
+    public void setValue(Vector3d vec) {
+        if (vec != null) {
+            super.setValue(vec.clone());
+        } else {
+            super.setValue(vec);
+        }
     }
 
     /**

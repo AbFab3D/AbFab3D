@@ -31,7 +31,7 @@ import static abfab3d.util.MathUtil.iround;
  * @author Vladimir Bulatov
  */
 public class ImageUtil {
-
+    private static final boolean DEBUG = false;
     public static final int RESULT_OK = 1, RESULT_FAILURE = -1;
     public static int MAXC = 0xFF; //  maximal value of color component as int 
     public static final double CNORM = 255.; // maximal value of color component
@@ -326,13 +326,13 @@ public class ImageUtil {
 
     public static short[] getGray16Data(BufferedImage image){
 
-        printf("image type: %s\n",ImageUtil.getImageTypeName(image.getType()));
+        if (DEBUG) printf("image type: %s\n",ImageUtil.getImageTypeName(image.getType()));
 
         DataBuffer dataBuffer = image.getRaster().getDataBuffer();
 
-        printf("image data type: %s\n", ImageUtil.getDataTypeName(dataBuffer.getDataType()));
+        if (DEBUG) printf("image data type: %s\n", ImageUtil.getDataTypeName(dataBuffer.getDataType()));
 
-        printf("buffer: %s\n", dataBuffer);
+        if (DEBUG) printf("buffer: %s\n", dataBuffer);
         int imageWidth = image.getWidth();
         int imageHeight = image.getHeight();
         

@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2015
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -12,8 +12,6 @@
 
 package abfab3d.datasources;
 
-
-//import java.awt.image.Raster;
 
 
 import abfab3d.param.Parameter;
@@ -38,12 +36,10 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   makes embossing of an surface of the base object with another object 
+   Makes an embossing on a surface of the base shape with another source.  This is similar to displacement maps in other
+   packages.  In general this technique only works well close to the surface, roughly within 2mm.
    <br/>
 
-   <embed src="doc-files/engraving.svg" type="image/svg+xml"/> 
-
-   
    @author Vladimir Bulatov
 
  */
@@ -81,58 +77,108 @@ public class Embossing extends TransformableDataSource implements SNode {
 
     }
 
+    /**
+     * Set the base shape to emboss onto
+     * @param shape
+     */
     public void setBaseShape(DataSource shape) {
         mp_shape.setValue(shape);
     }
 
+    /**
+     * Get the base shape to emboss onto
+     * @return
+     */
     public DataSource getBaseShape() {
         return (DataSource) mp_shape.getValue();
     }
 
+    /**
+     * Set the data source to emboss onto the base shape
+     * @param embosser The source
+     */
     public void setEmbosser(DataSource embosser) {
         mp_embosser.setValue(embosser);
     }
 
+    /**
+     * Get the data source to emboss onto the base shape
+     */
     public DataSource getEmbosser() {
         return (DataSource) mp_embosser.getValue();
     }
 
+    /**
+     * Set the minimum value from the base shape that the embossing will go
+     * @param val The value
+     */
     public void setMinValue(double val) {
         mp_minValue.setValue(val);
     }
 
+    /**
+     * Get the minimum value from the base shape that the embossing will go
+     */
     public double getMinValue() {
         return mp_minValue.getValue();
     }
 
+    /**
+     * Set the minimum value from the base shape that the embossing will go
+     * @param val The value
+     */
     public void setMaxValue(double val) {
         mp_maxValue.setValue(val);
     }
 
+    /**
+     * Get the minimum value from the base shape that the embossing will go
+     */
     public double getMaxValue() {
         return mp_maxValue.getValue();
     }
 
+    /**
+     * Set the multiplication factor for the embossing.
+     * @param val The value
+     */
     public void setFactor(double val) {
         mp_factor.setValue(val);
     }
 
+    /**
+     * Get the multiplication factor for the embossing.
+     */
     public double getFactor() {
         return mp_factor.getValue();
     }
 
+    /**
+     * Set the offset for the embossing.
+     * @param val The value
+     */
     public void setOffset(double val) {
         mp_offset.setValue(val);
     }
 
+    /**
+     * Get the offset for the embossing.
+     */
     public double getOffset() {
         return mp_offset.getValue();
     }
 
+    /**
+     * Set the blending value of the base shape with the embossing
+     * @param val The value in meters
+     */
     public void setBlend(double val) {
         mp_blendWidth.setValue(val);
     }
 
+    /**
+     * Get the blending value of the base shape with the embossing
+     */
     public double getBlend() {
         return mp_blendWidth.getValue();
     }
@@ -200,8 +246,10 @@ public class Embossing extends TransformableDataSource implements SNode {
         return RESULT_OK;
     }
 
-    @Override
+    /**
+     * @noRefGuide
+     */
     public SNode[] getChildren() {
         return new SNode[] {(SNode)mp_shape.getValue(),(SNode)mp_embosser.getValue()};
     }
-} // class Engraving
+} // class Embossing

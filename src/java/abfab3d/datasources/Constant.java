@@ -19,7 +19,7 @@ import abfab3d.util.Vec;
 
 
 /**
- * return constant data value
+ * Return constant data value
  *
  * @author Vladimir Bulatov
  */
@@ -35,17 +35,25 @@ public class Constant extends TransformableDataSource {
 
 
     /**
-     * constant of given value
+     * Constant of given value
      */
     public Constant(double value) {
         addParams(m_aparam);
         mp_value.setValue(value);
     }
 
+    /**
+     * Set the constant value
+     * @param val
+     */
     public void setValue(double val) {
         mp_value.setValue(val);
     }
 
+    /**
+     * Get the constant value
+     * @return
+     */
     public double getValue() {
         return mp_value.getValue();
     }

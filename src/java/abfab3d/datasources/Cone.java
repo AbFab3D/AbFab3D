@@ -82,21 +82,44 @@ public class Cone extends TransformableDataSource {
      */
     public void setApex(Vector3d apex){
         mp_apex.setValue(apex);
-    } 
+    }
+
+    /**
+     * Get the cone apex
+     * @return
+     */
+    public Vector3d getApex() {
+        return mp_apex.getValue();
+    }
 
     /**
        set cone axis
      */
     public void setAxis(Vector3d axis){
         mp_axis.setValue(axis);
-    } 
+    }
+
+    /**
+     * Get the cone axis
+     * @return
+     */
+    public Vector3d getAxis() {
+        return mp_axis.getValue();
+    }
 
     /**
        set cone angle
      */
     public void setAngle(double angle){
         mp_angle.setValue(angle);
-    } 
+    }
+
+    /**
+     * Get the cone angle
+     */
+    public double getAngle() {
+        return mp_angle.getValue();
+    }
 
     /**
        set cone rounding
@@ -105,24 +128,34 @@ public class Cone extends TransformableDataSource {
         mp_rounding.setValue(rounding);
     } 
 
+    public double getRounding() {
+        return mp_rounding.getValue();
+    }
+
+    /**
+     * @noRefGuide
+     * @return
+     */
     public Matrix3d getRotation(){
         return m_rotation;
     }
 
+    /**
+     * @noRefGuide
+     * @return
+     */
     public double getNormalY(){
         return m_normalY;
     }
+
+    /**
+     * @noRefGuide
+     * @return
+     */
     public double getNormalR(){
         return m_normalR;
     }
-    public double getRounding(){
-        return m_rounding;
-    }
 
-    public Vector3d getApex(){
-        return m_apex;
-    }
-    
     /**
      * @noRefGuide
      */

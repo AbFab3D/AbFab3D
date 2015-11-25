@@ -35,7 +35,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   return minimal value of 2 data sources:  min(source1, source2)
+   Return minimal value of 2 data sources:  min(source1, source2)
    <br/>
    
    @author Vladimir Bulatov
@@ -54,15 +54,62 @@ public class Min extends TransformableDataSource {
         mp_d2,
     };    
 
-    /**
-       
-     */
     public Min(DataSource source1, DataSource source2){
 
         super.addParams(m_aparam);
         mp_d1.setValue(source1);
         mp_d2.setValue(source2);
 
+    }
+
+    /**
+     *  Set source1
+     *
+     * @param ds  The data source
+     */
+    public void setSource1(DataSource ds) {
+        mp_d1.setValue(ds);
+    }
+
+    /**
+     * Set source1 to a constant value
+     * @param val The constant value
+     */
+    public void setSource1(double val) {
+        mp_d1.setValue(new Constant(val));
+    }
+
+    /**
+     * Get the first source
+     * @return
+     */
+    public Object getSource1() {
+        return mp_d1.getValue();
+    }
+
+    /**
+     *  Set source2
+     *
+     * @param ds  The data source
+     */
+    public void setSource2(DataSource ds) {
+        mp_d2.setValue(ds);
+    }
+
+    /**
+     * Set source2 to a constant value
+     * @param val The constant value
+     */
+    public void setSource2(double val) {
+        mp_d2.setValue(new Constant(val));
+    }
+
+    /**
+     * Get the second source
+     * @return
+     */
+    public Object getSource2() {
+        return mp_d2.getValue();
     }
 
     /**

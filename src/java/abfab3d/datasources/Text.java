@@ -130,18 +130,110 @@ public class Text extends TransformableDataSource {
         
     }
 
+    /**
+     * Set the size of the box.
+     * @param val The size in meters
+     */
+    public void setSize(Vector3d val) {
+        mp_size.setValue(val);
+    }
+
+    /**
+     * Get the size
+     */
+    public Vector3d getSize() {
+        return mp_size.getValue();
+    }
+
+    /**
+     * Set the center of the coordinate system
+     * @param val The center
+     */
+    public void setCenter(Vector3d val) {
+        mp_center.setValue(val);
+    }
+
+    /**
+     * Get the center of the coordinate system
+     * @return
+     */
+    public Vector3d getCenter() {
+        return mp_center.getValue();
+    }
+
+    /**
+     * Set the amount of rounding of the edges
+     * @param val The rounding.  Default is 0
+     */
+    public void setRounding(double val) {
+        mp_rounding.setValue(val);
+    }
+
+    /**
+     * Get the amount of rounding of the edges
+     */
+    public double getRounding() {
+        return mp_rounding.getValue();
+    }
+
+    /**
+     * Set the font name.  The available fonts are system dependent.
+     * @param fontName
+     */
+    public void setFontName(String fontName){
+        mp_fontName.setValue(fontName);
+    }
+
+    /**
+     * Get the font name
+     * @return
+     */
+    public String getFontName() {
+        return mp_fontName.getValue();
+    }
+
+    /**
+     * Set the font style
+     * @param fontStyle
+     */
     public void setFontStyle(int fontStyle){
         mp_fontStyle.setValue(new Integer(fontStyle));
     }
-        
+
+    /**
+     * Get the font style
+     * @return
+     */
+    public int getFontStyle() {
+        return mp_fontStyle.getValue();
+    }
+
+    /**
+     * Set the voxel size
+     * @param val The size in meters
+     */
     public void setVoxelSize(double val) {
         mp_voxelSize.setValue(val);
     }
 
+    /**
+     * Get the voxel size
+     * @return
+     */
+    public double getVoxelSize() {
+        return mp_voxelSize.getValue();
+    }
+
+    /**
+     * @noRefGuide
+     */
     public Image3D getBitmap(){
         return m_bitmap;
     }
 
+    /**
+     * @noRefGuide
+     */
     protected void initParams(){
         super.addParams(m_aparam);
     }
@@ -192,7 +284,7 @@ public class Text extends TransformableDataSource {
     /**
      * returns 1 if pnt is inside of block of given size and location
      * returns 0 otherwise
-     @noRefGuide
+     * @noRefGuide
      */
     public int getDataValue(Vec pnt, Vec data) {
         

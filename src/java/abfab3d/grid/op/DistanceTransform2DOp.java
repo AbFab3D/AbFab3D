@@ -64,7 +64,7 @@ import static abfab3d.util.MathUtil.iround;
  */
 public class DistanceTransform2DOp implements Operation2D {
 
-    public static boolean DEBUG = true;
+    public static boolean DEBUG = false;
     public static boolean DEBUG_TIMING = true;
     static int debugCount = 100;
     static final double TOL = 1.e-2;
@@ -84,7 +84,7 @@ public class DistanceTransform2DOp implements Operation2D {
     int nx, ny, nz;
     int m_surfaceValue;
 
-    static final int INTERP_THRESHOLD = 0, INTERP_LINEAR = 1, INTERP_IF = 2;
+    public static final int INTERP_THRESHOLD = 0, INTERP_LINEAR = 1, INTERP_IF = 2;
 
     int m_interpolation = INTERP_LINEAR;
 
@@ -152,7 +152,6 @@ public class DistanceTransform2DOp implements Operation2D {
         m_ny = grid.getHeight();
         
         m_dataChannel = grid.getAttributeDesc().getChannel(0);
-
         m_neighbors = Neighborhood.makeDisk(m_layerThickness+1);
 
         Bounds bounds = grid.getGridBounds();

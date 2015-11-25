@@ -30,7 +30,7 @@ import java.util.EnumSet;
  * @author Alan Hudson
  */
 public class ExpandOp implements Operation, Operation2D, AttributeOperation {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private int[] distances;
     private long attribute;  //  the attribute value for new cells, defaults to white

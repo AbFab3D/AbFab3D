@@ -3,6 +3,8 @@ package abfab3d.grid.op;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.Operation2D;
+import abfab3d.util.ImageGray16;
+import abfab3d.util.ImageUtil;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -97,7 +99,7 @@ public class TestTrim extends TestCase {
      * Testing handling of of different margins
      * @throws Exception
      */
-    public void _testR() throws Exception {
+    public void testR() throws Exception {
         String path = "test/images/letter_R_500.png";
 
         BufferedImage image = null;
@@ -120,4 +122,27 @@ public class TestTrim extends TestCase {
         assertTrue("Should be not black",grid.getAttribute(grid.getWidth()-1,0) > 0);
     }
 
+    public void testImageGray16Version() throws Exception {
+        String path = "test/images/letter_R_500.png";
+
+        BufferedImage image = null;
+
+        try {
+            image = ImageIO.read(new File(path));
+
+        } catch (Exception ioe) {
+            ioe.printStackTrace();
+        }
+
+        short imageDataShort[] = ImageUtil.getGray16Data(image);
+        ImageGray16 imageData = new ImageGray16(imageDataShort, image.getWidth(), image.getHeight());
+        imageData.trim((short) (240f / 255 * 65536 / 2));
+
+        assertTrue("width", imageData.getWidth() != image.getWidth());
+        assertTrue("height", imageData.getHeight() != image.getHeight());
+        assertTrue("not same", imageData.getWidth() != image.getHeight());
+
+        printf("new dims:  %d %d\n",imageData.getWidth(), imageData.getHeight());
+        imageData.write("/tmp/trim_imagegray16.png");
+    }
 }

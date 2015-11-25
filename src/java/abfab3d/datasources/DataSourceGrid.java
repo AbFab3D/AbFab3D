@@ -23,15 +23,11 @@ import static abfab3d.util.Output.printf;
 
 
 /**
-   
-   
-   DataSource interface to Grid. This object shall be used if one want to use generated grid as a general shape. 
-   by default grid uses linear interpolation of values between voxels. 
-
-   @author Vladimir Bulatov
-   
-   
-*/
+ * DataSource interface to Grid. This object shall be used if one wants to use a generated grid as a general shape.
+ * By default, grid uses linear interpolation of values between voxels.
+ *
+ * @author Vladimir Bulatov
+ */
 public class DataSourceGrid extends TransformableDataSource implements Cloneable {
 
     static final boolean DEBUG = false;
@@ -53,7 +49,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     LinearMapper m_mapper = null;
        
     /**
-       constructs DataSoure from the given grid 
+       constructs DataSource from the given grid
      */
     public DataSourceGrid(AttributeGrid grid){
         this(grid, null, DEFAULT_MAX_ATTRIBUTE_VALUE);
@@ -118,10 +114,11 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     protected void emptyCache(){
         m_cachedByteData = null;
     }
+
     /**
        
-       sets type iused for intervoxel interplation 
-       @param type or interpolation (INTERPOLATION_BOX or INTERPOLATION_LINEAR)
+       sets type used for intervoxel interpolation
+       @param value of interpolation (INTERPOLATION_BOX or INTERPOLATION_LINEAR)
        
      */
     public void setInterpolationType(int value){
@@ -131,20 +128,48 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
     }
 
+    /**
+     * Gets type used for intervoxel interpolation
+     */
+    public int getInpolationType() {
+        return m_interpolationType;
+    }
+
+    /**
+     * Get the grid bounds in meters
+     * @return
+     */
     public Bounds getGridBounds(){
         return m_grid.getGridBounds();
     }
 
+    /**
+     * Get the grid width in voxels
+     * @return
+     */
     public int getGridWidth(){
         return m_nx;
     }
+
+    /**
+     * Get the grid height in voxels
+     * @return
+     */
     public int getGridHeight(){
         return m_ny;
     }
+
+    /**
+     * Get the grid depth in voxels
+     * @return
+     */
     public int getGridDepth(){
         return m_nz;
     }
 
+    /**
+     * @noRefGuide
+     */
     public byte[] getCachedByteData(){
         if(m_cachedByteData == null){
             m_cachedByteData = makeByteData();
@@ -152,6 +177,9 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         return m_cachedByteData;         
     }
 
+    /**
+     * @noRefGuide
+     */
     public byte[] makeByteData(){
 
         byte data[] = new byte[m_nx * m_ny * m_nz];
@@ -326,6 +354,9 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         }        
     }
 
+    /**
+     * @noRefGuide
+     */
     public DataSourceGrid clone() throws CloneNotSupportedException {
         return (DataSourceGrid) super.clone();
     }
