@@ -105,8 +105,18 @@ public class TestImage3D extends TestCase {
         printf("testBitmap()\n");
     }
 
-    public static void testLinearMapper(){
+    public void devTestBlackImage(){
+        
+        Image3D image = new Image3D("test/images/circle_20.png", 10,10,10);
+        image.set("useGrayscale", false);
+        image.set("blurWidth", 0.2);
 
+        image.initialize();
+
+    }
+    
+    public static void devTestLinearMapper(){
+    
         LinearMapper mapper = new LinearMapper(-1000, 1000, -0.001, 0.001);
 
         double vmin = mapper.getVmin();
@@ -126,6 +136,7 @@ public class TestImage3D extends TestCase {
     }
     
     public static void main(String[] args) {
-        testLinearMapper();
+        //testLinearMapper();
+        new TestImage3D().devTestBlackImage();
     }
 }

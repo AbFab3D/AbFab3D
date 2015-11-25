@@ -22,9 +22,13 @@ public class Bounds implements Cloneable {
     public static final Bounds INFINITE = new Bounds(-1000,1000,-1000,1000,-1000,1000);
 
     public double xmin=0, xmax=1., ymin=0., ymax=1., zmin=0., zmax=1.;
-    public int nx = 1, ny = 1, nz = 1;
 
     protected double m_voxelSize = 0.1*MM;
+
+    // size of grid with given voxel size;
+    // it is updated if other bpounds or voxel size are changed 
+    protected int nx = 1, ny = 1, nz = 1;
+
 
     public Bounds(){        
     }
@@ -41,6 +45,7 @@ public class Bounds implements Cloneable {
         this.ny = bounds.ny;
         this.nz = bounds.nz;
         this.m_voxelSize = bounds.m_voxelSize;
+        init();
 
     }
 
@@ -51,6 +56,7 @@ public class Bounds implements Cloneable {
         this.ymax = bounds[3];
         this.zmin = bounds[4];
         this.zmax = bounds[5];    
+        init();
     }
 
     public Bounds(double sizex, double sizey, double sizez){
@@ -61,6 +67,7 @@ public class Bounds implements Cloneable {
         this.xmax = sizex;
         this.ymax = sizey;
         this.zmax = sizez;
+        init();
     }
 
     public Bounds(double xmin, double xmax, 
@@ -72,6 +79,20 @@ public class Bounds implements Cloneable {
         this.ymax = ymax;
         this.zmin = zmin;
         this.zmax = zmax;
+        init();
+    }
+
+    public Bounds(double xmin, double xmax, 
+                  double ymin, double ymax, 
+                  double zmin, double zmax, double voxelSize){ 
+        this.xmin = xmin;
+        this.xmax = xmax;
+        this.ymin = ymin;
+        this.ymax = ymax;
+        this.zmin = zmin;
+        this.zmax = zmax;
+        m_voxelSize = voxelSize;
+        init();
     }
 
 
@@ -85,12 +106,24 @@ public class Bounds implements Cloneable {
     }
 
 
-    public int[] getGridSize(double voxelSize){
+    public int getGridWidth(){
+        return roundSize((xmax-xmin)/m_voxelSize);
+    }
+
+    public int getGridHeight(){
+        return roundSize((ymax-ymin)/m_voxelSize);
+    }
+
+    public int getGridDepth(){
+        return roundSize((zmax-zmin)/m_voxelSize);
+    }
+
+    public int[] getGridSize(){
 
         return new int[]{
-            getWidthVoxels(voxelSize),
-            getHeightVoxels(voxelSize),
-            getDepthVoxels(voxelSize)
+            getGridWidth(),
+            getGridHeight(),
+            getGridDepth()
         };
 
     }
@@ -183,19 +216,20 @@ public class Bounds implements Cloneable {
      */
     public void setVoxelSize(double voxelSize){
         m_voxelSize = voxelSize;
-        this.nx = getWidthVoxels(voxelSize);
-        this.ny = getHeightVoxels(voxelSize);
-        this.nz = getDepthVoxels(voxelSize);
+        init();
 
     }
 
-    public void setGridSize(int width,int height, int depth){
+    /*
+    public void _setGridSize(int width,int height, int depth){
+
         this.nx = width;
         this.ny = height;
         this.nz = depth;
         this.m_voxelSize = (xmax - xmin)/nx;
-
+        
     }
+    */
 
     public static final int roundSize(double s){        
         return (int)(s + 0.5);
@@ -263,7 +297,7 @@ public class Bounds implements Cloneable {
         ymax += margin;
         zmin -= margin;
         zmax += margin;
-
+        init();
     }
 
     /**
@@ -287,7 +321,17 @@ public class Bounds implements Cloneable {
         ymax = voxelSize*Math.ceil(ymax/voxelSize);
         zmax = voxelSize*Math.ceil(zmax/voxelSize);
 
+        init();
     }
+
+    protected void init(){
+
+        nx = getGridWidth();
+        ny = getGridHeight();
+        nz = getGridDepth();
+
+    }
+
 
     public String toString(){
         return fmt("%9.7f %9.7f %9.7f %9.7f %9.7f %9.7f",xmin, xmax, ymin, ymax, zmin, zmax);

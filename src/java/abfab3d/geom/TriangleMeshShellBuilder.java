@@ -167,12 +167,11 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
        
      */
     public void getPointsInGridUnits(double pntx[],double pnty[],double pntz[]){
-        long t0 = System.nanoTime();
+
         //
         // coordinates are in grid units 
         //
         m_points.getPoints(pntx, pnty, pntz);
-        printf("getPointsInGridUnits.  time: %f ms\n", (System.nanoTime() - t0) / 1e6);
 
     }
 
@@ -189,8 +188,8 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
         m_nz = m_indexGrid.getDepth();
 
         m_distanceGrid = new ArrayAttributeGridShort(m_bounds, m_voxelSize,m_voxelSize);
-
-        initDistanceGrid(m_distanceGrid, (int)(m_layerThickness * m_subvoxelResolution + 0.5));
+        
+        initDistanceGrid(m_distanceGrid, (int)((m_layerThickness+1) * m_subvoxelResolution + 0.5));
 
         m_triRenderer = new TriangleRenderer();
         m_voxelRenderer = new VoxelRenderer();
@@ -223,7 +222,12 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
         return true;
     }
 
+    public AttributeGrid getDistanceGrid(){
+        return m_distanceGrid;
+    }
+
     void initDistanceGrid(AttributeGrid grid, long value){
+        printf("%s.initDistanceGrid(%d)\n", getClass().getName(), value);
         if(grid instanceof ArrayAttributeGridShort){
             ((ArrayAttributeGridShort)grid).fill(value);
         }
@@ -251,7 +255,7 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
         toGrid(v0);
         toGrid(v1);
         toGrid(v2);
-        if(false) printf("addTri([%4.1f, %4.1f, %4.1f], [%4.1f, %4.1f, %4.1f], [%4.1f, %4.1f,%4.1f] )\n",v0.x,v0.y,v0.z,v1.x,v1.y,v1.z,v2.x,v2.y,v2.z);
+        //if(false) printf("addTri( %4.1f, %4.1f, %4.1f;  %4.1f, %4.1f, %4.1f;  %4.1f, %4.1f,%4.1f )\n",v0.x,v0.y,v0.z,v1.x,v1.y,v1.z,v2.x,v2.y,v2.z);
         m_v1.sub(v1, v0);
         m_v2.sub(v2, v0);
         m_normal.cross(m_v2,m_v1);
@@ -296,12 +300,12 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
             m_triRenderer.fillTriangle(m_voxelRenderer, v0.x, v0.y,v1.x, v1.y, v2.x, v2.y);
             break;
         }
-        //TODO 
         // add triagle vertices to deal with super small triangles 
         m_voxelRenderer.addNeighborhood((int)v0.x, (int)v0.y, (int)v0.z);
         m_voxelRenderer.addNeighborhood((int)v1.x, (int)v1.y, (int)v1.z);
         m_voxelRenderer.addNeighborhood((int)v2.x, (int)v2.y, (int)v2.z);
         
+        //TODO 
         // add triangle edges to deal with super thin triangles 
 
         if(false){
@@ -385,8 +389,6 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
             
             // scan over neighborhood of the voxel 
             int ncount = m_neighbors.length;
-
-            int index = 0; // point was not added yet 
             
             for(int i = 0; i < ncount; i+=3){
                 int 
@@ -407,11 +409,8 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
                         if(newdist < olddist){
                             // better point found
                             m_distanceGrid.setAttribute(vx, vy, vz, newdist);
-                            if(index == 0) {
-                                // point is being added first time 
-                                index = m_points.add(pointInTriangle[0],pointInTriangle[1],pointInTriangle[2]);
-                            }
-                            m_indexGrid.setAttribute(vx, vy, vz, index);
+                            int pointIndex = m_points.add(pointInTriangle[0],pointInTriangle[1],pointInTriangle[2]);
+                            m_indexGrid.setAttribute(vx, vy, vz, pointIndex);
                         }
                         //if(false) printf("     v: (%2d %2d %2d) dist: %5.2f pnt: [%5.2f, %5.2f,%5.2f] index: %3d \n", 
                         //                 vx, vy, vz, dist, pointInTriangle[0],pointInTriangle[1],pointInTriangle[2], index);

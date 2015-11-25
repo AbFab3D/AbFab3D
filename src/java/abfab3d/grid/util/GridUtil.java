@@ -15,10 +15,25 @@
 // External Imports
 import java.util.*;
 
-// Internal Imports
-import abfab3d.grid.*;
+import java.io.File;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 
- public class GridUtil  {
+
+// Internal Imports
+import abfab3d.util.ColorMapper;
+
+import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.Grid2D;
+
+
+import static abfab3d.util.MathUtil.lerp2;
+import static abfab3d.util.MathUtil.clamp;
+import static abfab3d.util.Output.printf;
+
+public class GridUtil  {
 
      public static void fill(Grid2D grid, long attribute){
          
@@ -64,4 +79,78 @@ import abfab3d.grid.*;
          }         
          return count;
      }
+
+     public static void printSliceAttribute(AttributeGrid grid, int z){
+         
+         int nx = grid.getWidth();
+         int ny = grid.getHeight();
+         int nz = grid.getDepth();
+         printf("grid slice z: %d\n", z);
+         for(int y = 0; y < ny; y++){
+             for(int x = 0; x < nx; x++){
+                 printf("%4d ", grid.getAttribute(x,y,z));
+             }
+             printf("\n");
+         }         
+   }
+
+    
+    /**
+       writes grid slice slice into image file using given magnification and ColorMapper
+       
+     */
+    public static void writeSlice(AttributeGrid grid, int magnification, int iz, AttributeChannel dataChannel, ColorMapper colorMapper, String path) throws Exception {
+
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        int imgx = nx*magnification;
+        int imgy = ny*magnification;
+
+        BufferedImage image =  new BufferedImage(imgx, imgy, BufferedImage.TYPE_INT_ARGB);
+        DataBufferInt db = (DataBufferInt)image.getRaster().getDataBuffer();
+        //if(DEBUG) printf("DataBuffer: %s\n", db);        
+        int[] sliceData = db.getData();
+
+        double pix = 1./magnification;        
+        int debugSize= 30;
+
+        for(int iy = 0; iy < imgy; iy++){
+
+            double y = (iy+0.5)*pix - 0.5;
+
+            for(int ix = 0; ix < imgx; ix++){
+
+                double x = (ix+0.5)*pix-0.5;
+                int gx = (int)Math.floor(x);
+                int gy = (int)Math.floor(y);
+                double dx = x - gx;
+                double dy = y - gy;
+                //if(ix < magnification/2 && iy < magnification/2)
+                //    printf("[%2d %2d](%4.2f %4.2f) ", gx, gy, dx, dy);
+                int gx1 = clamp(gx + 1,0, nx-1);
+                int gy1 = clamp(gy + 1,0, ny-1);
+                gx = clamp(gx,0, nx-1);
+                gy = clamp(gy,0, ny-1);
+                long a00 = grid.getAttribute(gx,gy, iz);
+                long a10 = grid.getAttribute(gx1,gy, iz);
+                long a01 = grid.getAttribute(gx,gy1, iz);
+                long a11 = grid.getAttribute(gx1,gy1, iz);
+
+                double v00 = dataChannel.getValue(a00);
+                double v10 = dataChannel.getValue(a10);
+                double v01 = dataChannel.getValue(a01);
+                double v11 = dataChannel.getValue(a11);
+                //if(a00 != 0 && debugCount-- > 0) {
+                //    printf("[%3d %3d %3d]-> %3d %7.3f %x\n", ix, iy, iz, a00, v00, ac.getBits(a00));
+                //}
+                double v = lerp2(v00, v10, v11, v01,dx, dy);
+                sliceData[ix + (imgy-1-iy)*imgx] = colorMapper.getColor(v);
+            }
+        }
+        
+        ImageIO.write(image, "png", new File(path));        
+
+    }
+
  }

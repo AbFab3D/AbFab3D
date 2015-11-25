@@ -13,9 +13,14 @@
 package abfab3d.geom;
 
 import abfab3d.grid.*;
+
+import abfab3d.grid.op.ClosestPointIndexerMT;
+import abfab3d.grid.op.ClosestPointIndexer;
+
 import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.Bounds;
 import abfab3d.util.TriangleProducer;
+
 
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
@@ -127,15 +132,14 @@ public class DistanceToTriangleSetMT implements Operation, AttributeOperation {
         ClosestPointIndexerMT cpi = new ClosestPointIndexerMT();
 
         // distribute indices on the whole indexGrid        
-        cpi.PI3_multiPass(pntx, pnty, pntz, indexGrid, m_iterationsCount, m_threadCount);
-
+        ClosestPointIndexerMT.PI3_MT(pntx, pnty, pntz, indexGrid, m_threadCount);
+        
         // transform points into world units
-        cpi.getPointsInWorldUnits(indexGrid, pntx, pnty, pntz);
+        ClosestPointIndexer.getPointsInWorldUnits(indexGrid, pntx, pnty, pntz);
 
         // calculate final distances in the given interval 
-        cpi.makeDistanceGrid(indexGrid, pntx, pnty, pntz,
-                interiorGrid, distanceGrid, m_maxInDistance,
-                m_maxOutDistance, m_subvoxelResolution);
+        ClosestPointIndexer.makeDistanceGrid(indexGrid, pntx, pnty, pntz,
+                interiorGrid, distanceGrid, m_maxInDistance, m_maxOutDistance);
         return distanceGrid;
     }
 

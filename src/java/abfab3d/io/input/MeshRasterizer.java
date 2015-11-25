@@ -104,7 +104,6 @@ public class MeshRasterizer implements TriangleCollector {
        set value used for shape interior
      */
     public void setInteriorValue(long value){
-
         m_attributeValue = value;
 
     }
@@ -134,7 +133,7 @@ public class MeshRasterizer implements TriangleCollector {
         y2 = m_sy*v2.y+m_ty;
         z2 = m_sz*v2.z+m_tz;
         
-        //printf("fillTriangle(%7.1f,%7.1f,%7.1f,%7.1f,%7.1f,%7.1f,%7.1f,%7.1f,%7.1f)\n",x0, y0, z0, x1, y1, z1, x2, y2, z2);
+        //printf("fillTriangle(%6.1f,%6.1f,%6.1f; %6.1f,%6.1f,%6.1f; %6.1f,%6.1f,%6.1f)\n",x0, y0, z0, x1, y1, z1, x2, y2, z2);
         m_zbuffer.fillTriangle(x0, y0, z0, x1, y1, z1, x2, y2, z2);
         
 

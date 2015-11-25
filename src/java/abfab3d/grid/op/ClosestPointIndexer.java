@@ -34,6 +34,7 @@ import static java.lang.Math.sqrt;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 import static abfab3d.util.MathUtil.sqr;
+import static abfab3d.util.MathUtil.step10;
 
 /**
    methods to find index of closest point for each point on grid 
@@ -1107,44 +1108,41 @@ public class ClosestPointIndexer {
     public static void makeDistanceGrid(AttributeGrid indexGrid, 
                                         double pntx[], double pnty[], double pntz[], 
                                         AttributeGrid interiorGrid, 
-                                        AttributeGrid distanceGrid, 
-                                        double maxInDistance, 
-                                        double maxOutDistance, 
-                                        int subvoxelResolution){
+                                        AttributeGrid distanceGrid,
+                                        double maxInDistance,
+                                        double maxOutDistance
+                                        ){
+        
         int 
             nx = indexGrid.getWidth(),
             ny = indexGrid.getHeight(),
             nz = indexGrid.getDepth();
-        double vs = indexGrid.getVoxelSize();
-        
-        int maxDist = (int)Math.ceil(maxOutDistance * subvoxelResolution/vs);
-        int minDist = -(int)Math.ceil(maxInDistance * subvoxelResolution/vs);
-        double dscale = subvoxelResolution/vs;
-        
+        AttributeChannel dataChannel = distanceGrid.getAttributeDesc().getChannel(0);
+
+        long inAtt = dataChannel.makeAtt(-maxInDistance);
+        long outAtt = dataChannel.makeAtt(maxOutDistance);
+
         double coord[] = new double[3];
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){
                 for(int z = 0; z < nz; z++){
                     int ind = (int)indexGrid.getAttribute(x,y,z);
                     if(ind > 0) {
+                        // point has closest point 
                         indexGrid.getWorldCoords(x, y, z, coord);
-                        int dist = iround(dscale*distance(coord[0],coord[1],coord[2], pntx[ind],pnty[ind],pntz[ind]));
+                        double dist = distance(coord[0],coord[1],coord[2], pntx[ind],pnty[ind],pntz[ind]);
                         //xbprintf("%d\n", dist);
                         if(interiorGrid != null && interiorGrid.getAttribute(x,y,z) != 0)
                             dist = -dist;
-                        if(dist < minDist)
-                            dist = minDist;
-                        if(dist > maxDist)
-                            dist = maxDist;
-                        distanceGrid.setAttribute(x,y,z,dist);
+                        distanceGrid.setAttribute(x,y,z,dataChannel.makeAtt(dist));
                     }  else {
                         // point is undefined 
                         if(interiorGrid != null && interiorGrid.getAttribute(x,y,z) != 0){
                             // interior 
-                            distanceGrid.setAttribute(x,y,z,minDist);
+                            distanceGrid.setAttribute(x,y,z,inAtt);
                         } else {
                             // exterior 
-                            distanceGrid.setAttribute(x,y,z,maxDist);
+                            distanceGrid.setAttribute(x,y,z,outAtt);
                         }
                     }
                 }
@@ -1172,15 +1170,10 @@ public class ClosestPointIndexer {
         int 
             nx = indexGrid.getWidth(),
             ny = indexGrid.getHeight();
-        double vs = indexGrid.getVoxelSize();
         
-        //int maxDist = (int)Math.ceil(maxOutDistance * subvoxelResolution/vs);
-        //int minDist = -(int)Math.ceil(maxInDistance * subvoxelResolution/vs);
-        //double dscale = subvoxelResolution/vs;
-
         AttributeChannel distChannel = distanceGrid.getAttributeDesc().getChannel(0);
 
-        long intAtt = distChannel.makeAtt(-maxInDistance);
+        long intAtt = distChannel.makeAtt(maxInDistance);
         long extAtt = distChannel.makeAtt(maxOutDistance);
 
 
@@ -1190,7 +1183,6 @@ public class ClosestPointIndexer {
                 int ind = (int)indexGrid.getAttribute(x,y);
                 if(ind > 0) {
                     indexGrid.getWorldCoords(x, y, coord);
-                    //int dist = iround(dscale*distance(coord[0],coord[1], pntx[ind],pnty[ind]));
                     double dist = distance(coord[0],coord[1], pntx[ind],pnty[ind]);
                     if(interiorGrid != null && interiorGrid.getAttribute(x,y) != 0)
                         dist = -dist;
@@ -1208,6 +1200,53 @@ public class ClosestPointIndexer {
             } // for(x
         } // for(y 
     }
+
+
+    public static void makeDensityGrid(AttributeGrid indexGrid, 
+                                       double pntx[], double pnty[], double pntz[], 
+                                       AttributeGrid interiorGrid, 
+                                       AttributeGrid densityGrid,
+                                       AttributeChannel dataChannel){
+        int 
+            nx = indexGrid.getWidth(),
+            ny = indexGrid.getHeight(),
+            nz = indexGrid.getDepth();
+        //printf("ClosestPointIndexer.makeDensityGrid(): [%d x %d x %d]\n", nx, ny, nz);
+        long interiorAtt = dataChannel.makeAtt(1.);
+        long exteriorAtt = dataChannel.makeAtt(0.);
+
+        double voxelSize = densityGrid.getVoxelSize();        
+        double coord[] = new double[3];
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                for(int z = 0; z < nz; z++){
+                    int ind = (int)indexGrid.getAttribute(x,y,z);
+                    if(ind > 0) {
+                        indexGrid.getWorldCoords(x, y, z, coord);
+                        double dist = distance(coord[0],coord[1],coord[2], pntx[ind],pnty[ind],pntz[ind]);
+                        if(interiorGrid != null && interiorGrid.getAttribute(x,y,z) != 0){
+                            dist = -dist;
+                        }
+                        double density = step10(dist, voxelSize);
+                        long att = dataChannel.makeAtt(density);
+                        densityGrid.setAttribute(x,y,z,att);
+                        //if(true)//interiorGrid.getAttribute(x,y,z) != 0)
+                        //    printf("dist: %5.2f, dens: %5.2f att: %x\n", dist/voxelSize, density, att);
+                    }  else {
+                        // point is undefined 
+                        if(interiorGrid != null && interiorGrid.getAttribute(x,y,z) != 0){
+                            // interior 
+                            densityGrid.setAttribute(x,y,z,interiorAtt);
+                        } else {
+                            // exterior 
+                            densityGrid.setAttribute(x,y,z,exteriorAtt);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     static void printArray(String title, int count, int index[], double coord[]){
 
@@ -1335,5 +1374,4 @@ public class ClosestPointIndexer {
             printf("\n");
         }
     }
-
 }

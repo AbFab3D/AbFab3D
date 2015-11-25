@@ -26,6 +26,8 @@ import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
 import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.AttributeDesc;
+import abfab3d.grid.AttributeChannel;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.util.GridUtil;
@@ -79,7 +81,11 @@ public class TestClosestPointIndexerMT extends TestCase {
         double firstLayerThickness = 2.7;
         //double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = -vs, zmax = 2*vs;
         double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = -w, zmax = w;
-        int subvoxelResolution = 100;
+        int densityBitCount = 8;
+        int distanceBitCount = 16;
+
+        int subvoxelResolution = (1<<densityBitCount)-1;
+
         int voxelSquareSize = 20;// for visualization 
         boolean snapToGrid = false;
         int iterationsCount = 0;
@@ -142,16 +148,24 @@ public class TestClosestPointIndexerMT extends TestCase {
         }
         
         if(compareDistances){
-            AttributeGrid distGrid1 = new ArrayAttributeGridShort(bounds, vs, vs);
-            AttributeGrid distGrid2 = new ArrayAttributeGridShort(bounds, vs, vs);
+            AttributeGrid distGrid1 = makeDistanceGrid(bounds, -w, w, distanceBitCount, vs);
+            AttributeGrid distGrid2 = makeDistanceGrid(bounds, -w, w, distanceBitCount, vs);
             ClosestPointIndexer.getPointsInWorldUnits(indexGrid1, pntx, pnty, pntz);
             
-            ClosestPointIndexer.makeDistanceGrid(indexGrid1,pntx, pnty, pntz, null, distGrid1, w, w, subvoxelResolution);
-            ClosestPointIndexer.makeDistanceGrid(indexGrid2,pntx, pnty, pntz, null, distGrid2, w, w, subvoxelResolution);
+            ClosestPointIndexer.makeDistanceGrid(indexGrid1,pntx, pnty, pntz, null, distGrid1, w, w);
+            ClosestPointIndexer.makeDistanceGrid(indexGrid2,pntx, pnty, pntz, null, distGrid2, w, w);
             long diffDist = GridUtil.compareGrids(distGrid1, distGrid2);
             printf("distance difference count: %d\n", diffDist);
         }
         
+    }
+    
+    AttributeGrid  makeDistanceGrid(Bounds bounds, double minDistance, double maxDistance, int bitCount, double voxelSize){
+
+        AttributeGrid grid = new ArrayAttributeGridShort(bounds, voxelSize, voxelSize);
+        grid.setAttributeDesc(new AttributeDesc(new AttributeChannel(AttributeChannel.DISTANCE,"dist",bitCount, 0, minDistance, maxDistance)));
+        return grid;
+
     }
     
     void makeTestPoint()throws Exception{
