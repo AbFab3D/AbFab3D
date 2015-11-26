@@ -152,13 +152,14 @@ public class GridLoader {
         printf("loadDistanceGrid(%s)\n",filePath);
 
         MeshReader reader = new MeshReader(filePath);
-
+        long t0 = time();
         Bounds bounds = getModelBounds(reader);
 
         long t0 = time();
         AreaCalculator ac = new AreaCalculator();  // TODO: should we make a combined bounds/area calculator?
         reader.getTriangles(ac);
         printf("Area calc: %f %d\n",ac.getArea(),(time() - t0));
+        
         int nx = bounds.getGridWidth();
         int ny = bounds.getGridHeight();
         int nz = bounds.getGridDepth();
@@ -170,6 +171,18 @@ public class GridLoader {
         default: 
             throw new IllegalArgumentException(fmt("unknown Distance Rasterization Algorithm: %d",m_distanceAlgorithm));
             
+        case RASTERIZER_WAVELET:
+            {
+                WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
+                rasterizer.setSubvoxelResolution(getMaxValue(m_densityBitCount));        
+                reader.getTriangles(rasterizer);        
+                AttributeGrid densityGrid = createDensityGrid(bounds);
+                rasterizer.getRaster(densityGrid);
+                printf("WaveletRasterizer() done %d ms\n", time() - t0);
+                //TODO make DistanceTransform from density grid
+            }
+            break;
+
         case RASTERIZER_DISTANCE:
             {
                 DistanceRasterizer rasterizer = new DistanceRasterizer(bounds, nx, ny, nz);
@@ -185,6 +198,7 @@ public class GridLoader {
                 rasterizer.setEstimatePoints(estimatedPoints);
                 rasterizer.getDistances(reader, distanceGrid);
             }
+            break;
         }
         return distanceGrid;
     }
@@ -200,7 +214,9 @@ public class GridLoader {
         
         MeshReader reader = new MeshReader(filePath);
 
+        long t0 = time();
         Bounds bounds = getModelBounds(reader);
+        printf("getModelBounds(reader): %d ms\n",(time()-t0));
         
         int nx = bounds.getGridWidth();
         int ny = bounds.getGridHeight();
@@ -215,7 +231,7 @@ public class GridLoader {
             
         case RASTERIZER_DISTANCE:
             {
-                long t0 = time();
+                t0 = time();
                 DistanceRasterizer rasterizer = new DistanceRasterizer(bounds, nx, ny, nz);
                 //rasterizer.setSubvoxelResolution(getMaxValue(m_densityBitCount)); 
                 rasterizer.getDensity(reader, densityGrid);                
@@ -225,19 +241,23 @@ public class GridLoader {
 
         case RASTERIZER_WAVELET:
             {
+                t0 = time();
                 WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
                 rasterizer.setSubvoxelResolution(getMaxValue(m_densityBitCount));        
                 reader.getTriangles(rasterizer);        
                 rasterizer.getRaster(densityGrid);
+                printf("WaveletRasterizer() done %d ms\n", time() - t0);
             }
             break;
 
         case RASTERIZER_ZBUFFER:
             {
+                t0 = time();
                 MeshRasterizer rasterizer = new MeshRasterizer(bounds, nx, ny, nz);
                 rasterizer.setInteriorValue(getMaxValue(m_densityBitCount));        
                 reader.getTriangles(rasterizer);        
                 rasterizer.getRaster(densityGrid);
+                printf("ZBufferRasterizer() done %d ms\n", time() - t0);
             }            
         }
         
@@ -252,7 +272,7 @@ public class GridLoader {
         meshReader.getTriangles(bb);
         m_lastNumTriangles = bb.getTriangleCount();
 
-        if(DEBUG)printf("model read time time: %d ms\n", (time() - t0));
+        //if(DEBUG)printf("model read time time: %d ms\n", (time() - t0));
         Bounds modelBounds = bb.getBounds(); 
         Bounds gridBounds = modelBounds.clone();
         double voxelSize = m_preferredVoxelSize;

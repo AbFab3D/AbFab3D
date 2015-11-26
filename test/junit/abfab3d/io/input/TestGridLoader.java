@@ -35,6 +35,9 @@ import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.AttributeChannel;
 
+import abfab3d.distance.DistanceData;
+import abfab3d.distance.DistanceDataSphere;
+
 import abfab3d.grid.util.GridUtil;
 
 import abfab3d.geom.TriangulatedModels;
@@ -75,6 +78,55 @@ public class TestGridLoader extends TestCase {
         
     }
 
+    public void testDistancePrecision() throws Exception {
+
+        int densityBitCount = 8;
+        int distanceBitCount = 16;
+        double voxelSize = 2*MM;
+        int magnification = 20;
+        int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
+        double maxInDistance = 100*MM;
+        double maxOutDistance = 100*MM;
+
+        
+        String path  = "test/models/sphere_10cm_5K_tri.stl"; //10cm diameter sphere
+        //String path  = "test/models/sphere_10cm_32K_tri.stl";
+        //String path  = "test/models/sphere_10cm_400K_tri.stl";
+        
+
+        printf("voxelSize: %5.2 mm\n", voxelSize/MM);
+        printf("path: %s\n", path);
+        
+        GridLoader loader = new GridLoader();
+        loader.setDensityBitCount(densityBitCount);
+        loader.setDistanceBitCount(distanceBitCount);
+        loader.setPreferredVoxelSize(voxelSize);
+        loader.setDensityAlgorithm(rasterAlgorithm);
+        loader.setMaxInDistance(maxInDistance);
+        loader.setMaxOutDistance(maxOutDistance);
+        loader.setShellHalfThickness(2.5);
+        
+        AttributeGrid grid = loader.loadDistanceGrid(path);
+        
+        Difference diff = getDifference(grid, new DistanceDataSphere(50*MM));
+        
+        printf("diffMax: %7.3f voxels\n", diff.diffmax/voxelSize);
+        printf("  diff1: %7.3f voxels\n", diff.diff1/voxelSize);
+        printf("  diff2: %7.3f voxels\n", diff.diff2/voxelSize);
+
+        assertTrue("((maxdiff < 0.19) != true)\n", (diff.diffmax/voxelSize < 0.19));
+        assertTrue("((diff1 < 0.036) != true)\n", (diff.diff1/voxelSize < 0.036));
+        assertTrue("((diff2 < 0.044) != true)\n", (diff.diff2/voxelSize < 0.044));
+        
+        if(false){
+            AttributeChannel dataChannel = grid.getAttributeDesc().getChannel(0);
+            ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, 2*MM);
+            int iz = grid.getDepth()/2;
+            GridUtil.writeSlice(grid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));
+        }   
+    }
+    
+
     /**
        load STL file and write its density to a slice
      */
@@ -83,18 +135,18 @@ public class TestGridLoader extends TestCase {
         printf("devTestSTL()\n");
         int densityBitCount = 8;
         int distanceBitCount = 16;
-        double voxelSize = 0.1*MM;
+        double voxelSize = 0.2*MM;
         int magnification = 4;
-        int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
-        //int rasterAlgorithm = GridLoader.RASTERIZER_ZBUFFER;
+        //int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
+        int rasterAlgorithm = GridLoader.RASTERIZER_ZBUFFER;
         //int rasterAlgorithm = GridLoader.RASTERIZER_WAVELET;
 
         String path[] = new String[] {
             //"test/models/sphere_10cm_.4K_tri.stl",
             //"test/models/sphere_10cm_5K_tri.stl",
             //"test/models/sphere_10cm_32K_tri.stl",
-            "test/models/gyrosphere.stl",
-            //"test/models/sphere_10cm_400K_tri.stl"
+            //"test/models/gyrosphere.stl",
+            "test/models/sphere_10cm_400K_tri.stl"
         };
 
             
@@ -133,7 +185,7 @@ public class TestGridLoader extends TestCase {
         printf("devTestSTL()\n");
         int densityBitCount = 8;
         int distanceBitCount = 16;
-        double voxelSize = 0.1*MM;
+        double voxelSize = 0.2*MM;
         double bandWidth = 1*MM;
         double maxInDistance = 50*MM;
         double maxOutDistance = 50*MM;
@@ -203,13 +255,59 @@ public class TestGridLoader extends TestCase {
         }
         return sum*voxelVolume;
     }
+    
+    static Difference getDifference(AttributeGrid grid, DistanceData distData){
+        
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        double maxDiff = 0;
+        double diffSum = 0;
+        double diff2Sum = 0;
+        int count = 0;
+
+        AttributeChannel dataChannel = grid.getAttributeDesc().getChannel(0);
+        double pnt[] = new double[3];
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                for(int z = 0; z < nz; z++){
+                    grid.getWorldCoords(x, y, z, pnt);
+                    double exactDist = distData.getDistance(pnt[0],pnt[1],pnt[2]);
+                    double gridDist = dataChannel.getValue(grid.getAttribute(x,y,z));
+                    double diff = Math.abs(gridDist - exactDist);
+                    if(diff > maxDiff)
+                        maxDiff = diff;
+                    diffSum += diff;
+                    diff2Sum += diff*diff;
+                    count++;
+                }
+            }
+        }
+        return new Difference(maxDiff, diffSum/count, Math.sqrt(diff2Sum/count));
+    }
+
+
+    static class Difference {
+        double diffmax;
+        double diff1;
+        double diff2;
+        
+        Difference(double diffmax, double diff1, double diff2){
+            this.diffmax = diffmax;
+            this.diff1 = diff1;
+            this.diff2 = diff2;
+        }
+
+    }
 
     static int debugCount = 1000;
 
     public static void main(String[] args) throws Exception{
-        for(int k = 0; k < 4; k++){
+
+        for(int k = 0; k < 1; k++){
             //new TestGridLoader().devTestSTL_density();
-            new TestGridLoader().devTestSTL_distance();
+            //new TestGridLoader().devTestSTL_distance();
+            new TestGridLoader().testDistancePrecision();
         }
     }
 }
