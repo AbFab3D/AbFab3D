@@ -165,6 +165,18 @@ public class GridLoader {
         default: 
             throw new IllegalArgumentException(fmt("unknown Distance Rasterization Algorithm: %d",m_distanceAlgorithm));
             
+        case RASTERIZER_WAVELET:
+            {
+                WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
+                rasterizer.setSubvoxelResolution(getMaxValue(m_densityBitCount));        
+                reader.getTriangles(rasterizer);        
+                AttributeGrid densityGrid = createDensityGrid(bounds);
+                rasterizer.getRaster(densityGrid);
+                printf("WaveletRasterizer() done %d ms\n", time() - t0);
+                //TODO make DistanceTransform from density grid
+            }
+            break;
+
         case RASTERIZER_DISTANCE:
             {
                 DistanceRasterizer rasterizer = new DistanceRasterizer(bounds, nx, ny, nz);
@@ -177,6 +189,7 @@ public class GridLoader {
                 // run rasterization 
                 rasterizer.getDistances(reader, distanceGrid);
             }
+            break;
         }
         return distanceGrid;
     }
