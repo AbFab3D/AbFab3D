@@ -14,6 +14,7 @@ package abfab3d.geom;
 
 import java.util.Random;
 
+import abfab3d.io.input.MeshReader;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
@@ -139,14 +140,14 @@ public class TestTriangleMeshShellBuilder extends TestCase {
     void makeTestSphere()throws Exception{
         
         if(DEBUG) printf("makeTestSphere()\n");
-        double w = 5*MM;
+        double w = 25*MM;
         double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = -w, zmax = w;
         //double vs = 0.02*MM;
         //double vs = 1*MM;
-        double vs = 0.5*MM;
+        double vs = 0.1*MM;
         double maxErrorVoxels = 0.05;
         int subvoxelResolution = 100;
-        double firstLayerThickness = 0.9;//.9;//1.5;//1.5; // 0.5
+        double firstLayerThickness = 2;//.9;//1.5;//1.5; // 0.5
         int iterationsCount = 10;
         printf("firstLayerThickness: %5.2f\n",firstLayerThickness);
         ArrayAttributeGridInt indexGrid = new ArrayAttributeGridInt(new Bounds(xmin,xmax,ymin,ymax,zmin,zmax), vs, vs);
@@ -161,7 +162,7 @@ public class TestTriangleMeshShellBuilder extends TestCase {
         //  8  0.5M triangles 
         //  9 -> 2M triangles, 
         // 10 -> 8M triangles
-        TriangulatedModels.Sphere sphere = new TriangulatedModels.Sphere(radius, new Vector3d(cx, cy, cz ), 4); 
+        TriangulatedModels.Sphere sphere = new TriangulatedModels.Sphere(radius, new Vector3d(cx, cy, cz ), 8);
         long t0 = time();
         sphere.getTriangles(dts);
         printf("first layer time: %d ms\n",(time()-t0));
@@ -213,7 +214,56 @@ public class TestTriangleMeshShellBuilder extends TestCase {
         stl.close();
     }
 
-    
+    /**
+     testing distance to gyroid
+     */
+    void makeSpeed()throws Exception{
+
+        if(DEBUG) printf("makeTestGyroid()\n");
+        double w = 25*MM;
+        double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = -w, zmax = w;
+        //double vs = 0.02*MM;
+        //double vs = 1*MM;
+        double vs = 0.1*MM;
+        double maxErrorVoxels = 0.05;
+        int subvoxelResolution = 100;
+        double firstLayerThickness = 2;//.9;//1.5;//1.5; // 0.5
+        int iterationsCount = 10;
+        printf("firstLayerThickness: %5.2f\n",firstLayerThickness);
+        ArrayAttributeGridInt indexGrid = new ArrayAttributeGridInt(new Bounds(xmin,xmax,ymin,ymax,zmin,zmax), vs, vs);
+        printf("grid: [%d x %d x %d]\n",indexGrid.getWidth(),indexGrid.getHeight(), indexGrid.getDepth());
+        TriangleMeshShellBuilder dts = new TriangleMeshShellBuilder(indexGrid, subvoxelResolution, 12217046);
+        dts.setShellHalfThickness(firstLayerThickness);
+
+        dts.initialize();
+        //double cx = 4.75*MM, cy = 4.75*MM, cz = 4.75*MM, radius = 3*MM;
+        double cx = 0.5*vs, cy = 0.5*vs, cz = 0.5*vs, radius = 3*MM;
+
+        //  8  0.5M triangles
+        //  9 -> 2M triangles,
+        // 10 -> 8M triangles
+        String filePath = "test/models/gyrosphere.stl";
+        MeshReader reader = new MeshReader(filePath);
+
+        long t0 = time();
+        reader.getTriangles(dts);
+        printf("first layer time: %d ms\n",(time()-t0));
+        int triCount = dts.getTriCount();
+        printf("triCount: %d\n", triCount);
+
+        int pcount = dts.getPointCount();
+
+        printf("pntCount: %d\n", pcount);
+
+        t0 = time();
+        double pntx[] = new double[pcount];
+        double pnty[] = new double[pcount];
+        double pntz[] = new double[pcount];
+        dts.getPointsInGridUnits(pntx, pnty, pntz);
+
+        printf("dts.getPoints(pnts) time: %d ms\n",(time()-t0));
+    }
+
     void makeTestPointMap(){
 
         PointMap points = new PointMap(10, 0.75, 1.e-1);
@@ -724,9 +774,10 @@ public class TestTriangleMeshShellBuilder extends TestCase {
         for(int i = 0; i < 1; i++){
             //new TestTriangleMeshShellBuilder().makeTestDT3();
             //new TestTriangleMeshShellBuilder().makeTestOneTriangle();
-            new TestTriangleMeshShellBuilder().makeTestSphere();
+            //new TestTriangleMeshShellBuilder().makeTestSphere();
             //new TestTriangleMeshShellBuilder().makeTestPointMap();
             //new TestTriangleMeshShellBuilder().makeTestPointMapRehash();
-        }        
+            new TestTriangleMeshShellBuilder().makeSpeed();
+        }
     }
 }

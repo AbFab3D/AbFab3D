@@ -155,7 +155,6 @@ public class GridLoader {
         long t0 = time();
         Bounds bounds = getModelBounds(reader);
 
-        long t0 = time();
         AreaCalculator ac = new AreaCalculator();  // TODO: should we make a combined bounds/area calculator?
         reader.getTriangles(ac);
         printf("Area calc: %f %d\n",ac.getArea(),(time() - t0));

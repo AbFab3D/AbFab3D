@@ -30,7 +30,7 @@ import static abfab3d.util.Output.printf;
  */
 public class PointMap {
     private boolean COLLECT_STATS = true;
-    private final boolean DEBUG = false;
+    private final boolean DEBUG = true;
 
     static final double  // arbitrary constants for hashcode calculations
     CX = 10556796.789, CY = 26556797.891, CZ = 37556792.981, CW = 45556795.955;
@@ -184,10 +184,14 @@ public class PointMap {
             ret_val = new double[count * 3];
         }
 
+        int max_length = 0;
+        int count = 0;
         for (int j = 0; j < table.length; j++) {
             int e = table[j];
 
+            if (COLLECT_STATS) count = 0;
             for(int next = e; next != -1; next = Entry.getNext(entries, next)) {
+                if (COLLECT_STATS) count++;
                 Entry.getPosition(entries, next, sd);
                 int id = Entry.getID(entries, next);
 
@@ -195,8 +199,11 @@ public class PointMap {
                 ret_val[id*3+1] = sd[1];
                 ret_val[id*3+2] = sd[2];
             }
+            if (COLLECT_STATS) if(count > max_length) max_length = count;
         }
 
+
+        if (COLLECT_STATS) printf("Max length of entry: %d\n",max_length);
         return ret_val;
         
     }
@@ -210,10 +217,18 @@ public class PointMap {
             throw new RuntimeException("array size is too small");
         }
 
-        for (int j = 0; j < table.length; j++) {
+        printf("table length: %d\n",table.length);
+        int max_length = 0;
+        long tot_length = 0;
+        int count = 0;
+
+        int len = table.length;
+        for (int j = 0; j < len; j++) {
             int e = table[j];
+            if (COLLECT_STATS) count = 0;
 
             for(int next = e; next != -1; next = Entry.getNext(entries, next)) {
+                if (COLLECT_STATS) count++;
                 Entry.getPosition(entries, next, sd);
                 int id = Entry.getID(entries, next);
 
@@ -221,7 +236,12 @@ public class PointMap {
                 pnty[id] = sd[1];
                 pntz[id] = sd[2];
             }
-        }        
+            if (COLLECT_STATS) {
+                tot_length += count;
+                if(count > max_length) max_length = count;
+            }
+        }
+        if (COLLECT_STATS) printf("Stats.  max chain: %d, avg chain: %f\n",max_length,(float)tot_length/table.length);
     }
 
     /**
@@ -463,9 +483,9 @@ public class PointMap {
             int double_pos = srcIdx * DOUBLE_DATA_SIZE;
             double[] double_data = src.getDoubleData();
             
-            pos[0] = double_data[double_pos +  + POS_X];
-            pos[1] = double_data[double_pos +  + POS_Y];
-            pos[2] = double_data[double_pos +  + POS_Z];
+            pos[0] = double_data[double_pos +  POS_X];
+            pos[1] = double_data[double_pos +  POS_Y];
+            pos[2] = double_data[double_pos +  POS_Z];
         }
         
         /**
