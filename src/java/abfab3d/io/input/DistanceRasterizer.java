@@ -63,6 +63,7 @@ public class DistanceRasterizer implements TriangleCollector {
     double m_maxOutDistance = 1*MM;
     double m_maxDistance;
     protected int m_threadCount = 1;
+    int m_estimatedPoints;
 
     int m_triCount = 0;
 
@@ -101,6 +102,10 @@ public class DistanceRasterizer implements TriangleCollector {
 
     }
 
+    public void setEstimatePoints(int val) {
+        m_estimatedPoints = val;
+    }
+
     //public void setSubvoxelResolution(long value){        
         //m_subvoxelResolution = value;
     //}
@@ -111,7 +116,7 @@ public class DistanceRasterizer implements TriangleCollector {
         m_rasterizer.setInteriorValue(1);
 
         m_indexGrid = createIndexGrid();
-        m_shellBuilder = new TriangleMeshShellBuilder(m_indexGrid, m_subvoxelResolution);
+        m_shellBuilder = new TriangleMeshShellBuilder(m_indexGrid, m_subvoxelResolution,m_estimatedPoints);
         
         m_shellBuilder.setShellHalfThickness(m_shellHalfThickness);
         printf("calling m_shellBuilder.initialize()\n");

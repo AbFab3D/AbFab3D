@@ -106,12 +106,19 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
     AttributeGrid m_distanceGrid; 
 
     int m_triCount = 0; // count of processed triangles 
-    
+    int m_estimatedPoints;
+
     public TriangleMeshShellBuilder(AttributeGrid indexGrid, long subvoxelResolution){
         m_indexGrid = indexGrid;
         m_subvoxelResolution = subvoxelResolution;
     }
-    
+
+    public TriangleMeshShellBuilder(AttributeGrid indexGrid, long subvoxelResolution, int estimatedPoints){
+        m_indexGrid = indexGrid;
+        m_subvoxelResolution = subvoxelResolution;
+        m_estimatedPoints = estimatedPoints;
+    }
+
     public void setShellHalfThickness(double shellHalfThickness){
 
         m_layerThickness = shellHalfThickness;
@@ -199,8 +206,15 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
         m_scale = 1/m_voxelSize;
         m_neighbors = Neighborhood.makeBall(m_layerThickness);
 
-        m_points = new PointMap(m_voxelSize/m_subvoxelResolution);
-        // add unused point to have index start from 1 
+        if (m_estimatedPoints <= 0) m_points = new PointMap(m_voxelSize/m_subvoxelResolution);
+        else {
+            double loadFactor = 0.75;
+            int numEntries = (int) (m_estimatedPoints * (1.0 / loadFactor)) + 2;
+            printf("Guessing number of points at: %d\n",numEntries);
+            m_points = new PointMap(numEntries,loadFactor,m_voxelSize/m_subvoxelResolution);
+        }
+
+        // add unused point to have index start from 1
         m_points.add(0, 0, 0);
         if(false){
             // axes of grid for visualization 

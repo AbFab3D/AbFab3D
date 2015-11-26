@@ -12,6 +12,7 @@
 
 package abfab3d.io.input;
 
+import abfab3d.mesh.AreaCalculator;
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.util.Bounds;
 
@@ -57,6 +58,7 @@ public class GridLoader {
     protected double m_maxInDistance = 2*MM;
     protected double m_shellHalfThickness = 2;
     protected int m_threadCount = 1;
+    protected int m_lastNumTriangles;
 
     public GridLoader(){
         
@@ -152,7 +154,11 @@ public class GridLoader {
         MeshReader reader = new MeshReader(filePath);
 
         Bounds bounds = getModelBounds(reader);
-        
+
+        long t0 = time();
+        AreaCalculator ac = new AreaCalculator();  // TODO: should we make a combined bounds/area calculator?
+        reader.getTriangles(ac);
+        printf("Area calc: %f %d\n",ac.getArea(),(time() - t0));
         int nx = bounds.getGridWidth();
         int ny = bounds.getGridHeight();
         int nz = bounds.getGridDepth();
@@ -173,7 +179,10 @@ public class GridLoader {
                 rasterizer.setMaxOutDistance(m_maxOutDistance);                
                 rasterizer.setShellHalfThickness(m_shellHalfThickness);
                 rasterizer.setThreadCount(m_threadCount);
-                // run rasterization 
+                // run rasterization
+                int estimatedPoints = (int) (ac.getArea() / (voxelSize * voxelSize) * m_shellHalfThickness * 2 * 1.4);  // 40% overage to avoid allocations
+                printf("Estimated points: %d\n",estimatedPoints);
+                rasterizer.setEstimatePoints(estimatedPoints);
                 rasterizer.getDistances(reader, distanceGrid);
             }
         }
@@ -241,6 +250,7 @@ public class GridLoader {
         long t0 = time();
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         meshReader.getTriangles(bb);
+        m_lastNumTriangles = bb.getTriangleCount();
 
         if(DEBUG)printf("model read time time: %d ms\n", (time() - t0));
         Bounds modelBounds = bb.getBounds(); 

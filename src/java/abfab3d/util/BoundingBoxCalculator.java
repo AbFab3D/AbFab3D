@@ -27,7 +27,7 @@ public class BoundingBoxCalculator implements TriangleCollector {
 
     static boolean DEBUG = false;
     int debugCount = 100;
-    private long triCount;
+    private int triCount;
 
     protected double bounds[] = new double[]{
         Double.MAX_VALUE,-Double.MAX_VALUE,
@@ -96,7 +96,7 @@ public class BoundingBoxCalculator implements TriangleCollector {
      * Get the triangle count.  Only available after getTriangles has been called on the source
      * @return
      */
-    public long getTriangleCount() {
+    public int getTriangleCount() {
         return triCount;
     }
 }
