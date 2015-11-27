@@ -217,7 +217,6 @@ public class PointMap {
             throw new RuntimeException("array size is too small");
         }
 
-        printf("table length: %d\n",table.length);
         int max_length = 0;
         long tot_length = 0;
         int count = 0;
@@ -330,6 +329,7 @@ public class PointMap {
         return (int)(CX*x + CY * y + CZ * z + CW);
     }
 
+
     public boolean calcEquals(double ax, double ay, double az, double bx, double by, double bz){
 
         double tmp = max( abs(ax-bx), abs(ay-by));
@@ -340,6 +340,43 @@ public class PointMap {
         else
             return false;
 
+    }
+
+    public void printHistogram() {
+        printf("Calculating PointMap histogram\n");
+        int max_length = 0;
+        long tot_length = 0;
+        int count = 0;
+
+        int len = table.length;
+        for (int j = 0; j < len; j++) {
+            int e = table[j];
+            if (COLLECT_STATS) count = 0;
+
+            for(int next = e; next != -1; next = Entry.getNext(entries, next)) {
+                if (COLLECT_STATS) count++;
+            }
+            if (COLLECT_STATS) {
+                tot_length += count;
+                if(count > max_length) max_length = count;
+            }
+        }
+
+        int[] counts = new int[max_length+1];
+
+        for (int j = 0; j < len; j++) {
+            int e = table[j];
+            if (COLLECT_STATS) count = 0;
+
+            for(int next = e; next != -1; next = Entry.getNext(entries, next)) {
+                if (COLLECT_STATS) count++;
+            }
+            counts[count]++;
+        }
+
+        for(int i=0; i < counts.length; i++) {
+            printf("length: %3d  count: %9d  percent: %4.2f\n",i,counts[i],((float)counts[i] / len) * 100);
+        }
     }
 
     /**
