@@ -50,7 +50,7 @@ public class GridLoader {
     protected AttributeGrid m_densityGridTemplate = new ArrayAttributeGridByte(1,1,1, 10*MM, 10*MM);
     protected AttributeGrid m_distanceGridTemplate = new ArrayAttributeGridShort(1,1,1, 10*MM, 10*MM);
 
-    public static final int RASTERIZER_WAVELET = 1, RASTERIZER_DISTANCE = 2, RASTERIZER_ZBUFFER = 3;
+    public static final int RASTERIZER_WAVELET = 1, RASTERIZER_DISTANCE = 2, RASTERIZER_DISTANCE2 = 3, RASTERIZER_ZBUFFER = 4;
 
     protected int m_densityAlgorithm = RASTERIZER_WAVELET;
     protected int m_distanceAlgorithm = RASTERIZER_DISTANCE;
@@ -71,6 +71,7 @@ public class GridLoader {
             
         case RASTERIZER_WAVELET: return  "RASTERIZER_WAVELET";
         case RASTERIZER_DISTANCE: return "RASTERIZER_DISTANCE"; 
+        case RASTERIZER_DISTANCE2: return "RASTERIZER_DISTANCE2"; 
         case RASTERIZER_ZBUFFER:  return "RASTERIZER_ZBUFFER";
         }
     }
@@ -107,6 +108,7 @@ public class GridLoader {
         case RASTERIZER_ZBUFFER:
         case RASTERIZER_WAVELET:
         case RASTERIZER_DISTANCE:
+        case RASTERIZER_DISTANCE2:
             m_densityAlgorithm = algorithm;
             break;
         }
@@ -118,6 +120,7 @@ public class GridLoader {
         case RASTERIZER_ZBUFFER:
         case RASTERIZER_WAVELET:
         case RASTERIZER_DISTANCE:
+        case RASTERIZER_DISTANCE2:
             m_distanceAlgorithm = algorithm;
             break;
         }
@@ -198,6 +201,19 @@ public class GridLoader {
                 rasterizer.getDistances(reader, distanceGrid);
             }
             break;
+        case RASTERIZER_DISTANCE2:
+            {
+                DistanceRasterizer2 rasterizer = new DistanceRasterizer2(bounds, nx, ny, nz);
+                
+                // set params 
+                rasterizer.setMaxInDistance(m_maxInDistance);
+                rasterizer.setMaxOutDistance(m_maxOutDistance);                
+                rasterizer.setShellHalfThickness(m_shellHalfThickness);
+                rasterizer.setThreadCount(m_threadCount);
+                // run rasterization
+                rasterizer.getDistances(reader, distanceGrid);
+            }
+            break;
         }
         return distanceGrid;
     }
@@ -235,6 +251,15 @@ public class GridLoader {
                 //rasterizer.setSubvoxelResolution(getMaxValue(m_densityBitCount)); 
                 rasterizer.getDensity(reader, densityGrid);                
                 printf("DistanceRasterizer() done %d ms\n", time() - t0);
+            }
+            break;
+
+        case RASTERIZER_DISTANCE2:
+            {
+                t0 = time();
+                DistanceRasterizer2 rasterizer = new DistanceRasterizer2(bounds, nx, ny, nz);
+                rasterizer.getDensity(reader, densityGrid);                
+                printf("DistanceRasterizer2() done %d ms\n", time() - t0);
             }
             break;
 

@@ -1150,6 +1150,77 @@ public class ClosestPointIndexer {
         }
     }
 
+    public static void makeDistanceGrid_v2(AttributeGrid indexGrid, 
+                                        double pntx[], double pnty[], double pntz[], 
+                                        AttributeGrid interiorGrid, 
+                                        AttributeGrid distanceGrid,
+                                        double maxInDistance,
+                                        double maxOutDistance
+                                        ){
+        
+        int 
+            nx = indexGrid.getWidth(),
+            ny = indexGrid.getHeight(),
+            nz = indexGrid.getDepth();
+        AttributeChannel dataChannel = distanceGrid.getAttributeDesc().getChannel(0);
+
+        long inAtt = dataChannel.makeAtt(-maxInDistance);
+        long outAtt = dataChannel.makeAtt(maxOutDistance);
+        Bounds bounds = indexGrid.getGridBounds();
+        double vs = bounds.getVoxelSize();
+        double xmin = bounds.xmin;
+        double ymin = bounds.ymin;
+        double zmin = bounds.zmin;
+
+        double maxInDistance2 = maxInDistance*maxInDistance;
+        double maxOutDistance2 = maxOutDistance*maxOutDistance;
+
+        long att[] = new long[nz];
+        boolean interior[] = new boolean[nz];
+
+        for(int y = 0; y < ny; y++){
+            double coordy = ymin + vs*y;
+            for(int x = 0; x < nx; x++){
+                double coordx = xmin + vs*x;
+                // read input grid data into 1D arrays
+                for(int z = 0; z < nz; z++){
+                    att[z] = indexGrid.getAttribute(x,y,z);
+                }                
+                for(int z = 0; z < nz; z++){
+                    interior[z] = (interiorGrid.getAttribute(x,y,z) != 0);
+                }                
+
+                for(int z = 0; z < nz; z++){
+                    int ind = (int)att[z];
+                    if(ind > 0) {
+                        // point has closest point 
+                        double coordz = zmin + vs*z;
+                        double dist2 = distance2(coordx,coordy,coordz, pntx[ind],pnty[ind],pntz[ind]);
+                        double dist = sqrt(dist2);
+                        //xbprintf("%d\n", dist);
+                        if(interior[z]) {
+                            dist = -dist;
+                        }
+                        att[z] = dataChannel.makeAtt(dist);                         
+                    }  else {
+                        // point is undefined 
+                        if(interior[z]){
+                            // interior 
+                            att[z] = inAtt;
+                        } else {
+                            // exterior 
+                            att[z] = outAtt;
+                        }
+                    }
+                } // for(int z
+                // write distances into output grid
+                for(int z = 0; z < nz; z++){
+                    distanceGrid.setAttribute(x,y,z,att[z]);
+                }                
+            }
+        }
+    }
+
     /**
        calculates distance grid from given closest point grid and interior grid 
        distanceGrid value are mapped and clamped to the interval [-maxInDistance, maxOutDistance]*(subvoxelResolution/voxelSize)
@@ -1220,18 +1291,17 @@ public class ClosestPointIndexer {
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){
                 for(int z = 0; z < nz; z++){
-                    int ind = (int)indexGrid.getAttribute(x,y,z);
+                    int ind = (int)indexGrid.getAttribute(x,y,z);                    
                     if(ind > 0) {
                         indexGrid.getWorldCoords(x, y, z, coord);
-                        double dist = distance(coord[0],coord[1],coord[2], pntx[ind],pnty[ind],pntz[ind]);
+                        double dist2 = distance2(coord[0],coord[1],coord[2], pntx[ind],pnty[ind],pntz[ind]);
+                        double dist = sqrt(dist2);
                         if(interiorGrid != null && interiorGrid.getAttribute(x,y,z) != 0){
                             dist = -dist;
                         }
                         double density = step10(dist, voxelSize);
                         long att = dataChannel.makeAtt(density);
                         densityGrid.setAttribute(x,y,z,att);
-                        //if(true)//interiorGrid.getAttribute(x,y,z) != 0)
-                        //    printf("dist: %5.2f, dens: %5.2f att: %x\n", dist/voxelSize, density, att);
                     }  else {
                         // point is undefined 
                         if(interiorGrid != null && interiorGrid.getAttribute(x,y,z) != 0){
@@ -1274,6 +1344,13 @@ public class ClosestPointIndexer {
         vy -= py;
         vz -= pz;
         return sqrt(vx*vx + vy*vy + vz*vz);
+    }
+
+    static final double distance2(double vx, double vy, double vz, double px, double py, double pz){
+        vx -= px;
+        vy -= py;
+        vz -= pz;
+        return (vx*vx + vy*vy + vz*vz);
     }
 
     static final double distance2(int vx,int vy, double pntx[],double pnty[],int ind){

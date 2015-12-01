@@ -43,7 +43,7 @@ import static abfab3d.util.ImageUtil.lerpColors;
 
 
 /**
- * Test the DistanceTransformLayered class.
+ * Test the DistanceTransform2D class.
  *
  * @author Alan Hudson
  * @author Vladimir Bulatov

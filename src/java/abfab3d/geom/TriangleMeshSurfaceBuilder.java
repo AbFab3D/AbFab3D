@@ -60,9 +60,9 @@ import static abfab3d.util.MathUtil.iround;
 
 
 /**
-   generated set of points on surface of a triangle on a given grid 
+   generated set of points on the surface of triangle mesh on a given grid 
 
-   Each triangle of the mesh is rasterized in one of thr 3 possible projections  best 
+   Each triangle of the mesh is rasterized in the plane orthogonal to the best of 3 possible projections 
 
    @author Vladimir Bulatov
  */

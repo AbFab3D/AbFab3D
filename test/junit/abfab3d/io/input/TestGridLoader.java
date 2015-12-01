@@ -85,8 +85,8 @@ public class TestGridLoader extends TestCase {
         double voxelSize = 2*MM;
         int magnification = 20;
         int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
-        double maxInDistance = 100*MM;
-        double maxOutDistance = 100*MM;
+        double maxInDistance = 5*MM;
+        double maxOutDistance = 5*MM;
 
         
         String path  = "test/models/sphere_10cm_5K_tri.stl"; //10cm diameter sphere
@@ -138,15 +138,16 @@ public class TestGridLoader extends TestCase {
         double voxelSize = 0.2*MM;
         int magnification = 4;
         //int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
+        //int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
         int rasterAlgorithm = GridLoader.RASTERIZER_ZBUFFER;
         //int rasterAlgorithm = GridLoader.RASTERIZER_WAVELET;
 
         String path[] = new String[] {
             //"test/models/sphere_10cm_.4K_tri.stl",
             //"test/models/sphere_10cm_5K_tri.stl",
-            //"test/models/sphere_10cm_32K_tri.stl",
+            "test/models/sphere_10cm_32K_tri.stl",
             //"test/models/gyrosphere.stl",
-            "test/models/sphere_10cm_400K_tri.stl"
+            //"test/models/sphere_10cm_400K_tri.stl"
         };
 
             
@@ -185,13 +186,14 @@ public class TestGridLoader extends TestCase {
         printf("devTestSTL()\n");
         int densityBitCount = 8;
         int distanceBitCount = 16;
-        double voxelSize = 0.2*MM;
+        double voxelSize = 0.1*MM;
         double bandWidth = 1*MM;
         double maxInDistance = 50*MM;
         double maxOutDistance = 50*MM;
         int magnification = 2;
         int threadCount = 4;
-        int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
+        int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
+        //int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
         //int rasterAlgorithm = GridLoader.RASTERIZER_ZBUFFER;
         //int rasterAlgorithm = GridLoader.RASTERIZER_WAVELET;
 
@@ -304,10 +306,10 @@ public class TestGridLoader extends TestCase {
 
     public static void main(String[] args) throws Exception{
 
-        for(int k = 0; k < 1; k++){
+        for(int k = 0; k < 4; k++){
             //new TestGridLoader().devTestSTL_density();
-            //new TestGridLoader().devTestSTL_distance();
-            new TestGridLoader().testDistancePrecision();
+            new TestGridLoader().devTestSTL_distance();
+            //new TestGridLoader().testDistancePrecision();
         }
     }
 }

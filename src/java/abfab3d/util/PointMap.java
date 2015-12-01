@@ -29,8 +29,8 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public class PointMap {
-    private boolean COLLECT_STATS = true;
-    private final boolean DEBUG = true;
+    private boolean COLLECT_STATS = false;
+    private final boolean DEBUG = false;
 
     static final double  // arbitrary constants for hashcode calculations
     CX = 10556796.789, CY = 26556797.891, CZ = 37556792.981, CW = 45556795.955;
@@ -217,7 +217,7 @@ public class PointMap {
             throw new RuntimeException("array size is too small");
         }
 
-        printf("table length: %d\n",table.length);
+        if(DEBUG)printf("table length: %d\n",table.length);
         int max_length = 0;
         long tot_length = 0;
         int count = 0;
