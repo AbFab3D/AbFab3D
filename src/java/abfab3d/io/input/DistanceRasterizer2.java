@@ -180,6 +180,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
         t0 = time();
         sb.execute(m_indexGrid);
 
+        printf("m_shellBuilder.execute() %d ms\n", (time() - t0));
 
         AttributeGrid interiorGrid = new GridMask(gridX,gridY,gridZ);
         
