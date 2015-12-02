@@ -13,6 +13,7 @@
 package abfab3d.datasources;
 
 
+import abfab3d.grid.AttributeChannel;
 import abfab3d.util.Vec;
 
 import abfab3d.grid.Grid;
@@ -30,7 +31,7 @@ import static abfab3d.util.Output.printf;
  */
 public class DataSourceGrid extends TransformableDataSource implements Cloneable {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     static int debugCount = 100;
     static final int DEFAULT_MAX_ATTRIBUTE_VALUE = 255;
 
@@ -38,6 +39,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     protected int m_interpolationType = INTERPOLATION_LINEAR;
 
     protected AttributeGrid m_grid;
+    protected AttributeChannel dataChannel;
     protected byte[] m_cachedByteData;
 
     // default subvoxelResolution 
@@ -71,6 +73,9 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         
         m_subvoxelResolution = subvoxelResolution;
         m_grid = grid;
+        dataChannel = m_grid.getAttributeDesc().getDefaultChannel();
+
+        if (DEBUG) printf("DSG name: %s bitCount: %d  low: %f  high: %f\n",m_grid.getAttributeDesc().getDefaultChannel().getName(),dataChannel.getBitCount(),dataChannel.getValue0(),dataChannel.getValue1());
         if(bounds == null){
             m_grid.getGridBounds(m_bounds);
         } else {
@@ -167,6 +172,10 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         return m_nz;
     }
 
+    public AttributeChannel getDataChannel() {
+        return dataChannel;
+    }
+
     /**
      * @noRefGuide
      */
@@ -189,25 +198,25 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         int nz = m_nz;
         int nxy = nx*ny;
 
-        double vmin = m_mapper.getVmin();
-        double vmax = m_mapper.getVmax();
-        double xmin = m_mapper.getXmin();
-        double xmax = m_mapper.getXmax();
-        if(DEBUG) printf("xmin: %5.1f, xmax: %5.1f, vmin: 9.5f, vmax: %9.5f\n", xmin, xmax, vmin, vmax);
+        double vmin = dataChannel.getValue0();
+        double vmax = dataChannel.getValue1();
+        if(DEBUG) printf("vmin: %9.5f, vmax: %9.5f\n", vmin, vmax);
 
         for(int z = 0; z < nz; z++){
             for(int y = 0; y < ny; y++){
                 for(int x = 0; x < nx; x++){
                     
-                    long att = (long)(short)m_grid.getAttribute(x,y,z);
-                    double v = m_mapper.map(att);
+                    double v = dataChannel.getValue(m_grid.getAttribute(x, y, z));
+                    // old way
+                    //long att = m_grid.getAttribute(x,y,z);
+                    //double v = m_mapper.map(att);
                     int vi = (int)(255*((v - vmin)/(vmax - vmin)))&0xFF;
-                    if(DEBUG & (z == nz/2) && (x > nx/4 && x < nx/2) && (y < ny/2)) printf("%4.2f ", v*1000);
+                    //if(DEBUG & (z == nz/2) && (x > nx/4 && x < nx/2) && (y < ny/2)) printf("%4.2f ", v*1000);
                     //if(DEBUG & (z == nz/2) && (x > nx/4 && x < nx/2) && (y < ny/2)) printf("(%4x %x)", att, vi);
                     // v is inside of (vmin, vmax);
                     data[x + y * nx + z * nxy] = (byte)vi;
                 }
-                if(DEBUG & (z == nz/2)) printf("\n");
+                //if(DEBUG & (z == nz/2)) printf("\n");
             }            
         }
         return data;
@@ -349,9 +358,9 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
             default:
                 return 1;
             }             
-        default:            
-            return (long) (short)m_grid.getAttribute(x, y, z);
-        }        
+        default:
+            return dataChannel.getBits(m_grid.getAttribute(x,y,z));
+        }
     }
 
     /**
