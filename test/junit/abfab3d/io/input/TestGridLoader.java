@@ -21,7 +21,11 @@ import java.util.Map;
 // external imports
 import abfab3d.grid.query.CountMaterials;
 import abfab3d.grid.query.CountStates;
-import abfab3d.util.*;
+
+import abfab3d.util.ColorMapper;
+import abfab3d.util.ColorMapperDistance;
+import abfab3d.util.ColorMapperDensity;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -135,17 +139,17 @@ public class TestGridLoader extends TestCase {
         printf("devTestSTL()\n");
         int densityBitCount = 8;
         int distanceBitCount = 16;
-        double voxelSize = 0.2*MM;
+        double voxelSize = 2*MM;
         int magnification = 4;
         //int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
-        //int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
-        int rasterAlgorithm = GridLoader.RASTERIZER_ZBUFFER;
+        int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
+        //int rasterAlgorithm = GridLoader.RASTERIZER_ZBUFFER;
         //int rasterAlgorithm = GridLoader.RASTERIZER_WAVELET;
 
         String path[] = new String[] {
-            //"test/models/sphere_10cm_.4K_tri.stl",
+            "test/models/sphere_10cm_.4K_tri.stl",
             //"test/models/sphere_10cm_5K_tri.stl",
-            "test/models/sphere_10cm_32K_tri.stl",
+            //            "test/models/sphere_10cm_32K_tri.stl",
             //"test/models/gyrosphere.stl",
             //"test/models/sphere_10cm_400K_tri.stl"
         };
@@ -168,8 +172,8 @@ public class TestGridLoader extends TestCase {
             t0 = time();
             double volume = getVolume(densGrid);
             printf("volume: %7.3f CM^3 in %d ms\n", volume/CM3, (time() - t0));
-            for(int iz = densGrid.getDepth()/2; iz < densGrid.getDepth()/2+1; iz++){
-            //for(int iz = 0; iz < densGrid.getDepth(); iz++){
+            //for(int iz = densGrid.getDepth()/2; iz < densGrid.getDepth()/2+1; iz++){
+            for(int iz = 0; iz < densGrid.getDepth(); iz++){
                 AttributeChannel dataChannel = densGrid.getAttributeDesc().getChannel(0);
                 ColorMapper colorMapper = new ColorMapperDensity(0xFF000000, 0xFFFF0000, 1./2);
                 GridUtil.writeSlice(densGrid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dens%03d.png", iz));
@@ -186,11 +190,11 @@ public class TestGridLoader extends TestCase {
         printf("devTestSTL()\n");
         int densityBitCount = 8;
         int distanceBitCount = 16;
-        double voxelSize = 0.1*MM;
-        double bandWidth = 1*MM;
+        double voxelSize = 4*MM;
+        double bandWidth = 4*MM;
         double maxInDistance = 50*MM;
         double maxOutDistance = 50*MM;
-        int magnification = 2;
+        int magnification = 10;
         int threadCount = 4;
         int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
         //int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
@@ -200,8 +204,8 @@ public class TestGridLoader extends TestCase {
         String path[] = new String[] {
             //"test/models/sphere_10cm_.4K_tri.stl",
             //"test/models/sphere_10cm_5K_tri.stl",
-            "test/models/gyrosphere.stl",
-            //"test/models/sphere_10cm_32K_tri.stl",
+            //"test/models/gyrosphere.stl",
+            "test/models/sphere_10cm_32K_tri.stl",
             //"test/models/sphere_10cm_400K_tri.stl"
         };
 
@@ -225,8 +229,8 @@ public class TestGridLoader extends TestCase {
             AttributeGrid grid = loader.loadDistanceGrid(path[i]);
             printf("grid %s loaded in %d ms\n", path[i], (time() - t0));
             t0 = time();
-            for(int iz = grid.getDepth()/2; iz < grid.getDepth()/2+1; iz++){
-                //for(int iz = 0; iz < grid.getDepth(); iz++){
+            //for(int iz = grid.getDepth()/2; iz < grid.getDepth()/2+1; iz++){
+            for(int iz = 0; iz < grid.getDepth(); iz++){
                 AttributeChannel dataChannel = grid.getAttributeDesc().getChannel(0);
                 ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, bandWidth);
                 GridUtil.writeSlice(grid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));
@@ -306,7 +310,7 @@ public class TestGridLoader extends TestCase {
 
     public static void main(String[] args) throws Exception{
 
-        for(int k = 0; k < 4; k++){
+        for(int k = 0; k < 1; k++){
             //new TestGridLoader().devTestSTL_density();
             new TestGridLoader().devTestSTL_distance();
             //new TestGridLoader().testDistancePrecision();

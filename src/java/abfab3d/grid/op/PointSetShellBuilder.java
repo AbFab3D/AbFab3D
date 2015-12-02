@@ -75,7 +75,7 @@ public class PointSetShellBuilder implements AttributeOperation {
     static final double TOL = 1.e-2;
     static final double HALF = 0.5; // half voxel offset to the center of voxel
     
-    static final int DEFAULT_SVR = 50;
+    static final int DEFAULT_SVR = 10;
     double m_layerThickness = 1;  // 2.0, 2.25, 2.45*, 2.84, 3.0 3.17 3.33*, 3.46, 3.62, 3.74*   * - good values 
     int m_neighbors[]; // offsets to neighbors 
     long m_subvoxelResolution = DEFAULT_SVR;
@@ -143,7 +143,6 @@ public class PointSetShellBuilder implements AttributeOperation {
         m_nx = m_indexGrid.getWidth();
         m_ny = m_indexGrid.getHeight();
         m_nz = m_indexGrid.getDepth();
-
         m_distanceGrid = new ArrayAttributeGridByte(m_bounds, m_voxelSize,m_voxelSize);
         
         m_xmin = m_bounds.xmin;
@@ -154,8 +153,9 @@ public class PointSetShellBuilder implements AttributeOperation {
         m_neighbors = Neighborhood.makeBall(m_layerThickness);
 
         if(DEBUG) {
-            printf("layerThickness: %5.2f\n",m_layerThickness);
-            printf("neighboursCount: %d\n",m_neighbors.length/3);
+            printf("PointSetShellBilder: grid: (%d x %d x %d)\n", m_nx, m_ny, m_nz);
+            printf("PointSetShellBilder: layerThickness: %5.2f\n",m_layerThickness);
+            printf("PointSetShellBilder: neighboursCount: %d\n",m_neighbors.length/3);
         }
     }
 
@@ -168,16 +168,20 @@ public class PointSetShellBuilder implements AttributeOperation {
         for(int i = 1; i < npnt; i++){// start from 1. Index 0 means undefined
             
             m_points.getPoint(i, pnt);
-            processNeighborhood(i, pnt.x, pnt.y, pnt.z);
+            processNeighborhood(i, (pnt.x-m_xmin)*m_scale, (pnt.y-m_ymin)*m_scale, (pnt.z-m_zmin)*m_scale);
         }
     }
-        
+
+    //
+    // point cordinates are in voxels
+    //
     final void processNeighborhood(int pointIndex, double x, double y, double z){
         
         int 
             x0 = (int)x,
             y0 = (int)y,
             z0 = (int)z;
+
         //printf("point: %d, (%6.2f,%6.2f,%6.2f): (%2d %2d %2d)\n", pointIndex, x,y,z, x0, y0, z0);
         // scan over neighborhood of the voxel 
         int ncount = m_neighbors.length;
@@ -186,23 +190,27 @@ public class PointSetShellBuilder implements AttributeOperation {
             int 
                 vx = x0 + m_neighbors[i],
                 vy = y0 + m_neighbors[i+1],
-                vz = z0 + m_neighbors[i+2];                    
-            if( vx >= 0 && vy >= 0 & vz >= 0 && vx < m_nx && vy < m_ny && vz < m_nz){
+                vz = z0 + m_neighbors[i+2];  
+            
+            //  printf("(%2d %2d %2d )\n", vx, vy, vz);
+            if( vx >= 0 && vy >= 0 && vz >= 0 && 
+                vx < m_nx && vy < m_ny && vz < m_nz){
+                // center of voxels have coordinates shifted by HALF
                 double 
-                    dx = (vx - x),
-                    dy = (vy - y),
-                    dz = (vz - z);
+                    dx = (vx - x)+HALF,
+                    dy = (vy - y)+HALF,
+                    dz = (vz - z)+HALF;
 
                 //printf("dx: (%6.2f,%6.2f,%6.2f)\n", dx, dy, dz);
                 double d2 = dx*dx + dy*dy + dz*dz;
                 // distances are flipped ! 
                 // this is to make initial grid 0 
                 // distance at points are m_layerThickness
-                double dist = m_layerThickness+1 - sqrt(d2);
-                
-                if(dist > 0 ) {
-                    long newdist = iround(dist*m_subvoxelResolution);
+                long newdist = iround((m_layerThickness - sqrt(d2))*m_subvoxelResolution)+1;                
+                //  printf("   newdist: %d\n",newdist);
+                if(newdist >= 0 ) {
                     long olddist = (m_distanceGrid.getAttribute(vx, vy, vz));
+                    //  printf("index: %2d olddist: %3d  newdist: %3d\n",pointIndex, olddist, newdist);
                     if(newdist > olddist){
                         // better point found
                         m_distanceGrid.setAttribute(vx, vy, vz, newdist);

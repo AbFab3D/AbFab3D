@@ -13,9 +13,7 @@
 
 package abfab3d.grid.op;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static java.lang.Math.abs;
+import javax.vecmath.Vector3d;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.AttributeChannel;
@@ -26,9 +24,13 @@ import abfab3d.grid.Grid2D;
 
 import abfab3d.grid.op.Neighborhood;
 import abfab3d.util.Bounds;
+import abfab3d.util.PointSet;
 
 import java.util.Arrays;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
 
 import static abfab3d.util.Output.printf;
@@ -885,6 +887,28 @@ public class ClosestPointIndexer {
         }
     }
 
+    /**
+       convert 3 arrays of points into grid units 
+     */
+    public static void getPointsInGridUnits(AttributeGrid grid, double pntx[], double pnty[], double pntz[]){
+
+        Bounds bounds = grid.getGridBounds();
+        double xmin = bounds.xmin;
+        double ymin = bounds.ymin;
+        double zmin = bounds.zmin;
+
+        double vs = grid.getVoxelSize();
+        int count = pntx.length;
+        double scale = 1./vs;
+        // first point is not used 
+        for(int i = 1; i < count; i++){
+            pntx[i] = (pntx[i] - xmin)*scale;
+            pnty[i] = (pnty[i] - ymin)*scale;
+            pntz[i] = (pntz[i] - zmin)*scale;
+
+        }
+    }
+
 
     /**
        convert points in grid goordinates into world coordinates 
@@ -1094,6 +1118,31 @@ public class ClosestPointIndexer {
         return usedcount;
     }
 
+
+    /**
+       converts input PontSet into 3 arrays and calculated distances 
+     */
+    public static void makeDistanceGrid(AttributeGrid indexGrid, 
+                                        PointSet pnts,
+                                        AttributeGrid interiorGrid, 
+                                        AttributeGrid distanceGrid,
+                                        double maxInDistance,
+                                        double maxOutDistance
+                                        ){
+        int npnt = pnts.size();
+        double px[] = new double[npnt];
+        double py[] = new double[npnt];
+        double pz[] = new double[npnt];
+        Vector3d pnt = new Vector3d();
+        for(int i = 0; i < npnt; i++){
+            pnts.getPoint(i, pnt);
+            px[i] = pnt.x;
+            py[i] = pnt.y;
+            pz[i] = pnt.z;
+        }
+        makeDistanceGrid(indexGrid, px, py, pz, interiorGrid, distanceGrid, maxInDistance, maxOutDistance);
+
+    }
     /**
        calculates distance grid from given closest point grid and interior grid 
        distanceGrid value are mapped and clamped to the interval [-maxInDistance, maxOutDistance]*(subvoxelResolution/voxelSize)
@@ -1168,6 +1217,7 @@ public class ClosestPointIndexer {
         long outAtt = dataChannel.makeAtt(maxOutDistance);
         Bounds bounds = indexGrid.getGridBounds();
         double vs = bounds.getVoxelSize();
+        double vs2 = vs/2;
         double xmin = bounds.xmin;
         double ymin = bounds.ymin;
         double zmin = bounds.zmin;
@@ -1179,9 +1229,9 @@ public class ClosestPointIndexer {
         boolean interior[] = new boolean[nz];
 
         for(int y = 0; y < ny; y++){
-            double coordy = ymin + vs*y;
+            double coordy = ymin + vs*y+vs2;
             for(int x = 0; x < nx; x++){
-                double coordx = xmin + vs*x;
+                double coordx = xmin + vs*x+vs2;
                 // read input grid data into 1D arrays
                 for(int z = 0; z < nz; z++){
                     att[z] = indexGrid.getAttribute(x,y,z);
@@ -1194,7 +1244,7 @@ public class ClosestPointIndexer {
                     int ind = (int)att[z];
                     if(ind > 0) {
                         // point has closest point 
-                        double coordz = zmin + vs*z;
+                        double coordz = zmin + vs*z+vs2;
                         double dist2 = distance2(coordx,coordy,coordz, pntx[ind],pnty[ind],pntz[ind]);
                         double dist = sqrt(dist2);
                         //xbprintf("%d\n", dist);

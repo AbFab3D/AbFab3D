@@ -21,17 +21,26 @@ import junit.framework.TestCase;
 
 
 import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.VectorIndexerArray;
+
+import abfab3d.grid.util.GridUtil;
 
 import abfab3d.geom.PointCloud;
 import abfab3d.util.Bounds;
 import abfab3d.util.PointSet;
 import abfab3d.util.PointSetArray;
+import abfab3d.util.ColorMapper;
+import abfab3d.util.ColorMapperDistance;
 
 import static java.lang.Math.sqrt;
+import static java.lang.Math.sin;
+import static java.lang.Math.cos;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
 import static abfab3d.util.Units.MM;
 import static abfab3d.util.MathUtil.L2S;
@@ -216,6 +225,125 @@ public class TestPointSetShellBuilder extends TestCase {
 
     }
 
+    public void devTestTwoPoints() throws Exception{
+
+        int imageWidth = 500;
+        double vs = 1*MM;
+        double x0 = -10*MM,y0 = -10*MM, z0 = -2*MM;
+        double x1 = 10*MM,y1 = 10*MM, z1 = 2*MM;
+        double bandWidth = 1*MM;
+        double maxOutDistance = 5*vs;
+        Bounds bounds = new Bounds(x0, x1, y0, y1, z0, z1, vs);
+        int magnification = imageWidth/bounds.getGridWidth();
+        int distanceBitCount = 16;
+
+        ArrayAttributeGridInt indexGrid = new ArrayAttributeGridInt(bounds, vs,vs);
+
+        PointSet pnts = new PointSetArray();
+        
+        double cx = bounds.getCenterX()+vs/2;
+        double cy = bounds.getCenterY()+vs/2;
+        double cz = bounds.getCenterZ()+vs/2;
+
+        pnts.addPoint(-1., -1., -1.); // dummy point
+
+        double dx = vs, dy = vs, dz = 0;
+
+        int np = 5;
+
+        for(int k = 0; k < np; k++){
+            pnts.addPoint(cx + k*dx, cy+k*dy, cz+k*dz);
+        }
+        
+        printf("points count: %d\n", pnts.size()-1);
+        
+        PointSetShellBuilder sb = new PointSetShellBuilder();
+        sb.setPoints(pnts);
+        sb.setShellHalfThickness(maxOutDistance/vs);
+
+        long t0 = time();
+        sb.execute(indexGrid);
+
+        AttributeGrid distGrid = new ArrayAttributeGridShort(bounds, vs, vs);
+        AttributeChannel distanceChannel = new AttributeChannel(AttributeChannel.DISTANCE, "dist", distanceBitCount, 0, 0, maxOutDistance);
+        distGrid.setAttributeDesc(new AttributeDesc(distanceChannel));        
+        ClosestPointIndexer.makeDistanceGrid(indexGrid, pnts, null, distGrid, 0, maxOutDistance);
+
+        AttributeChannel dataChannel = distGrid.getAttributeDesc().getChannel(0);
+        ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, bandWidth);
+
+        for(int iz = 0; iz < distGrid.getDepth(); iz++){
+            GridUtil.printSliceAttribute(indexGrid, iz);
+            GridUtil.writeSlice(distGrid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));
+        }
+                
+    }
+
+    public void devTestCircle() throws Exception{
+
+        int imageWidth = 500;
+        double vs = 1*MM;
+        double x0 = -10*MM,y0 = -10*MM, z0 = -10*MM;
+        double x1 = 10*MM,y1 = 10*MM, z1 = 10*MM;
+        double bandWidth = 1*MM;
+        double maxOutDistance = 5*vs;
+        Bounds bounds = new Bounds(x0, x1, y0, y1, z0, z1, vs);
+        int magnification = imageWidth/bounds.getGridWidth();
+        int distanceBitCount = 16;
+
+        ArrayAttributeGridInt indexGrid = new ArrayAttributeGridInt(bounds, vs,vs);
+
+        PointSet pnts = new PointSetArray();
+        
+        double cx = bounds.getCenterX()+vs/2;
+        double cy = bounds.getCenterY()+vs/2;
+        double cz = bounds.getCenterZ()+vs/2;
+
+        pnts.addPoint(-1., -1., -1.); // dummy point
+
+
+        int np = 64;
+        int nq = 40;
+
+        for(int k = 0; k < np; k++){
+            for(int q = 0; q < nq; q++){
+                
+                double phi = 2*Math.PI*k/np;
+                double theta = Math.PI*q/nq;
+                double r = 7*vs;
+                
+                double dx = r*cos(phi)*sin(theta);
+                double dy = r*sin(phi)*sin(theta);
+                double dz = r*cos(theta);
+                
+                pnts.addPoint(cx + dx, cy+dy, cz+ dz);
+            }
+        }
+        
+        printf("points count: %d\n", pnts.size()-1);
+        
+        PointSetShellBuilder sb = new PointSetShellBuilder();
+        sb.setPoints(pnts);
+        sb.setShellHalfThickness(maxOutDistance/vs);
+
+        long t0 = time();
+        sb.execute(indexGrid);
+
+        AttributeGrid distGrid = new ArrayAttributeGridShort(bounds, vs, vs);
+        AttributeChannel distanceChannel = new AttributeChannel(AttributeChannel.DISTANCE, "dist", distanceBitCount, 0, 0, maxOutDistance);
+        distGrid.setAttributeDesc(new AttributeDesc(distanceChannel));        
+        ClosestPointIndexer.makeDistanceGrid(indexGrid, pnts, null, distGrid, 0, maxOutDistance);
+
+        AttributeChannel dataChannel = distGrid.getAttributeDesc().getChannel(0);
+        ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, bandWidth);
+
+        for(int iz = 0; iz < distGrid.getDepth(); iz++){
+            GridUtil.printSliceAttribute(indexGrid, iz);
+            GridUtil.writeSlice(distGrid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));
+        }
+                
+    }
+
     long countAttribute(AttributeGrid grid, long attribute){
         int 
             nx = grid.getWidth(), 
@@ -273,12 +401,14 @@ public class TestPointSetShellBuilder extends TestCase {
         }
     }
 
-    public static void main(String arg[]){
+    public static void main(String arg[]) throws Exception{
 
-        for(int i = 0; i < 4; i++){
+        for(int i = 0; i < 1; i++){
             //new TestPointSetShellBuilder().devTestPoint();
             //new TestPointSetShellBuilder().testTwoPoints();
-            new TestPointSetShellBuilder().devTestSpeed();
+            //new TestPointSetShellBuilder().devTestTwoPoints();
+            new TestPointSetShellBuilder().devTestCircle();
+            //new TestPointSetShellBuilder().devTestSpeed();
         }
     }
 

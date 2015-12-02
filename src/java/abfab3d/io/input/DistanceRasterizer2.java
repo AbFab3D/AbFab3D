@@ -169,11 +169,13 @@ public class DistanceRasterizer2 implements TriangleCollector {
         double pntz[] = new double[pcount];
         t0 = time();
 
-        m_surfaceBuilder.getPointsInGridUnits(pntx, pnty, pntz);
+        //m_surfaceBuilder.getPointsInGridUnits(pntx, pnty, pntz);
+        m_surfaceBuilder.getPoints(pntx, pnty, pntz);
 
         PointSetShellBuilder sb = new PointSetShellBuilder();
+        
         sb.setPoints(new PointSetCoordArrays(pntx, pnty, pntz));
-        double thickness = 2.;
+        double thickness = 5.;
 
         sb.setShellHalfThickness(thickness);
 
@@ -193,6 +195,9 @@ public class DistanceRasterizer2 implements TriangleCollector {
         t0 = time();
 
         // distribute indices on the whole indexGrid        
+        
+        ClosestPointIndexer.getPointsInGridUnits(m_indexGrid, pntx, pnty, pntz);
+        
         if(m_threadCount <= 1) {
             ClosestPointIndexer.PI3_sorted(pntx, pnty, pntz, m_indexGrid);
             printf("ClosestPointIndexer.PI3_sorted time: %d ms\n", (time() - t0));
@@ -200,12 +205,13 @@ public class DistanceRasterizer2 implements TriangleCollector {
             ClosestPointIndexerMT.PI3_MT(pntx, pnty, pntz, m_indexGrid, m_threadCount);
             printf("ClosestPointIndexerMT.PI3_MT time: %d ms\n", (time() - t0));
         }
-
+        
         t0 = time();
         // transform points into world units
         ClosestPointIndexer.getPointsInWorldUnits(m_indexGrid, pntx, pnty, pntz);
         printf("ClosestPointIndexer.getPointsInWorldUnits(): %d ms\n", (time() - t0));
         
+
         t0 = time();
         ClosestPointIndexer.makeDistanceGrid_v2(m_indexGrid, 
                                              pntx, pnty, pntz, 
