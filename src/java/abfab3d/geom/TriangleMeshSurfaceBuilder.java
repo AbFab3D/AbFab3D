@@ -89,7 +89,11 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
     int m_estimatedPointCounts = 0;
 
     PointSet m_points;
+    public double m_samplingFactor = 1;
 
+    /**
+       @aram gridBounds 
+     */
     public TriangleMeshSurfaceBuilder(Bounds gridBounds){
 
         m_bounds = gridBounds.clone();
@@ -108,7 +112,10 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
     }
     
     /**
-       
+       returs surface points into 3 arrays 
+       @param pntx  x coordinates 
+       @param pnty  y coordinates 
+       @param pntz  z coordinates 
      */
     public void getPoints(double pntx[],double pnty[],double pntz[]){
         //
@@ -127,7 +134,7 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
     /**
        
      */
-    public void getPointsInGridUnits(double pntx[],double pnty[],double pntz[]){
+    private void getPointsInGridUnits(double pntx[],double pnty[],double pntz[]){
 
         //
         // coordinates are in grid units 
@@ -196,6 +203,13 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
        
      */
     public boolean addTri(Vector3d p0, Vector3d p1, Vector3d p2){
+        //addTri_bestAxis(p0,p1,p2);
+        addTri_allAxes(p0,p1,p2);
+        return true;
+    }
+
+    // render triangle in the plane orthogonal to the longest normal projection 
+    public boolean addTri_bestAxis(Vector3d p0, Vector3d p1, Vector3d p2){
         m_triCount++;
         v0.set(p0);
         v1.set(p1);
@@ -216,7 +230,7 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
             anx = abs(nx),
             any = abs(ny),
             anz = abs(nz);        
-        if(false) printf("normal: [%4.1f, %4.1f, %4.1f]\n",nx, ny, nz);
+        //if(false) printf("normal: [%4.1f, %4.1f, %4.1f]\n",nx, ny, nz);
 
         // select best axis to rasterize 
         // it is axis which has longest normal projection 
@@ -257,6 +271,51 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
         //TODO 
         // add triangle edges to deal with super thin triangles  (may be) 
 
+        return true;
+    }
+
+    // render triangle in al 3 planes 
+    public boolean addTri_allAxes(Vector3d p0, Vector3d p1, Vector3d p2){
+
+        m_triCount++;
+        v0.set(p0);
+        v1.set(p1);
+        v2.set(p2);
+
+        toGrid(v0);
+        toGrid(v1);
+        toGrid(v2);
+        // calculate triangle normal 
+        m_v1.sub(v1, v0);
+        m_v2.sub(v2, v0);
+        m_normal.cross(m_v2,m_v1);
+        double 
+            nv0 = m_normal.dot(v0),
+            nx = m_normal.x,
+            ny = m_normal.y,
+            nz = m_normal.z,
+            anx = abs(nx),
+            any = abs(ny),
+            anz = abs(nz);        
+
+        final double NEPS = 0.01;
+
+        // render trinagle in 3 orthogonal directins
+        if(abs(nx) > NEPS) {
+            m_voxelRenderer.setAxis(0);
+            m_voxelRenderer.setPlane(-ny/nx, -nz/nx, nv0/nx); 
+            m_triRenderer.fillTriangle(m_voxelRenderer, v0.y, v0.z,v1.y, v1.z, v2.y, v2.z);
+        }
+        if(abs(ny) > NEPS) {
+            m_voxelRenderer.setAxis(1);
+            m_voxelRenderer.setPlane(-nz/ny, -nx/ny, nv0/ny); 
+            m_triRenderer.fillTriangle(m_voxelRenderer, v0.z, v0.x,v1.z, v1.x, v2.z, v2.x);
+        }
+        if(abs(nz) > NEPS) {
+            m_voxelRenderer.setAxis(2);
+            m_voxelRenderer.setPlane(-nx/nz, -ny/nz, nv0/nz); 
+            m_triRenderer.fillTriangle(m_voxelRenderer, v0.x, v0.y,v1.x, v1.y, v2.x, v2.y);
+        }
         return true;
     }
 

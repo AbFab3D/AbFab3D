@@ -59,6 +59,7 @@ public class GridLoader {
     protected double m_shellHalfThickness = 2;
     protected int m_threadCount = 1;
     protected int m_lastNumTriangles;
+    protected double m_surfaceVoxelSize = 1;
 
     public GridLoader(){
         
@@ -100,6 +101,10 @@ public class GridLoader {
 
     public void setShellHalfThickness(double value){  
         m_shellHalfThickness = value;
+    }
+
+    public void setSurfaceVoxelSize(double value){  
+        m_surfaceVoxelSize = value;
     }
 
     public void setDensityAlgorithm(int algorithm){
@@ -209,6 +214,7 @@ public class GridLoader {
                 rasterizer.setMaxInDistance(m_maxInDistance);
                 rasterizer.setMaxOutDistance(m_maxOutDistance);                
                 rasterizer.setShellHalfThickness(m_shellHalfThickness);
+                rasterizer.setSurfaceVoxelSize(m_surfaceVoxelSize);
                 rasterizer.setThreadCount(m_threadCount);
                 // run rasterization
                 rasterizer.getDistances(reader, distanceGrid);

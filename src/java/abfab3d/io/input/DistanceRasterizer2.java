@@ -75,6 +75,9 @@ public class DistanceRasterizer2 implements TriangleCollector {
     double m_maxDistance;
     protected int m_threadCount = 1;
 
+    // size of surface voxels relative to size fo grid voxles 
+    protected double m_surfaceVoxelSize = 1.;
+
     int m_triCount = 0;
 
     // half thickness of initial shell around the mesh (in voxels )
@@ -88,40 +91,64 @@ public class DistanceRasterizer2 implements TriangleCollector {
         this.m_bounds = bounds.clone();
         
     }
+    
+    
+    /**
+       set relative size of voxel used for mesh surface rasterization
+       Default value is 1 
+       smalller value will cause generation of more points on surface and will increase distance precision
+     */
+    public void setSurfaceVoxelSize(double voxelSize){
 
+        m_surfaceVoxelSize = voxelSize;
+
+    }
+
+    /**
+       set maximal interior distance to calculate 
+     */
     public void setMaxInDistance(double value){
         m_maxInDistance = value;
     }
 
+    /**
+       set maximal exterior distance to calculate 
+     */
     public void setMaxOutDistance(double value){
 
         m_maxOutDistance = value;
 
     }
 
+    /**
+       set thread count for MT parts of algorithm 
+     */
     public void setThreadCount(int threadCount){
 
         m_threadCount = threadCount;
 
     }
 
+    /**
+       set thickness of initial shel whiuch is build around rastrerised surface
+     */
     public void setShellHalfThickness(double value){  
 
         m_shellHalfThickness = value;
 
     }
 
-    //public void setSubvoxelResolution(long value){        
-        //m_subvoxelResolution = value;
-    //}
-
+    
     protected int initialize(){
 
         m_rasterizer = new MeshRasterizer(m_bounds, gridX, gridY, gridZ);
         m_rasterizer.setInteriorValue(1);
 
         m_indexGrid = createIndexGrid();
-        m_surfaceBuilder = new TriangleMeshSurfaceBuilder(m_bounds);        
+
+        Bounds surfaceBounds = m_bounds.clone();
+        surfaceBounds.setVoxelSize(m_bounds.getVoxelSize()*m_surfaceVoxelSize);
+        m_surfaceBuilder = new TriangleMeshSurfaceBuilder(surfaceBounds);        
         m_surfaceBuilder.initialize();
 
         m_shellBuilder = new PointSetShellBuilder();
@@ -152,6 +179,12 @@ public class DistanceRasterizer2 implements TriangleCollector {
         return true;
     }
 
+
+    /**
+       Calculates distances on distanceGrid from given mesh 
+       @param triProducer - the mesh 
+       @param distanceGrid grid to contain distances to the mesh 
+     */
     public void getDistances(TriangleProducer triProducer, AttributeGrid distanceGrid){
         
         printf("DistanceRasterizer2.getDistances(grid)\n");
@@ -169,18 +202,15 @@ public class DistanceRasterizer2 implements TriangleCollector {
         double pntz[] = new double[pcount];
         t0 = time();
 
-        //m_surfaceBuilder.getPointsInGridUnits(pntx, pnty, pntz);
         m_surfaceBuilder.getPoints(pntx, pnty, pntz);
 
-        PointSetShellBuilder sb = new PointSetShellBuilder();
+        //PointSetShellBuilder sb = new PointSetShellBuilder();
         
-        sb.setPoints(new PointSetCoordArrays(pntx, pnty, pntz));
-        double thickness = 2.5;
-
-        sb.setShellHalfThickness(thickness);
+        m_shellBuilder.setPoints(new PointSetCoordArrays(pntx, pnty, pntz));
+        m_shellBuilder.setShellHalfThickness(m_shellHalfThickness);
 
         t0 = time();
-        sb.execute(m_indexGrid);
+        m_shellBuilder.execute(m_indexGrid);
 
         printf("m_shellBuilder.execute() %d ms\n", (time() - t0));
 
@@ -225,6 +255,11 @@ public class DistanceRasterizer2 implements TriangleCollector {
     }
 
 
+    /**
+       Calculates density on the interor of given mesh
+       @param triProducer - the mesh 
+       @param densityGrid grid to contain density of interior
+     */
     public void getDensity(TriangleProducer triProducer, AttributeGrid densityGrid){
 
         printf("DistanceRasterizer2.getDensity()\n");
@@ -246,16 +281,13 @@ public class DistanceRasterizer2 implements TriangleCollector {
         double pntz[] = new double[pcount];
         t0 = time();
 
-        m_surfaceBuilder.getPointsInGridUnits(pntx, pnty, pntz);
+        m_surfaceBuilder.getPoints(pntx, pnty, pntz);
 
-        PointSetShellBuilder sb = new PointSetShellBuilder();
-        sb.setPoints(new PointSetCoordArrays(pntx, pnty, pntz));
-        double thickness = 2.;
-
-        sb.setShellHalfThickness(thickness);
+        m_shellBuilder.setPoints(new PointSetCoordArrays(pntx, pnty, pntz));
+        m_shellBuilder.setShellHalfThickness(m_shellHalfThickness);
 
         t0 = time();
-        sb.execute(m_indexGrid);
+        m_shellBuilder.execute(m_indexGrid);
 
         printf("m_shellBuilder.execute() %d ms\n", (time() - t0));
 
@@ -267,7 +299,6 @@ public class DistanceRasterizer2 implements TriangleCollector {
         printf("m_rasterizer.getRaster(interiorGrid) %d ms\n", (time() - t0));
 
         t0 = time();
-        ClosestPointIndexer.getPointsInWorldUnits(m_indexGrid, pntx, pnty, pntz);
         ClosestPointIndexer.makeDensityGrid(m_indexGrid, pntx, pnty, pntz,
                                            interiorGrid, densityGrid, densityGrid.getAttributeDesc().getChannel(0));
         printf("ClosestPointIndexer.makeDensityGrid() %d ms\n", (time() - t0));
