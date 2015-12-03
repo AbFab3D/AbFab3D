@@ -33,6 +33,7 @@ import static java.lang.Math.min;
 import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
 
+import static abfab3d.util.Units.MM;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 import static abfab3d.util.MathUtil.sqr;
@@ -65,7 +66,7 @@ public class ClosestPointIndexer {
     static final double EPS = 1.e-5;  // tolerance for parabolas intersection 
     static public final double INF = 1.e10;  // infinity 
     static final double HALF = 0.5;
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static boolean DEBUG1 = false;
     static final boolean DEBUG_TIMING = true;
     static final int sm_iterationNeig[] = Neighborhood.makeBall(1.5); // neighborhood for iterations
@@ -1218,9 +1219,9 @@ public class ClosestPointIndexer {
         Bounds bounds = indexGrid.getGridBounds();
         double vs = bounds.getVoxelSize();
         double vs2 = vs/2;
-        double xmin = bounds.xmin;
-        double ymin = bounds.ymin;
-        double zmin = bounds.zmin;
+        double xmin = bounds.xmin+vs2;
+        double ymin = bounds.ymin+vs2;
+        double zmin = bounds.zmin+vs2;
 
         double maxInDistance2 = maxInDistance*maxInDistance;
         double maxOutDistance2 = maxOutDistance*maxOutDistance;
@@ -1229,9 +1230,9 @@ public class ClosestPointIndexer {
         boolean interior[] = new boolean[nz];
 
         for(int y = 0; y < ny; y++){
-            double coordy = ymin + vs*y+vs2;
+            double coordy = ymin + vs*y;
             for(int x = 0; x < nx; x++){
-                double coordx = xmin + vs*x+vs2;
+                double coordx = xmin + vs*x;
                 // read input grid data into 1D arrays
                 for(int z = 0; z < nz; z++){
                     att[z] = indexGrid.getAttribute(x,y,z);
@@ -1244,7 +1245,7 @@ public class ClosestPointIndexer {
                     int ind = (int)att[z];
                     if(ind > 0) {
                         // point has closest point 
-                        double coordz = zmin + vs*z+vs2;
+                        double coordz = zmin + vs*z;
                         double dist2 = distance2(coordx,coordy,coordz, pntx[ind],pnty[ind],pntz[ind]);
                         double dist = sqrt(dist2);
                         //xbprintf("%d\n", dist);

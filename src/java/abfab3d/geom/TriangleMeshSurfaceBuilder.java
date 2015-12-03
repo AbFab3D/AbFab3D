@@ -118,8 +118,8 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
 
         for(int i = 0; i < pntx.length; i++){
             pntx[i] = toWorldX(pntx[i]);
-            pnty[i] = toWorldX(pnty[i]);
-            pntz[i] = toWorldX(pntz[i]);
+            pnty[i] = toWorldY(pnty[i]);
+            pntz[i] = toWorldZ(pntz[i]);
         }
     }
 

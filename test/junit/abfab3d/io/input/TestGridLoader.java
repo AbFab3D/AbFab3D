@@ -190,11 +190,11 @@ public class TestGridLoader extends TestCase {
         printf("devTestSTL()\n");
         int densityBitCount = 8;
         int distanceBitCount = 16;
-        double voxelSize = 4*MM;
-        double bandWidth = 4*MM;
+        double voxelSize = 0.5*MM;
+        double bandWidth = 2*MM;
         double maxInDistance = 50*MM;
         double maxOutDistance = 50*MM;
-        int magnification = 10;
+        int magnification = 1;
         int threadCount = 4;
         int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
         //int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
@@ -205,8 +205,10 @@ public class TestGridLoader extends TestCase {
             //"test/models/sphere_10cm_.4K_tri.stl",
             //"test/models/sphere_10cm_5K_tri.stl",
             //"test/models/gyrosphere.stl",
-            "test/models/sphere_10cm_32K_tri.stl",
+            //"test/models/sphere_10cm_32K_tri.stl",
             //"test/models/sphere_10cm_400K_tri.stl"
+            "test/models/deer.stl"
+
         };
 
             
@@ -230,7 +232,7 @@ public class TestGridLoader extends TestCase {
             printf("grid %s loaded in %d ms\n", path[i], (time() - t0));
             t0 = time();
             //for(int iz = grid.getDepth()/2; iz < grid.getDepth()/2+1; iz++){
-            for(int iz = 0; iz < grid.getDepth(); iz++){
+            for(int iz = 0; iz < grid.getDepth(); iz += 1){
                 AttributeChannel dataChannel = grid.getAttributeDesc().getChannel(0);
                 ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, bandWidth);
                 GridUtil.writeSlice(grid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));

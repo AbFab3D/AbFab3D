@@ -58,6 +58,7 @@ import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.MathUtil.L2S;
+import static abfab3d.util.Units.MM;
 import static abfab3d.util.MathUtil.iround;
 
 
@@ -71,7 +72,7 @@ import static abfab3d.util.MathUtil.iround;
  */
 public class PointSetShellBuilder implements AttributeOperation {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static final double TOL = 1.e-2;
     static final double HALF = 0.5; // half voxel offset to the center of voxel
     

@@ -175,7 +175,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
         PointSetShellBuilder sb = new PointSetShellBuilder();
         
         sb.setPoints(new PointSetCoordArrays(pntx, pnty, pntz));
-        double thickness = 5.;
+        double thickness = 2.5;
 
         sb.setShellHalfThickness(thickness);
 
@@ -250,7 +250,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
 
         PointSetShellBuilder sb = new PointSetShellBuilder();
         sb.setPoints(new PointSetCoordArrays(pntx, pnty, pntz));
-        double thickness = 1.;
+        double thickness = 2.;
 
         sb.setShellHalfThickness(thickness);
 
