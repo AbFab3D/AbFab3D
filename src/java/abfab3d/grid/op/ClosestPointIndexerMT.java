@@ -45,6 +45,8 @@ import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepX_sorted;
 import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepY_sorted;
 import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepZ_sorted;
 
+import static abfab3d.grid.op.ClosestPointIndexer.makeDistanceGridSlice;
+
 /**
    MT version of closest point indexer
    
@@ -77,7 +79,7 @@ public class ClosestPointIndexerMT {
      */
     public static void PI3_MT(double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid, int threadCount){
 
-        if(DEBUG){printf("PI3_MT(threads: %d)\n", threadCount);}
+        //if(DEBUG){printf("PI3_MT(threads: %d)\n", threadCount);}
         long t0 = time(), t1 = t0;
 
         int nx = indexGrid.getWidth();
@@ -106,19 +108,19 @@ public class ClosestPointIndexerMT {
         
     }
 
-    static void DT3sweep_MT(int direction, int gridSize, double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid, int threadCount){
+    protected static void DT3sweep_MT(int direction, int gridSize, double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid, int threadCount){
         
-        if(DEBUG) printf("DT3sweep_MT(%d)\n", direction);
+        //if(DEBUG) printf("DT3sweep_MT(%d)\n", direction);
         long t0 = time();
         int sliceThickness = 1;
         SliceManager slicer = new SliceManager(gridSize,sliceThickness);
         
-        if(DEBUG) printf("threads: %d slices: %d \n", threadCount, slicer.getSliceCount());
+        //if(DEBUG) printf("threads: %d slices: %d \n", threadCount, slicer.getSliceCount());
 
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         
         for(int i = 0; i < threadCount; i++){
-            SliceProcessor sliceProcessor = new SliceProcessor(i, direction, slicer,coordx,coordy,coordz, indexGrid);
+            SliceProcessorSweeper sliceProcessor = new SliceProcessorSweeper(i, direction, slicer,coordx,coordy,coordz, indexGrid);
             executor.submit(sliceProcessor);
         }
         executor.shutdown();
@@ -133,9 +135,13 @@ public class ClosestPointIndexerMT {
 
     }
 
+   
 
-    static class SliceProcessor implements Runnable {
-
+    /**
+       class to calculate distance transform for single slice
+    */
+    static class SliceProcessorSweeper implements Runnable {
+        
         SliceManager slicer;
         int id;
         double coordx[];
@@ -153,7 +159,7 @@ public class ClosestPointIndexerMT {
         double value[];
         int gpnt[];
 
-        SliceProcessor(int id, int direction, SliceManager slicer, double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid){
+        SliceProcessorSweeper(int id, int direction, SliceManager slicer, double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid){
 
             this.id = id;
             this.slicer = slicer;
@@ -211,5 +217,109 @@ public class ClosestPointIndexerMT {
             
             //if(DEBUG)printf("thread: %d done\n", id);
         }        
+    } // static class SliceProcessorSweeper
+
+
+
+    public static void makeDistanceGrid_MT(AttributeGrid indexGrid, 
+                                           double pntx[], double pnty[], double pntz[], 
+                                           AttributeGrid interiorGrid, 
+                                           AttributeGrid distanceGrid,
+                                           double maxInDistance,
+                                           double maxOutDistance,
+                                           int threadCount
+                                        ){
+
+
+        //if(DEBUG) printf("makeDistanceGrid_MT()\n");
+        long t0 = time();
+        int sliceThickness = 1;
+        SliceManager slicer = new SliceManager(distanceGrid.getHeight(),sliceThickness);
+        
+        if(DEBUG) printf("threads: %d slices: %d \n", threadCount, slicer.getSliceCount());
+        
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        
+        for(int i = 0; i < threadCount; i++){
+            SliceProcessorDistance sliceProcessor = new SliceProcessorDistance(i, slicer,
+                                                                               indexGrid, pntx, pnty, pntz, 
+                                                                               interiorGrid, distanceGrid, maxInDistance,maxOutDistance);
+            executor.submit(sliceProcessor);
+        }
+        executor.shutdown();
+        
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        
+        //if(DEBUG_TIMING) printf("makeDistanceGrid_MT() done %d ms\n", (time() - t0));
+
     }
+    
+
+    /**
+       class to calculate distance values on the grid
+     */
+    static class SliceProcessorDistance implements Runnable {
+
+        SliceManager slicer;
+        int id;
+        double coordx[];
+        double coordy[];
+        double coordz[];
+        AttributeGrid indexGrid;
+        AttributeGrid interiorGrid;
+        AttributeGrid distanceGrid; 
+        // work arrays
+        long att[];
+        boolean interior[];
+        double maxInDistance, maxOutDistance;
+        Bounds gridBounds;
+
+        SliceProcessorDistance(int id, SliceManager slicer, 
+                               AttributeGrid indexGrid, double coordx[], double coordy[], double coordz[], AttributeGrid interiorGrid, AttributeGrid distanceGrid, 
+                               double maxInDistance,double maxOutDistance){
+
+            this.id = id;
+            this.slicer = slicer;
+            this.coordx = coordx;
+            this.coordy = coordy;
+            this.coordz = coordz;
+            this.indexGrid = indexGrid;
+            this.distanceGrid = distanceGrid;
+            this.interiorGrid = interiorGrid;
+            this.maxInDistance = maxInDistance;
+            this.maxOutDistance = maxOutDistance;
+
+            this.gridBounds = indexGrid.getGridBounds();
+
+            int nz = indexGrid.getDepth();
+                        
+            // work arrays
+            this.att = new long[nz];
+            this.interior = new boolean[nz];
+            
+        }
+
+        public void run(){
+
+            //if(DEBUG)printf("thread: %d run\n", id);
+            while(true){
+                
+                Slice slice = slicer.getNextSlice();
+                //if(DEBUG)printf("thread: %d slice: %s\n", id, slice);
+                if(slice == null)
+                    break;
+
+                makeDistanceGridSlice(slice.smin, slice.smax, gridBounds, att, interior,
+                                      indexGrid, coordx, coordy, coordz, interiorGrid, distanceGrid, maxInDistance, maxOutDistance);
+                //if(DEBUG)printf("thread: %d slice: %d %d done\n", id, slice.smin, slice.smax);
+            }
+            
+            //if(DEBUG)printf("thread: %d done\n", id);
+        }        
+    } // static class SliceProcessorDistance 
+
 }

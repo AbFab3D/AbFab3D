@@ -156,8 +156,10 @@ public class TestGridLoader extends TestCase {
         loader.setDensityAlgorithm(rasterAlgorithm);
         loader.setMaxInDistance(maxInDistance);
         loader.setMaxOutDistance(maxOutDistance);
+        //loader.setShellHalfThickness(1.5);
         loader.setShellHalfThickness(2.6);
-        loader.setSurfaceVoxelSize(0.35);
+        //loader.setSurfaceVoxelSize(0.35);
+        loader.setSurfaceVoxelSize(0.31);
                 
         AttributeGrid grid = loader.loadDistanceGrid(path);
         
@@ -270,8 +272,8 @@ public class TestGridLoader extends TestCase {
         loader.setMaxInDistance(maxInDistance);
         loader.setMaxOutDistance(maxOutDistance);
         loader.setThreadCount(threadCount);
-        loader.setShellHalfThickness(1.);
-        loader.setSurfaceVoxelSize(0.5);
+        loader.setShellHalfThickness(2.);
+        loader.setSurfaceVoxelSize(1);
         
         for(int i = 0; i < path.length; i++){
             printf("voxelSize: %7.2f mm \n", voxelSize/MM);            

@@ -96,7 +96,7 @@ public class TestTriangleMeshSurfaceBuilder extends TestCase {
         double pntx[] = new double[pcount];
         double pnty[] = new double[pcount];
         double pntz[] = new double[pcount];
-        dts.getPointsInGridUnits(pntx, pnty, pntz);
+        dts.getPoints(pntx, pnty, pntz);
         
         STLWriter stl = new STLWriter("/tmp/testTMSB.stl");
         
@@ -110,7 +110,7 @@ public class TestTriangleMeshSurfaceBuilder extends TestCase {
             double vs2 = vs/2; // half voxel 
             for(int i = 0; i < pntx.length; i++){
                 //printf("(%7.2f, %7.2f, %7.2f) mm \n", pnts[i]/MM, pnts[i+1]/MM, pnts[i+2]/MM);            
-                octa.setCenter(pntx[i]*vs + xmin,pnty[i]*vs + ymin,pntz[i]*vs+zmin);
+                octa.setCenter(pntx[i],pnty[i],pntz[i]);
                 octa.getTriangles(stl);            
             }
         }
@@ -154,7 +154,7 @@ public class TestTriangleMeshSurfaceBuilder extends TestCase {
         double pntx[] = new double[pcount];
         double pnty[] = new double[pcount];
         double pntz[] = new double[pcount];
-        dts.getPointsInGridUnits(pntx, pnty, pntz);
+        dts.getPoints(pntx, pnty, pntz);
 
         printf("dts.getPoints(pnts) time: %d ms\n",(time()-t0));
 
@@ -169,7 +169,7 @@ public class TestTriangleMeshSurfaceBuilder extends TestCase {
             double vs2 = vs/2; // half voxel 
             for(int i = 0; i < pntx.length; i++){
                 //printf("(%7.2f, %7.2f, %7.2f) mm \n", pnts[i]/MM, pnts[i+1]/MM, pnts[i+2]/MM);            
-                octa.setCenter(pntx[i]*vs + xmin,pnty[i]*vs + ymin,pntz[i]*vs+zmin);
+                octa.setCenter(pntx[i],pnty[i],pntz[i]);
                 octa.getTriangles(stl);            
             }
         }
