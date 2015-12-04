@@ -54,8 +54,12 @@ import static abfab3d.util.MathUtil.step10;
  */
 public class DistanceRasterizer2 implements TriangleCollector {
 
+    static final boolean DEBUG = false;
+    static final boolean DEBUG_TIMING = false;
+
+
     // this is used purely for precision of distance calculations on distance grid    
-    long m_subvoxelResolution=100;
+    //long m_subvoxelResolution=100;
     // size of grid 
     int gridX,gridY,gridZ;
 
@@ -154,7 +158,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
         m_shellBuilder = new PointSetShellBuilder();
         
         m_shellBuilder.setShellHalfThickness(m_shellHalfThickness);
-        printf("calling m_shellBuilder.initialize()\n");
+        if(DEBUG)printf("calling m_shellBuilder.initialize()\n");
 
         return DataSource.RESULT_OK;
     }
@@ -163,7 +167,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
     protected AttributeGrid createIndexGrid(){
         
         double vs = m_bounds.getVoxelSize();
-        printf("index grid bounds: %s  voxelSize: %7.5f\n", m_bounds, vs);
+        if(DEBUG)printf("index grid bounds: %s  voxelSize: %7.5f\n", m_bounds, vs);
         return new ArrayAttributeGridInt(m_bounds, vs, vs);
 
     }
@@ -187,15 +191,15 @@ public class DistanceRasterizer2 implements TriangleCollector {
      */
     public void getDistances(TriangleProducer triProducer, AttributeGrid distanceGrid){
         
-        printf("DistanceRasterizer2.getDistances(grid)\n");
+        if(DEBUG)printf("DistanceRasterizer2.getDistances(grid)\n");
         long t0 = time();
 
         initialize();
         triProducer.getTriangles(this);
-        printf("triProducer.getTriangles(this) time: %d ms\n", (time() - t0));
+        if(DEBUG_TIMING)printf("triProducer.getTriangles(this) time: %d ms\n", (time() - t0));
 
         int pcount = m_surfaceBuilder.getPointCount();
-        printf("pcount: %d\n", pcount);
+        if(DEBUG)printf("pcount: %d\n", pcount);
 
         double pntx[] = new double[pcount];
         double pnty[] = new double[pcount];
@@ -212,14 +216,14 @@ public class DistanceRasterizer2 implements TriangleCollector {
         t0 = time();
         m_shellBuilder.execute(m_indexGrid);
 
-        printf("m_shellBuilder.execute() %d ms\n", (time() - t0));
+        if(DEBUG_TIMING)printf("m_shellBuilder.execute() %d ms\n", (time() - t0));
 
         AttributeGrid interiorGrid = new GridMask(gridX,gridY,gridZ);
         
         t0 = time();
         m_rasterizer.getRaster(interiorGrid);
 
-        printf("m_rasterizer.getRaster(interiorGrid) time: %d ms\n", (time() - t0));
+        if(DEBUG_TIMING)printf("m_rasterizer.getRaster(interiorGrid) time: %d ms\n", (time() - t0));
 
 
         t0 = time();
@@ -230,25 +234,25 @@ public class DistanceRasterizer2 implements TriangleCollector {
         
         if(m_threadCount <= 1) {
             ClosestPointIndexer.PI3_sorted(pntx, pnty, pntz, m_indexGrid);
-            printf("ClosestPointIndexer.PI3_sorted time: %d ms\n", (time() - t0));
+            if(DEBUG_TIMING)printf("ClosestPointIndexer.PI3_sorted time: %d ms\n", (time() - t0));
         } else {
             ClosestPointIndexerMT.PI3_MT(pntx, pnty, pntz, m_indexGrid, m_threadCount);
-            printf("ClosestPointIndexerMT.PI3_MT time: %d ms\n", (time() - t0));
+            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.PI3_MT time: %d ms\n", (time() - t0));
         }
         
         t0 = time();
         // transform points into world units
         ClosestPointIndexer.getPointsInWorldUnits(m_indexGrid, pntx, pnty, pntz);
-        printf("ClosestPointIndexer.getPointsInWorldUnits(): %d ms\n", (time() - t0));
+        if(DEBUG_TIMING)printf("ClosestPointIndexer.getPointsInWorldUnits(): %d ms\n", (time() - t0));
         
         
         t0 = time();
         if(m_threadCount <= 1) {
             ClosestPointIndexer.makeDistanceGrid(m_indexGrid, pntx, pnty, pntz, interiorGrid, distanceGrid, m_maxInDistance, m_maxOutDistance);
-            printf("ClosestPointIndexer.makeDistanceGrid() time: %d ms\n", (time() - t0));
+            if(DEBUG_TIMING)printf("ClosestPointIndexer.makeDistanceGrid()ime: %d ms\n", (time() - t0));
         } else {
             ClosestPointIndexerMT.makeDistanceGrid_MT(m_indexGrid, pntx, pnty, pntz, interiorGrid, distanceGrid, m_maxInDistance, m_maxOutDistance, m_threadCount);
-            printf("ClosestPointIndexerMT.makeDistanceGrid_MT() time: %d ms\n", (time() - t0));
+            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.makeDistanceGrid_MT()ime: %d ms\n", (time() - t0));
         }
        
     }
@@ -261,19 +265,19 @@ public class DistanceRasterizer2 implements TriangleCollector {
      */
     public void getDensity(TriangleProducer triProducer, AttributeGrid densityGrid){
 
-        printf("DistanceRasterizer2.getDensity()\n");
+        if(DEBUG)printf("DistanceRasterizer2.getDensity()\n");
 
         long t0 = time();
         long t1 = time();
         initialize();        
-        printf("DistanceRasterizer2.initialize() %d ms\n", (time() - t1));
+        if(DEBUG_TIMING)printf("DistanceRasterizer2.initialize() %d ms\n", (time() - t1));
         t1 = time();
         t0 = t1;
         triProducer.getTriangles(this);
-        printf("DistanceRasterizer2  getTriangles() %d ms\n", (time() - t0));
+        if(DEBUG_TIMING)printf("DistanceRasterizer2  getTriangles() %d ms\n", (time() - t0));
         
         int pcount = m_surfaceBuilder.getPointCount();
-        printf("pcount: %d\n", pcount);
+        if(DEBUG)printf("pcount: %d\n", pcount);
 
         double pntx[] = new double[pcount];
         double pnty[] = new double[pcount];
@@ -288,19 +292,19 @@ public class DistanceRasterizer2 implements TriangleCollector {
         t0 = time();
         m_shellBuilder.execute(m_indexGrid);
 
-        printf("m_shellBuilder.execute() %d ms\n", (time() - t0));
+        if(DEBUG_TIMING)printf("m_shellBuilder.execute() %d ms\n", (time() - t0));
 
         t0 = time();
         
         AttributeGrid interiorGrid = new GridMask(gridX,gridY,gridZ);
 
         m_rasterizer.getRaster(interiorGrid);
-        printf("m_rasterizer.getRaster(interiorGrid) %d ms\n", (time() - t0));
+        if(DEBUG_TIMING)printf("m_rasterizer.getRaster(interiorGrid) %d ms\n", (time() - t0));
 
         t0 = time();
         ClosestPointIndexer.makeDensityGrid(m_indexGrid, pntx, pnty, pntz,
                                            interiorGrid, densityGrid, densityGrid.getAttributeDesc().getChannel(0));
-        printf("ClosestPointIndexer.makeDensityGrid() %d ms\n", (time() - t0));
+        if(DEBUG_TIMING)printf("ClosestPointIndexer.makeDensityGrid() %d ms\n", (time() - t0));
         if(false){
             int z = interiorGrid.getDepth()/2;
             printf("interior grid:\n");
@@ -315,7 +319,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
 
     }
 
-    
+    /*
     void makeDensityFromDistance(AttributeGrid distGrid, AttributeGrid interiorGrid, AttributeGrid densityGrid){
 
         int 
@@ -343,4 +347,5 @@ public class DistanceRasterizer2 implements TriangleCollector {
             }
         }        
     }    
+    */
 }

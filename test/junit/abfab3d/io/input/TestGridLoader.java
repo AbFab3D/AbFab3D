@@ -238,24 +238,24 @@ public class TestGridLoader extends TestCase {
      */
     public void devTestSTL_distance() throws Exception {
         
-        printf("devTestSTL()\n");
+        printf("running devTestSTL_distance()\n");
         int densityBitCount = 8;
         int distanceBitCount = 16;
-        double voxelSize = 0.2*MM;
-        double bandWidth = 2*MM;
-        double maxInDistance = 50*MM;
-        double maxOutDistance = 50*MM;
+        double voxelSize = 0.1*MM;
+        double bandWidth = 0.5*MM;
+        double maxInDistance = 3*MM;
+        double maxOutDistance = 3*MM;
         int magnification = 2;
         int threadCount = 4;
-        int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
+        //int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
         //int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
         //int rasterAlgorithm = GridLoader.RASTERIZER_ZBUFFER;
-        //int rasterAlgorithm = GridLoader.RASTERIZER_WAVELET;
+        int rasterAlgorithm = GridLoader.RASTERIZER_WAVELET;
 
         String path[] = new String[] {
-            "test/models/sphere_10cm_.4K_tri.stl",
+            //"test/models/sphere_10cm_.4K_tri.stl",
             //"test/models/sphere_10cm_5K_tri.stl",
-            //"test/models/gyrosphere.stl",
+            "test/models/gyrosphere.stl",
             //"test/models/sphere_10cm_32K_tri.stl",
             //"test/models/sphere_10cm_400K_tri.stl"
             //"test/models/deer.stl"
@@ -276,12 +276,18 @@ public class TestGridLoader extends TestCase {
         loader.setSurfaceVoxelSize(1);
         
         for(int i = 0; i < path.length; i++){
+            printf("path: %s\n", path[i]);
             printf("voxelSize: %7.2f mm \n", voxelSize/MM);            
-            printf("rasterization algorithm: %s \n", GridLoader.getAlgorithmName(rasterAlgorithm));            
-            printf("loading %s\n", path[i]);
+            printf("algorithm: %s \n", GridLoader.getAlgorithmName(rasterAlgorithm));            
+            printf("distanceRange: (%7.3f, %7.3f)mm \n", (-maxInDistance/MM), (maxOutDistance/MM));            
+            printf("threadCount: %d\n", threadCount);            
+            
             long t0 = time();
             AttributeGrid grid = loader.loadDistanceGrid(path[i]);
-            printf("grid %s loaded in %d ms\n", path[i], (time() - t0));
+            long tt = (time() - t0);
+            printf("gridSize: [%d x %d x %d]\n", grid.getWidth(), grid.getHeight(), grid.getDepth(), loader.getTriangleCount());
+            printf("triangleCount: %d \n", loader.getTriangleCount());
+            printf("loadingTime: %d ms\n", tt);
             t0 = time();
             //if(false){int iz = grid.getDepth()/2;
             for(int iz = grid.getDepth()/2; iz < grid.getDepth()/2+1; iz++){
@@ -371,7 +377,7 @@ public class TestGridLoader extends TestCase {
 
     public static void main(String[] args) throws Exception{
 
-        for(int k = 0; k < 1; k++){
+        for(int k = 0; k < 4; k++){
             //new TestGridLoader().devTestSTL_density();
             new TestGridLoader().devTestSTL_distance();
             //new TestGridLoader().testRasterizerDistancePrecision();

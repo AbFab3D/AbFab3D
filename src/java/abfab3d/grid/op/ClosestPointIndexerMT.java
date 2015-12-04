@@ -61,7 +61,7 @@ import static abfab3d.grid.op.ClosestPointIndexer.makeDistanceGridSlice;
 public class ClosestPointIndexerMT {
 
 
-    static final boolean DEBUG_TIMING = true;
+    static final boolean DEBUG_TIMING = false;
     static final boolean DEBUG = false;
 
 

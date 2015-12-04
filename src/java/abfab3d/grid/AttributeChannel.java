@@ -45,8 +45,8 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
      int m_bits;
 
     // mask to get sign bit 
-    //long m_signMask;
-    //long m_complementMask;
+    long m_signMask;
+    long m_complementMask;
     // bitmask to extract channel bits from unsigned long
     long m_mask;
     long m_maxLongValue;
@@ -57,27 +57,29 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     double m_D2B; // Double -> Bits conversion factor 
     double m_B2D; // Bits -> Double conversion factor 
 
+    BitsExtractor m_bitsExtractor;
+    
     /**
        attribute channel stores data in given number of bits 
        the physical value is interpolated between value1 and value 2
        value with bits 0000 is mapped to value0
        value bits with valus 1111 is maped to value1 
+
+       this is unsigned variant of AttributeChannel 
        
      */
     public AttributeChannel(String type, String name, int bits, int shift, double value0, double value1){
         if (bits >= 64) {
             throw new IllegalArgumentException("Class doesn't work for >= 64 bits");
         }
-
         m_type = type;
         m_name = name;
         m_shift = shift;
         m_bits = bits;
         m_mask = MathUtil.getBitMask(bits);
-        if (bits == 64)
-            m_maxLongValue = Long.MAX_VALUE;
-        else
-            m_maxLongValue = (1l << bits)-1;
+        m_maxLongValue = (1l << bits)-1;
+
+        m_bitsExtractor = new UnsignedBitsExtractor();
 
         if(value1 > value0){
             m_maxValue = value1;
@@ -99,6 +101,29 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
         this(type, name, bits, shift, 0., 1.);
     }
     
+
+    /**
+       this is signed variant of AttributeChannel to work with short
+       it is legacy varian to work with code which stores distance data as signed short 
+       @param physicalUnit conversion factor from int to physical units 
+     */
+    public AttributeChannel(String type, String name, double physicalUnit){
+
+        m_type = type;
+        m_name = name;
+        m_shift = 0;
+        m_mask = 0xFFFF;
+
+        m_bitsExtractor = new ShortBitsExtractor();
+        
+
+        m_B2D = physicalUnit;        
+        m_D2B = 1./m_B2D;
+
+        m_value0 = 0;
+        m_value1 = physicalUnit*Short.MAX_VALUE;
+    }
+
      /**
         bit count stored in the channel 
       */
@@ -152,22 +177,24 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
          return m_B2D*getBits(attribute)+m_value0;
     }
 
+     public final long getBits(long att){
+         //return (att >> m_shift) & m_mask;
+         //return getBits_unsigned(att);
+         return m_bitsExtractor.extract(att);
+     }
+
     /**
        extract value bits out of attribute 
     */
-     public final long getBits(long att){
-
-         return (att >> m_shift) & m_mask;
-         
-     }
+    private final long getBits_unsigned(long att){
+        
+        return (att >> m_shift) & m_mask;
+        
+    }
+    
     // code to get bits in signed version 
-    public long getBits_signed(long att){
-            
-        long value = (att >> m_shift) & m_mask;
-        //if((value & m_signMask) != 0){
-        //    value = value | m_complementMask;
-        //}
-        return value;
+    private final long getBits_short(long att){
+        return (long)(short)(att & 0xFFFF);
     }
     
     /**
@@ -177,6 +204,25 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
         value = (clamp(value, m_minValue, m_maxValue)-m_value0)*m_D2B;
         return (((long)(value + 0.5))& m_mask) << m_shift;
     }
-    
-}
 
+    // interface to get signed or unsigned bits from attribute
+    private interface BitsExtractor {
+        long extract(long att);        
+    }
+
+    /**
+       legacy class to work with values stored as signed short
+     */
+    final class ShortBitsExtractor implements BitsExtractor {
+        final public long extract(long att){
+            return getBits_short(att);
+        }
+        
+    }
+
+    final class UnsignedBitsExtractor implements BitsExtractor {
+        final public long extract(long att){
+            return getBits_unsigned(att);
+        }
+    }    
+}

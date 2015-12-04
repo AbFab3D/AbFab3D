@@ -68,8 +68,8 @@ import static java.lang.Math.round;
  */
 public class DistanceTransformLayered extends DistanceTransform implements Operation, AttributeOperation {
 
-    public static boolean DEBUG = true;
-    public static boolean DEBUG_TIMING = true;
+    public static boolean DEBUG = false;
+    public static boolean DEBUG_TIMING = false;
     static int debugCount = 100;
 
     static final int AXIS_X = 0, AXIS_Y = 1, AXIS_Z = 2; // direction  of surface offset from the interior surface point 

@@ -447,7 +447,7 @@ public class ClosestPointIndexer {
         for(int i = 0; i < iterationCount; i++){
             workGrid.copyData(indexGrid);
             long cnt = makeIteration(indexGrid, workGrid, coordx, coordy, coordz, sm_iterationNeig);
-            printf("iteration %2d  cnt: %d\n", i, cnt);
+            if(DEBUG)printf("iteration %2d  cnt: %d\n", i, cnt);
             if(cnt == 0) 
                 break;
         }
