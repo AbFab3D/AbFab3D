@@ -184,6 +184,13 @@ public class Bounds implements Cloneable {
     }
 
     /**
+     * Returns the maximum width and depth
+     */
+    public double getSliceMax() {
+        return Math.max(getSizeX(),getSizeZ());
+    }
+
+    /**
        @return depth of bounds 
      */
     public double getSizeZ(){
