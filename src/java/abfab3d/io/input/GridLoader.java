@@ -194,15 +194,15 @@ public class GridLoader {
                 rasterizer.getRaster(densityGrid);
                 if(DEBUG_TIMING)printf("WaveletRasterizer() done %d ms\n", time() - t0);
                 int svr = (1<<m_densityBitCount)-1;
-                DistanceTransformLayered dt = new DistanceTransformLayered(svr, m_maxInDistance+voxelSize, m_maxOutDistance+voxelSize);
+                double maxInDist = m_maxInDistance;
+                double maxOutDist = m_maxOutDistance;
+
+                DistanceTransformLayered dt = new DistanceTransformLayered(svr, maxInDist, maxOutDist);
                 dt.setThreadCount(4);
-                
-                //dt.setInsideDefault(-outsideDefault);
-                //dt.setOutsideDefault(outsideDefault);
-                
+                                
                 AttributeGrid distanceGrid = dt.execute(densityGrid);
                 //TODO - move this into DistanceTransformLayered
-                AttributeChannel channel = new AttributeChannel(AttributeChannel.DISTANCE,"distance",voxelSize/svr);
+                AttributeChannel channel = new AttributeChannel(AttributeChannel.DISTANCE,"distance",voxelSize/svr, -maxInDist, maxOutDist);
                 distanceGrid.setAttributeDesc(new AttributeDesc(channel));
                 return distanceGrid;
                 

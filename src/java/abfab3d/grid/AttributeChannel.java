@@ -54,6 +54,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     double m_minValue;
     double m_value0;
     double m_value1;
+    double m_offset; // conversion offset 
     double m_D2B; // Double -> Bits conversion factor 
     double m_B2D; // Bits -> Double conversion factor 
 
@@ -90,6 +91,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
         } else {
             throw new RuntimeException("(value1 == value0) is not allowed");
         }
+        m_offset = value0;
         m_value0 = value0;
         m_value1 = value1;
         m_D2B = m_maxLongValue/(value1 - value0);        
@@ -107,7 +109,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
        it is legacy varian to work with code which stores distance data as signed short 
        @param physicalUnit conversion factor from int to physical units 
      */
-    public AttributeChannel(String type, String name, double physicalUnit){
+    public AttributeChannel(String type, String name, double physicalUnit, double minValue, double maxValue){
 
         m_type = type;
         m_name = name;
@@ -120,8 +122,12 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
         m_B2D = physicalUnit;        
         m_D2B = 1./m_B2D;
 
-        m_value0 = 0;
-        m_value1 = physicalUnit*Short.MAX_VALUE;
+        m_offset = 0;
+        m_value0 = minValue;
+        m_value1 = maxValue;
+        
+        //m_value1 = physicalUnit*Short.MAX_VALUE;
+
     }
 
      /**
@@ -174,7 +180,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
        convert attribute bits into double value  
     */
     public final double getValue(long attribute){
-         return m_B2D*getBits(attribute)+m_value0;
+         return m_B2D*getBits(attribute)+m_offset;
     }
 
      public final long getBits(long att){

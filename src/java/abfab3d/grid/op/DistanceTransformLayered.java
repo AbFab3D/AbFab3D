@@ -138,13 +138,15 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
         m_surfaceValue = m_subvoxelResolution/2;
         double vs = grid.getVoxelSize();
 
-
         nx = grid.getWidth();
         ny = grid.getHeight();
         nz = grid.getDepth();
         double bounds[] = new double[6];
         grid.getGridBounds(bounds);
         m_voxelSize = vs;
+        m_defaultInValue = -(long)((m_inDistance/m_voxelSize)*m_subvoxelResolution + 1);
+        m_defaultOutValue = (long)((m_outDistance/m_voxelSize)*m_subvoxelResolution + 1);
+
         // center of corner voxel 
         m_xmin = bounds[0] + vs/2;
         m_ymin = bounds[2] + vs/2;
