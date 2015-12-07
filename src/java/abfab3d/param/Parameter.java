@@ -83,4 +83,8 @@ public interface Parameter extends Cloneable {
     public String getGroup();
 
     public void setGroup(String group);
+    
+    public void setLabel(String label);
+    
+    public String getLabel();
 }

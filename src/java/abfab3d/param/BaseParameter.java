@@ -35,6 +35,9 @@ public abstract class BaseParameter implements Parameter {
     
     protected String group;
     
+    /** The label */
+    protected String label;
+    
 
 	public BaseParameter(String name, String desc) {
 
@@ -143,6 +146,14 @@ public abstract class BaseParameter implements Parameter {
 
 	public void setGroup(String group) {
 		this.group = group;
+	}
+	
+	public String getLabel() {
+		return label;
+	}
+	
+	public void setLabel(String label) {
+		this.label = label;
 	}
 
     public BaseParameter clone() {
