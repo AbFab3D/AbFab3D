@@ -19,13 +19,7 @@ import java.awt.image.BufferedImage;
 import java.awt.Font;
 
 
-import abfab3d.param.BaseParameterizable;
-import abfab3d.param.IntParameter;
-import abfab3d.param.DoubleParameter;
-import abfab3d.param.BooleanParameter;
-import abfab3d.param.EnumParameter;
-import abfab3d.param.StringParameter;
-import abfab3d.param.Parameter;
+import abfab3d.param.*;
 
 
 import abfab3d.util.DataSource;
@@ -59,6 +53,7 @@ import static abfab3d.util.Units.MM;
 
  */
 public class Text2D extends BaseParameterizable {
+    static final boolean DEBUG = true;
 
     public enum Fit {VERTICAL, HORIZONTAL, BOTH}
     public enum HorizAlign {LEFT, CENTER, RIGHT}
@@ -82,7 +77,6 @@ public class Text2D extends BaseParameterizable {
     static int m_hAlignValues[] = new int[]{ALIGN_LEFT,ALIGN_CENTER,ALIGN_RIGHT};
     static int m_vAlignValues[] = new int[]{ALIGN_TOP,ALIGN_CENTER,ALIGN_BOTTOM};
 
-    static final boolean DEBUG = false;
     static int debugCount = 1000;
 
     // arbitrary font size, text is scaled to fit the box, but the size is affecting text rasterization somewhat 
@@ -109,6 +103,7 @@ public class Text2D extends BaseParameterizable {
     IntParameter     mp_fontStyle = new IntParameter("fontStyle","style of font (BOLD ,ITALIC, PLAIN)", PLAIN);
     DoubleParameter mp_inset      = new DoubleParameter("inset","white space around text", 0.5*MM);
     DoubleParameter mp_spacing    = new DoubleParameter("spacing","extra white space between characters in relative units", 0.);
+    ObjectParameter mp_font = new ObjectParameter("font","Specific font to use",null);
 
     Parameter m_aparam[] = new Parameter[]{
             mp_vertAlign,
@@ -137,6 +132,19 @@ public class Text2D extends BaseParameterizable {
         super.addParams(m_aparam);
         mp_text.setValue(text);
         setFontName(fontName);
+        setVoxelSize(voxelSize);
+    }
+
+    /**
+     * Constructor
+     @param text the string to convert into 3D text
+     @param font font to be used for 3D text
+     @param voxelSize size of voxel used for text rasterizetion
+     */
+    public Text2D(String text, Font font, double voxelSize){
+        super.addParams(m_aparam);
+        mp_text.setValue(text);
+        setFont(font);
         setVoxelSize(voxelSize);
     }
 
@@ -173,6 +181,21 @@ public class Text2D extends BaseParameterizable {
         return mp_fontStyle.getValue();
     }
 
+
+    /**
+     * Set the specific font.  This overrides any value set in fontName
+     * @param font The font, or null to clear
+     */
+    public void setFont(Font font) {
+        mp_font.setValue(font);
+    }
+
+    /**
+     * Get the font set by setFont.  This will not return a font for Text created via the fontName route.
+     */
+    public Font getFont() {
+        return (Font) mp_font.getValue();
+    }
     /**
      * Get the voxel size
      * @return
@@ -371,8 +394,14 @@ public class Text2D extends BaseParameterizable {
         int halign = m_hAlignValues[mp_horizAlign.getIndex()];
         int valign = m_vAlignValues[mp_vertAlign.getIndex()];
 
-        m_bitmap = TextUtil.createTextImage(width, height, text, new Font(fontName, fontStyle, m_fontSize), mp_spacing.getValue().doubleValue(),insets, aspect, fit, halign, valign);
-        
+        Font font = (Font) mp_font.getValue();
+        if (font != null) {
+            font = font.deriveFont(fontStyle,m_fontSize);
+            m_bitmap = TextUtil.createTextImage(width, height, text, font, mp_spacing.getValue().doubleValue(),insets, aspect, fit, halign, valign);
+        } else {
+            m_bitmap = TextUtil.createTextImage(width, height, text, new Font(fontName, fontStyle, m_fontSize),mp_spacing.getValue().doubleValue(),insets, aspect, fit, halign, valign);
+        }
+
         if(DEBUG)printf("Text2D bitmap height: %d x %d\n", m_bitmap.getWidth(), m_bitmap.getHeight());
         
         return DataSource.RESULT_OK;
