@@ -18,9 +18,16 @@ import abfab3d.util.Vec;
 
 import abfab3d.grid.Grid;
 import abfab3d.util.Bounds;
+
 import abfab3d.grid.AttributeGrid;
 
+import abfab3d.param.IntParameter;
+import abfab3d.param.ObjectParameter;
+import abfab3d.param.Parameter;
+
+
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.MathUtil.clamp;
 
 
 /**
@@ -31,24 +38,31 @@ import static abfab3d.util.Output.printf;
  */
 public class DataSourceGrid extends TransformableDataSource implements Cloneable {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static int debugCount = 100;
-    static final int DEFAULT_MAX_ATTRIBUTE_VALUE = 255;
+    static final int MAX_SHORT = 0xFFFF;
+    static final int MAX_BYTE = 0xFF;
+    static final int DEFAULT_MAX_ATTRIBUTE_VALUE = 0xFF;
+
 
     static public final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1;
     protected int m_interpolationType = INTERPOLATION_LINEAR;
 
+
     protected AttributeGrid m_grid;
-    protected AttributeChannel dataChannel;
+    protected AttributeChannel m_dataChannel;
     protected byte[] m_cachedByteData;
 
-    // default subvoxelResolution 
-    int m_subvoxelResolution=DEFAULT_MAX_ATTRIBUTE_VALUE; 
-    double m_bounds[] = new double[6];
     int m_nx, m_ny, m_nz;
     double xmin, ymin, zmin, xscale, yscale, zscale;
 
-    LinearMapper m_mapper = null;
+    ObjectParameter  mp_grid = new ObjectParameter("grid","grid to be used as source", null);
+    IntParameter  mp_gridDataTypeSize = new IntParameter("gridDataTypeSize","size of grid data type", 1);
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_grid,
+        mp_gridDataTypeSize,
+    };
        
     /**
        constructs DataSource from the given grid
@@ -58,62 +72,51 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     }
 
     /**
+       obsolete
 
-       @noRefGuide            
+       @noRefGuide    
      */
     public DataSourceGrid(AttributeGrid grid, int subvoxelResolution){
         this(grid,null,subvoxelResolution);
     }
 
     /**
-       @noRefGuide            
+       params aftetr grid are obsolete 
+
+       @noRefGuide  
        makes grid with given bounds and max attribute value
     */
-    public DataSourceGrid(AttributeGrid grid, double bounds[], int subvoxelResolution){
+    public DataSourceGrid(AttributeGrid grid, double _bounds[], int subvoxelResolution){
         
-        m_subvoxelResolution = subvoxelResolution;
-        m_grid = grid;
-        dataChannel = m_grid.getAttributeDesc().getDefaultChannel();
+        super.addParams(m_aparam);
+        
+        mp_grid.setValue(grid);
 
-        if (DEBUG) printf("DSG name: %s bitCount: %d  low: %f  high: %f\n",m_grid.getAttributeDesc().getDefaultChannel().getName(),dataChannel.getBitCount(),dataChannel.getValue0(),dataChannel.getValue1());
-        if(bounds == null){
-            m_grid.getGridBounds(m_bounds);
-        } else {
-            System.arraycopy(bounds, 0, m_bounds, 0, m_bounds.length);
-        }
+        m_grid = grid;
+        m_dataChannel = m_grid.getAttributeDesc().getDefaultChannel();
+        
+        Bounds bounds = m_grid.getGridBounds();
         
         m_nx = grid.getWidth();
         m_ny = grid.getHeight();
         m_nz = grid.getDepth();
         
-        xmin = m_bounds[0];
-        ymin = m_bounds[2];
-        zmin = m_bounds[4];
+        xmin = bounds.xmin;
+        ymin = bounds.ymin;
+        zmin = bounds.zmin;
 
-        xscale = m_nx / (m_bounds[1] - m_bounds[0]);
-        yscale = m_ny / (m_bounds[3] - m_bounds[2]);
-        zscale = m_nz / (m_bounds[5] - m_bounds[4]);
+        xscale = m_nx / bounds.getSizeX();
+        yscale = m_ny / bounds.getSizeY();
+        zscale = m_nz / bounds.getSizeZ();
 
 
         if(DEBUG){
             printf("DataSourceGrid()\n");
-            printf("nx: (%d x %d x %d) \n", grid.getWidth(),grid.getHeight(),grid.getDepth());
-            printf("xmin: (%10.7f,%10.7f,%10.7f) \n", xmin, ymin, zmin);
-            printf("xscale: (%10.7f,%10.7f,%10.7f) \n", xscale,yscale,zscale);
+            printf("  dataChannel : %s\n",m_dataChannel);
+            printf("  grid: (%d x %d x %d) \n", grid.getWidth(),grid.getHeight(),grid.getDepth());
+            printf("  xmin: (%10.7f,%10.7f,%10.7f) \n", xmin, ymin, zmin);
+            printf("  xscale: (%10.7f,%10.7f,%10.7f) \n", xscale,yscale,zscale);
         }
-    }
-
-
-    public void setMapper(LinearMapper mapper){
-
-        m_mapper = mapper; 
-        emptyCache();
-
-    }
-
-    public LinearMapper getMapper(){
-
-        return m_mapper; 
     }
 
     protected void emptyCache(){
@@ -129,6 +132,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     public void setInterpolationType(int value){
 
         emptyCache();
+        
         m_interpolationType = value;
 
     }
@@ -173,53 +177,87 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     }
 
     public AttributeChannel getDataChannel() {
-        return dataChannel;
+        return m_dataChannel;
     }
 
     /**
      * @noRefGuide
      */
-    public byte[] getCachedByteData(){
+    public byte[] getCachedData(){
         if(m_cachedByteData == null){
-            m_cachedByteData = makeByteData();
+
+            int gridDataTypeSize = mp_gridDataTypeSize.getValue();
+            switch(gridDataTypeSize){
+            default: 
+            case 1: 
+                m_cachedByteData = new byte[m_nx*m_ny*m_nz];
+                getGridDataUByte(m_cachedByteData);
+                break;
+            case 2: 
+                m_cachedByteData = new byte[m_nx*m_ny*m_nz*2];
+                getGridDataUShort(m_cachedByteData);
+                break;
+            }
         } 
         return m_cachedByteData;         
     }
 
     /**
      * @noRefGuide
+     * fill byte array with grid data converted into bytes
      */
-    public byte[] makeByteData(){
-
-        byte data[] = new byte[m_nx * m_ny * m_nz];
+    public void getGridDataUByte(byte data[]){
 
         int nx = m_nx;
         int ny = m_ny;
         int nz = m_nz;
         int nxy = nx*ny;
 
-        double vmin = dataChannel.getValue0();
-        double vmax = dataChannel.getValue1();
+        double vmin = m_dataChannel.getValue0();
+        double vmax = m_dataChannel.getValue1();
         if(DEBUG) printf("vmin: %9.5f, vmax: %9.5f\n", vmin, vmax);
 
         for(int z = 0; z < nz; z++){
             for(int y = 0; y < ny; y++){
                 for(int x = 0; x < nx; x++){
                     
-                    double v = dataChannel.getValue(m_grid.getAttribute(x, y, z));
-                    // old way
-                    //long att = m_grid.getAttribute(x,y,z);
-                    //double v = m_mapper.map(att);
-                    int vi = (int)(255*((v - vmin)/(vmax - vmin)))&0xFF;
-                    //if(DEBUG & (z == nz/2) && (x > nx/4 && x < nx/2) && (y < ny/2)) printf("%4.2f ", v*1000);
-                    //if(DEBUG & (z == nz/2) && (x > nx/4 && x < nx/2) && (y < ny/2)) printf("(%4x %x)", att, vi);
+                    double v = m_dataChannel.getValue(m_grid.getAttribute(x, y, z));
                     // v is inside of (vmin, vmax);
-                    data[x + y * nx + z * nxy] = (byte)vi;
+                    data[x + y * nx + z * nxy] = (byte)((int)(MAX_BYTE*clamp((v - vmin)/(vmax - vmin),0.,1.)) & MAX_BYTE);
                 }
                 //if(DEBUG & (z == nz/2)) printf("\n");
             }            
         }
-        return data;
+    }
+
+    /**
+     * @noRefGuide
+     * fill byte array with grid data converted into unsigned short
+     */
+    public void getGridDataUShort(byte data[] ){
+
+        int nx = m_nx;
+        int ny = m_ny;
+        int nz = m_nz;
+        int nxy = nx*ny;
+
+        double vmin = m_dataChannel.getValue0();
+        double vmax = m_dataChannel.getValue1();
+        if(DEBUG) printf("vmin: %9.5f, vmax: %9.5f\n", vmin, vmax);
+
+        for(int z = 0; z < nz; z++){
+            for(int y = 0; y < ny; y++){
+                for(int x = 0; x < nx; x++){
+                    
+                    double v = m_dataChannel.getValue(m_grid.getAttribute(x, y, z));
+                    // v is inside of (vmin, vmax);
+                    int value = ((int)(MAX_SHORT*clamp((v - vmin)/(vmax - vmin),0.,1.)) & MAX_SHORT);
+                    int ind = 2*(x + y * nx + z * nxy);
+                    data[ind] = (byte)(value & MAX_BYTE); 
+                    data[ind + 1] = (byte)((value >> 8) & MAX_BYTE);
+                }
+            }            
+        }
     }
 
     /**
@@ -229,14 +267,10 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     public int initialize(){
 
         super.initialize();
+        
 
-        if(m_mapper == null){
-            // create default mapper 
-            if(m_subvoxelResolution > 0) 
-                m_mapper = new LinearMapper(0,m_subvoxelResolution, 0, 1);
-            else 
-                m_mapper = new LinearMapper(0,1, 0, 1);
-        }
+        if(m_dataChannel == null)
+            throw new RuntimeException("m_dataChannel == null");
 
         return RESULT_OK;
 
@@ -285,7 +319,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
             return RESULT_OUTSIDE; 
         }
 
-        data.v[0] = m_mapper.map(getGridValue(ix, iy, iz));
+        data.v[0] = getGridValue(ix, iy, iz);
         
         return RESULT_OK; 
             
@@ -322,7 +356,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
             dz1 = 1. - dz;
 
         
-        long 
+        double  
             v000 = getGridValue(ix,  iy,  iz ),  
             v100 = getGridValue(ix1, iy,  iz ), 
             v010 = getGridValue(ix,  iy1, iz ), 
@@ -332,23 +366,26 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
             v011 = getGridValue(ix,  iy1, iz1),
             v111 = getGridValue(ix1, iy1, iz1);
 
-        if(false && debugCount-- > 0) printf("[%3d, %3d, %3d]: %3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d\n",ix, iy, iz, 
+        if(false && debugCount-- > 0) printf("[%3d, %3d, %3d]: %7.4f %7.4f %7.4f %7.4f  %7.4f %7.4f %7.4f %7.4f \n",
+                                             ix, iy, iz, 
                                              v000,v100, v010, v110, 
                                              v001,v101, v011, v111);
         double d = 
             dx1 *(dy1 * (dz1 * v000 + dz  * v001) +  dy*(dz1 * v010 + dz  * v011)) +   
             dx  *(dy1 * (dz1 * v100 + dz  * v101) +  dy*(dz1 * v110 + dz  * v111));
 
-        data.v[0] = m_mapper.map(d);
+        data.v[0] = d;
         
         return RESULT_OK; 
         
     }
 
-    private final long getGridValue(int x, int y, int z){
+    private final double getGridValue(int x, int y, int z){
 
-        //TODO hee we need to have flexible way of getting data from the grid value
-        
+        return m_dataChannel.getValue(m_grid.getAttribute(x,y,z));
+
+        /*
+        //TODO hee we need to have flexible way of getting data from the grid value        
         switch(m_subvoxelResolution){            
         case 0:  // grid value is in state 
             byte state = m_grid.getState(x, y, z);            
@@ -361,6 +398,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         default:
             return dataChannel.getBits(m_grid.getAttribute(x,y,z));
         }
+        */
     }
 
     /**

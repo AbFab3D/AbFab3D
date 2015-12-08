@@ -77,7 +77,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         String path = "test/models";
 
         String[] file = new String[] {
-                "gyroid.stl",
+                "gyrosphere.stl",
 //                "holes.stl",
 //                "cube_10mm.x3dv"
         };
@@ -102,7 +102,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         String path = "test/models";
 
         String[] file = new String[] {
-                "gyroid.stl",
+                "gyroidsphere.stl",
 //                "holes.stl",
 //                "cube_10mm.x3dv"
         };
@@ -130,7 +130,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         String path = "test/models";
 
         String[] file = new String[] {
-                "gyroid.stl",
+                "gyroidsphere.stl",
 //                "holes.stl",
 //                "cube_10mm.x3dv"
         };
@@ -189,7 +189,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         String path = "test/models";
 
         String[] file = new String[] {
-                "gyroid.stl",
+                "gyrosphere.stl",
 //                "holes.stl",
 //                "cube_10mm.x3dv"
         };
@@ -485,7 +485,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         String path = "test/models";
 
         String[] file = new String[] {
-                "gyroid.stl",
+                "gyrosphere.stl",
 //                "holes.stl",
 //                "cube_10mm.x3dv"
         };

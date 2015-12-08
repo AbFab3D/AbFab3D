@@ -178,7 +178,7 @@ public class TestTriangleMeshSurfaceBuilder extends TestCase {
     }    
 
 
-    void testSpherePrecision()throws Exception{
+    public void testSpherePrecision()throws Exception{
         
         if(DEBUG) printf("testSpherePrecision()\n");
         double w = 25*MM;
