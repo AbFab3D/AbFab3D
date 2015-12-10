@@ -11,12 +11,48 @@
 
 <H2 id="Overview">Overview</H2>
 <p>
-ShapeJS provides a powerful system for generating 3D printable objects via a simple Javascript program.
-The functionality of ShapeJS is based on a representation of three dimensional objects via voxels on 3 dimensional regular grid.
+ShapeJS is a language designed to make creating and sharing 3D printable objects easy.  Based on Javascript,
+it provides a rich set of solid modeling primitives over top a powerful voxel engine.  The combination
+enables control of 3d printed objects down to printer resolution levels.  The voxel approach has many advantages
+over typical triangle systems and aligns well with how 3d printers actually manufacture items.
+Scripts include a parameter definition to allow interactive exploration of interesting
+variants via an automatically generated user interface.  The script, current parameters and any external
+resources can be saved into a simple transmittal format that others can easily load.
+
+These docs describe the new ShapeJS 2.0 system.  ShapeJS 2.0 is a major overhaul of the original ShapeJS system.
+Core to this release is a focus on creating real time responses.  We've been prototyping several creators
+on the Shapeways site to prove out this point.  Check out the Pendant Creator, Ornament Creator and Audio
+creators for examples of what's possible.
 </p>
+We developed ShapeJS to serve two primary communities: makers and creator creators.  In the maker community
+OpenSCAD has shown the way in a simple but powerful scripting language for creating physical objects.  They
+married a scripting engine to a powerful CAD kernel.  For many makers this emphasis on a programming approach
+to 3D modeling resonated well.  ShapeJS is similar in concept with a few significant differences.  It is based
+on a voxel kernel instead of a triangle one and it’s built on a common programming language(Javascript), which is complete
+and used all over the world by millions of people.
+
+To avoid a holy war I won't detail the differences too much here.  Most 3D printers work by adding together
+small bits of material into a complete object.  Using triangles to describe these voxels makes the code more
+difficult and harder to allow for print resolution accuracy.  ShapeJS and the accompanying editor is designed
+to make creating 3D printable objects fast and easy.  Using voxels avoids the most common reasons that
+3d prints fail.  Currently if you download a triangle model from most 3d repositories they typically must
+be repaired before printing.  This is because it's very hard to write triangle code that retains the mathematical
+rigor necessary for 3d printing.  ShapeJS will always generate manifold and oriented models that can be 3d printed.
+For these reasons we felt that writing a new language was warranted and would in the end prove valuable in the maker's
+toolbox.
+
+The second community we wanted to target is are people who want to write object creators
+for others to use.  We call them "Creator Creators" and we see them as a necessary enabler for 3d printing to be
+usable by humanity at large.  A natural progression when developing an object is to parameterize its function.
+Similar to software an object gains features during it's development.  These parameters allow the object to be
+used in a wider context and meet more peoples needs.  A natural tendency is to want to share your creations with
+others.  Now that many people have 3D printers at home and access to many more through printing services its
+become feasible to share the design for an object and expect others to be able to make it.  ShapeJS provides
+a development environment to create those parameterizable objects and a way to share those designs with others.
+
 <p>
 Roughly speaking the value of each voxel represents the percent of this voxel volume occupied by the shape.
-More precisely speaking the voxel value is appropriately normalized limited range signed distance function - 
+More precisely speaking the voxel value is appropriately normalized limited range signed distance function -
 distance from voxel center to the shape surface. 
 That value is represented internally by default with 8 bit precision which is equivalent to 256 different levels. 
 This more precise representation greatly enhances the quality of generated objects in comparison with more traditional binary values of 0 and 1.
