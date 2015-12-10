@@ -39,6 +39,7 @@ import static java.lang.Math.cos;
 import static java.lang.Math.PI ;
 import static java.lang.Math.sqrt;
 import static abfab3d.util.Output.time;
+import static abfab3d.util.Output.nanoTime;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Units.MM;
@@ -64,6 +65,34 @@ public class TestClosestPointIndexer extends TestCase {
         // to make tester happy 
     }
 
+    void devTestPI1_bounded()throws Exception{
+
+        int gridSize = 20;
+        double maxDistance = 3.01;
+        double coord[] = new double[]{0, 5.5, 14.};
+        int indices[] = new int[]{1,2};
+        double values[] = new double[]{0.,0.};
+        
+        printf("maxDistance: %7.3f\n", maxDistance);
+
+        printf("coord:\n");
+        printArray(coord);
+        printf("values:\n");
+        printArray(values);
+        printf("indices:\n");
+        printArray(indices);
+
+        int worki[] = new int[gridSize+1];
+        double workd[] = new double[gridSize+1];        
+        int closestPointIndex[] = new int[gridSize];
+        ClosestPointIndexer.PI1_bounded(gridSize, indices.length, indices, coord, values, maxDistance, closestPointIndex, worki, workd);
+        printf("result:\n");
+        printHeader(gridSize);
+        printArray(closestPointIndex);
+        printDistances(closestPointIndex, coord, values);
+
+    }
+
     void makeTestPoint()throws Exception{
         
         if(DEBUG) printf("%s.makeTestPoint()\n", this.getClass().getName());
@@ -73,7 +102,8 @@ public class TestClosestPointIndexer extends TestCase {
         //double firstLayerThickness = 0.9;
         //double firstLayerThickness = 1.7;
         //double firstLayerThickness = 2.7;
-        double firstLayerThickness = 3.7;
+        double firstLayerThickness = 2.5;
+        double maxDistance = 50.;
         //double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = 0, zmax = vs;
         double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = -w, zmax = w;
         int subvoxelResolution = 100;
@@ -81,7 +111,7 @@ public class TestClosestPointIndexer extends TestCase {
         int voxelSquareSize = 10;// for visualization 
         boolean snapToGrid = false;
         int iterationsCount = 0;
-        int sliceAxis = 1;
+        int sliceAxis = 2;
         boolean writeViz = false;
         boolean calcDiff = false;
 
@@ -169,14 +199,14 @@ public class TestClosestPointIndexer extends TestCase {
                 renderDiff(indexGrid, z, pntx, pnty, pntz, voxelSquareSize, fmt("/tmp/dist/distDiff1_%02d.png",z), true, sliceAxis);
             }
         }
-        long t0 = time();
+        long t0 = nanoTime();
         // distribute distances to the whole grid 
         //ClosestPointIndexer.PI3_multiPass(pntx, pnty, pntz, indexGrid, iterationsCount);
         //ClosestPointIndexer.PI3(pntx, pnty, pntz, indexGrid);
-        ClosestPointIndexer.PI3_sorted(pntx, pnty, pntz, indexGrid);
-        //ClosestPointIndexer.PI3_neig(pntx, pnty, pntz, indexGrid);
-
-        printf("PI3() done: %d ms\n", (time() - t0));
+        //ClosestPointIndexer.PI3_sorted(pntx, pnty, pntz, indexGrid);
+        ClosestPointIndexer.PI3_bounded(pntx, pnty, pntz, maxDistance, indexGrid);
+        
+        printf("PI3() done: %7.3f ms\n", (nanoTime() - t0)*1.e-6);
 
         //printIndices(indexGrid);
         //printDiff(indexGrid, pntx, pnty, pntz, true);
@@ -559,10 +589,48 @@ public class TestClosestPointIndexer extends TestCase {
         return minIndex;
     }
 
+    static void printHeader(int count){
+        for(int i = 0; i < count; i++){
+            printf("  %2d", i);                
+        }
+        printf("\n");                
+    }
+    static void printArray(int index[]){
+        for(int i = 0; i < index.length; i++){
+            if(index[i] == 0) 
+                printf("  . ");
+            else 
+                printf("  %2d", index[i]);                
+        }
+        printf("\n");                
+    }
+
+    static void printArray(double value[]){
+        for(int i = 0; i < value.length; i++){
+            printf(" %7.3f", value[i]);                
+        }
+        printf("\n");                
+    }
+    static void printDistances(int pindex[], double coord[], double value[]){
+        for(int i = 0; i < pindex.length; i++){
+            int ind = pindex[i];
+            if(ind == 0) 
+                printf("  . ");
+            else {
+                double x = (i + 0.5) - coord[ind];
+                double dist = Math.sqrt(x*x);// + value[ind];
+                printf(" %3d", (int)(dist*100+0.5));
+            }
+        }
+        printf("\n");
+    }
+    
+
     public static void main(String arg[]) throws Exception {
 
-        for(int i = 0; i < 4; i++){
+        for(int i = 0; i < 10; i++){
             new TestClosestPointIndexer().makeTestPoint();
+            //new TestClosestPointIndexer().devTestPI1_bounded();
         }        
     }
 }

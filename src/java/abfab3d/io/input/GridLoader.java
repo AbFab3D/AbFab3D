@@ -46,7 +46,7 @@ public class GridLoader {
 
     protected int m_densityBitCount = 8;
     protected int m_distanceBitCount = 16;
-    protected int m_marginsVoxels = 2;
+    protected double m_margins = 1*MM;
 
     protected long m_maxGridSize = 1000L*1000L*1000L;
 
@@ -106,6 +106,10 @@ public class GridLoader {
         m_shellHalfThickness = value;
     }
 
+    public void setMargins(double margins){
+        m_margins = margins;
+    }
+    
     public void setSurfaceVoxelSize(double value){  
         m_surfaceVoxelSize = value;
     }
@@ -331,11 +335,16 @@ public class GridLoader {
         double voxelSize = m_preferredVoxelSize;
 
         gridBounds.setVoxelSize(voxelSize);
-        gridBounds.expand(m_marginsVoxels*voxelSize);
-        gridBounds.roundBounds();
+        gridBounds.expand(m_margins);
+        
+        //gridBounds.roundBounds();
 
         int ng[] = gridBounds.getGridSize();
-        
+        if((long) ng[0] * ng[1]*ng[2] > m_maxGridSize) {                
+            voxelSize = Math.pow(gridBounds.getVolume()/m_maxGridSize, 1./3);
+            gridBounds.setVoxelSize(voxelSize);
+        }
+        /*
         while((long) ng[0] * ng[1]*ng[2] > m_maxGridSize) {                
             //voxelSize = Math.pow(bounds.getVolume()/m_maxGridSize, 1./3);
             voxelSize *= 1.01;
@@ -346,7 +355,7 @@ public class GridLoader {
             // round up to the nearest voxel
             ng = gridBounds.getGridSize();
         } 
-
+        */
         if(DEBUG)printf("actual voxelSize: %7.3fmm\n",voxelSize/MM);
         int nx = gridBounds.getGridWidth();
         int ny = gridBounds.getGridHeight();

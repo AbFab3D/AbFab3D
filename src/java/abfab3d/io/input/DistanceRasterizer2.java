@@ -54,8 +54,8 @@ import static abfab3d.util.MathUtil.step10;
  */
 public class DistanceRasterizer2 implements TriangleCollector {
 
-    static final boolean DEBUG = false;
-    static final boolean DEBUG_TIMING = false;
+    static final boolean DEBUG = true;
+    static final boolean DEBUG_TIMING = true;
 
 
     // this is used purely for precision of distance calculations on distance grid    
@@ -76,11 +76,16 @@ public class DistanceRasterizer2 implements TriangleCollector {
     double m_maxInDistance = 1.*MM;
     // positive max value to calculate inside distance 
     double m_maxOutDistance = 1*MM;
-    double m_maxDistance;
+    // flag to use distance calculation with limited range. Setting it true increases perpormance especiualy if needed 
+    // distanace range is small
+    boolean m_useDistanceRange = true;
+    double m_maxDistanceVoxels; // max distance to calculate in case of using distance range 
     protected int m_threadCount = 1;
 
     // size of surface voxels relative to size fo grid voxles 
     protected double m_surfaceVoxelSize = 1.;
+    // it looks like y-sorting actually surface points decreases performance 
+    protected boolean m_sortSurfacePoints = false;
 
     int m_triCount = 0;
 
@@ -124,6 +129,12 @@ public class DistanceRasterizer2 implements TriangleCollector {
 
     }
 
+    public void setUseDistanceRange(boolean value){
+
+        m_useDistanceRange = value;
+
+    }
+
     /**
        set thread count for MT parts of algorithm 
      */
@@ -143,22 +154,26 @@ public class DistanceRasterizer2 implements TriangleCollector {
     }
 
     
-    protected int initialize(){
+    protected int init(){
 
         m_rasterizer = new MeshRasterizer(m_bounds, gridX, gridY, gridZ);
         m_rasterizer.setInteriorValue(1);
 
         m_indexGrid = createIndexGrid();
-
+        
         Bounds surfaceBounds = m_bounds.clone();
         surfaceBounds.setVoxelSize(m_bounds.getVoxelSize()*m_surfaceVoxelSize);
         m_surfaceBuilder = new TriangleMeshSurfaceBuilder(surfaceBounds);        
+        m_surfaceBuilder.setSortPoints(m_sortSurfacePoints);
+
         m_surfaceBuilder.initialize();
 
         m_shellBuilder = new PointSetShellBuilder();
         
         m_shellBuilder.setShellHalfThickness(m_shellHalfThickness);
-        if(DEBUG)printf("calling m_shellBuilder.initialize()\n");
+
+        if(m_useDistanceRange) m_maxDistanceVoxels = Math.max(m_maxInDistance, m_maxOutDistance)/m_bounds.getVoxelSize();
+        else m_maxDistanceVoxels = 0.;
 
         return DataSource.RESULT_OK;
     }
@@ -194,7 +209,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
         if(DEBUG)printf("DistanceRasterizer2.getDistances(grid)\n");
         long t0 = time();
 
-        initialize();
+        init();
         triProducer.getTriangles(this);
         if(DEBUG_TIMING)printf("triProducer.getTriangles(this) time: %d ms\n", (time() - t0));
 
@@ -208,8 +223,6 @@ public class DistanceRasterizer2 implements TriangleCollector {
 
         m_surfaceBuilder.getPoints(pntx, pnty, pntz);
 
-        //PointSetShellBuilder sb = new PointSetShellBuilder();
-        
         m_shellBuilder.setPoints(new PointSetCoordArrays(pntx, pnty, pntz));
         m_shellBuilder.setShellHalfThickness(m_shellHalfThickness);
 
@@ -233,10 +246,10 @@ public class DistanceRasterizer2 implements TriangleCollector {
         ClosestPointIndexer.getPointsInGridUnits(m_indexGrid, pntx, pnty, pntz);
         
         if(m_threadCount <= 1) {
-            ClosestPointIndexer.PI3_sorted(pntx, pnty, pntz, m_indexGrid);
+            ClosestPointIndexer.PI3_bounded(pntx, pnty, pntz, m_maxDistanceVoxels, m_indexGrid);
             if(DEBUG_TIMING)printf("ClosestPointIndexer.PI3_sorted time: %d ms\n", (time() - t0));
         } else {
-            ClosestPointIndexerMT.PI3_MT(pntx, pnty, pntz, m_indexGrid, m_threadCount);
+            ClosestPointIndexerMT.PI3_MT(pntx, pnty, pntz, m_maxDistanceVoxels, m_indexGrid, m_threadCount);
             if(DEBUG_TIMING)printf("ClosestPointIndexerMT.PI3_MT time: %d ms\n", (time() - t0));
         }
         
@@ -269,7 +282,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
 
         long t0 = time();
         long t1 = time();
-        initialize();        
+        init();        
         if(DEBUG_TIMING)printf("DistanceRasterizer2.initialize() %d ms\n", (time() - t1));
         t1 = time();
         t0 = t1;
@@ -319,33 +332,4 @@ public class DistanceRasterizer2 implements TriangleCollector {
 
     }
 
-    /*
-    void makeDensityFromDistance(AttributeGrid distGrid, AttributeGrid interiorGrid, AttributeGrid densityGrid){
-
-        int 
-            nx = distGrid.getWidth(),
-            ny = distGrid.getHeight(),
-            nz = distGrid.getDepth();
-
-        AttributeChannel dataChannel = densityGrid.getAttributeDesc().getChannel(0);
-
-        double voxelSize = distGrid.getVoxelSize();        
-        for(int y = 0; y < ny; y++){
-            for(int x = 0; x < nx; x++){
-                for(int z = 0; z < nz; z++){
-                    long dd = distGrid.getAttribute(x,y,z);
-                    double dist = (voxelSize*dd) / m_subvoxelResolution;
-                    if(interiorGrid != null && interiorGrid.getAttribute(x,y,z) != 0){
-                        dist = -dist;
-                    }
-
-                    //printf("att: %d dist: %5.1f mm\n", dd, dist/MM);
-                    double density = step10(dist, voxelSize);
-                    long att = dataChannel.makeAtt(density);
-                    densityGrid.setAttribute(x,y,z,att);
-                }
-            }
-        }        
-    }    
-    */
 }

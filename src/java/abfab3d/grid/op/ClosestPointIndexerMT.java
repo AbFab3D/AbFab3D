@@ -41,9 +41,9 @@ import static java.lang.Math.sqrt;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 
-import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepX_sorted;
-import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepY_sorted;
-import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepZ_sorted;
+import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepX_bounded;
+import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepY_bounded;
+import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepZ_bounded;
 
 import static abfab3d.grid.op.ClosestPointIndexer.makeDistanceGridSlice;
 
@@ -78,6 +78,22 @@ public class ClosestPointIndexerMT {
      * @param threadCount count of thread to be used for calculation 
      */
     public static void PI3_MT(double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid, int threadCount){
+        PI3_MT(coordx, coordy, coordz, 0., indexGrid, threadCount);        
+    }
+    /**
+       calculates closest Point Indexer for each cell of the index grid 
+       the indexGrid should be initialized with indices of point in close proximity to the center of grid voxels 
+       
+     *  @param coordx  array of x coordinates. coordx[0] is unused 
+     *  @param coordy  array of y coordinates. coordy[0] is unused  
+     *  @param coordz  array of y coordinates. coordz[0] is unused 
+     *  @param maxDistance maximal distance to calculate distances. if maxDIastance == 0, the full range is calculated 
+     *  @param indexGrid - on input has indices of closest points in thin layer around the point cloud 
+     *                   - on output has indices of closest point for each grid point 
+     *                   valid indices start from 1, index value 0 means "undefined" 
+     * @param threadCount count of thread to be used for calculation 
+     */
+    public static void PI3_MT(double coordx[], double coordy[], double coordz[], double maxDistance, AttributeGrid indexGrid, int threadCount){
 
         //if(DEBUG){printf("PI3_MT(threads: %d)\n", threadCount);}
         long t0 = time(), t1 = t0;
@@ -97,18 +113,15 @@ public class ClosestPointIndexerMT {
         int gpnt[] = new int[nm];
 
 
-        DT3sweep_MT(0, indexGrid.getDepth(), coordx, coordy, coordz, indexGrid, threadCount);
-        DT3sweep_MT(1, indexGrid.getDepth(), coordx, coordy, coordz, indexGrid, threadCount);
-        DT3sweep_MT(2, indexGrid.getHeight(), coordx, coordy, coordz, indexGrid, threadCount);
-
-        //DT3sweepY_MT(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt, threadCount);        
-        //DT3sweepZ_MT(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt, threadCount);        
+        DT3sweep_MT(0, indexGrid.getDepth(), coordx, coordy, coordz, maxDistance, indexGrid, threadCount);
+        DT3sweep_MT(1, indexGrid.getDepth(), coordx, coordy, coordz, maxDistance, indexGrid, threadCount);
+        DT3sweep_MT(2, indexGrid.getHeight(), coordx, coordy, coordz, maxDistance, indexGrid, threadCount);
 
         if(DEBUG_TIMING){t1 = time();printf("PI3_MT() done %d ms\n", t1 - t0);t0 = t1;}
         
     }
 
-    protected static void DT3sweep_MT(int direction, int gridSize, double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid, int threadCount){
+    protected static void DT3sweep_MT(int direction, int gridSize, double coordx[], double coordy[], double coordz[], double maxDistance, AttributeGrid indexGrid, int threadCount){
         
         //if(DEBUG) printf("DT3sweep_MT(%d)\n", direction);
         long t0 = time();
@@ -120,7 +133,7 @@ public class ClosestPointIndexerMT {
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         
         for(int i = 0; i < threadCount; i++){
-            SliceProcessorSweeper sliceProcessor = new SliceProcessorSweeper(i, direction, slicer,coordx,coordy,coordz, indexGrid);
+            SliceProcessorSweeper sliceProcessor = new SliceProcessorSweeper(i, direction, slicer,coordx,coordy,coordz, maxDistance, indexGrid);
             executor.submit(sliceProcessor);
         }
         executor.shutdown();
@@ -158,8 +171,9 @@ public class ClosestPointIndexerMT {
         int ipnt[];
         double value[];
         int gpnt[];
+        double maxDistance = 0.;
 
-        SliceProcessorSweeper(int id, int direction, SliceManager slicer, double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid){
+        SliceProcessorSweeper(int id, int direction, SliceManager slicer, double coordx[], double coordy[], double coordz[], double maxDistance, AttributeGrid indexGrid){
 
             this.id = id;
             this.slicer = slicer;
@@ -168,6 +182,7 @@ public class ClosestPointIndexerMT {
             this.coordz = coordz;
             this.indexGrid = indexGrid;
             this.direction = direction;
+            this.maxDistance = maxDistance;
 
             this.nx = indexGrid.getWidth();
             this.ny = indexGrid.getHeight();
@@ -187,35 +202,29 @@ public class ClosestPointIndexerMT {
 
         public void run(){
 
-            //if(DEBUG)printf("thread: %d run\n", id);
             while(true){
 
                 Slice slice = slicer.getNextSlice();
-                //if(DEBUG)printf("thread: %d slice: %s\n", id, slice);
                 if(slice == null)
                     break;
-                //if(DEBUG)printf("thread: %d slice: %d %d\n", id, slice.smin, slice.smax);
                 // process slice X 
                 try {
                     switch(direction){
                     default: 
                     case 0: 
-                        DT3sweepX_sorted(slice.smin, slice.smax, coordx, coordy, coordz, indexGrid, v, w, ipnt, value, gpnt);
+                        DT3sweepX_bounded(slice.smin, slice.smax, coordx, coordy, coordz, maxDistance, indexGrid, v, w, ipnt, value, gpnt);
                         break;
                     case 1: 
-                        DT3sweepY_sorted(slice.smin, slice.smax, coordx, coordy, coordz, indexGrid, v, w, ipnt, value, gpnt);
+                        DT3sweepY_bounded(slice.smin, slice.smax, coordx, coordy, coordz, maxDistance, indexGrid, v, w, ipnt, value, gpnt);
                         break;
                     case 2: 
-                        DT3sweepZ_sorted(slice.smin, slice.smax, coordx, coordy, coordz, indexGrid, v, w, ipnt, value, gpnt);
+                        DT3sweepZ_bounded(slice.smin, slice.smax, coordx, coordy, coordz, maxDistance, indexGrid, v, w, ipnt, value, gpnt);
                         break;
                     }
                 } catch(Exception e){
                     e.printStackTrace();
                 }
-                //if(DEBUG)printf("thread: %d slice: %d %d done\n", id, slice.smin, slice.smax);
-            }
-            
-            //if(DEBUG)printf("thread: %d done\n", id);
+            }            
         }        
     } // static class SliceProcessorSweeper
 

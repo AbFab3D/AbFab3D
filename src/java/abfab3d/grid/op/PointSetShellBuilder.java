@@ -60,6 +60,7 @@ import static abfab3d.util.Output.fmt;
 import static abfab3d.util.MathUtil.L2S;
 import static abfab3d.util.Units.MM;
 import static abfab3d.util.MathUtil.iround;
+import static abfab3d.util.MathUtil.clamp;
 
 
 /**
@@ -93,6 +94,7 @@ public class PointSetShellBuilder implements AttributeOperation {
     AttributeGrid m_indexGrid; 
     // grid to store current shortest distances 
     AttributeGrid m_distanceGrid; 
+
     
     public PointSetShellBuilder(){
 
@@ -115,7 +117,7 @@ public class PointSetShellBuilder implements AttributeOperation {
     public void setPoints(PointSet points){
         m_points = points;
     }
-
+    
     public void setShellHalfThickness(double shellHalfThickness){
 
         m_layerThickness = shellHalfThickness;
@@ -144,6 +146,7 @@ public class PointSetShellBuilder implements AttributeOperation {
         m_nx = m_indexGrid.getWidth();
         m_ny = m_indexGrid.getHeight();
         m_nz = m_indexGrid.getDepth();
+
         m_distanceGrid = new ArrayAttributeGridByte(m_bounds, m_voxelSize,m_voxelSize);
         
         m_xmin = m_bounds.xmin;
@@ -160,16 +163,82 @@ public class PointSetShellBuilder implements AttributeOperation {
         }
     }
 
-    
+    //
+    // something wrong does not work 
+    //
+    public static PointSet makeSortedPoints(PointSet pnts, int binCount, double binMin, double binSize){
+        
+        long t0 = time();
+        Vector3d p = new Vector3d();
+
+        int pcount = pnts.size();        
+
+        int binCounts[] = new int[binCount];
+        int maxBin = binCount-1;
+        double y0 = binMin;
+        double scale = 1/binSize;
+        // first point is not used 
+        for(int i = 1; i < pcount;i++){
+            pnts.getPoint(i, p);
+            int bin = clamp((int)((p.y-y0)*scale), 0, maxBin);
+            binCounts[bin]++;
+        }
+
+        //for(int bin = 0; bin < binCount;bin++){
+            //printf("binCount[%3d]: %6d\n", bin, binCounts[bin]);
+        //}
+
+        //
+        // array of bins offsets 
+        //
+        int binOffset[] = new int[binCount];
+        int offset = 0;
+        for(int bin = 0; bin < binCount;bin++){
+            binOffset[bin] = offset;
+            offset += binCounts[bin];
+            binCounts[bin] = 0;
+        }
+        //for(int bin = 0; bin < binCount;bin++){
+            //printf("offset[%3d]: %6d cnt: %d\n", bin, binOffset[bin], binCounts[bin]);
+        //}
+
+        double coord[] = new double[pcount*3];
+
+        pnts.getPoint(0, p);
+        coord[0] = p.x;
+        coord[1] = p.y;
+        coord[2] = p.z;
+
+        // first point is not used 
+        for(int i = 1; i < pcount;i++){
+
+            pnts.getPoint(i, p);
+            int bin = clamp((int)((p.y-y0)*scale), 0, maxBin);
+
+            int cindex = 3*(binOffset[bin] + binCounts[bin] + 1);
+            binCounts[bin]++;
+            
+            coord[cindex  ] = p.x;
+            coord[cindex+1] = p.y;
+            coord[cindex+2] = p.z;
+            
+        }
+        
+        printf("makeSortedSet() count: %d time: %d ms\n", pcount, time() - t0);
+        return new PointSetArray(coord);
+    }
+
     protected void calculateShell(){
 
         int npnt = m_points.size();
         Vector3d pnt = new Vector3d();
         
+        final double y0 = m_ymin, x0 = m_xmin, z0 = m_zmin,scale = m_scale;
+        
         for(int i = 1; i < npnt; i++){// start from 1. Index 0 means undefined
             
             m_points.getPoint(i, pnt);
-            processNeighborhood(i, (pnt.x-m_xmin)*m_scale, (pnt.y-m_ymin)*m_scale, (pnt.z-m_zmin)*m_scale);
+            processNeighborhood(i, (pnt.x-x0)*scale, (pnt.y-y0)*scale, (pnt.z-z0)*scale);
         }
     }
 
@@ -183,7 +252,7 @@ public class PointSetShellBuilder implements AttributeOperation {
             y0 = (int)y,
             z0 = (int)z;
 
-        //printf("point: %d, (%6.2f,%6.2f,%6.2f): (%2d %2d %2d)\n", pointIndex, x,y,z, x0, y0, z0);
+        //printf("point: %3d, (%6.2f,%6.2f,%6.2f): (%2d %2d %2d)\n", pointIndex, x,y,z, x0, y0, z0);
         // scan over neighborhood of the voxel 
         int ncount = m_neighbors.length;
         
@@ -221,6 +290,16 @@ public class PointSetShellBuilder implements AttributeOperation {
             }
         }                    
     } // add neighborhood     
+
+    static void printPointSet(PointSet points){
+        
+        Vector3d pnt = new Vector3d();
+        
+        for(int i = 0; i < points.size(); i++){
+            points.getPoint(i, pnt);
+            printf("%7.3f %7.3f %7.3f mm\n", pnt.x/MM,pnt.y/MM,pnt.z/MM);
+        }
+    }
 
     static final int iround(double x) {
         return (int)(x + 0.5);

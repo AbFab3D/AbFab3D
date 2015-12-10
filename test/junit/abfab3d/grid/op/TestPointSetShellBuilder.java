@@ -13,8 +13,11 @@
 package abfab3d.grid.op;
 
 import java.util.Random;
+import javax.vecmath.Vector3d;
+
 
 import abfab3d.grid.VectorIndexerStructMap;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
@@ -279,14 +282,49 @@ public class TestPointSetShellBuilder extends TestCase {
                 
     }
 
-    public void devTestCircle() throws Exception{
+    public void devTestPointSorting(){
+        PointSet points = new PointSetArray();
+        int n = 100;
+        Random rnd = new Random(121);
+
+        int nx = 10;
+        int ny = 10;
+        int nz = 10;
+
+        points.addPoint(-1,-1,-1);
+
+        for(int i = 0; i < n; i++){
+            double x = nx*rnd.nextDouble();
+            double y = ny*rnd.nextDouble();
+            double z = 0.5;//nz*rnd.nextDouble();
+            points.addPoint(x,y,z);
+        }
+        printf("original points:\n");
+        printPointSet(points);
+        PointSet points1 = PointSetShellBuilder.makeSortedPoints(points, 10, 0, 1.);
+        printf("y sorted points:\n");
+        printPointSet(points1);
+
+    }
+
+    static void printPointSet(PointSet points){
+        
+        Vector3d pnt = new Vector3d();
+        
+        for(int i = 0; i < points.size(); i++){
+            points.getPoint(i, pnt);
+            printf("%7.3f %7.3f %7.3f\n", pnt.x,pnt.y,pnt.z);
+        }
+    }
+
+    public void devTestSphere() throws Exception{
 
         int imageWidth = 500;
         double vs = 1*MM;
         double x0 = -10*MM,y0 = -10*MM, z0 = -10*MM;
         double x1 = 10*MM,y1 = 10*MM, z1 = 10*MM;
         double bandWidth = 1*MM;
-        double maxOutDistance = 5*vs;
+        double maxOutDistance = 3*vs;
         Bounds bounds = new Bounds(x0, x1, y0, y1, z0, z1, vs);
         int magnification = imageWidth/bounds.getGridWidth();
         int distanceBitCount = 16;
@@ -324,11 +362,78 @@ public class TestPointSetShellBuilder extends TestCase {
         
         PointSetShellBuilder sb = new PointSetShellBuilder();
         sb.setPoints(pnts);
+        sb.setSortPoints(false);
         sb.setShellHalfThickness(maxOutDistance/vs);
 
         long t0 = time();
         sb.execute(indexGrid);
 
+        AttributeGrid distGrid = new ArrayAttributeGridShort(bounds, vs, vs);
+        AttributeChannel distanceChannel = new AttributeChannel(AttributeChannel.DISTANCE, "dist", distanceBitCount, 0, 0, maxOutDistance);
+        distGrid.setAttributeDesc(new AttributeDesc(distanceChannel));        
+        ClosestPointIndexer.makeDistanceGrid(indexGrid, pnts, null, distGrid, 0, maxOutDistance);
+
+        AttributeChannel dataChannel = distGrid.getAttributeDesc().getChannel(0);
+        ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, bandWidth);
+
+        for(int iz = 0; iz < distGrid.getDepth(); iz++){
+            GridUtil.printSliceAttribute(indexGrid, iz);
+            GridUtil.writeSlice(distGrid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));
+        }
+                
+    }
+
+    public void devTestCircle() throws Exception{
+
+        int imageWidth = 500;
+        double vs = 1*MM;
+        double x0 = -10*MM,y0 = -10*MM, z0 = -0.5*MM;
+        double x1 = 11*MM,y1 = 11*MM, z1 = 0.5*MM;
+        double bandWidth = 1*MM;
+        double maxOutDistance = 3*vs;
+        Bounds bounds = new Bounds(x0, x1, y0, y1, z0, z1, vs);
+        int magnification = imageWidth/bounds.getGridWidth();
+        int distanceBitCount = 16;
+        boolean sortPoints = true;
+        ArrayAttributeGridInt indexGrid = new ArrayAttributeGridInt(bounds, vs,vs);
+
+        PointSet pnts = new PointSetArray();
+        
+        double cx = bounds.getCenterX()+vs/2;
+        double cy = bounds.getCenterY()+vs/2;
+        double cz = bounds.getCenterZ()+vs/2;
+
+        pnts.addPoint(-1., -1., -1.); // dummy point
+
+
+        int np = 16;
+
+        for(int k = 0; k < np; k++){
+            
+            double phi = 2*Math.PI*k/np;
+            double r = 7*vs;
+            
+            double dx = r*cos(phi);
+            double dy = r*sin(phi);
+            double dz = 0;
+            
+            pnts.addPoint(cx + dx, cy+dy, cz + dz);
+        
+        }
+        
+        printf("points count: %d\n", pnts.size()-1);
+        
+        PointSetShellBuilder sb = new PointSetShellBuilder();
+
+        if(sortPoints) {
+            pnts = PointSetShellBuilder.makeSortedPoints(pnts, bounds.getGridHeight(), bounds.ymin, vs);
+        }
+
+        sb.setPoints(pnts);
+        sb.setShellHalfThickness(maxOutDistance/vs);
+
+        long t0 = time();
+        sb.execute(indexGrid);
         AttributeGrid distGrid = new ArrayAttributeGridShort(bounds, vs, vs);
         AttributeChannel distanceChannel = new AttributeChannel(AttributeChannel.DISTANCE, "dist", distanceBitCount, 0, 0, maxOutDistance);
         distGrid.setAttributeDesc(new AttributeDesc(distanceChannel));        
@@ -407,8 +512,11 @@ public class TestPointSetShellBuilder extends TestCase {
             //new TestPointSetShellBuilder().devTestPoint();
             //new TestPointSetShellBuilder().testTwoPoints();
             //new TestPointSetShellBuilder().devTestTwoPoints();
+            //new TestPointSetShellBuilder().devTestSphere();
             new TestPointSetShellBuilder().devTestCircle();
+            //new TestPointSetShellBuilder().devTestPointSorting();
             //new TestPointSetShellBuilder().devTestSpeed();
+
         }
     }
 

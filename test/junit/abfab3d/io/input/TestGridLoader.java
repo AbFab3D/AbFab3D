@@ -54,6 +54,9 @@ import abfab3d.util.MathUtil;
 import abfab3d.util.ColorMapper;
 import abfab3d.util.ColorMapperDensity;
 
+
+import static java.lang.Math.max;
+
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
@@ -241,25 +244,25 @@ public class TestGridLoader extends TestCase {
         printf("running devTestSTL_distance()\n");
         int densityBitCount = 8;
         int distanceBitCount = 16;
-        double voxelSize = 0.3*MM;
-        double bandWidth = 1*MM;
+        double voxelSize = 0.1*MM;
+        double bandWidth = 0.5*MM;
         double maxInDistance = 3.5*MM;
         double maxOutDistance = 3.5*MM;
         int magnification = 5;
         int threadCount = 4;
-        //int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
+        int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
         //int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
         //int rasterAlgorithm = GridLoader.RASTERIZER_ZBUFFER;
-        int rasterAlgorithm = GridLoader.RASTERIZER_WAVELET;
+        //int rasterAlgorithm = GridLoader.RASTERIZER_WAVELET;
 
         String path[] = new String[] {
             //"test/models/sphere_10cm_.4K_tri.stl",
             //"test/models/sphere_10cm_5K_tri.stl",
-            //"test/models/gyrosphere.stl",
+            "test/models/gyrosphere.stl",
             //"test/models/sphere_10cm_32K_tri.stl",
             //"test/models/sphere_10cm_400K_tri.stl"
             //"test/models/deer.stl",
-            "test/models/coffee_maker.x3db"
+            //"test/models/coffee_maker.x3db"
 
         };
 
@@ -273,6 +276,7 @@ public class TestGridLoader extends TestCase {
         loader.setMaxInDistance(maxInDistance);
         loader.setMaxOutDistance(maxOutDistance);
         loader.setThreadCount(threadCount);
+        loader.setMargins(max(maxInDistance, maxOutDistance));        
         loader.setShellHalfThickness(2.);
         loader.setSurfaceVoxelSize(1);
         
@@ -291,8 +295,8 @@ public class TestGridLoader extends TestCase {
             printf("loadingTime: %d ms\n", tt);
             t0 = time();
             //if(false){int iz = grid.getDepth()/2;
-            //for(int iz = grid.getDepth()/2; iz < grid.getDepth()/2+1; iz++){
-            for(int iz = 0; iz < grid.getDepth(); iz += 5){
+            for(int iz = grid.getDepth()/2; iz < grid.getDepth()/2+1; iz++){
+            //for(int iz = 0; iz < grid.getDepth(); iz += 5){
                 AttributeChannel dataChannel = grid.getAttributeDesc().getChannel(0);
                 ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, bandWidth);
                 GridUtil.writeSlice(grid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));

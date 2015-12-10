@@ -57,6 +57,7 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.MathUtil.L2S;
 import static abfab3d.util.MathUtil.iround;
+import static abfab3d.util.MathUtil.clamp;
 
 
 /**
@@ -91,6 +92,8 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
     PointSet m_points;
     public double m_samplingFactor = 1;
 
+    protected boolean m_sortPoints = false;
+
     /**
        @aram gridBounds 
      */
@@ -98,6 +101,15 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
 
         m_bounds = gridBounds.clone();
 
+    }
+
+
+    /**
+       
+     */
+    public void setSortPoints(boolean value) {
+        printf("setSortPoints(%s)\n", value);
+        m_sortPoints = value;
     }
 
     /**
@@ -118,11 +130,11 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
        @param pntz  z coordinates 
      */
     public void getPoints(double pntx[],double pnty[],double pntz[]){
-        //
-        // coordinates are in grid units 
-        //
+        
         getPointsInGridUnits(pntx,pnty,pntz);
-
+        //
+        // original coordinates are in grid units. we need to transform into physical units 
+        //
         for(int i = 0; i < pntx.length; i++){
             pntx[i] = toWorldX(pntx[i]);
             pnty[i] = toWorldY(pnty[i]);
@@ -135,20 +147,70 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
        
      */
     private void getPointsInGridUnits(double pntx[],double pnty[],double pntz[]){
+        printf("getPointsInGridUnits()\n");
+        if(m_sortPoints){
+            // do point sorting in the inreased Y-coordinate wih grid precision 
+            getPointsInGridUnitsSorted(pntx, pnty, pntz, m_points, m_ny);
 
-        //
-        // coordinates are in grid units 
-        //
-        int npnt = m_points.size();
-        Vector3d pnt = new Vector3d();
-        for(int i = 0; i < npnt; i++){
-            m_points.getPoint(i, pnt);
-            pntx[i] = pnt.x;
-            pnty[i] = pnt.y;
-            pntz[i] = pnt.z;
+        } else {
+            //
+            // coordinates are in grid units 
+            //
+            int npnt = m_points.size();
+            Vector3d pnt = new Vector3d();
+            for(int i = 0; i < npnt; i++){
+                m_points.getPoint(i, pnt);
+                pntx[i] = pnt.x;
+                pnty[i] = pnt.y;
+                pntz[i] = pnt.z;
+            }
         }
     }
 
+
+    static private void getPointsInGridUnitsSorted(double coordx[],double coordy[],double coordz[], PointSet pnts, int binCount){
+        long t0 = time();
+        Vector3d p = new Vector3d();
+        int pcount = pnts.size();        
+        int binCounts[] = new int[binCount];
+        int maxBin = binCount-1;
+        // first point is not used 
+        for(int i = 1; i < pcount;i++){
+            pnts.getPoint(i, p);
+            int bin = clamp((int)p.y, 0, maxBin);
+            binCounts[bin]++;
+        }
+
+        //
+        // array of bins offsets 
+        //
+        int binOffset[] = new int[binCount];
+
+        int offset = 0;
+        for(int bin = 0; bin < binCount;bin++){
+            binOffset[bin] = offset;
+            offset += binCounts[bin];
+            binCounts[bin] = 0;
+        }
+
+        pnts.getPoint(0, p);
+        coordx[0] = p.x;
+        coordy[0] = p.y;
+        coordz[0] = p.z;
+
+        // first point is not used 
+        for(int i = 1; i < pcount;i++){
+
+            pnts.getPoint(i, p);
+            int bin = clamp((int)p.y, 0, maxBin);
+            int cindex = (binOffset[bin] + binCounts[bin] + 1);
+            binCounts[bin]++;            
+            coordx[cindex] = p.x;
+            coordy[cindex] = p.y;
+            coordz[cindex] = p.z;            
+        }        
+        printf("points sorting time: %d ms\n", time() - t0);
+    }
 
     /**
        this method MUST be called before starting adding triangles 

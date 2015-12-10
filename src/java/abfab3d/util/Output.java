@@ -73,6 +73,10 @@ public class Output{
         return System.currentTimeMillis();
     }
 
+    public static long nanoTime(){
+        return System.nanoTime();
+    }
+
     public static void printMemory(){
         
         Runtime rt = Runtime.getRuntime();
