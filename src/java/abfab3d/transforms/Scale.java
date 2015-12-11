@@ -77,24 +77,32 @@ public class Scale  extends BaseTransform implements VecTransform, Initializable
      */
     public Scale(double sx, double sy, double sz){
         addParams(m_aparam);
-        setScale(sx,sy,sz);
+        setScale(sx, sy, sz);
     }
-    
+
     /**
-       @noRefGuide
+     * Scale
+     *
+     * @param p vector of scale
      */
+    public Scale(Vector3d p) {
+        addParams(m_aparam);
+        setScale(p.x, p.y, p.z);
+    }
+
     public void setScale(double s){
         
-        mp_scale.setValue(new Vector3d(s,s,s));
+        mp_scale.setValue(new Vector3d(s, s, s));
     }
     
-    /**
-       @noRefGuide
-     */
     public void setScale(double sx, double sy, double sz){
         
         mp_scale.setValue(new Vector3d(sx,sy,sz));
 
+    }
+
+    public void setScale(Vector3d s){
+        mp_scale.setValue(s.clone());
     }
 
     public int initialize() {

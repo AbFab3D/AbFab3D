@@ -15,7 +15,12 @@ package abfab3d.datasources;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
+import abfab3d.transforms.Rotation;
+import abfab3d.transforms.Scale;
+import abfab3d.transforms.Translation;
 import abfab3d.util.*;
+
+import javax.vecmath.Vector3d;
 
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
@@ -41,7 +46,7 @@ import static abfab3d.util.Output.printf;
  */
 public abstract class TransformableDataSource extends BaseParameterizable implements DataSource, Initializable {
 
-    // transformation which is aplied to the data point before the calculation of data value 
+    // transformation which is applied to the data point before the calculation of data value
     protected VecTransform m_transform = null; 
     // count of data channels 
     protected int m_channelsCount = 1;
@@ -71,6 +76,89 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      */
     public VecTransform getTransform() {
         return m_transform;
+    }
+
+
+    // Helpers to make code less verbose
+    /**
+     * Translate the source.  Equivalent to setTransform(new Translation(vec))
+     * @param vec
+     */
+    public void translate(Vector3d vec) {
+        m_transform = new Translation(vec);
+    }
+
+    /**
+     * Translate the source.  Equivalent to setTransform(new Translation(tx,ty,tz))
+     */
+    public void translate(double tx,double ty, double tz) {
+        m_transform = new Translation(tx,ty,tz);
+    }
+
+    /**
+     * Scale the source.  Equivalent to setTransform(new Scale(vec))
+     * @param vec
+     */
+    public void scale(Vector3d vec) {
+        m_transform = new Scale(vec);
+    }
+
+    /**
+     * Scale the source.  Equivalent to setTransform(new Scale(sx,sy,sz))
+     */
+    public void scale(double sx,double sy, double sz) {
+        m_transform = new Scale(sx,sy,sz);
+    }
+
+    /**
+     * Rotate the source.  Equivalent to setTransform(new Rotation(axis,angle))
+     * @param axis
+     * @param angle
+     */
+    public void rotate(Vector3d axis, double angle){
+        m_transform = new Rotation(axis,angle);
+    }
+
+    /**
+     * Rotate the source.  Equivalent to setTransform(new Rotation(ax,ay,az,angle))
+     * @param ax  x component of rotation axis
+     * @param ay  y component of rotation axis
+     * @param az  z component of rotation axis
+     * @param angle  rotation angle is measured in radians
+     */
+    public void rotate(double ax, double ay, double az, double angle){
+        m_transform = new Rotation(ax,ay,az,angle);
+    }
+
+    /**
+     * Union this datasource with another.  Equivalent to new Union(this,ds2)
+     */
+    public TransformableDataSource union(TransformableDataSource ds2) {
+        return new Union(this,ds2);
+    }
+
+    /**
+     * Intersect this datasource with another.  Equivalent to new Intersection(this,ds2)
+     */
+    public TransformableDataSource intersect(TransformableDataSource ds2) {
+        return new Intersection(this,ds2);
+    }
+
+    /**
+     * Subtract a datasource from this one.  Equivalent to new Subtraction(this,ds2)
+     * @param ds2
+     * @return
+     */
+    public TransformableDataSource subtract(TransformableDataSource ds2) {
+        return new Subtraction(this,ds2);
+    }
+
+    /**
+     * Take the opposite of this data source.
+     * @return
+     */
+    public TransformableDataSource complement() {
+        return new Complement(this);
     }
 
 
