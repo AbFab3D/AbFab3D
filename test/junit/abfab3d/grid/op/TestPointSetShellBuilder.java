@@ -362,7 +362,6 @@ public class TestPointSetShellBuilder extends TestCase {
         
         PointSetShellBuilder sb = new PointSetShellBuilder();
         sb.setPoints(pnts);
-        sb.setSortPoints(false);
         sb.setShellHalfThickness(maxOutDistance/vs);
 
         long t0 = time();

@@ -337,12 +337,13 @@ public class GridLoader {
         gridBounds.setVoxelSize(voxelSize);
         gridBounds.expand(m_margins);
         
-        //gridBounds.roundBounds();
-
+        gridBounds.roundBounds();
+        
         int ng[] = gridBounds.getGridSize();
         if((long) ng[0] * ng[1]*ng[2] > m_maxGridSize) {                
             voxelSize = Math.pow(gridBounds.getVolume()/m_maxGridSize, 1./3);
             gridBounds.setVoxelSize(voxelSize);
+            gridBounds.roundBounds();
         }
         /*
         while((long) ng[0] * ng[1]*ng[2] > m_maxGridSize) {                
