@@ -1,7 +1,5 @@
 package abfab3d.param;
 
-import abfab3d.param.Parameter;
-
 /**
  * Can have parameters.
  */

@@ -15,8 +15,6 @@ package abfab3d.datasources;
 
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
-import abfab3d.param.Vector3dParameter;
-import abfab3d.util.Units;
 import abfab3d.util.Vec;
 
 import javax.vecmath.Vector3d;
@@ -34,28 +32,27 @@ import static abfab3d.util.Units.MM;
  * @author Vladimir Bulatov
  */
 public class Box extends TransformableDataSource {
-
     static final boolean DEBUG = false;
-    static int debugCount = 1000;
-
-    //private double m_sizeX = 0.1, m_sizeY = 0.1, m_sizeZ = 0.1, m_centerX = 0, m_centerY = 0, m_centerZ = 0;
 
     private double
-            xmin,
-            xmax,
-            ymin,
-            ymax,
-            zmin, zmax;
+            xmin,xmax,
+            ymin,ymax,
+            zmin,zmax;
     
     
-    Vector3dParameter  mp_center = new Vector3dParameter("center","center of the box",new Vector3d(0,0,0));
-    Vector3dParameter  mp_size = new Vector3dParameter("size","size of the box",new Vector3d(0.1,0.1,0.1));
+    DoubleParameter mp_width = new DoubleParameter("width","Width",0.1,0.1*MM,Double.MAX_VALUE,0.1);
+    DoubleParameter mp_height = new DoubleParameter("height","Height",0.1,0.1*MM,Double.MAX_VALUE,0.1);
+    DoubleParameter mp_depth = new DoubleParameter("depth","Depth",0.1,0.1*MM,Double.MAX_VALUE,0.1);
+    DoubleParameter mp_centerX = new DoubleParameter("centerX","Center X",0);
+    DoubleParameter mp_centerY = new DoubleParameter("centerY","Center Y",0);
+    DoubleParameter mp_centerZ = new DoubleParameter("centerZ","Center Z",0);
+
     // rounding of the edges
     DoubleParameter  mp_rounding = new DoubleParameter("rounding","rounding of the box edges", 0.);
 
     Parameter m_aparam[] = new Parameter[]{
-        mp_center,
-        mp_size,
+        mp_width,mp_height,mp_depth,
+        mp_centerX,mp_centerY,mp_centerZ,
         mp_rounding
     };
 
@@ -97,50 +94,106 @@ public class Box extends TransformableDataSource {
      */
     public Box(double cx, double cy, double cz, double sx, double sy, double sz) {
         initParams();
-        
-        mp_center.setValue(new Vector3d(cx, cy, cz));
-        mp_size.setValue(new Vector3d(sx, sy, sz));
 
+        setWidth(sx);
+        setHeight(sy);
+        setDepth(sz);
+
+        setCenterX(cx);
+        setCenterY(cy);
+        setCenterZ(cz);
     }
 
+    /**
+     * Box with given center, size and rounding
+     * @param center
+     * @param size
+     * @param rounding
+     */
     public Box(Vector3d center, Vector3d size, double rounding) {
 
         initParams();
-        mp_center.setValue(new Vector3d(center));
-        mp_size.setValue(new Vector3d(size));
+        setWidth(size.x);
+        setHeight(size.y);
+        setDepth(size.z);
+
+        setCenterX(center.x);
+        setCenterY(center.y);
+        setCenterZ(center.z);
         mp_rounding.setValue(new Double(rounding));
-
     }
 
     /**
-     * Set the size of the box.
-     * @param val The size in meters
+     * Box with given center and size
+     *
+     * @param cx  x coordinate of center
+     * @param cy  y coordinate of center
+     * @param cz  z coordinate of center
+     * @param sx x size
+     * @param sy y size
+     * @param sz z size
+     * @param rounding The amount of rounding
      */
-    public void setSize(Vector3d val) {
-        mp_size.setValue(val);
+    public Box(double cx, double cy, double cz, double sx, double sy, double sz, double rounding) {
+        initParams();
+
+        setWidth(sx);
+        setHeight(sy);
+        setDepth(sz);
+
+        setCenterX(cx);
+        setCenterY(cy);
+        setCenterZ(cz);
+
+        setRounding(rounding);
     }
 
     /**
-     * Get the size
+     * Set the width
+     * @param val The value in meters
      */
-    public Vector3d getSize() {
-        return mp_size.getValue();
+    public void setWidth(double val) {
+        mp_width.setValue(val);
     }
 
     /**
-     * Set the center of the coordinate system
-     * @param val The center
+     * Set the height
+     * @param val The value in meters
      */
-    public void setCenter(Vector3d val) {
-        mp_center.setValue(val);
+    public void setHeight(double val) {
+        mp_height.setValue(val);
     }
 
     /**
-     * Get the center of the coordinate system
-     * @return
+     * Set the depth
+     * @param val The value in meters
      */
-    public Vector3d getCenter() {
-        return mp_center.getValue();
+    public void setDepth(double val) {
+        mp_depth.setValue(val);
+    }
+
+    /**
+     * Set the center x position
+     * @param val The value in meters
+     */
+    public void setCenterX(double val) {
+        mp_centerX.setValue(val);
+    }
+
+    /**
+     * Set the center y position
+     * @param val The value in meters
+     */
+    public void setCenterY(double val) {
+        mp_centerY.setValue(val);
+    }
+
+    /**
+     * Set the center z position
+     * @param val The value in meters
+     */
+    public void setCenterZ(double val) {
+        mp_centerZ.setValue(val);
     }
 
     /**
@@ -171,16 +224,14 @@ public class Box extends TransformableDataSource {
     public int initialize() {
 
         super.initialize();
-        Vector3d center = mp_center.getValue();
-        Vector3d size = mp_size.getValue();
 
-        double centerX = center.x;
-        double centerY = center.y;
-        double centerZ = center.z;
+        double centerX = mp_centerX.getValue();
+        double centerY = mp_centerY.getValue();
+        double centerZ = mp_centerZ.getValue();
 
-        double sizeX = size.x;
-        double sizeY = size.y;
-        double sizeZ = size.z;
+        double sizeX = mp_width.getValue();
+        double sizeY = mp_height.getValue();
+        double sizeZ = mp_depth.getValue();
         
         xmin = centerX - sizeX / 2;
         xmax = centerX + sizeX / 2;
@@ -213,8 +264,6 @@ public class Box extends TransformableDataSource {
                 z = pnt.v[2];
 
         double vs = pnt.getScaledVoxelSize();
-        if (DEBUG && debugCount-- > 0)
-            printf("vs: %5.3fmm\n", vs / Units.MM);
         if (vs == 0.) {
             // zero voxel size
             if (x < xmin || x > xmax ||
