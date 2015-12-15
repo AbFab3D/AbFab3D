@@ -95,6 +95,14 @@ public class Bounds implements Cloneable {
         init();
     }
 
+    public Bounds(Vector3d center, Vector3d size) {
+        this.xmin = center.x - size.x / 2;
+        this.xmax = center.x + size.x / 2;
+        this.ymin = center.y - size.y / 2;
+        this.ymax = center.y + size.y / 2;
+        this.zmin = center.z - size.z / 2;
+        this.zmax = center.z + size.z / 2;
+    }
 
     /**
        returns volume of the bounds box 

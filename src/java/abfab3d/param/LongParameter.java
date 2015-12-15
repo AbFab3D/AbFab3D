@@ -14,27 +14,24 @@ package abfab3d.param;
 // External Imports
 
 /**
- * A Int parameter 
+ * A Long parameter 
  *
- * @author Vladimir Bulatov
+ * @author Alan Hudson
  */
-public class IntParameter extends NumberParameter {
-    public static final int DEFAULT_MIN_RANGE = Integer.MIN_VALUE;
-    public static final int DEFAULT_MAX_RANGE = Integer.MAX_VALUE;
-
+public class LongParameter extends NumberParameter {
     /** Min range for numeric values */
-    private int minRange;
+    private long minRange;
 
     /** Max range for numeric values */
-    private int maxRange;
+    private long maxRange;
 
-    public IntParameter(String name, String desc, int initialValue) {
+    public LongParameter(String name, String desc, long initialValue) {
 
-        this(name, desc, initialValue, DEFAULT_MIN_RANGE, DEFAULT_MAX_RANGE);
+        this(name, desc, initialValue, Long.MIN_VALUE, Long.MAX_VALUE);
     }
 
-    public IntParameter(String name, String desc, int initialValue,
-                           int minRange, int maxRange) {
+    public LongParameter(String name, String desc, long initialValue,
+                         long minRange, long maxRange) {
 
         super(name, desc);
 
@@ -46,8 +43,8 @@ public class IntParameter extends NumberParameter {
     }
 
     @Override
-    public Integer getValue() {
-        return (Integer) value;
+    public Long getValue() {
+        return (Long) value;
     }
 
     /**
@@ -61,35 +58,35 @@ public class IntParameter extends NumberParameter {
     /**
      * @return the minRange
      */
-    public int getMinRange() {
+    public long getMinRange() {
         return minRange;
     }
 
     /**
      * @param minRange the minRange to set
      */
-    public void setMinRange(int minRange) {
+    public void setMinRange(long minRange) {
         this.minRange = minRange;
     }
 
     /**
      * @return the maxRange
      */
-    public int getMaxRange() {
+    public long getMaxRange() {
         return maxRange;
     }
 
     /**
      * @param maxRange the maxRange to set
      */
-    public void setMaxRange(int maxRange) {
+    public void setMaxRange(long maxRange) {
         this.maxRange = maxRange;
     }
     
     @Override
     public void setValue(Object val) {
         if(val instanceof Double)
-            val = new Integer((int)Math.round(((Double)val).doubleValue()));
+            val = new Long((long)Math.round(((Double)val).doubleValue()));
         validate(val);
 
         this.value = val;
@@ -106,20 +103,20 @@ public class IntParameter extends NumberParameter {
     public void validate(Object val) {
         if (val == null) return;
 
-        int d = 0;
-        if (val instanceof Integer) {
-            d = ((Integer) val).intValue();
+        long d = 0;
+        if (val instanceof Long) {
+            d = ((Long) val).longValue();
             this.value = val;        
         } else {
-            throw new IllegalArgumentException("Unsupported type for Integer: " + val + " in param: " + getName());
+            throw new IllegalArgumentException("Unsupported type for Long: " + val + " in param: " + getName());
         }
         
         if (d < minRange) {
-            throw new IllegalArgumentException("Invalid int value, below minimum range: " + d + " in param: " + getName());
+            throw new IllegalArgumentException("Invalid long value, below minimum range: " + d + " in param: " + getName());
 
         }
         if (d > maxRange) {
-            throw new IllegalArgumentException("Invalid int value, above maximum range: " + d + " in param: " + getName());
+            throw new IllegalArgumentException("Invalid long value, above maximum range: " + d + " in param: " + getName());
         }        
     }
 

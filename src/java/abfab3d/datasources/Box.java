@@ -15,6 +15,9 @@ package abfab3d.datasources;
 
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
+import abfab3d.util.Bounds;
+import abfab3d.util.Units;
 import abfab3d.util.Vec;
 
 import javax.vecmath.Vector3d;
@@ -33,6 +36,9 @@ import static abfab3d.util.Units.MM;
  */
 public class Box extends TransformableDataSource {
     static final boolean DEBUG = false;
+    private static final double DEFAULT_WIDTH = 0.1;
+    private static final double DEFAULT_HEIGHT = 0.1;
+    private static final double DEFAULT_DEPTH = 0.1;
 
     private double
             xmin,xmax,
@@ -48,7 +54,7 @@ public class Box extends TransformableDataSource {
     DoubleParameter mp_centerZ = new DoubleParameter("centerZ","Center Z",0);
 
     // rounding of the edges
-    DoubleParameter  mp_rounding = new DoubleParameter("rounding","rounding of the box edges", 0.);
+    DoubleParameter  mp_rounding = new DoubleParameter("rounding","Width of rounding of the box edges", 0.);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_width,mp_height,mp_depth,
@@ -62,6 +68,13 @@ public class Box extends TransformableDataSource {
             m_hasSmoothBoundaryZ = true;
 
     /**
+     * Construct a default box
+     */
+    public Box() {
+        this(0,0,0,DEFAULT_WIDTH,DEFAULT_HEIGHT,DEFAULT_DEPTH);
+    }
+
+    /**
      * Box with 0,0,0 center and given size
      *
      * @param sx x size
@@ -70,6 +83,18 @@ public class Box extends TransformableDataSource {
      */
     public Box(double sx, double sy, double sz) {
         this(0, 0, 0, sx, sy, sz);
+    }
+
+    /**
+     * Box with 0,0,0 center and given size
+     *
+     * @param sx x size
+     * @param sy y size
+     * @param sz z size
+     * @param rounding The amount of rounding
+     */
+    public Box(double sx, double sy, double sz,double rounding) {
+        this(0, 0, 0, sx, sy, sz,rounding);
     }
 
     /**
@@ -95,6 +120,7 @@ public class Box extends TransformableDataSource {
     public Box(double cx, double cy, double cz, double sx, double sy, double sz) {
         initParams();
 
+        printf("Const box.  w: %f\n", sx);
         setWidth(sx);
         setHeight(sy);
         setDepth(sz);
@@ -102,6 +128,7 @@ public class Box extends TransformableDataSource {
         setCenterX(cx);
         setCenterY(cy);
         setCenterZ(cz);
+        boundsDirty = true;
     }
 
     /**
@@ -121,6 +148,7 @@ public class Box extends TransformableDataSource {
         setCenterY(center.y);
         setCenterZ(center.z);
         mp_rounding.setValue(new Double(rounding));
+        boundsDirty = true;
     }
 
     /**
@@ -146,14 +174,37 @@ public class Box extends TransformableDataSource {
         setCenterZ(cz);
 
         setRounding(rounding);
+        boundsDirty = true;
     }
 
     /**
-     * Set the width
+     * Set the size
+     * @param val The value in meters
+     */
+    public void setSize(Vector3d val) {
+        mp_width.setValue(val.x);
+        mp_height.setValue(val.y);
+        mp_depth.setValue(val.z);
+
+        boundsDirty = true;
+    }
+
+    /**
+     * Get the size
+     * @return The size in meters
+     */
+    public Vector3d getSize() {
+        return new Vector3d(mp_width.getValue(),mp_height.getValue(),mp_depth.getValue());
+    }
+
+    /**
+     * Set the height
      * @param val The value in meters
      */
     public void setWidth(double val) {
+        printf("box.setWidth:  %f\n", val);
         mp_width.setValue(val);
+        boundsDirty = true;
     }
 
     /**
@@ -162,6 +213,7 @@ public class Box extends TransformableDataSource {
      */
     public void setHeight(double val) {
         mp_height.setValue(val);
+        boundsDirty = true;
     }
 
     /**
@@ -170,6 +222,28 @@ public class Box extends TransformableDataSource {
      */
     public void setDepth(double val) {
         mp_depth.setValue(val);
+        boundsDirty = true;
+    }
+
+    /**
+     * Set the center of the coordinate system
+     * @param val The value in meters
+     */
+    public void setCenter(Vector3d val) {
+        mp_centerX.setValue(val.x);
+        mp_centerY.setValue(val.y);
+        mp_centerZ.setValue(val.z);
+        boundsDirty = true;
+    }
+
+    /**
+     * Set the center of the coordinate system
+     */
+    public void setCenter(double x,double y, double z) {
+        mp_centerX.setValue(x);
+        mp_centerY.setValue(y);
+        mp_centerZ.setValue(z);
+        boundsDirty = true;
     }
 
     /**
@@ -178,6 +252,15 @@ public class Box extends TransformableDataSource {
      */
     public void setCenterX(double val) {
         mp_centerX.setValue(val);
+        boundsDirty = true;
+    }
+
+    /**
+     * Get the center x position
+     * @return The value in meters
+     */
+    public double getCenterX() {
+        return mp_centerX.getValue();
     }
 
     /**
@@ -186,6 +269,15 @@ public class Box extends TransformableDataSource {
      */
     public void setCenterY(double val) {
         mp_centerY.setValue(val);
+        boundsDirty = true;
+    }
+
+    /**
+     * Get the center y position
+     * @return The value in meters
+     */
+    public double getCenterY() {
+        return mp_centerY.getValue();
     }
 
     /**
@@ -194,6 +286,23 @@ public class Box extends TransformableDataSource {
      */
     public void setCenterZ(double val) {
         mp_centerZ.setValue(val);
+        boundsDirty = true;
+    }
+
+    /**
+     * Get the center z position
+     * @return The value in meters
+     */
+    public double getCenterZ() {
+        return mp_centerY.getValue();
+    }
+
+    /**
+     * Get the center of the coordinate system.
+     * @return The value in meters
+     */
+    public Vector3d getCenter() {
+        return new Vector3d(mp_centerX.getValue(),mp_centerY.getValue(),mp_centerZ.getValue());
     }
 
     /**
@@ -202,6 +311,7 @@ public class Box extends TransformableDataSource {
      */
     public void setRounding(double val) {
         mp_rounding.setValue(val);
+        boundsDirty = true;
     }
 
     /**
@@ -211,11 +321,28 @@ public class Box extends TransformableDataSource {
         return mp_rounding.getValue();
     }
 
+
     /**
      * @noRefGuide;
      */
     protected void initParams(){
         super.addParams(m_aparam);
+    }
+
+    /**
+     * Call to update bounds after each param change that affects bounds
+     * @noRefGuide;
+     */
+    protected void updateBounds() {
+        double w = mp_width.getValue();
+        double h = mp_height.getValue();
+        double d = mp_depth.getValue();
+        double centerX = mp_centerX.getValue();
+        double centerY = mp_centerY.getValue();
+        double centerZ = mp_centerZ.getValue();
+
+        m_bounds = new Bounds(centerX - w / 2,centerX + w / 2,centerY - h / 2,centerY + h /2,centerZ - d / 2,centerZ + d /2);
+        boundsDirty = false;
     }
 
     /**

@@ -13,8 +13,6 @@
 package abfab3d.datasources;
 
 import abfab3d.param.BaseParameterizable;
-import abfab3d.param.Parameter;
-import abfab3d.param.Vector3dParameter;
 import abfab3d.transforms.Rotation;
 import abfab3d.transforms.Scale;
 import abfab3d.transforms.Translation;
@@ -57,6 +55,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
     // the material is potential multichannel data source and it adds channels to the total channels count
     protected DataSource m_material = null; 
     protected Bounds m_bounds = null;
+    protected boolean boundsDirty = false;
 
     protected TransformableDataSource(){
     }
@@ -186,7 +185,17 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @return
      */
     public Bounds getBounds() {
+        if (boundsDirty) updateBounds();
+
         return m_bounds;
+    }
+
+    /**
+     * Call to update bounds after each param change that affects bounds
+     * @noRefGuide;
+     */
+    protected void updateBounds() {
+        boundsDirty = false;
     }
 
     /**
@@ -196,6 +205,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      */
     public void setBounds(Bounds bounds) {
         this.m_bounds = bounds.clone();
+        boundsDirty = false;
     }
 
     /**

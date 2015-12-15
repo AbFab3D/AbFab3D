@@ -13,32 +13,16 @@
 package abfab3d.datasources;
 
 
-import java.util.Vector;
-
 import javax.vecmath.Vector3d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.AxisAngle4d;
-
 
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
+import abfab3d.util.Bounds;
 import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
-
-import abfab3d.util.PointToTriangleDistance;
-
-import static java.lang.Math.sqrt;
-import static java.lang.Math.atan2;
-import static java.lang.Math.abs;
 
 import static abfab3d.util.Output.printf;
 
-
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.MathUtil.step10;
 import static abfab3d.util.MathUtil.step01;
 
@@ -60,17 +44,17 @@ import static abfab3d.util.Units.MM;
 
 public class Sphere extends TransformableDataSource {
     
-    private double R, R2, RR;
-
-    private boolean sign = true; // inside (true) or outside (false) of the sphere 
-
-    private double x0, y0, z0;
-    
-    private Vector3dParameter  mp_center = new Vector3dParameter("center","center of the sphere",new Vector3d(0,0,0));
+    DoubleParameter mp_centerX = new DoubleParameter("centerX","Center X",0);
+    DoubleParameter mp_centerY = new DoubleParameter("centerY","Center Y",0);
+    DoubleParameter mp_centerZ = new DoubleParameter("centerZ","Center Z",0);
     private DoubleParameter  mp_radius = new DoubleParameter("radius","radius of the sphere", 1.*MM);
 
+    private double R, R2, RR;
+    private double x0,y0,z0;
+    private boolean sign = true; // inside (true) or outside (false) of the sphere
+
     Parameter m_aparam[] = new Parameter[]{
-        mp_center,
+        mp_centerX,mp_centerY,mp_centerZ,
         mp_radius
     };
 
@@ -110,39 +94,90 @@ public class Sphere extends TransformableDataSource {
     }
 
     /**
-     * Set the center of the coordinate system
-     * @param val The center
-     */
-    public void setCenter(Vector3d val) {
-        mp_center.setValue(val);
-    }
-
-    /**
-     * Get the center of the coordinate system
-     * @return
-     */
-    public Vector3d getCenter() {
-        return mp_center.getValue();
-    }
-
-    /**
-     * @noRefGuide
+     * @noRefGuide;
      */
     protected void initParams(){
-        for(int i = 0; i < m_aparam.length; i++){
-            params.put(m_aparam[i].getName(),m_aparam[i]);
-        }
+        super.addParams(m_aparam);
     }
 
     /**
-     * @noRefGuide
+     * Set the center of the coordinate system
+     * @param val The value in meters
      */
-    public void setCenter(double x, double y, double z){
-        
-        this.x0 = x;
-        this.y0 = y;
-        this.z0 = z;
-        mp_center.setValue(new Vector3d(x,y,z));
+    public void setCenter(Vector3d val) {
+        mp_centerX.setValue(val.x);
+        mp_centerY.setValue(val.y);
+        mp_centerZ.setValue(val.z);
+        boundsDirty = true;
+    }
+
+    /**
+     * Set the center of the coordinate system
+     */
+    public void setCenter(double x,double y, double z) {
+        mp_centerX.setValue(x);
+        mp_centerY.setValue(y);
+        mp_centerZ.setValue(z);
+        boundsDirty = true;
+    }
+
+    /**
+     * Set the center x position
+     * @param val The value in meters
+     */
+    public void setCenterX(double val) {
+        mp_centerX.setValue(val);
+        boundsDirty = true;
+    }
+
+    /**
+     * Get the center x position
+     * @return The value in meters
+     */
+    public double getCenterX() {
+        return mp_centerX.getValue();
+    }
+
+    /**
+     * Set the center y position
+     * @param val The value in meters
+     */
+    public void setCenterY(double val) {
+        mp_centerY.setValue(val);
+        boundsDirty = true;
+    }
+
+    /**
+     * Get the center y position
+     * @return The value in meters
+     */
+    public double getCenterY() {
+        return mp_centerY.getValue();
+    }
+
+    /**
+     * Set the center z position
+     * @param val The value in meters
+     */
+    public void setCenterZ(double val) {
+        mp_centerZ.setValue(val);
+        boundsDirty = true;
+    }
+
+    /**
+     * Get the center z position
+     * @return The value in meters
+     */
+    public double getCenterZ() {
+        return mp_centerY.getValue();
+    }
+
+    /**
+     * Get the center of the coordinate system.
+     * @return The value in meters
+     */
+    public Vector3d getCenter() {
+        return new Vector3d(mp_centerX.getValue(),mp_centerY.getValue(),mp_centerZ.getValue());
     }
     
     /**
@@ -150,18 +185,8 @@ public class Sphere extends TransformableDataSource {
      * @param r The value in meters.  Default is 1mm.
      */
     public void setRadius(double r){
-        if( r < 0){
-            R = -r;
-            sign = false;
-        } else {
-            R = r;
-            sign = true;
-        }
-        
-        R2 = 2*r;
-        RR = r*r;
         mp_radius.setValue(r);
-
+        boundsDirty = true;
     }
 
     /**
@@ -169,6 +194,47 @@ public class Sphere extends TransformableDataSource {
      */
     public double getRadius() {
         return mp_radius.getValue();
+    }
+
+    /**
+     * @noRefGuide
+     */
+    public int initialize() {
+
+        super.initialize();
+
+        double r = mp_radius.getValue();
+
+        if( r < 0){
+            R = -r;
+            sign = false;
+        } else {
+            R = r;
+            sign = true;
+        }
+
+        R2 = 2*r;
+        RR = r*r;
+
+        x0 = mp_centerX.getValue();
+        y0 = mp_centerY.getValue();
+        z0 = mp_centerZ.getValue();
+
+        return RESULT_OK;
+    }
+
+    /**
+     * Call to update bounds after each param change that affects bounds
+     * @noRefGuide;
+     */
+    protected void updateBounds() {
+        double r = mp_radius.getValue();
+        double centerX = mp_centerX.getValue();
+        double centerY = mp_centerY.getValue();
+        double centerZ = mp_centerZ.getValue();
+
+        m_bounds = new Bounds(centerX - r,centerX + r,centerY - r,centerY + r,centerZ - r,centerZ + r);
+        boundsDirty = false;
     }
 
     /**
