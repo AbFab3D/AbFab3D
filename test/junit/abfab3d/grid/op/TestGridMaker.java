@@ -136,7 +136,7 @@ public class TestGridMaker extends TestCase {
         image.setCenter(0,0,0);
 
         image.setBaseThickness(0.1);
-        image.setImagePath("docs/images/numbers_1.png");
+        image.setImage("docs/images/numbers_1.png");
         image.setUseGrayscale(true);
         image.setTiles(2, 1);
         image.setImageType(Image3D.IMAGE_TYPE_EMBOSSED);
@@ -238,7 +238,7 @@ public class TestGridMaker extends TestCase {
         image.setCenter(0,0,0);
 
         image.setBaseThickness(baseThichness);
-        image.setImagePath(imagePath);
+        image.setImage(imagePath);
         image.setUseGrayscale(useGrayscale);
         image.setImageType(imageType);
 
@@ -315,7 +315,7 @@ public class TestGridMaker extends TestCase {
         image.setSize(ringDiameter*Math.PI, ringWidth, ringThickness);
         image.setCenter(0,0,ringThickness/2);
         image.setBaseThickness(0.4);
-        image.setImagePath("docs/images/numbers_1.png");
+        image.setImage("docs/images/numbers_1.png");
         
         CompositeTransform compTrans = new CompositeTransform();
         
@@ -377,7 +377,7 @@ public class TestGridMaker extends TestCase {
         image.setBaseThickness(0.);
         image.setTiles(12,1);
         image.setUseGrayscale(true);        
-        image.setImagePath("apps/ringpopper/images/tile_02.png");
+        image.setImage("apps/ringpopper/images/tile_02.png");
         image.setInterpolationType(Image3D.INTERPOLATION_MIPMAP);
         image.setPixelWeightNonlinearity(-1.);
         //image.setProbeSize(0.5*MM);
@@ -387,7 +387,7 @@ public class TestGridMaker extends TestCase {
         crossSect.setCenter(0,ringThickness/2,0);
         crossSect.setBaseThickness(0.);
         crossSect.setUseGrayscale(false);        
-        crossSect.setImagePath("apps/ringpopper/images/crosssection_01.png");
+        crossSect.setImage("apps/ringpopper/images/crosssection_01.png");
 
         CompositeTransform crossTrans = new CompositeTransform();
         Rotation crot1 = new Rotation();
@@ -466,7 +466,7 @@ public class TestGridMaker extends TestCase {
         image.setCenter(0,0, ringThickness/2);
         image.setBaseThickness(0.5);
         image.setTiles(12,1);
-        image.setImagePath("docs/images/Tile_DecorativeCeiling_2.png");
+        image.setImage("docs/images/Tile_DecorativeCeiling_2.png");
         
         CompositeTransform compTrans = new CompositeTransform();
         
@@ -536,7 +536,7 @@ public class TestGridMaker extends TestCase {
         image.setBaseThickness(0.);
         image.setTiles(1,1);
         image.setImageType(Image3D.IMAGE_TYPE_EMBOSSED);
-        image.setImagePath("docs/images/tile_01.png");
+        image.setImage("docs/images/tile_01.png");
         
         CompositeTransform compTrans = new CompositeTransform();
         
@@ -615,7 +615,7 @@ public class TestGridMaker extends TestCase {
         image.setCenter(0,0,ringThickness/2);
         image.setBaseThickness(0.5);
         image.setTiles(12, 1);
-        image.setImagePath("docs/images/Tile_DecorativeCeiling_1k_h.png");
+        image.setImage("docs/images/Tile_DecorativeCeiling_1k_h.png");
 
         Box topBand = new Box(0, ringWidth / 2, bandThickness / 2, ringDiameter*Math.PI,bandWidth, bandThickness);
         //topBand.setSize(ringDiameter*Math.PI,bandWidth, bandThickness);
@@ -626,7 +626,7 @@ public class TestGridMaker extends TestCase {
         bottomBand.setSize(ringDiameter*Math.PI,bandWidth, bandThickness);
         bottomBand.setCenter(0, -ringWidth/2, bandThickness/2);
         bottomBand.setTiles((int)(ringDiameter*Math.PI/bandWidth), 1);
-        bottomBand.setImagePath("docs/images/circle.png");
+        bottomBand.setImage("docs/images/circle.png");
 
         Union union = new Union();
         
@@ -694,7 +694,7 @@ public class TestGridMaker extends TestCase {
         image.setCenter (0,0,0);
         image.setBaseThickness(0);
         image.setTiles(1,1);
-        image.setImagePath( "docs/images/star_4_arms_1.png");
+        image.setImage( "docs/images/star_4_arms_1.png");
         
         CompositeTransform compTrans = new CompositeTransform();
         
@@ -757,8 +757,8 @@ public class TestGridMaker extends TestCase {
         image.setCenter(0,0,0);
         image.setBaseThickness(0.7);
         image.setTiles(20,4);
-        //image.setImagePath("docs/images/star_4_arms_1.png");
-        image.setImagePath("docs/images/R.png");
+        //image.setImage("docs/images/star_4_arms_1.png");
+        image.setImage("docs/images/R.png");
         
         CompositeTransform compTrans = new CompositeTransform();
         
@@ -837,7 +837,7 @@ public class TestGridMaker extends TestCase {
         image.setCenter(-cupDiameter/4,0,0);
         image.setBaseThickness(0.0);
         image.setTiles(1,1);
-        image.setImagePath("docs/images/cup_profile.png");
+        image.setImage("docs/images/cup_profile.png");
         
         CompositeTransform compTrans = new CompositeTransform();
         
@@ -898,7 +898,7 @@ public class TestGridMaker extends TestCase {
         image.setCenter(-cupDiameter/4,0,0);
         image.setBaseThickness(0.0);
         image.setTiles(1,1);
-        image.setImagePath("docs/images/plate_profile.png");
+        image.setImage("docs/images/plate_profile.png");
         
         CompositeTransform compTrans = new CompositeTransform();
         
@@ -998,7 +998,7 @@ public class TestGridMaker extends TestCase {
 
         Image3D block = new Image3D();        
         block.setSize(blockWidth, blockHeight, blockDepth);
-        block.setImagePath("docs/images/circles.png");                
+        block.setImage("docs/images/circles.png");                
         block.setCenter(0,0,0); 
         block.setBaseThickness(0.);
         //block.setImageType(Image3D.IMAGE_POSITIVE);
@@ -1095,7 +1095,7 @@ public class TestGridMaker extends TestCase {
         ringBand.setBaseThickness(0.5);
         ringBand.setImageType(Image3D.IMAGE_TYPE_EMBOSSED);
         ringBand.setTiles(20,1); 
-        ringBand.setImagePath("docs/images/star_4_arms_1.png");
+        ringBand.setImage("docs/images/star_4_arms_1.png");
 
         
         Image3D textBand = new Image3D();        
@@ -1176,7 +1176,7 @@ public class TestGridMaker extends TestCase {
         image.setCenter(0,0,0);
         image.setBaseThickness(0.5);
         image.setTiles(1,1);
-        image.setImagePath("docs/images/R.png");
+        image.setImage("docs/images/R.png");
         
         CompositeTransform compTrans = new CompositeTransform();
         //
@@ -1251,7 +1251,7 @@ public class TestGridMaker extends TestCase {
         image.setSize( sphereDiameter, sphereDiameter,sphereThickness);
         image.setCenter(0,0,0);
         image.setBaseThickness( 0.);
-        image.setImagePath("docs/images/spiral.png");
+        image.setImage("docs/images/spiral.png");
         
         CompositeTransform compTrans = new CompositeTransform();
         
@@ -1370,7 +1370,7 @@ public class TestGridMaker extends TestCase {
                 image.setBaseThickness(baseThickness);
                 image.setImageType(type[i]);
                 image.setImagePlace(place[k]);
-                image.setImagePath("docs/images/circle.png");
+                image.setImage("docs/images/circle.png");
                 GridMaker gm = new GridMaker();                
                 gm.setBounds(bounds);
                 gm.setThreadCount(4);

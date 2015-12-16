@@ -1016,6 +1016,8 @@ public class ClosestPointIndexer {
 
         double vs = grid.getVoxelSize();
         int count = pnts.length/3;
+
+        printf("Count of points: %d\n",pnts.length);
         // first point is not used 
         for(int i = 1; i < count; i++){
             pntx[i] = (pnts[3*i  ] - xmin)/vs;

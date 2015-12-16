@@ -342,6 +342,41 @@ public class PointMap {
 
     }
 
+    public void printHistogram() {
+        int max_length = 0;
+        long tot_length = 0;
+        int count = 0;
+
+        int len = table.length;
+        for (int j = 0; j < len; j++) {
+            int e = table[j];
+            if (COLLECT_STATS) count = 0;
+
+            for(int next = e; next != -1; next = Entry.getNext(entries, next)) {
+                if (COLLECT_STATS) count++;
+            }
+            if (COLLECT_STATS) {
+                tot_length += count;
+                if(count > max_length) max_length = count;
+            }
+        }
+
+        int[] counts = new int[max_length+1];
+
+        for (int j = 0; j < len; j++) {
+            int e = table[j];
+            if (COLLECT_STATS) count = 0;
+
+            for(int next = e; next != -1; next = Entry.getNext(entries, next)) {
+                if (COLLECT_STATS) count++;
+            }
+            counts[count]++;
+        }
+
+        for(int i=0; i < counts.length; i++) {
+            printf("length: %3d  count: %7d  percent: %4.2f\n",i,counts[i],((float)counts[i] / len) * 100);
+        }
+    }
     /**
      * Increases the capacity of and internally reorganizes this
      * hashtable, in order to accommodate and access its entries more

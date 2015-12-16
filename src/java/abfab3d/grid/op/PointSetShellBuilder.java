@@ -148,7 +148,7 @@ public class PointSetShellBuilder implements AttributeOperation {
         m_nz = m_indexGrid.getDepth();
 
         m_distanceGrid = new ArrayAttributeGridByte(m_bounds, m_voxelSize,m_voxelSize);
-        
+
         m_xmin = m_bounds.xmin;
         m_ymin = m_bounds.ymin;
         m_zmin = m_bounds.zmin;
@@ -280,7 +280,6 @@ public class PointSetShellBuilder implements AttributeOperation {
                 //  printf("   newdist: %d\n",newdist);
                 if(newdist >= 0 ) {
                     long olddist = (m_distanceGrid.getAttribute(vx, vy, vz));
-                    //  printf("index: %2d olddist: %3d  newdist: %3d\n",pointIndex, olddist, newdist);
                     if(newdist > olddist){
                         // better point found
                         m_distanceGrid.setAttribute(vx, vy, vz, newdist);

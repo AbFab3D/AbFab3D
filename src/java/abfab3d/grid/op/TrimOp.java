@@ -16,23 +16,42 @@ package abfab3d.grid.op;
 
 // Internal Imports
 import abfab3d.grid.*;
+import abfab3d.param.*;
+
+import java.util.HashMap;
 
 /**
  * Trim a grid to its smallest size based on where INSIDE voxels are.
  *
  * @author Alan Hudson
  */
-public class TrimOp implements Operation, AttributeOperation, Operation2D {
+public class TrimOp extends BaseParameterizable implements Operation, AttributeOperation, Operation2D {
     private static final boolean DEBUG = false;
 
-    private double threshold;  // Threshold for inside when using attribute grids
+    DoubleParameter mp_threshold = new DoubleParameter("threshold", "Threshold for inside when using attribute grids", 240f/255);
+
+    Parameter m_aparam[] = new Parameter[]{
+            mp_threshold
+    };
 
     public TrimOp() {
-        this(240f/255);
+        initParams();
     }
 
-    public TrimOp(double threshold) {
-        this.threshold = threshold;
+    public TrimOp(double val) {
+        initParams();
+        setThreshold(val);
+    }
+
+    /**
+     * @noRefGuide
+     */
+    protected void initParams(){
+        super.addParams(m_aparam);
+    }
+
+    public void setThreshold(double val) {
+        mp_threshold.setValue(val);
     }
 
     /**
@@ -308,6 +327,13 @@ public class TrimOp implements Operation, AttributeOperation, Operation2D {
      * @return The new grid
      */
     public Grid2D execute(Grid2D src) {
+        double threshold = mp_threshold.getValue();
+
+        String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), src, m_aparam);
+
+        Object co = ParamCache.getInstance().get(vhash);
+        if (co != null) return ((Grid2D)co);
+
         int width = src.getWidth();
         int height = src.getHeight();
 
@@ -385,6 +411,12 @@ public class TrimOp implements Operation, AttributeOperation, Operation2D {
             }
         }
 
+        /*
+        Grid2DSourceWrapper wrapper = new Grid2DSourceWrapper(vhash,dest);
+
+        //ParamCache.getInstance().put(vhash,wrapper);
+        return wrapper;
+        */
         return dest;
 
     }
