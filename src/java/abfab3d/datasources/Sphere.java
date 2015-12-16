@@ -26,6 +26,7 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.MathUtil.step10;
 import static abfab3d.util.MathUtil.step01;
 
+import static abfab3d.util.Units.CM;
 import static abfab3d.util.Units.MM;
 
 
@@ -47,7 +48,7 @@ public class Sphere extends TransformableDataSource {
     DoubleParameter mp_centerX = new DoubleParameter("centerX","Center X",0);
     DoubleParameter mp_centerY = new DoubleParameter("centerY","Center Y",0);
     DoubleParameter mp_centerZ = new DoubleParameter("centerZ","Center Z",0);
-    private DoubleParameter  mp_radius = new DoubleParameter("radius","radius of the sphere", 1.*MM);
+    private DoubleParameter  mp_radius = new DoubleParameter("radius","radius of the sphere", 1.*CM);
 
     private double R, R2, RR;
     private double x0,y0,z0;
