@@ -24,6 +24,7 @@ import javax.vecmath.Vector3d;
 
 import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Units.CM;
 import static abfab3d.util.Units.MM;
 
 
@@ -46,9 +47,9 @@ public class Box extends TransformableDataSource {
             zmin,zmax;
     
     
-    DoubleParameter mp_width = new DoubleParameter("width","Width",0.1,0.1*MM,Double.MAX_VALUE,0.1);
-    DoubleParameter mp_height = new DoubleParameter("height","Height",0.1,0.1*MM,Double.MAX_VALUE,0.1);
-    DoubleParameter mp_depth = new DoubleParameter("depth","Depth",0.1,0.1*MM,Double.MAX_VALUE,0.1);
+    DoubleParameter mp_width = new DoubleParameter("width","Width",0.1,0.1*MM,Double.MAX_VALUE,1*CM);
+    DoubleParameter mp_height = new DoubleParameter("height","Height",0.1,0.1*MM,Double.MAX_VALUE,1*CM);
+    DoubleParameter mp_depth = new DoubleParameter("depth","Depth",0.1,0.1*MM,Double.MAX_VALUE,1*CM);
     DoubleParameter mp_centerX = new DoubleParameter("centerX","Center X",0);
     DoubleParameter mp_centerY = new DoubleParameter("centerY","Center Y",0);
     DoubleParameter mp_centerZ = new DoubleParameter("centerZ","Center Z",0);

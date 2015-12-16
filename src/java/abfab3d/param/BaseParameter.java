@@ -163,4 +163,9 @@ public abstract class BaseParameter implements Parameter {
 
         return null;
     }
+
+    public String getParamString() {
+        if (value == null) return "null";
+        return value.toString();
+    }
 }

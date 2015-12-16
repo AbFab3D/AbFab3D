@@ -93,14 +93,16 @@ public class BaseParameterizable implements Parameterizable, SNode {
     /**
        saves array of parameters into a string 
      */
-    public static String getParamString(Parameter aparam[]){
+    public static String getParamString(String name,Parameter aparam[]){
         StringBuffer sb = new StringBuffer();
+        sb.append(name);
+        sb.append(":");
         for(int i = 0; i < aparam.length; i++){
             Parameter p = aparam[i];
             sb.append(p.getName());
             sb.append("=\"");
-            sb.append(p.getValue().toString());
-            sb.append(";");
+            sb.append(p.getParamString());
+            sb.append("\";");
         }
         return sb.toString();
     }
@@ -108,14 +110,60 @@ public class BaseParameterizable implements Parameterizable, SNode {
     /**
      saves array of parameters into a string
      */
-    public static String getParamString(Map<String,Parameter> params){
+    public static String getParamString(String name, Object src,Parameter aparam[]){
         StringBuffer sb = new StringBuffer();
+        sb.append(name);
+        sb.append("[");
+
+        String source = null;
+        if (src instanceof SourceWrapper) {
+            source = ((SourceWrapper)src).getParamString();
+        } else {
+            source = src.toString();
+        }
+
+        sb.append("source=\"");
+        sb.append(source);
+        sb.append("\";");
+        for(int i = 0; i < aparam.length; i++){
+            Parameter p = aparam[i];
+            sb.append(p.getName());
+            sb.append("=\"");
+            sb.append(p.getParamString());
+            sb.append("\";");
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    /**
+     saves array of parameters into a string
+     */
+    public static String getParamString(String name, Map<String,Parameter> params){
+        StringBuffer sb = new StringBuffer();
+        sb.append(name);
+        sb.append("[");
         for(Parameter p : params.values()) {
             sb.append(p.getName());
             sb.append("=\"");
-            sb.append(p.getValue().toString());
+            sb.append(p.getParamString());
             sb.append("\";");
         }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    public static String getParamObjString(String name,Map<String,Object> params) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(name);
+        sb.append("[");
+        for(Map.Entry<String,Object> p : params.entrySet()) {
+            sb.append(p.getKey());
+            sb.append("=\"");
+            sb.append(p.getValue());
+            sb.append("\";");
+        }
+        sb.append("]");
         return sb.toString();
     }
 
@@ -123,12 +171,15 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * Output the hash and params for toString()
      * @return
      */
+    /*
+    // This messes up debug displays as its very large, moved functionality to getParamString
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(super.toString());
         sb.append(",");
-        sb.append(getParamString(params));
+        sb.append(getParamString(getClass().getSimpleName(),params));
 
         return sb.toString();
     }
+    */
 }

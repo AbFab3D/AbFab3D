@@ -51,4 +51,15 @@ public class ObjectParameter extends BaseParameter {
     public ObjectParameter clone() {
         return (ObjectParameter) super.clone();
     }
+
+    @Override
+    public String getParamString() {
+        if (value instanceof SourceWrapper) {
+            return ((SourceWrapper)value).getParamString();
+        }
+
+        if (value == null) return "null";
+
+        return value.toString();
+    }
 }

@@ -17,6 +17,8 @@ import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.AttributeChannel;
 import abfab3d.grid.op.DistanceTransform2DOp;
+import abfab3d.grid.util.GridUtil;
+import abfab3d.param.*;
 import abfab3d.util.*;
 
 import javax.imageio.ImageIO;
@@ -26,12 +28,6 @@ import java.io.IOException;
 
 import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
-
-import abfab3d.param.DoubleParameter;
-import abfab3d.param.IntParameter;
-import abfab3d.param.Parameter;
-import abfab3d.param.Vector3dParameter;
-import abfab3d.param.BooleanParameter;
 
 
 import static abfab3d.util.ImageMipMapGray16.getScaledDownDataBlack;
@@ -69,12 +65,14 @@ import static abfab3d.util.Output.time;
 public class Image3D extends TransformableDataSource {
 
     final static boolean DEBUG = false;
+    final static boolean DEBUG_VIZ = false;
 
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
     public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2;
     public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
     static final String MEMORY_IMAGE = "[memory image]";
 
+    ObjectParameter mp_image = new ObjectParameter("image","Image source", null);
     // public params of the image 
     Vector3dParameter  mp_center = new Vector3dParameter("center","center of the image box",new Vector3d(0,0,0));
     Vector3dParameter  mp_size = new Vector3dParameter("size","size of the image box",new Vector3d(0.1,0.1,0.1));
@@ -90,6 +88,7 @@ public class Image3D extends TransformableDataSource {
     DoubleParameter  mp_distanceFactor = new DoubleParameter("distanceFactor", "distance factor in the image plane", 0.1);
 
     Parameter m_aparam[] = new Parameter[]{
+        mp_image,
         mp_center,
         mp_size,
         mp_rounding,
@@ -117,8 +116,7 @@ public class Image3D extends TransformableDataSource {
     // location of the box
     protected double m_centerX = 0, m_centerY = 0, m_centerZ = 0;
 
-    protected String m_imagePath;
-    protected double m_baseThickness = 0.0; // relative thickness of solid base 
+    protected double m_baseThickness = 0.0; // relative thickness of solid base
     protected double m_baseThreshold = 0.01; // threshold to make cut from base of the image 
 
     protected int m_imageType = IMAGE_TYPE_EMBOSSED;
@@ -149,10 +147,7 @@ public class Image3D extends TransformableDataSource {
     // converted to get physical value from grid attribute 
     protected AttributeChannel m_dataChannel;
 
-    // caching thge image params 
-    private String m_savedParamString = "";
-
-    // image is stored in mipmap 
+    // image is stored in mipmap
     private ImageMipMapGray16 m_mipMap;
 
     private double m_pixelWeightNonlinearity = 0.;
@@ -174,9 +169,10 @@ public class Image3D extends TransformableDataSource {
     private double m_maxOutDistancePixels = 100;
     private double m_maxInDistancePixels = 100;
 
-    private boolean m_imageModified = true;
-
     private static Grid2D m_emptyGrid = new Grid2DShort(1,1,DEFAULT_PIXEL_SIZE);
+
+    /** Params which require changes in the underlying image */
+    private Parameter[] imageParams;
 
     /**
      * @noRefGuide
@@ -196,7 +192,7 @@ public class Image3D extends TransformableDataSource {
     public Image3D(String imagePath, double sx, double sy, double sz) {
         initParams();
 
-        setImagePath(imagePath);
+        setImage(imagePath);
         setSize(sx, sy, sz);
     }
 
@@ -212,7 +208,7 @@ public class Image3D extends TransformableDataSource {
     public Image3D(String imagePath, double sx, double sy, double sz, double voxelSize) {
         initParams();
 
-        setImagePath(imagePath);
+        setImage(imagePath);
         setSize(sx, sy, sz);
         setVoxelSize(voxelSize);
     }
@@ -271,6 +267,10 @@ public class Image3D extends TransformableDataSource {
      */
     protected void initParams(){
         super.addParams(m_aparam);
+
+        imageParams = new Parameter[] {
+                mp_image, mp_size, mp_tilesX, mp_tilesY, mp_blurWidth, mp_useGrayscale
+        };
     }
 
     /**
@@ -402,8 +402,6 @@ public class Image3D extends TransformableDataSource {
      * @param blurWidth The width in meters.  Default is 0.
      */
     public void setBlurWidth(double blurWidth) {
-
-        if (DEBUG) printf("Setting blurWidth: %f\n",blurWidth);
         mp_blurWidth.setValue(new Double(blurWidth));
 
     }
@@ -447,36 +445,8 @@ public class Image3D extends TransformableDataSource {
         m_voxelSize = vs;
     }
 
-
-    /**
-     * @noRefGuide
-     */
-    public void setImagePath(String path) {
-
-        m_imagePath = path;
-
-    }
-
-    /**
-     * @noRefGuide
-     */
-    public void setImage(BufferedImage image) {
-        if (image != m_image) {
-            m_imageModified = true;
-        }
-        m_image = image;
-    }
-
-    public void setImage(ImageWrapper wrapper) {
-        if (m_image != wrapper.getImage()) 
-            m_imageModified = true;
-
-        m_image = wrapper.getImage();
-    }
-
-    public void setImage(Grid2D grid) {
-        m_image = Grid2DShort.convertGridToImage(grid);
-        m_imageModified = true;
+    public void setImage(Object val) {
+        mp_image.setValue(val);
     }
 
     /**
@@ -582,7 +552,7 @@ public class Image3D extends TransformableDataSource {
         double base = m_baseThreshold;
         for(int y = 0;  y < ny; y++){
             for(int x = 0;  x < nx; x++){
-                double d = getImageValue(x,y);
+                double d = getImageValue(x, y);
                 // normalization to byte 
                 data[x + y * nx] = (byte)((int)(d * 0xFF) & 0xFF); 
             }
@@ -621,26 +591,38 @@ public class Image3D extends TransformableDataSource {
 
         super.initialize();
 
-        if(DEBUG)printf("%s.initilize()\n",this);
+        if(DEBUG)printf("%s.initialize()\n",this);
 
         m_baseThreshold = mp_baseThreshold.getValue();
         m_baseThickness = mp_baseThickness.getValue();
         m_imagePlace = mp_imagePlace.getValue();
 
-        if(needToPrepareImage()){
+        String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), imageParams);
+
+        Object co = ParamCache.getInstance().get(vhash);
+        if (co == null) {
             int res = prepareImage();
-            m_imageModified = false;
-            if(res != RESULT_OK){ 
-                // something wrong with the image 
+            if(res != RESULT_OK){
+                // something wrong with the image
                 imageWidth = 2;
-                imageHeight = 2; 
+                imageHeight = 2;
                 throw new IllegalArgumentException("undefined image");
             }
-            saveImageData();
+
+            ParamCache.getInstance().put(vhash, m_imageGrid);
+
+        } else {
+            m_imageGrid = (Grid2D) co;
+            m_dataChannel = m_imageGrid.getAttributeDesc().getDefaultChannel();
+
+            imageWidth = m_imageGrid.getWidth();
+            imageHeight = m_imageGrid.getHeight();
+            imageWidth1 = imageWidth - 1;
+            imageHeight1 = imageHeight - 1;
+            if (DEBUG) printf("%s image cached.  w: %d  h: %d  size: %f x %f \n",this,imageWidth,imageHeight,m_sizeX,m_sizeY);
         }
- 
-        
-        if(m_sizeX == 0.){ 
+
+        if(m_sizeX == 0.){
             // width undefined - get it from image aspect ratio 
             if(m_sizeY == 0.){ 
                 // both sizes are undefined - do something reasonable 
@@ -685,27 +667,6 @@ public class Image3D extends TransformableDataSource {
 
 
     /**
-       checks if params used to generate image have chaned 
-     * @noRefGuide
-     */
-    protected boolean needToPrepareImage(){
-        return 
-            m_imageModified || 
-            !m_savedParamString.equals(getParamString(m_aparam));
-        
-    }
-
-    /**
-       saves params used to generate the image 
-     * @noRefGuide
-     */
-    protected void saveImageData(){ 
-        m_savedParamString = getParamString(m_aparam);
-        if (DEBUG) printf("Image3D.savedParamString:\n%s",m_savedParamString);
-    }
-
-
-    /**
      * @noRefGuide
      */
     private int prepareImage(){
@@ -716,40 +677,50 @@ public class Image3D extends TransformableDataSource {
 
         BufferedImage image = null;
 
+        Object oimage = mp_image.getValue();
         //printf("Image3D.  buff_image: %s\n",image);
 
-        if (m_image != null) {
-            // image was supplied via memory 
-            image = m_image;
-            m_imagePath = MEMORY_IMAGE;
-
-        } else if (m_imagePath == null) {
+        if (oimage == null) {
             return RESULT_ERROR;
             
-        } else {
+        }
+
+        if (oimage instanceof String) {
             try {
-                image = ImageIO.read(new File(m_imagePath));
+                image = ImageIO.read(new File((String)oimage));
 
             } catch (Exception e) {
 
-                printf("ERROR READING IMAGE: '%s' msg: %s\n", m_imagePath,e.getMessage());
+                printf("ERROR READING IMAGE: '%s' msg: %s\n", (String)oimage,e.getMessage());
                 StackTraceElement[] st = Thread.currentThread().getStackTrace();
                 int len = Math.min(10, st.length);
-                for (int i = 1; i < len; i++) 
+                for (int i = 1; i < len; i++)
                     printf("\t\t %s\n", st[i]);
                 m_imageGrid = m_emptyGrid;
                 //e.printStackTrace();
-                return RESULT_ERROR;
             }
+
+        } else if (oimage instanceof BufferedImage) {
+            image = (BufferedImage) oimage;
+        } else if (oimage instanceof ImageWrapper) {
+            image = ((ImageWrapper)oimage).getImage();
+        } else if (oimage instanceof Grid2D) {
+            image = Grid2DShort.convertGridToImage((Grid2D)oimage);
+        } else {
+            throw new IllegalArgumentException("Unhandled image type: " + oimage.getClass());
         }
 
-        if(DEBUG)printf("image %s [%d x %d ] reading done in %d ms\n", m_imagePath, image.getWidth(), image.getHeight(), (time() - t0));
+        if (image == null) {
+            printf("Image is null.  source: %s  class: %s\n",oimage,oimage.getClass());
+            return RESULT_ERROR;
+        }
+        if(DEBUG)printf("image %s [%d x %d ] reading done in %d ms\n", oimage, image.getWidth(), image.getHeight(), (time() - t0));
 
         long t1 = time();
         short imageDataShort[] = ImageUtil.getGray16Data(image);
         ImageGray16 imageData = new ImageGray16(imageDataShort, image.getWidth(), image.getHeight());
 
-        if(DEBUG)printf("imageSata done in %d ms\n", (time() - t1));
+        if(DEBUG)printf("imageData done in %d ms\n", (time() - t1));
 
         if (m_voxelSize > 0.0) {
             // we have finite voxel size, try to scale the image down to reasonable size 
@@ -789,20 +760,8 @@ public class Image3D extends TransformableDataSource {
             t1 = time();
             imageData.gaussianBlur(blurSizePixels);
 
-            /*
-            // TODO: do not checkin
-            if (DEBUG) {
-                try {
-                    printf("Dropping debug!!!\n");
-                    imageData.write("/tmp/blurred.png");
-                } catch(IOException ioe) {
-                    ioe.printStackTrace();
-                }
-            }
-            */
-            if(DEBUG)printf("Image3D image[%d x %d] gaussian blur: %7.2f pixels blur width: %10.5fmm time: %d ms\n", 
+            if(DEBUG)printf("Image3D image[%d x %d] gaussian blur: %7.2f pixels blur width: %10.5fmm time: %d ms\n",
                    imageWidth, imageHeight, blurSizePixels, blurWidth/MM, (time() - t1));
-
         }
 
         int res = 0;
@@ -814,6 +773,29 @@ public class Image3D extends TransformableDataSource {
         }
 
         if(DEBUG)printf("Image3D.prepareImage() time: %d ms\n", (time() - t0));
+
+        if (DEBUG_VIZ) {
+            try {
+                printf("***Writing debug file for Image3D");
+                String source = null;
+                Object src = mp_image.getValue();
+                if (src instanceof SourceWrapper) {
+                    source = ((SourceWrapper)src).getParamString();
+                } else {
+                    source = "" + src.hashCode();
+                }
+                source = source.replace("\\","_");
+                source = source.replace("/","_");
+                source = source.replace(".","_");
+                source = source.replace("\"","_");
+                source = source.replace(";","_");
+
+                printf("final: %s\n",source);
+                imageData.write("/tmp/image3d_" + source + ".png");
+            } catch(IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
         return res;
 
     }
@@ -826,11 +808,11 @@ public class Image3D extends TransformableDataSource {
     protected int makeImageBlack(ImageGray16 image){
 
         long t0 = time();
-        if(DEBUG)printf("makeImageBlack()\n");
 
         int nx = image.getWidth();
         int ny = image.getHeight();
         double imagePixelSize = ((Vector3d)mp_size.getValue()).x/nx;
+        if(DEBUG)printf("makeImageBlack()  threshold: %f  pixelSize: %f\n",m_imageThreshold,imagePixelSize);
 
         Grid2DShort imageGrid = Grid2DShort.convertImageToGrid(image, (m_imageType == IMAGE_TYPE_EMBOSSED), imagePixelSize);
 
@@ -840,6 +822,17 @@ public class Image3D extends TransformableDataSource {
         DistanceTransform2DOp dt = new DistanceTransform2DOp(maxInDistance, maxOutDistance, m_imageThreshold);
         Grid2D distanceGrid = dt.execute(imageGrid);
         m_imageGrid = distanceGrid;
+
+        if (DEBUG_VIZ) {
+            // TODO: this is not a good viz.  Should use GridUtil.writeSlice but it needs to support Grid2D interface
+            BufferedImage img = Grid2DShort.convertGridToImage(distanceGrid);
+            try {
+
+                ImageIO.write(img, "PNG",new File("/tmp/black_dist.png"));
+            } catch(IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
         m_dataChannel = m_imageGrid.getAttributeDesc().getChannel(0);
 
         if(DEBUG)printf("makeImageBlack() done %d ms\n", time() -t0);
