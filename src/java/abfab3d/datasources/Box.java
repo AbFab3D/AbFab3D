@@ -37,9 +37,9 @@ import static abfab3d.util.Units.MM;
  */
 public class Box extends TransformableDataSource {
     static final boolean DEBUG = false;
-    private static final double DEFAULT_WIDTH = 0.1;
-    private static final double DEFAULT_HEIGHT = 0.1;
-    private static final double DEFAULT_DEPTH = 0.1;
+    private static final double DEFAULT_WIDTH = 1*CM;
+    private static final double DEFAULT_HEIGHT = 1*CM;
+    private static final double DEFAULT_DEPTH = 1*CM;
 
     private double
             xmin,xmax,
@@ -47,9 +47,9 @@ public class Box extends TransformableDataSource {
             zmin,zmax;
     
     
-    DoubleParameter mp_width = new DoubleParameter("width","Width",0.0001*MM,0.1*MM,Double.MAX_VALUE,1*CM);
-    DoubleParameter mp_height = new DoubleParameter("height","Height",0.0001*MM,0.1*MM,Double.MAX_VALUE,1*CM);
-    DoubleParameter mp_depth = new DoubleParameter("depth","Depth",0.0001*MM,0.1*MM,Double.MAX_VALUE,1*CM);
+    DoubleParameter mp_width = new DoubleParameter("width","Width",DEFAULT_WIDTH,0.0001*MM,Double.MAX_VALUE,1*MM);
+    DoubleParameter mp_height = new DoubleParameter("height","Height",DEFAULT_HEIGHT,0.0001*MM,Double.MAX_VALUE,1*MM);
+    DoubleParameter mp_depth = new DoubleParameter("depth","Depth",DEFAULT_DEPTH,0.0001*MM,Double.MAX_VALUE,1*MM);
     DoubleParameter mp_centerX = new DoubleParameter("centerX","Center X",0);
     DoubleParameter mp_centerY = new DoubleParameter("centerY","Center Y",0);
     DoubleParameter mp_centerZ = new DoubleParameter("centerZ","Center Z",0);
