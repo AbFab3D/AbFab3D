@@ -18,19 +18,19 @@ over typical triangle systems and aligns well with how 3d printers actually manu
 Scripts include a parameter definition to allow interactive exploration of interesting
 variants via an automatically generated user interface.  The script, current parameters and any external
 resources can be saved into a simple transmittal format that others can easily load.
-
+</p><p>
 These docs describe the new ShapeJS 2.0 system.  ShapeJS 2.0 is a major overhaul of the original ShapeJS system.
 Core to this release is a focus on creating real time responses.  We've been prototyping several creators
 on the Shapeways site to prove out this point.  Check out the Pendant Creator, Ornament Creator and Audio
 creators for examples of what's possible.
-</p>
+</p><p>
 We developed ShapeJS to serve two primary communities: makers and creator creators.  In the maker community
 OpenSCAD has shown the way in a simple but powerful scripting language for creating physical objects.  They
 married a scripting engine to a powerful CAD kernel.  For many makers this emphasis on a programming approach
 to 3D modeling resonated well.  ShapeJS is similar in concept with a few significant differences.  It is based
 on a voxel kernel instead of a triangle one and it’s built on a common programming language(Javascript), which is complete
 and used all over the world by millions of people.
-
+</p><p>
 To avoid a holy war I won't detail the differences too much here.  Most 3D printers work by adding together
 small bits of material into a complete object.  Using triangles to describe these voxels makes the code more
 difficult and harder to allow for print resolution accuracy.  ShapeJS and the accompanying editor is designed
@@ -40,7 +40,7 @@ be repaired before printing.  This is because it's very hard to write triangle c
 rigor necessary for 3d printing.  ShapeJS will always generate manifold and oriented models that can be 3d printed.
 For these reasons we felt that writing a new language was warranted and would in the end prove valuable in the maker's
 toolbox.
-
+</p><p>
 The second community we wanted to target is are people who want to write object creators
 for others to use.  We call them "Creator Creators" and we see them as a necessary enabler for 3d printing to be
 usable by humanity at large.  A natural progression when developing an object is to parameterize its function.
@@ -49,16 +49,14 @@ used in a wider context and meet more peoples needs.  A natural tendency is to w
 others.  Now that many people have 3D printers at home and access to many more through printing services its
 become feasible to share the design for an object and expect others to be able to make it.  ShapeJS provides
 a development environment to create those parameterizable objects and a way to share those designs with others.
-
-<p>
+</p><p>
 Roughly speaking the value of each voxel represents the percent of this voxel volume occupied by the shape.
 More precisely speaking the voxel value is appropriately normalized limited range signed distance function -
 distance from voxel center to the shape surface. 
 That value is represented internally by default with 8 bit precision which is equivalent to 256 different levels. 
 This more precise representation greatly enhances the quality of generated objects in comparison with more traditional binary values of 0 and 1.
-The gain in quality is similar to those of grayscale image over black and white image of the same resolution. 
-</p>
-<p>
+The gain in quality is similar to those of grayscale image over black and white image of the same resolution.
+</p><p>
 The voxel based representation gives ShapeJS greater flexibility in shape generation over traditional representation via triangle meshes.
 It is similar to advantages 2D raster graphics has over 2D vector graphics. Vector graphics is great for drawing diagrams and raster 
 graphics is on practice the tool of choice for anything else. 
@@ -91,83 +89,210 @@ simple transformations can be composed into more complex transformation using <s
 A transformation can be applied to any DataSource object via its <span class="code">setTransform()</span> method. 
 </p>
 
-
-<H2 id="Scripts">ShapeJS Scripts</H2>
+<H2 id="Scripts">Script Structure</H2>
 <p>
-ShapeJS Scripts are Javascript programs over top the AbFab3D Voxel library. All standard Javascript functionality is
-supported.  In particular we use the Rhino Scripting engine in Java.  You can find the project documentation here: <a href="https://developer.mozilla.org/en-US/docs/Rhino_documentation" >Rhino Documentation</a>
+ShapeJS Scripts are Javascript programs over top the AbFab3D Voxel library.  All standard Javascript functionality is
+supported.
 </p>
 <p>
 Below is a simple ShapeJS program.
 <pre class="code">
-function main(args){  // this script will make a sphere
 
-    var radius = 5*MM;        // radius of sphere 5 millimeters
-    var voxelSize = 0.1*MM;   // size of grid voxel
-    var gw = radius*1.1;      // make the grid size a little larger to have some clearance 
-	
-    var grid = createGrid(-gw,gw,-gw,gw,-gw,gw,voxelSize); // create the grid 
-	
-    var maker = new GridMaker();            // create instance of grid maker
-    maker.setSource(new Sphere(radius));    // gives GridMaker object to work on 
-    maker.makeGrid(grid);                   // GridMaker fills the grid with data 
+function main(args) {
+    var r = 10*MM;
+    var sphere = new Sphere(r);
 
-    return grid;   // return the grid for final processing 
+    var bounds = new Bounds(-r,r,-r,r,-r,r);
+    var scene = new Scene(sphere,bounds);
+
+    return scene;
 }
 </pre>
 <p>
-    Click <a href="http://volumesculptor.com/creators/volume_sculptor/?example=sphere" target="_blank">Simple Sphere</a> to run this example.
+    Click <a href="http://shapejs.shapeways.com/ide/?scriptFile=/rrstatic/shapejs/examples/intro_sphere.js" target="_blank">Simple Sphere</a> to run this example.
 </p>
 <p>
-All vss scripts should have function <span class="code">main(args)</span>. This function is executed by the ShapeJS scripting engine.
+All ShapeJS scripts should have a function <span class="code">main(args)</span>. This function is executed by the ShapeJS scripting engine.  The main
+    function must return a Scene object.  A scene specifies how to create the object,its physical bounds and other scene global properties.
+
 It is possible to pass arbitrary arguments (including uploaded files ) to the main(args), but we will explain this later. 
 </p>
 <p>
-Unit of length in ShapeJS is <b>meters</b>.
-To avoid awkward numbers there are few useful conversion constants MM=0.001 for millimeters, IN=0.0254 for inches. 
-</p>
+The unit of length in ShapeJS is <b>meters</b>.
+To avoid awkward numbers there are a few useful conversion constants MM=0.001 for millimeters, IN=0.0254 for inches.
+</p><p>
+The scene bounds are the area in which ShapeJS will endeavor to display. The Bounds are a box, defined as Bounds(X minimum, X maximum, Y minimum, Y maximum, Z minimum, Z maximum).
+These distances are relative to the center of everything, which you will generally use as the center of your bounds as well, (0,0,0), which is also called the origin.
+It is the center of the scene, as well as the default center for data sources. If whatever data source you are displaying is red and cut off at its edges,
+    this is a warning that part of it is extending out of the Bounds of your scene. To remedy this, simply enlarge the scene size.  There are some
+    performance implications for having bounds too large so try to keep them relatively minimal.
 
-<p>
-The primary object of ShapeJS script is a volumetric grid. The result of executing <span class="code">main(args)</span>should be a grid filled with scene data.
-The scripting engine converts the grid returned by main() into a traditional triangle mesh which is sent back to the browser
-and displayed in the 3D view.  
-</p>
-<p>
-The grid is created via this function: <br><span class="code">grid = createGrid(xmin, xmax, ymin, ymax, zmin, zmax, voxelSize);</span>
-</p>
-Here the <span class="code">xmin, xmax ...</span> are the physical bounds of grid in the space. They define minimal and maximal coordinates where the final shape will be located.
-The last parameter <span class="code">voxelSize</span> is the size of grid voxel. It defines the resolution of volume rendering. 
+An optional parameter <span class="code">voxelSize</span> is the size of a grid voxel. It defines the resolution of volume rendering.
 A Voxel size of 0.1 millimeter corresponds to the printing resolution of most 3D printers in 2013. This parameter greatly affects speed
 of all calculations and the best approach is to keep it larger (0.2mm or 0.3mm) during script development and set to printer resolution only
 at the final stage.
 </p>
+<h3>Controlling parameters of output mesh</h3>
 <p>
-The primary tool of ShapeJS is <span class="code">GridMaker</span>. GridMaker fills the grid voxels with values calculated by objects called
-<span class="code">DataSource</span>. <span class="code">Sphere</span> is one of several prebuilt data sources.
-Users can also create new DataSource objects directly in their script.
+When writing triangle models from ShapeJS there are some variables that control different aspects of the operation.
+These parameters are set on the Scene object returned from the main function.
 </p>
 <p>
-Calling <span class="code">maker.makeGrid(grid)</span> does the actual calculations of the grid. Returning that grid from main initiates 
-the ShapeJS engine conversion of grid data into a triangle mesh which is returned to browser.
-</p>
-<h2>Controlling parameter of output mesh</h2>
-<p>
-There are few variables which allow user to control behavior of volume sculpting engine. 
-</p>
-<p>
-<span class="code">meshSmoothingWidth</span> Width of gaussian smoothing of the grid before conversion to traingle mesh. 
+<span class="code">setMeshSmoothingWidth</span> Width of gaussian smoothing of the grid before conversion to triangle mesh.
 The width is given relative the grid voxel size. Default value is 0.5. 
 </p>
 <p>
-<span class="code">meshErrorFactor</span> is maximal errod allowed during mesh decimation (reducing mesh complexity). It is given relative to voxel size. 
-default value is 0.5. Smaller value greatly increase the resultng mesh complexity. 
+<span class="code">setMeshErrorFactor</span> is maximal error allowed during mesh decimation (reducing mesh complexity). It is given relative to voxel size.
+Default value is 0.1. Smaller values greatly increase the resulting mesh complexity.
 </p>
 <p>
-<span class="code">meshMinPartVolume</span> allows to filter out sand size particles from the resulting mesh. All parts of volume less than 
-meshMinPartVolume are discarded. This volume is specified in meters<sup>3</sup>. Default value is 1*MM3 (one cubic millimeter). 
+<span class="code">setMinPartVolume</span> allows to filter out sand size particles from the resulting mesh. All parts of volume less than
+meshMinPartVolume are discarded. This volume is specified in meters<sup>3</sup>. Default value is 0.
 </p>
-<span class="code">meshMaxPartsCount</span> specifies the maximum number of parts to save.  The n largest parts are kept.  By default
+<span class="code">setMaxPartsCount</span> specifies the maximum number of parts to save.  The n largest parts are kept.  By default
 all parts are retained.
+
+<H2 id="Parameters">Parameters</H2>
+    ShapeJS scripts can contain a parameter definition that defines the interface of the script.  These parameters
+    should be user facing parameters that allow changes to the object.  They will typically be used in automatic
+    user interface creation and they will be available in the IDE for you to modify.
+
+    All parameters have the following properties:<br>
+    <table class="api-endpoint-parameters-table">
+        <thead>
+        <tr class="api-endpoint-parameters-table-row"><th>Name</th><th>Description</th></tr></thead>
+        <tbody>
+        <tr><td class="api-endpoint-parameters-table-name-col">name</td><td class="api-endpoint-parameters-table-desc-col">The name of the parameter.  Must be unique in the script.</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">label</td><td class="api-endpoint-parameters-table-desc-col">The label to use in user interfaces.  Defaults to name if not provided</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">desc</td><td class="api-endpoint-parameters-table-desc-col">A textual description of the parameter, usually used in tool tips.</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">dataType</td><td class="api-endpoint-parameters-table-desc-col">The type of data.  See DataTypes section for valid values</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">defaultVal</td><td class="api-endpoint-parameters-table-desc-col">The default value for the parameter.  JSON encoded value.</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">group</td><td class="api-endpoint-parameters-table-desc-col">Grouping ID.  Used to group similar properties together.</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">onChange</td><td class="api-endpoint-parameters-table-desc-col">Function to call when the value changes.  Defaults to main</td></tr>
+        </tbody>
+    </table>
+    <br>
+    <H3 id="DataTypes">Data Types</H3>
+    The following data types are supported:
+    <H4>Double</H4>
+    A floating point number.  Doubles have a default unit of measure which is M for meters.  If a non default value is specified then the script will convert the value to meters when sending in the main(args) method.
+
+    <pre class="code">
+    {
+    name: "textHeight",
+    desc: "Text Height(mm)",
+    type: "double",
+    rangeMin:1,
+    rangeMax:1000,
+    step: 0.5,
+    defaultVal: 5,
+    group: "Text"
+    }
+    </pre>
+
+    <table class="api-endpoint-parameters-table">
+        <thead>
+        <tr class="api-endpoint-parameters-table-row"><th>Name</th><th>Description</th></tr></thead>
+        <tbody>
+        <tr><td class="api-endpoint-parameters-table-name-col">rangeMin</td><td class="api-endpoint-parameters-table-desc-col">The minimum acceptable value.  Defaults to -Infinity</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">rangeMax</td><td class="api-endpoint-parameters-table-desc-col">The maximum acceptable value.  Defaults to +Infinity</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">step</td><td class="api-endpoint-parameters-table-desc-col">The step value to use in user interfaces such as sliders</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">unit</td><td class="api-endpoint-parameters-table-desc-col">The unit of measure.  Valid values are: M,CM,MM,UM,IN,FT.  Defaults to M</td></tr>
+        </tbody>
+    </table>
+    <H4>Location</H4>
+    Represents a 3D location and orientation in space.  Location parameters usually implemented by allowing the user to click onto the object to place something.  The default
+    value for this type is a JSON map with two properties: point and normal.  The point is a 3D position in space.  The normal is the outward surface direction at that point.
+    <br>
+    Example:<br>
+    <pre class="code">
+    {
+        name: "textpos0",
+        desc: "Text Pos1",
+        type: "location",
+        defaultVal : {"point":[-0.024,0,0],"normal":[0,0,1]}
+    }
+    </pre>
+
+    <table class="api-endpoint-parameters-table">
+        <thead>
+        <tr class="api-endpoint-parameters-table-row"><th>Name</th><th>Description</th></tr></thead>
+        <tbody>
+        <tr><td class="api-endpoint-parameters-table-name-col">pointMin</td><td class="api-endpoint-parameters-table-desc-col">The minimum point value allowed.</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">pointMax</td><td class="api-endpoint-parameters-table-desc-col">The maximum acceptable value.  Defaults to +Infinity</td></tr>
+        </tbody>
+    </table>
+    <H4>String</H4>
+    String values
+    <table class="api-endpoint-parameters-table">
+        <thead>
+        <tr class="api-endpoint-parameters-table-row"><th>Name</th><th>Description</th></tr></thead>
+        <tbody>
+        </tbody>
+    </table>
+    <H4>Enum</H4>
+    Enumerated values.  This defines a list of valid values.
+    Example:<br>
+    <pre class="code">
+    {
+    name: "purpose",
+    desc: "Purpose",
+    type: "enum",
+    values: ["MESH","RENDER","PICK"],
+    defaultVal: "RENDER",
+    }
+    </pre>
+
+    <table class="api-endpoint-parameters-table">
+        <thead>
+        <tr class="api-endpoint-parameters-table-row"><th>Name</th><th>Description</th></tr></thead>
+        <tr><td class="api-endpoint-parameters-table-name-col">values</td><td class="api-endpoint-parameters-table-desc-col">JSON encoded list of valid string values</td></tr>
+        <tbody>
+        </tbody>
+    </table>
+
+    <H4>URI</H4>
+    A URI references a resource such as an image or 3d model.  A URI type will typically allow the user to use a local file from their system.  It can also
+    use fully qualified URL's to access network resources.
+
+    Example:
+    <pre class="code">
+    {
+        name: "image",
+        desc: "Image",
+        type: "uri",
+        defaultVal: "http://www.website.com/sample_image.png"
+    }
+    </pre>
+    URI's support the use of stock images and models.  These are resources that are available to all scripts and are typically useful for default content.
+    <pre class="code">
+    {
+        name: "image",
+        desc: "Image",
+        type: "uri",
+        defaultVal: "urn:shapeways:stockImage:allblack"
+    }
+     </pre>
+
+    <H5>Stock Media</H5>
+    <table class="api-endpoint-parameters-table">
+        <thead>
+        <tr class="api-endpoint-parameters-table-row"><th>URI</th><th>Description</th></tr></thead>
+        <tbody>
+        <tr><td class="api-endpoint-parameters-table-name-col">urn:shapeways:stockImage:allblack</td><td class="api-endpoint-parameters-table-desc-col">An image of all black(0,0,0) pixel values</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">urn:shapeways:stockImage:allwhite</td><td class="api-endpoint-parameters-table-desc-col">An image of all white(255,255,255) pixel values</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">urn:shapeways:stockImage:gradient</td><td class="api-endpoint-parameters-table-desc-col">An image gradient that goes from black to white in a left to right direction</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">urn:shapeways:stockImage:smallbox</td><td class="api-endpoint-parameters-table-desc-col">An 3d model of a 10mm box</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">urn:shapeways:stockImage:box</td><td class="api-endpoint-parameters-table-desc-col">An 3d model of a 20mm box</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">urn:shapeways:stockImage:smallsphere</td><td class="api-endpoint-parameters-table-desc-col">An 3d model of a 10mm diameter sphere</td></tr>
+        <tr><td class="api-endpoint-parameters-table-name-col">urn:shapeways:stockImage:sphere</td><td class="api-endpoint-parameters-table-desc-col">An 3d model of a 20mm diameter sphere</td></tr>
+        </tbody>
+    </table>
+
+    <H3 id="ChangeListeners">Change Listeners</H3>
+<H2 id="MentalModel">Mental Model</H2>
+    Creating a graph of datasources.  They contain transforms
+    Transforms are non affine
 
 <H2 id="Examples">Examples</H2>
 <h3>Boolean Operations</h3>
@@ -260,48 +385,10 @@ encourage you to make a user-interface that's more specific and easier to use.  
 can use a REST call to execute_pipeline that will generate the 3D model.  With this model you can easily use the rest of the
 Shapeways API to store the models, get pricing and add your own markup to the models.
 
-<h3 id="Custom DataSource">Custom DataSource</h3>
-You can create your own DataSource inside ShapeJS scripts.  A DataSource must implement the getDataValue function.  This function
-will evaluate the data source at a pnt.  This function should return signed distance to the objects surface.
-Signed distance is positive for exterior points, negative for interior points and zero at the surface. To obtain high quality surface
-the signed distance funtion should be properly normalized to voxel size. See example for a Sphere:
-<pre class="code">
-
-    importPackage(Packages.abfab3d.util);
-
-    var radius;
-
-    var Sphere = {
-       getDataValue : function(pnt, data) {
-          var x = pnt.v[0];
-          var y = pnt.v[1];
-          var z = pnt.v[2];
-
-          var vs = pnt.getScaledVoxelSize();
-
-          var r = r = Math.sqrt(x*x + y*y + z*z);
-          data.v[0] = MathUtil.step10(r, radius, vs);
-
-          return DataSource.RESULT_OK;
-       }
-    }
-
-    function main(args){
-       radius = 5*MM
-       var a = radius*1.1;
-       var voxelSize = 0.1*MM;
-
-       var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
-
-       var maker = new GridMaker();
-       maker.setSource(Sphere);
-       maker.makeGrid(dest);
-
-       return dest;
-    }
- </pre>
-
-<H2 id="Functions">Javascript Functions</H2>
+<H2 id="Javascript">Javascript</H2>
+    In particular we use the Rhino Scripting engine in Java which is basically Javascript 5.
+    You can find the project documentation here: <a href="https://developer.mozilla.org/en-US/docs/Rhino_documentation" >Rhino Documentation</a>
+<H3 id="JavascriptFunctions">Functions</H3>
 ShapeJS has global helper functions accessible from your script.
 <div class="domain-endpoint" id="createGrid">
     <div class="api-endpoint-header">createGrid</div>
@@ -400,11 +487,10 @@ ShapeJS has global helper functions accessible from your script.
     </div>
 </div>
 
-
-<H2 id="JavaObjects">Java Objects</H2>
-Specific Java objects are exposed to the scripts.  This section lists the objects exposed and provides links to their
-Javadoc.
-<H3>Math</H3>
+<H2 id="Objects">Objects</H2>
+Specific objects are exposed to the scripts.  This section lists the objects exposed and provides links to their
+documentation.
+    <H3>Math</H3>
 <p>The java.lang.Math class is available.  This is where you will find the typical min,max,sin,cos functions.
 Please see the posted Javadoc for complete details.  <a href="http://docs.oracle.com/javase/6/docs/api/">Java6 Javadoc</a>
 </p>
@@ -416,8 +502,21 @@ function trigCalcs(radius,angle){
     var max = Math.max(radius,10);
 }
 </pre>
+
+    <H3>Vector3d</H3>
+
+    <H3>Operations</H3>
+    trimOp
+    expandOp
+
+
 </div>
 </div>
 
-</BODY>
+<H2 id="RoadMap">Road Map</H2>
+<H2 id="MailingList">Mailing List</H2>
+<H2 id="License">License</H2>
+
+
+</div></BODY>
 </HTML>
