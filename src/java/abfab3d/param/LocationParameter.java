@@ -70,7 +70,15 @@ public class LocationParameter extends BaseParameter implements Cloneable {
         this.minPoint.y = minPoint.y;
         this.minPoint.z = minPoint.z;
     }
-    
+
+    public void setMinPoint(double px,double py,double pz) {
+        if (this.minPoint == null) this.minPoint = new Vector3d();
+
+        this.minPoint.x = px;
+        this.minPoint.y = py;
+        this.minPoint.z = pz;
+    }
+
     /**
      * Set the max location point
      * @param value
@@ -82,7 +90,15 @@ public class LocationParameter extends BaseParameter implements Cloneable {
         this.maxPoint.y = maxPoint.y;
         this.maxPoint.z = maxPoint.z;
     }
-    
+
+    public void setMaxPoint(double px,double py,double pz) {
+        if (this.maxPoint == null) this.maxPoint = new Vector3d();
+
+        this.maxPoint.x = px;
+        this.maxPoint.y = py;
+        this.maxPoint.z = pz;
+    }
+
     public Vector3d getMinPoint() {
     	return minPoint;
     }
