@@ -181,6 +181,18 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     }
 
     /**
+     * Set the number of bytes to use for a grid.  Determines precision of rendering.
+     * @param val Currently supports 1 or 2
+     */
+    public void setGridDataTypeSize(int val) {
+        mp_gridDataTypeSize.setValue(val);
+    }
+
+    public int getGridDataTypeSize() {
+        return mp_gridDataTypeSize.getValue();
+    }
+
+    /**
      * @noRefGuide
      */
     public byte[] getCachedData(){
