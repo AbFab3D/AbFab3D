@@ -50,8 +50,8 @@ public class LocationParameter extends BaseParameter implements Cloneable {
     	if (minPoint == null) minPoint = DEFAULT_MIN_POINT;
     	if (maxPoint == null) maxPoint = DEFAULT_MAX_POINT;
     	
-        setMinPoint(minPoint);
-        setMaxPoint(maxPoint);
+        setPointMin(minPoint);
+        setPointMax(maxPoint);
 
         if (point != null && normal != null) {
         	setValue(new Vector3d[] {(Vector3d)point.clone(),(Vector3d)normal.clone()});
@@ -61,9 +61,8 @@ public class LocationParameter extends BaseParameter implements Cloneable {
     
     /**
      * Set the min location point
-     * @param value
      */
-    public void setMinPoint(Vector3d minPoint) {
+    public void setPointMin(Vector3d minPoint) {
     	if (this.minPoint == null) this.minPoint = new Vector3d();
     	
         this.minPoint.x = minPoint.x;
@@ -71,7 +70,7 @@ public class LocationParameter extends BaseParameter implements Cloneable {
         this.minPoint.z = minPoint.z;
     }
 
-    public void setMinPoint(double px,double py,double pz) {
+    public void setPointMin(double px,double py,double pz) {
         if (this.minPoint == null) this.minPoint = new Vector3d();
 
         this.minPoint.x = px;
@@ -81,9 +80,8 @@ public class LocationParameter extends BaseParameter implements Cloneable {
 
     /**
      * Set the max location point
-     * @param value
      */
-    public void setMaxPoint(Vector3d maxPoint) {
+    public void setPointMax(Vector3d maxPoint) {
     	if (this.maxPoint == null) this.maxPoint = new Vector3d();
     	
         this.maxPoint.x = maxPoint.x;
@@ -91,7 +89,7 @@ public class LocationParameter extends BaseParameter implements Cloneable {
         this.maxPoint.z = maxPoint.z;
     }
 
-    public void setMaxPoint(double px,double py,double pz) {
+    public void setPointMax(double px,double py,double pz) {
         if (this.maxPoint == null) this.maxPoint = new Vector3d();
 
         this.maxPoint.x = px;
@@ -99,12 +97,12 @@ public class LocationParameter extends BaseParameter implements Cloneable {
         this.maxPoint.z = pz;
     }
 
-    public Vector3d getMinPoint() {
+    public Vector3d getPointMin() {
     	return minPoint;
     }
     
     
-    public Vector3d getMaxPoint() {
+    public Vector3d getPointMax() {
     	return maxPoint;
     }
     
