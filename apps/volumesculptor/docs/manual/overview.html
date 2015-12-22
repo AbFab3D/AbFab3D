@@ -50,34 +50,20 @@ others.  Now that many people have 3D printers at home and access to many more t
 become feasible to share the design for an object and expect others to be able to make it.  ShapeJS provides
 a development environment to create those parameterizable objects and a way to share those designs with others.
 </p><p>
-Roughly speaking the value of each voxel represents the percent of this voxel volume occupied by the shape.
-More precisely speaking the voxel value is appropriately normalized limited range signed distance function -
-distance from voxel center to the shape surface. 
-That value is represented internally by default with 8 bit precision which is equivalent to 256 different levels. 
-This more precise representation greatly enhances the quality of generated objects in comparison with more traditional binary values of 0 and 1.
-The gain in quality is similar to those of grayscale image over black and white image of the same resolution.
-</p><p>
 The voxel based representation gives ShapeJS greater flexibility in shape generation over traditional representation via triangle meshes.
 It is similar to advantages 2D raster graphics has over 2D vector graphics. Vector graphics is great for drawing diagrams and raster 
 graphics is on practice the tool of choice for anything else. 
 </p>
 <p>
-The way to fill the voxel grid is to create an object with <span class="code">DataSource</span> interface, 
-which can calculate signed distance function for each point in space.  This object is fed to an instance of <span class="code">GridMaker</span> 
-which controls the calculations. 
-The distance function calculations may be very complex task for complex object. But this calculation can be simplified by 
-composing complex object from many simpler one using several simple operations. 
+The way to fill the voxel grid is to create an object with a <span class="code">DataSource</span> interface,
+which can calculate signed distance function for each point in space.  The distance function calculations may be very complex task for complex object. But this calculation can be simplified by
+composing complex objects from many simpler ones using several simple operations.
 </p>
 <p>
 There are several predefined simple object like <span class="code"><a href="#Sphere">Sphere</a></span>,<span class="code"><a href="#Box">Box</a></span>,
 <span class="code"><a href="#Cylinder">Cylinder</a></span> and <span class="code"><a href="#Cone">Cone</a></span>.
-More complex methods include functionality to convert 2D image to a 3D embossed object using <span class="code"><a href="#ImageBitMap">ImageBitmap</a></span> object and
+More complex methods include functionality to convert 2D image to a 3D embossed object using <span class="code"><a href="#Image3D">Image3D</a></span> object and
 importing user provided 3D object using <span class="code"><a href="#load">load()</a></span> function.
-</p>
-<p>
-The real power of volume sculpting is in the flexibility of combining and transforming objects represented as distance function.  
-There are usual boolean operations on objects which include <span class="code">Union</span>, <span class="code">Intersection</span>, 
-<span class="code">Subtraction</span>, <span class="code">Complement</span>. 
 </p>
 <p>
 There is a flexible set of transformations which can be applied to any <span class="code">DataSource</span> object. Transformations include standard
@@ -113,13 +99,13 @@ function main(args) {
 </p>
 <p>
 All ShapeJS scripts should have a function <span class="code">main(args)</span>. This function is executed by the ShapeJS scripting engine.  The main
-    function must return a Scene object.  A scene specifies how to create the object,its physical bounds and other scene global properties.
+    function must return a Scene object.  A scene specifies how to create the object,its physical bounds and other global properties.
 
-It is possible to pass arbitrary arguments (including uploaded files ) to the main(args), but we will explain this later. 
+It is possible to pass arbitrary arguments (including uploaded files) to the main(args), but we will explain this later.
 </p>
 <p>
 The unit of length in ShapeJS is <b>meters</b>.
-To avoid awkward numbers there are a few useful conversion constants MM=0.001 for millimeters, IN=0.0254 for inches.
+To avoid awkward numbers there are a few useful conversion constants in the global scope, MM=0.001 for millimeters, IN=0.0254 for inches.
 </p><p>
 The scene bounds are the area in which ShapeJS will endeavor to display. The Bounds are a box, defined as Bounds(X minimum, X maximum, Y minimum, Y maximum, Z minimum, Z maximum).
 These distances are relative to the center of everything, which you will generally use as the center of your bounds as well, (0,0,0), which is also called the origin.
@@ -128,7 +114,7 @@ It is the center of the scene, as well as the default center for data sources. I
     performance implications for having bounds too large so try to keep them relatively minimal.
 
 An optional parameter <span class="code">voxelSize</span> is the size of a grid voxel. It defines the resolution of volume rendering.
-A Voxel size of 0.1 millimeter corresponds to the printing resolution of most 3D printers in 2013. This parameter greatly affects speed
+A Voxel size of 0.1 millimeter corresponds to the printing resolution of most 3D printers in 2015. This parameter greatly affects speed
 of all calculations and the best approach is to keep it larger (0.2mm or 0.3mm) during script development and set to printer resolution only
 at the final stage.
 </p>
@@ -156,6 +142,10 @@ all parts are retained.
     ShapeJS scripts can contain a parameter definition that defines the interface of the script.  These parameters
     should be user facing parameters that allow changes to the object.  They will typically be used in automatic
     user interface creation and they will be available in the IDE for you to modify.
+    <p>
+    When main is called on your script you are passed a map of the parameter values.  This map contains the parameter name as the key and then the current parameter
+        value as a native Javascipt object.  These can be referenced as "args.radius" inside your script.
+    </p>
 
     All parameters have the following properties:<br>
     <table class="api-endpoint-parameters-table">
@@ -200,6 +190,27 @@ all parts are retained.
         <tr><td class="api-endpoint-parameters-table-name-col">unit</td><td class="api-endpoint-parameters-table-desc-col">The unit of measure.  Valid values are: M,CM,MM,UM,IN,FT.  Defaults to M</td></tr>
         </tbody>
     </table>
+    <H4>Enum</H4>
+    Enumerated values.  This defines a list of valid values.
+    Example:<br>
+    <pre class="code">
+    {
+    name: "purpose",
+    desc: "Purpose",
+    type: "enum",
+    values: ["MESH","RENDER","PICK"],
+    defaultVal: "RENDER",
+    }
+    </pre>
+
+    <table class="api-endpoint-parameters-table">
+        <thead>
+        <tr class="api-endpoint-parameters-table-row"><th>Name</th><th>Description</th></tr></thead>
+        <tr><td class="api-endpoint-parameters-table-name-col">values</td><td class="api-endpoint-parameters-table-desc-col">JSON encoded list of valid string values</td></tr>
+        <tbody>
+        </tbody>
+    </table>
+
     <H4>Location</H4>
     Represents a 3D location and orientation in space.  Location parameters usually implemented by allowing the user to click onto the object to place something.  The default
     value for this type is a JSON map with two properties: point and normal.  The point is a 3D position in space.  The normal is the outward surface direction at that point.
@@ -230,27 +241,6 @@ all parts are retained.
         <tbody>
         </tbody>
     </table>
-    <H4>Enum</H4>
-    Enumerated values.  This defines a list of valid values.
-    Example:<br>
-    <pre class="code">
-    {
-    name: "purpose",
-    desc: "Purpose",
-    type: "enum",
-    values: ["MESH","RENDER","PICK"],
-    defaultVal: "RENDER",
-    }
-    </pre>
-
-    <table class="api-endpoint-parameters-table">
-        <thead>
-        <tr class="api-endpoint-parameters-table-row"><th>Name</th><th>Description</th></tr></thead>
-        <tr><td class="api-endpoint-parameters-table-name-col">values</td><td class="api-endpoint-parameters-table-desc-col">JSON encoded list of valid string values</td></tr>
-        <tbody>
-        </tbody>
-    </table>
-
     <H4>URI</H4>
     A URI references a resource such as an image or 3d model.  A URI type will typically allow the user to use a local file from their system.  It can also
     use fully qualified URL's to access network resources.
@@ -289,105 +279,23 @@ all parts are retained.
         </tbody>
     </table>
 
+    <H2 id="MentalModel">Mental Model</H2>
+    When your authoring a ShapeJS script it's helpful to understand what's going on under the covers.  Your script is building up a datasource graph that describes the object.  This graph is
+    composed of datasources as the nodes.  Each datasource contains a transform that locates it in and its children in space.
+    <p>
+    ShapeJS's transform graph allows for any arbitrary transformation.  Unlike traditional real time graphics you are not restricted to affine transformations such as translation, scale, rotation.
+        These are available of course but you can also do more interesting effects such as twists and infinite symmetry calculations.
+    </p>
+
     <H3 id="ChangeListeners">Change Listeners</H3>
-<H2 id="MentalModel">Mental Model</H2>
-    Creating a graph of datasources.  They contain transforms
-    Transforms are non affine
+    A parameter can contain a field called onChange.  By default this just recalls the main() method with the changed parameters.  If you specify a different method
+    name then that method will be called each time the parameter is changed.  These change listeners are expected to modify the current scene.  This maybe faster
+    then rerunning main each time.  Currently we are looking at some caching techniques that would hopefully make authoring change listeners unnecessary.
 
-<H2 id="Examples">Examples</H2>
-<h3>Boolean Operations</h3>
-<p>
-In this example we'll show a powerful modeling technique creating objects by using boolean algebra.  Many objects can be described
-by adding and subtracting primitive shapes from them.  In this example we create a cool doodad by subtracting a 3D cross from
-a sphere.  Try the example here: <a href="http://volumesculptor.com/creators/volume_sculptor/?example=subtraction" target="_blank">Boolean Example</a>
-</p>
-<pre class="code">
-function cross3D(size, thickness){
-  var union = new Union();
-  var boxX = new Box(0,0,0,size,thickness, thickeness);
-  var boxY = new Box(0,0,0,thickeness, size, thickeness);
-  var boxZ = new Box(0,0,0,thickeness, thickeness,size);
-  union.add(boxX);
-  union.add(boxY);
-  union.add(boxZ);
-  return union;
-}
-
-function main(args) {
-  var size = args[0];
-  var thickness = args[1];
-  var grid = createGrid(-16*MM,16*MM,-16*MM,16*MM,-16*MM,16*MM,0.1*MM);
-  var diff = new Subtraction(new Sphere(15*MM), cross3D(size, thickness));
-  var maker = new GridMaker();
-  maker.setSource(diff);
-  maker.makeGrid(grid);
-  return grid;
-}
-</pre>
-<p>
-This script takes two parameters, the size of the cross and its thickness.  The 3D cross is created by unioning together
-3 boxes.  The boxes are aligned in the x,y and z planes.  The source for the grid is the Subtraction of a Sphere and the
-result of the cross3D function.
-</p>
-<h3>Image Popping</h3>
-<p>
-One of the nice features of using Voxel grids is the ability to use 2D raster image data.  In this example we'll take
-an image and turn it into a 3D object.  Here we use an ImageBitMap source and give it a physical size.  We'll place
-this object on both sides to create a mirror image.
-</p>
-<p>
-Notice we changed the voxelSize in this example from the typical .1mm default.  When dealing with greyscale images you'll
-likely want higher resolution to get smooth transitions between heights.
-</p>
-
-Run the example here: <a href="http://volumesculptor.com/creators/volume_sculptor/?example=image" target="_blank">Image Popper</a>
-<pre class="code">
-var voxelSize = 0.05*MM;
-
-function makePart(path, width, height, thickness){
-  var img = new ImageBitmap(path, width, height, thickness);
-  img.setBaseThickness(0.0);
-  img.setVoxelSize(voxelSize);
-  img.setBlurWidth(2*voxelSize);
-  img.setImagePlace(ImageBitmap.IMAGE_PLACE_BOTH);
-  return img;
-}
-
-function main(args) {
-  var image = args[0];
-  var x = 10*MM;
-  var y = 22*MM;
-  var z = 3*MM;
-  dest = createGrid(-x,x,-y,y,-z,z,voxelSize);
-  var th = 2*MM;
-  var width = 12*MM;
-  var height = 40*MM;
-  var img = makePart(image, width, height, th);
-  var maker = new GridMaker();
-  maker.setSource(img);
-  maker.makeGrid(dest);
-  return dest;
-}
-</pre>
-<p>
-    The ImageBitMap may have optional solid base. In this case we set base thickness to be 0, which in effect eliminates the base. 
-The base thickness is 	given as fraction of the ImageBitMap object thickness. For example, setBaseThickness(0.4) will make ImageBitMap 
-base thickness equal to (0.4*thickness) and the thickness of image will be reduces to 0.6*thickness;
-</p>
-<p>
-Another useful method of ImageBitMap is setBlurWidth(blurWidth). The blurWidth is given in physical units and should normally be of the same size as 
-voxelSize. The blurring eliminates sharp edges in the image. 
-</p>
-
-<H3>Creating your own Creators</H3>
-The underlying engine for the web examples can be used in your own Javascript creator.  Once you have a script you like then we'd
-encourage you to make a user-interface that's more specific and easier to use.  Once you have the parameters ready then you
-can use a REST call to execute_pipeline that will generate the 3D model.  With this model you can easily use the rest of the
-Shapeways API to store the models, get pricing and add your own markup to the models.
 
 <H2 id="Javascript">Javascript</H2>
-    In particular we use the Rhino Scripting engine in Java which is basically Javascript 5.
-    You can find the project documentation here: <a href="https://developer.mozilla.org/en-US/docs/Rhino_documentation" >Rhino Documentation</a>
+    We use the Rhino Scripting engine in Java which implements Javascript 5.
+    If you want specific details you can find the project documentation here: <a href="https://developer.mozilla.org/en-US/docs/Rhino_documentation" >Rhino Documentation</a>
 <H3 id="JavascriptFunctions">Functions</H3>
 ShapeJS has global helper functions accessible from your script.
 <div class="domain-endpoint" id="createGrid">
@@ -426,15 +334,77 @@ ShapeJS has global helper functions accessible from your script.
         </tr>
     </table>
 </div>
+    <div class="domain-endpoint" id="getModelBounds">
+        <div class="api-endpoint-header">getModelBounds</div>
+        <div class="api-endpoint-desc">
+            Load a 3D mesh and calculates the models physical bounds.  Currently supports ASCII and BINARY STL files and X3D files(.x3d,.x3dv,x3db).
+            Returns an <a href="../javadoc/abfab3d/util/Bounds.html">abfab3d.util.Bounds</a> object.  The bounds represent
+            the axis aligned bounding box of the 3D model plus any margins.  See this wiki entry for an explanation: <a href="https://en.wikipedia.org/wiki/Minimum_bounding_box">Bounding Box</a>
+        </div>
 
-<div class="domain-endpoint" id="load">
-    <div class="api-endpoint-header">load</div>
+        <div class="api-endpoint-parameters">
+            Bounds getModelBounds(filename,voxelSize,margin)
+            <div class="api-endpoint-desc">Returns a distance grid from the 3D mesh.  Uses the given voxelSize
+            </div>
+            <table class="api-endpoint-parameters-table">
+                <tr class="api-endpoint-parameters-table-row">
+                    <td class="api-endpoint-parameters-table-name-col">String filename</td>
+                    <td class="api-endpoint-parameters-table-desc-col">
+                        The name of the file to load
+                    </td>
+                </tr>
+                <tr class="api-endpoint-parameters-table-row">
+                    <td class="api-endpoint-parameters-table-name-col">double voxelSize</td>
+                    <td class="api-endpoint-parameters-table-desc-col">
+                        The size of voxels to use, defaults to 0.1mm
+                    </td>
+                </tr>
+                <tr class="api-endpoint-parameters-table-row">
+                    <td class="api-endpoint-parameters-table-name-col">double margin</td>
+                    <td class="api-endpoint-parameters-table-desc-col">
+                        The margin around the object, default to voxelSize.
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="domain-endpoint" id="loadImage">
+        <div class="api-endpoint-header">loadImage</div>
+        <div class="api-endpoint-desc">
+            Loads an image.  Currently supports PNG and JPG.
+            Returns an <a href="../javadoc/abfab3d/grid/Grid2D.html">abfab3d.grid.Grid2D</a> object.
+        </div>
+
+        <div class="api-endpoint-parameters">
+            Bounds getModelBounds(filename,voxelSize,margin)
+            <div class="api-endpoint-desc">Returns a distance grid from the 3D mesh.  Uses the given voxelSize
+            </div>
+            <table class="api-endpoint-parameters-table">
+                <tr class="api-endpoint-parameters-table-row">
+                    <td class="api-endpoint-parameters-table-name-col">String filename</td>
+                    <td class="api-endpoint-parameters-table-desc-col">
+                        The name of the file to load
+                    </td>
+                </tr>
+                <tr class="api-endpoint-parameters-table-row">
+                    <td class="api-endpoint-parameters-table-name-col">double pixelSize</td>
+                    <td class="api-endpoint-parameters-table-desc-col">
+                        The size of pixels to use, defaults to 0.1mm
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+<div class="domain-endpoint" id="loadModelDensity">
+    <div class="api-endpoint-header">loadModelDensity</div>
     <div class="api-endpoint-desc">
-        Load a 3D mesh into a grid.  Currently supports ASCII and BINARY STL files.
+        Load a 3D mesh into a grid.  Currently supports ASCII and BINARY STL files and X3D files(.x3d,.x3dv,x3db).  Currently x3d files
+        have their color information stripped out.
     </div>
 
     <div class="api-endpoint-parameters">
-        Grid load(filename)
+        Grid loadModelDensity(filename)
         <div class="api-endpoint-desc">Returns a grid from the 3D mesh.  Uses the default voxelSize of 0.1mm
         </div>
         <table class="api-endpoint-parameters-table">
@@ -447,8 +417,8 @@ ShapeJS has global helper functions accessible from your script.
         </table>
     </div>
     <div class="api-endpoint-parameters">
-        Grid load(filename,voxelSize)
-        <div class="api-endpoint-desc">Returns a grid from the 3D mesh.  Uses the given voxelSize
+        Grid loadModelDensity(filename,voxelSize)
+        <div class="api-endpoint-desc">Returns a density grid from the 3D mesh.  Uses the given voxelSize
         </div>
         <table class="api-endpoint-parameters-table">
             <tr class="api-endpoint-parameters-table-row">
@@ -466,8 +436,8 @@ ShapeJS has global helper functions accessible from your script.
         </table>
     </div>
     <div class="api-endpoint-parameters">
-        load(filename,grid)
-        <div class="api-endpoint-desc">Returns a grid from the 3D mesh.  Uses the given voxelSize
+        Grid loadModelDensity(filename,grid)
+        <div class="api-endpoint-desc">Returns a density grid from the 3D mesh.  Uses the given voxelSize
         </div>
         <table class="api-endpoint-parameters-table">
             <tr class="api-endpoint-parameters-table-row">
@@ -486,26 +456,98 @@ ShapeJS has global helper functions accessible from your script.
         </table>
     </div>
 </div>
+    <div class="domain-endpoint" id="loadModelDistance">
+        <div class="api-endpoint-header">loadModelDistance</div>
+        <div class="api-endpoint-desc">
+            Load a 3D mesh and calculates the distance to the surface.  Currently supports ASCII and BINARY STL files and X3D files(.x3d,.x3dv,x3db).  Currently x3d files
+            have their color information stripped out.  Returns a <a href="../javadoc/abfab3d/datasources/DataSourceGrid.html">abfab3d.datasources.DataSourceGrid</a> object.
+        </div>
+
+        <div class="api-endpoint-parameters">
+            DataSourceGrid loadModelDistance(filename,voxelSize,maxDist)
+            <div class="api-endpoint-desc">Returns a distance grid from the 3D mesh.  Uses the given voxelSize
+            </div>
+            <table class="api-endpoint-parameters-table">
+                <tr class="api-endpoint-parameters-table-row">
+                    <td class="api-endpoint-parameters-table-name-col">String filename</td>
+                    <td class="api-endpoint-parameters-table-desc-col">
+                        The name of the file to load
+                    </td>
+                </tr>
+                <tr class="api-endpoint-parameters-table-row">
+                    <td class="api-endpoint-parameters-table-name-col">double voxelSize</td>
+                    <td class="api-endpoint-parameters-table-desc-col">
+                        The size of voxels to use, defaults to 0.1mm
+                    </td>
+                </tr>
+                <tr class="api-endpoint-parameters-table-row">
+                    <td class="api-endpoint-parameters-table-name-col">double maxDist</td>
+                    <td class="api-endpoint-parameters-table-desc-col">
+                        The maximum distance to calculate from the surface, defaults to 1mm.
+                    </td>
+                </tr>
+                <tr class="api-endpoint-parameters-table-row">
+                    <td class="api-endpoint-parameters-table-name-col">int algo</td>
+                    <td class="api-endpoint-parameters-table-desc-col">
+                        The algorithm to use.  Defaults to 0.  Algoritm 1 is a slightly more accurate version
+                        of 0 but much slower.  Algorithm 2 is the ShapeJS 1.0 original algorithm for backwards compatibility.
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="domain-endpoint" id="print">
+        <div class="api-endpoint-header">print</div>
+        <div class="api-endpoint-desc">
+            Print's a message to the console.  This will be available in the IDE's console.
+        </div>
+    </div>
+    <H3 id="JavascriptVariables">Variables</H3>
+    ShapeJS has global variables accessible from your script.
+        <table class="api-endpoint-parameters-table">
+            <tr class="api-endpoint-parameters-table-row">
+                <td class="api-endpoint-parameters-table-name-col">MM</td>
+                <td class="api-endpoint-parameters-table-desc-col">
+                    Conversion factor from mm's to meters.
+                </td>
+            </tr>
+            <tr class="api-endpoint-parameters-table-row">
+                <td class="api-endpoint-parameters-table-name-col">MM3</td>
+                <td class="api-endpoint-parameters-table-desc-col">
+                    Conversion factor from mm^3 to m^3
+                </td>
+            </tr>
+            <tr class="api-endpoint-parameters-table-row">
+                <td class="api-endpoint-parameters-table-name-col">CM</td>
+                <td class="api-endpoint-parameters-table-desc-col">
+                    Conversion factor from cm's to meters.
+                </td>
+            </tr>
+            <tr class="api-endpoint-parameters-table-row">
+                <td class="api-endpoint-parameters-table-name-col">IN</td>
+                <td class="api-endpoint-parameters-table-desc-col">
+                    Conversion factor from in's to meters.
+                </td>
+            </tr>
+            <tr class="api-endpoint-parameters-table-row">
+                <td class="api-endpoint-parameters-table-name-col">FT</td>
+                <td class="api-endpoint-parameters-table-desc-col">
+                    Conversion factor from feet to meters.
+                </td>
+            </tr>
+        </table>
 
 <H2 id="Objects">Objects</H2>
 Specific objects are exposed to the scripts.  This section lists the objects exposed and provides links to their
 documentation.
     <H3>Math</H3>
-<p>The java.lang.Math class is available.  This is where you will find the typical min,max,sin,cos functions.
-Please see the posted Javadoc for complete details.  <a href="http://docs.oracle.com/javase/6/docs/api/">Java6 Javadoc</a>
+<p>The standard Javascript Math object is available.  W3Schools provides a nice overview <a href="http://www.w3schools.com/jsref/jsref_obj_math.asp">here</a>
 </p>
-An example usage is:
-<pre class="code">
-function trigCalcs(radius,angle){
-    var circ = 2 * Math.PI * radius;
-    var sin = Math.sin(angle);
-    var max = Math.max(radius,10);
-}
-</pre>
-
     <H3>Vector3d</H3>
-
+ShapeJS ships with a standard vecmath library.  This is the javax.vecmath package provided by Oracle.  You can see view the docs <a href="https://docs.oracle.com/cd/E17802_01/j2se/javase/technologies/desktop/java3d/forDevelopers/j3dapi/javax/vecmath/package-summary.html">here</a>
     <H3>Operations</H3>
+    Operations work on Grids and usually perform fairly heavyweight computations.
+    Some of the available operations are TrimOp, ExpandOp.    See the abfab3d.grid.op documentation <a href="../javadoc/abfab3d/grid/op/package-summary.html">here</a>
     trimOp
     expandOp
 
@@ -513,10 +555,20 @@ function trigCalcs(radius,angle){
 </div>
 </div>
 
-<H2 id="RoadMap">Road Map</H2>
+<H2 id="SharingScenes">Sharing Scenes</H2>
+ShapeJS defines a zip format for sharing scenes.  A scene contains the script, a JSON encoded params file and any
+    URI references saved as local resources.  The main script is saved as script.js.  The parameter values are stored
+    as a JSON map in params.json.
+    <p>
+        When saving a scene, any local files used will be saved into the zip container.  Fully qualified URL's will be
+        downloaded and stored in the zip  as well.
+    </p>
+    <H2 id="RoadMap">Road Map</H2>
 <H2 id="MailingList">Mailing List</H2>
+    We've setup a forum to discuss ShapeJS <a href="https://www.shapeways.com/forum/index.php?t=thread&frm_id=102
+">here</a>
 <H2 id="License">License</H2>
-
+The core library is licensed as LGPL, available at <a href="www.abfab3d.com">www.abfab3d.com</a>.  Certain portions of the library which are GPU accelerated are Shapeways internal.
 
 </div></BODY>
 </HTML>
