@@ -16,7 +16,7 @@ import static abfab3d.util.Output.printf;
  */
 public class ParamCache {
     private static final boolean STOP = false;
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final int JOB_RETAIN_MS = 5 * 60 * 1000;
 
     private static ParamCache instance;
