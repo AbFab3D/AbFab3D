@@ -192,6 +192,9 @@ public class Image3D extends TransformableDataSource {
     public Image3D(String imagePath, double sx, double sy, double sz) {
         initParams();
 
+        if (!new File(imagePath).exists()) {
+            throw new IllegalArgumentException("Image does not exist.  image: " + imagePath);
+        }
         setImage(imagePath);
         setSize(sx, sy, sz);
     }
@@ -208,6 +211,9 @@ public class Image3D extends TransformableDataSource {
     public Image3D(String imagePath, double sx, double sy, double sz, double voxelSize) {
         initParams();
 
+        if (!new File(imagePath).exists()) {
+            throw new IllegalArgumentException("Image does not exist.  image: " + imagePath);
+        }
         setImage(imagePath);
         setSize(sx, sy, sz);
         setVoxelSize(voxelSize);
@@ -226,6 +232,23 @@ public class Image3D extends TransformableDataSource {
         initParams();
 
         setImage(image);
+        setSize(sx, sy, sz);
+        setVoxelSize(voxelSize);
+    }
+
+    /**
+     * Image3D with given text
+     *
+     * @param text text data
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box.
+     * @param voxelSize size of voxel to be used for image voxelization
+     */
+    public Image3D(Text2D text, double sx, double sy, double sz, double voxelSize) {
+        initParams();
+
+        setImage(text.getImage());
         setSize(sx, sy, sz);
         setVoxelSize(voxelSize);
     }
@@ -706,6 +729,8 @@ public class Image3D extends TransformableDataSource {
             image = ((ImageWrapper)oimage).getImage();
         } else if (oimage instanceof Grid2D) {
             image = Grid2DShort.convertGridToImage((Grid2D)oimage);
+        } else if (oimage instanceof Text2D) {
+            image = ((Text2D)oimage).getImage();
         } else {
             throw new IllegalArgumentException("Unhandled image type: " + oimage.getClass());
         }

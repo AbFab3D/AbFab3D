@@ -53,7 +53,7 @@ public class Grid2DSourceWrapper implements Grid2D, SourceWrapper {
 
     @Override
     public void getWorldCoords(int x, int y, double[] coords) {
-
+        grid.getWorldCoords(x,y,coords);
     }
 
     @Override
