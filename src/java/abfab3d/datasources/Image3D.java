@@ -226,6 +226,21 @@ public class Image3D extends TransformableDataSource {
      * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param sz depth of the box.
+     */
+    public Image3D(BufferedImage image, double sx, double sy, double sz) {
+        initParams();
+
+        setImage(image);
+        setSize(sx, sy, sz);
+    }
+
+    /**
+     * Image3D with given image path and size
+     *
+     * @param image image data
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box.
      * @param voxelSize size of voxel to be used for image voxelization
      */
     public Image3D(BufferedImage image, double sx, double sy, double sz, double voxelSize) {
@@ -234,6 +249,21 @@ public class Image3D extends TransformableDataSource {
         setImage(image);
         setSize(sx, sy, sz);
         setVoxelSize(voxelSize);
+    }
+
+    /**
+     * Image3D with given text
+     *
+     * @param text text data
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box.
+     */
+    public Image3D(Text2D text, double sx, double sy, double sz) {
+        initParams();
+
+        setImage(text.getImage());
+        setSize(sx, sy, sz);
     }
 
     /**
@@ -256,6 +286,20 @@ public class Image3D extends TransformableDataSource {
     /**
      * Image3D with given image path and size
      *
+     * @param imwrapper holder of BufferedImage
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box.
+     */
+    public Image3D(ImageWrapper imwrapper, double sx, double sy, double sz) {
+        initParams();
+        setImage(imwrapper);
+        setSize(sx, sy, sz);
+    }
+
+    /**
+     * Image3D with given image path and size
+     *
      * @param imwrapper holder of BufferedImage 
      * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
@@ -267,6 +311,20 @@ public class Image3D extends TransformableDataSource {
         setImage(imwrapper);
         setSize(sx, sy, sz);
         setVoxelSize(voxelSize);
+    }
+
+    /**
+     * Image3D with given image path and size
+     *
+     * @param grid grid representation of image
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box.
+     */
+    public Image3D(Grid2D grid, double sx, double sy, double sz) {
+        initParams();
+        setImage(grid);
+        setSize(sx, sy, sz);
     }
 
     /**
