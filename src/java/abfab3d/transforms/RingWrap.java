@@ -81,6 +81,9 @@ public class RingWrap extends BaseTransform implements VecTransform, Initializab
         mp_radius.setValue(r);
     }
 
+    /**
+     * @noRefGuide
+     */
     protected void initParams(){
         super.addParams(m_aparam);
     }
@@ -97,7 +100,7 @@ public class RingWrap extends BaseTransform implements VecTransform, Initializab
      *
      * @param in
      * @param out
-     @noRefGuide
+     * @noRefGuide
      */
     public int transform(Vec in, Vec out) {
         
@@ -118,7 +121,7 @@ public class RingWrap extends BaseTransform implements VecTransform, Initializab
      * Calculate polar to cartesian coordinates
      * @param in
      * @param out
-     @noRefGuide
+     * @noRefGuide
      */
     public int inverse_transform(Vec in, Vec out) {
         

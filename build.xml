@@ -217,6 +217,8 @@
                      jars=""
                 />
 
+        <!-- TODO: remove index* -->
+
         <javadoc sourcepath=""
                  destdir="${refguide.dir}"
                  version="true"
@@ -264,11 +266,67 @@
                 <include name="java/abfab3d/transforms/Translation.java" />
                 <include name="java/abfab3d/transforms/Rotation.java" />
                 <include name="java/abfab3d/transforms/RingWrap.java" />
+                <include name="java/abfab3d/transforms/PeriodicWrap.java" />
             </fileset>
             <doclet name="doclet.RefGuideDoclet" path="${classes.dir}/build;${lib.dir}/commons-io-2.4.jar">
-<!--                <param name="-d" value="docs/refguide" /> -->
+                <param name="-generateParts" value="true" />
+            </doclet>
+            <!-- Copy items from Javadoc to refguide directory for easy packaging -->
+        </javadoc>
+
+        <javadoc sourcepath=""
+                 destdir="${refguide.dir}"
+                 version="true"
+                 author="yes" >
+            <fileset dir="${src.dir}" defaultexcludes="yes">
+                <include name="java/abfab3d/datasources/TransformableDataSource.java" />
+                <include name="java/abfab3d/datasources/Abs.java" />
+                <include name="java/abfab3d/datasources/Add.java" />
+                <include name="java/abfab3d/datasources/Box.java" />
+                <include name="java/abfab3d/datasources/Complement.java" />
+                <include name="java/abfab3d/datasources/Constant.java" />
+                <include name="java/abfab3d/datasources/Cone.java" />
+                <include name="java/abfab3d/datasources/Cylinder.java" />
+                <include name="java/abfab3d/datasources/DataSourceGrid.java" />
+                <include name="java/abfab3d/datasources/DataTransformer.java" />
+                <include name="java/abfab3d/datasources/Embossing.java" />
+                <include name="java/abfab3d/datasources/Image3D.java" />
+                <include name="java/abfab3d/datasources/ImageMap.java" />
+                <include name="java/abfab3d/datasources/Intersection.java" />
+                <include name="java/abfab3d/datasources/Mad.java" />
+                <include name="java/abfab3d/datasources/Mask.java" />
+                <include name="java/abfab3d/datasources/Max.java" />
+                <include name="java/abfab3d/datasources/Min.java" />
+                <include name="java/abfab3d/datasources/Mix.java" />
+                <include name="java/abfab3d/datasources/Mul.java" />
+                <include name="java/abfab3d/datasources/Plane.java" />
+                <include name="java/abfab3d/datasources/Sphere.java" />
+                <include name="java/abfab3d/datasources/Sub.java" />
+                <include name="java/abfab3d/datasources/Subtraction.java" />
+                <include name="java/abfab3d/datasources/Text.java" />
+                <include name="java/abfab3d/datasources/Text2D.java" />
+                <include name="java/abfab3d/datasources/Torus.java" />
+                <include name="java/abfab3d/datasources/Union.java" />
+                <include name="java/abfab3d/datasources/VolumePatterns.java" />
+
+                <include name="java/abfab3d/transforms/CompositeTransform.java" />
+                <include name="java/abfab3d/transforms/FriezeSymmetry.java" />
+                <include name="java/abfab3d/transforms/ReflectionSymmetry.java" />
+                <include name="java/abfab3d/transforms/WallpaperSymmetry.java" />
+                <include name="java/abfab3d/transforms/PlaneReflection.java" />
+                <include name="java/abfab3d/transforms/SphereInversion.java" />
+                <include name="java/abfab3d/transforms/CompositeTransform.java" />
+                <include name="java/abfab3d/transforms/Scale.java" />
+                <include name="java/abfab3d/transforms/Translation.java" />
+                <include name="java/abfab3d/transforms/Rotation.java" />
+                <include name="java/abfab3d/transforms/RingWrap.java" />
+                <include name="java/abfab3d/transforms/PeriodicWrap.java" />
+            </fileset>
+            <doclet name="doclet.RefGuideDoclet" path="${classes.dir}/build;${lib.dir}/commons-io-2.4.jar">
+                <param name="-generateParts" value="false" />
             </doclet>
         </javadoc>
+
     </target>
 
     <target name="jar" depends="compile">

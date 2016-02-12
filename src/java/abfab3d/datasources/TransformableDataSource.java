@@ -202,7 +202,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
     /**
      * Call to update bounds after each param change that affects bounds
-     * @noRefGuide;
+     * @noRefGuide
      */
     protected void updateBounds() {
         boundsDirty = false;

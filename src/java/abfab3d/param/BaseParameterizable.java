@@ -85,13 +85,19 @@ public class BaseParameterizable implements Parameterizable, SNode {
         return par.getValue();
     }
 
-    @Override
+    /**
+     * Get the children of this node.
+     *
+     * @noRefGuide
+     * @return A live array of children or null if no children
+     */
     public SNode[] getChildren() {
         return null;
     }
 
     /**
-       saves array of parameters into a string 
+     * saves array of parameters into a string
+     * @noRefGuide
      */
     public static String getParamString(String name,Parameter aparam[]){
         StringBuffer sb = new StringBuffer();
@@ -108,7 +114,8 @@ public class BaseParameterizable implements Parameterizable, SNode {
     }
 
     /**
-     saves array of parameters into a string
+     * Saves array of parameters into a string
+     * @noRefGuide
      */
     public static String getParamString(String name, Object src,Parameter aparam[]){
         StringBuffer sb = new StringBuffer();
@@ -137,7 +144,8 @@ public class BaseParameterizable implements Parameterizable, SNode {
     }
 
     /**
-     saves array of parameters into a string
+     * Saves array of parameters into a string
+     * @noRefGuide
      */
     public static String getParamString(String name, Map<String,Parameter> params){
         StringBuffer sb = new StringBuffer();
@@ -153,6 +161,13 @@ public class BaseParameterizable implements Parameterizable, SNode {
         return sb.toString();
     }
 
+    /**
+     * Get the parameters as a string
+     * @noRefGuide
+     * @param name
+     * @param params
+     * @return
+     */
     public static String getParamObjString(String name,Map<String,Object> params) {
         StringBuffer sb = new StringBuffer();
         sb.append(name);
