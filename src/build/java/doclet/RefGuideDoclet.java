@@ -15,6 +15,7 @@ package doclet;
 import com.sun.javadoc.*;
 import com.sun.tools.doclets.formats.html.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.util.*;
@@ -26,6 +27,7 @@ import java.util.*;
  * @author Alan Hudson
  */
 public class RefGuideDoclet {
+    private static final int MAX_LINES = 1200;
     private static final String REF_GUIDE_DIR = "docs/refguide";
     private static final String USER_GUIDE = "apps/volumesculptor/docs/manual/overview.html";
     private static final HashMap<String,String> packageTOCName;
@@ -45,23 +47,35 @@ public class RefGuideDoclet {
 
     public static boolean start(RootDoc root) {
 
+        boolean generateParts = isGenerateParts(root.options());
+        int partNum = 1;
 
+        System.out.printf("Generate parts: %b\n",generateParts);
         File dir = new File(REF_GUIDE_DIR);
         dir.mkdirs();
 
         FileOutputStream fos = null;
         BufferedOutputStream bos = null;
+        LineCountWriter lcw = null;
         PrintWriter pw = null;
 
 
         List<Heading> toc_list = new ArrayList<Heading>();
         Map<String, Heading> toc_map = new HashMap<String, Heading>();
         try {
-            fos = new FileOutputStream(REF_GUIDE_DIR + "/index.html");
+            if (generateParts) {
+                fos = new FileOutputStream(REF_GUIDE_DIR + "/index_part_" + partNum + ".html");
+            } else {
+                fos = new FileOutputStream(REF_GUIDE_DIR + "/index.html");
+            }
             bos = new BufferedOutputStream(fos);
-            pw = new PrintWriter(bos);
-
-            writePreamble(pw);
+            if (generateParts) {
+                lcw = new LineCountWriter(bos);
+                pw = new PrintWriter(lcw);
+            } else {
+                pw = new PrintWriter(bos);
+            }
+            if (!generateParts) writePreamble(pw);
 
             List<List<Heading>> headings = getHeadings(USER_GUIDE,1);
             System.out.println("Headings:");
@@ -79,7 +93,7 @@ public class RefGuideDoclet {
 
 
             for (ClassDoc classd : root.classes()) {
-                if (classd.isAbstract()) {
+                if (classd.isAbstract() || classd.isEnum() || classd.isEnumConstant()) {
                     continue;
                 }
 
@@ -111,14 +125,13 @@ public class RefGuideDoclet {
             writeStaticFile(pw, USER_GUIDE);
 
             for (ClassDoc classd : root.classes()) {
-                if (classd.isAbstract()) {
+                if (classd.isAbstract() || classd.isEnum() || classd.isEnumConstant()) {
                     continue;
                 }
 
                 if (ignoreMethods.size() == 0) {
                     initIgnoreMethods(classd.findClass("Object"));
                 }
-                System.out.println("Class: " + classd.name());
 
                 PackageDoc pack = classd.containingPackage();
                 String pname = pack.name();
@@ -146,7 +159,6 @@ public class RefGuideDoclet {
 
                 pw.println("<div class=\"api-endpoint-desc\">");
 
-                System.out.println("Here");
                 String upd_comment = updateURL(classd.commentText(), pack.name().replace(".","/") + "/" + "doc-files");
                 pw.println(upd_comment);
                 pw.println("</div>");
@@ -177,9 +189,7 @@ public class RefGuideDoclet {
                         sb.append("</div>");
                     }
                     pw.println(sb.toString());
-                    System.out.println("Comment: " + cd.commentText());
 
-                    System.out.println("Printing method annots");
                     AnnotationDesc[] annots = cd.annotations();
                     System.out.println(java.util.Arrays.toString(annots));
 
@@ -217,6 +227,19 @@ public class RefGuideDoclet {
 
                 for(MethodDoc method : classd.methods()) {
                     writeMethod(pw, method, classd);
+                    if (generateParts) {
+                        if (lcw.getCount() >= MAX_LINES) {
+                            partNum++;
+                            if (pw != null) pw.close();
+                            if (bos != null) bos.close();
+                            if (fos != null) fos.close();
+
+                            fos = new FileOutputStream(REF_GUIDE_DIR + "/index_part_" + partNum + ".html");
+                            bos = new BufferedOutputStream(fos);
+                            lcw = new LineCountWriter(bos);
+                            pw = new PrintWriter(lcw);
+                        }
+                    }
                 }
 
 
@@ -226,6 +249,19 @@ public class RefGuideDoclet {
                     System.out.println("Parent is: " + parent + " methods: " + parent.methods().length);
                     for(MethodDoc method : parent.methods()) {
                         writeMethod(pw, method, classd);
+                        if (generateParts) {
+                            if (lcw.getCount() >= MAX_LINES) {
+                                partNum++;
+                                if (pw != null) pw.close();
+                                if (bos != null) bos.close();
+                                if (fos != null) fos.close();
+
+                                fos = new FileOutputStream(REF_GUIDE_DIR + "/index_part_" + partNum + ".html");
+                                bos = new BufferedOutputStream(fos);
+                                lcw = new LineCountWriter(bos);
+                                pw = new PrintWriter(lcw);
+                            }
+                        }
                     }
                     parent = parent.superclass();
 
@@ -238,8 +274,22 @@ public class RefGuideDoclet {
             }
 
             pw.println("</div>");
-            writePostamble(pw);
+            if (!generateParts) writePostamble(pw);
 
+            if (generateParts) {
+                if (pw != null) pw.close();
+                if (bos != null) bos.close();
+                if (fos != null) fos.close();
+
+                for (int i = 1; i < partNum + 1; i++) {
+                    String file = REF_GUIDE_DIR + "/index_part_" + i + ".html";
+                    System.out.printf("Replacing doc-files reference: %s\n",file);
+                    String content = IOUtils.toString(new FileInputStream(file));
+                    content = content.replaceAll("abfab3d/datasources/doc-files/", "/rrstatic/img/shapejs/");
+                    content = content.replaceAll("abfab3d/transforms/doc-files/", "/rrstatic/img/shapejs/");
+                    IOUtils.write(content, new FileOutputStream(file));
+                }
+            }
         } catch(IOException ioe) {
             ioe.printStackTrace();
         } finally {
@@ -438,7 +488,7 @@ public class RefGuideDoclet {
     private static String updateURL(String src, String path) {
         String replace = "src=\"" + path;
         // search for src="doc-files" attributes
-        String ret_val = src.replace("src=\"doc-files",replace);
+        String ret_val = src.replace("src=\"doc-files", replace);
 
         System.out.println("Update URL: " + src + " --> " + ret_val);
         return ret_val;
@@ -545,18 +595,42 @@ public class RefGuideDoclet {
     }
 
     public static int optionLength(String option) {
+        System.out.println("OL called: " + option);
+        if (option.equals("-generateParts")) {
+            return 2;
+        }
+
         return HtmlDoclet.optionLength(option);
+    }
+
+    private static boolean isGenerateParts(String[][] options) {
+        String genParts = null;
+        for (int i = 0; i < options.length; i++) {
+            String[] opt = options[i];
+            if (opt[0].equals("-generateParts")) {
+                genParts = opt[1];
+            }
+        }
+
+        return Boolean.parseBoolean(genParts);
     }
 
     public static boolean validOptions(String[][] options,
                                        DocErrorReporter reporter) {
 
-        System.out.println("Here");
+        System.out.println("VO called");
+
+        for(int i=0; i < options.length; i++) {
+            String[] opt = options[i];
+            if(opt[0].equals("-generateParts")) {
+                return true;
+            }
+        }
+
         return HtmlDoclet.validOptions(options, reporter);
     }
 
     public static LanguageVersion languageVersion() {
-        System.out.println("Here2");
         return HtmlDoclet.languageVersion();
     }
 }

@@ -35,13 +35,15 @@ public class EnumParameter extends BaseParameter {
         super(name, desc);
         m_values = values.clone();
 
-        int len = m_values.length;
-        String vv = "";
-        for(int i = 0; i < len; i++){
-            vv += m_values[i];
+        defaultValue = initialValue;
+        setValue(initialValue);
+    }
 
-            if (i < len - 1) vv += ",";
-        }
+    public EnumParameter(String name, String label, String desc, String values[], String initialValue) {
+        super(name, desc);
+        setLabel(label);
+
+        m_values = values.clone();
 
         defaultValue = initialValue;
         setValue(initialValue);

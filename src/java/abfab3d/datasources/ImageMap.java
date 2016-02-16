@@ -23,12 +23,7 @@ import java.io.IOException;
 
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
-import abfab3d.param.ObjectParameter;
-import abfab3d.param.IntParameter;
-import abfab3d.param.DoubleParameter;
-import abfab3d.param.Parameter;
-import abfab3d.param.Vector3dParameter;
-import abfab3d.param.BooleanParameter;
+import abfab3d.param.*;
 
 import abfab3d.util.ImageUtil;
 import abfab3d.util.Vec;
@@ -63,7 +58,9 @@ import static abfab3d.util.Output.time;
  * @author Vladimir Bulatov
  */
 public class ImageMap extends TransformableDataSource {
-   
+    final static boolean DEBUG = false;
+    final static boolean DEBUG_VIZ = false;
+
     public static int REPEAT_NONE = 0, REPEAT_X = 1, REPEAT_Y = 2, REPEAT_BOTH = 3;
     
     public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
@@ -104,6 +101,9 @@ public class ImageMap extends TransformableDataSource {
 
     };
 
+    /** Params which require changes in the underlying image */
+    private Parameter[] imageParams;
+
     // 
     private ImageGray16 m_imageData;
     private String m_savedParamString = "";    
@@ -118,11 +118,22 @@ public class ImageMap extends TransformableDataSource {
      */
     public ImageMap(Object imageSource, double sizex, double sizey, double sizez) {
 
-        super.addParams(m_aparams);
+        initParams();
 
         mp_imageSource.setValue(imageSource);
         mp_size.setValue(new Vector3d(sizex, sizey, sizez));
 
+    }
+
+    /**
+     * @noRefGuide
+     */
+    protected void initParams(){
+        super.addParams(m_aparams);
+
+        imageParams = new Parameter[] {
+                mp_imageSource, mp_size, mp_blurWidth
+        };
     }
 
 
@@ -286,39 +297,46 @@ public class ImageMap extends TransformableDataSource {
     public int initialize() {
         super.initialize();
 
-        if(needToPrepareImage()){
+        Vector3d center = (Vector3d)mp_center.getValue();
+        Vector3d size = (Vector3d)mp_size.getValue();
+        m_originX = center.x - size.x/2;
+        m_originY = center.y - size.y/2;
+        m_originZ = center.z - size.z/2;
+        m_sizeX = size.x;
+        m_sizeY = size.y;
+        m_sizeZ = size.z;
+
+        m_repeatX = mp_repeatX.getValue();
+        m_repeatY = mp_repeatY.getValue();
+
+        double white = mp_whiteDisp.getValue();
+        double black = mp_blackDisp.getValue();
+
+        m_valueOffset = black;
+        m_valueFactor = white - black;
+
+        String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), imageParams);
+
+        Object co = ParamCache.getInstance().get(vhash);
+        if (co == null) {
             int res = prepareImage();
-            if(res != RESULT_OK){ 
-                // something wrong with the image 
+            if(res != RESULT_OK){
+                // something wrong with the image
                 throw new IllegalArgumentException("undefined image");
             }
-            saveImageData();
+
+            ParamCache.getInstance().put(vhash, m_imageData);
+
+        } else {
+            m_imageData = (ImageGray16) co;
         }
+
+        m_imageSizeX  = m_imageData.getWidth();
+        m_imageSizeY  = m_imageData.getHeight();
 
         return RESULT_OK;
         
     }
-
-    /**
-       checks if params used to generate image have chaned 
-     * @noRefGuide
-     */
-    protected boolean needToPrepareImage(){
-        return 
-            (m_imageData == null) || 
-            !m_savedParamString.equals(getParamString(m_aparams));
-        
-    }
-
-    /**
-       saves params used to generate the image 
-     * @noRefGuide
-     */
-    protected void saveImageData(){ 
-        m_savedParamString = getParamString(m_aparams);
-        printf("ImageMap.savedParamString:\n%s",m_savedParamString);
-    }
-
 
     /**
      * @noRefGuide
@@ -327,9 +345,10 @@ public class ImageMap extends TransformableDataSource {
 
         long t0 = time();
 
-        printf("ImageMap.prepareImage()\n");
 
         Object imageSource = mp_imageSource.getValue();
+        if (DEBUG) printf("ImageMap.prepareImage().  source: %s\n",imageSource);
+
         if(imageSource == null)
             throw new RuntimeException("imageSource is null");
 
@@ -344,7 +363,7 @@ public class ImageMap extends TransformableDataSource {
             }
 
         } else if(imageSource instanceof Text2D){
-            
+            if (DEBUG) printf("Getting text2d image\n");
             m_imageData = new ImageGray16(((Text2D)imageSource).getImage());
 
         } else if(imageSource instanceof BufferedImage){
@@ -374,25 +393,9 @@ public class ImageMap extends TransformableDataSource {
             }
         }
 
-        Vector3d center = (Vector3d)mp_center.getValue();
-        Vector3d size = (Vector3d)mp_size.getValue();
-        m_originX = center.x - size.x/2;
-        m_originY = center.y - size.y/2;
-        m_originZ = center.z - size.z/2;
-        m_sizeX = size.x;
-        m_sizeY = size.y;
-        m_sizeZ = size.z;
 
         m_imageSizeX  = m_imageData.getWidth();
         m_imageSizeY  = m_imageData.getHeight();
-        m_repeatX = mp_repeatX.getValue();
-        m_repeatY = mp_repeatY.getValue();
-        
-        double white = mp_whiteDisp.getValue();
-        double black = mp_blackDisp.getValue();
-        
-        m_valueOffset = black;
-        m_valueFactor = white - black;
 
         double blurWidth = mp_blurWidth.getValue();
         if (blurWidth > 0.0) {
@@ -409,7 +412,30 @@ public class ImageMap extends TransformableDataSource {
         }
 
         printf("ImageMap.prepareImage() time: %d ms\n",(time() - t0));
-        
+
+        if (DEBUG_VIZ) {
+            try {
+                printf("***Writing debug file for ImageMap");
+                String source = null;
+                Object src = mp_imageSource.getValue();
+                if (src instanceof SourceWrapper) {
+                    source = ((SourceWrapper)src).getParamString();
+                } else {
+                    source = "" + src.hashCode();
+                }
+                source = source.replace("\\","_");
+                source = source.replace("/","_");
+                source = source.replace(".","_");
+                source = source.replace("\"","_");
+                source = source.replace(";","_");
+
+                printf("final: %s\n",source);
+                m_imageData.write("/tmp/imagemap_" + source + ".png");
+            } catch(IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
         return RESULT_OK;
     }
 

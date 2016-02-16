@@ -17,6 +17,11 @@ import javax.vecmath.Vector3d;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Units.MM;
 
+/**
+ * Axis aligned bounds object.
+ *
+ * @author Alan Hudson
+ */
 public class Bounds implements Cloneable {
 
     public static final Bounds INFINITE = new Bounds(-1000,1000,-1000,1000,-1000,1000);
@@ -105,7 +110,7 @@ public class Bounds implements Cloneable {
     }
 
     /**
-       returns volume of the bounds box 
+     * Returns volume of the bounds box in m^3
      */
     public double getVolume(){
 

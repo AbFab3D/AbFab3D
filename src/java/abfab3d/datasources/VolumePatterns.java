@@ -16,8 +16,6 @@ package abfab3d.datasources;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
 import abfab3d.util.Vec;
 
 
@@ -29,8 +27,6 @@ import static java.lang.Math.abs;
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
 import static java.lang.Math.sinh;
-import static java.lang.Math.pow;
-import static java.lang.Math.sqrt;
 
 import static abfab3d.util.MathUtil.step10;
 import static abfab3d.util.Output.printf;
@@ -41,144 +37,6 @@ public class VolumePatterns {
 
     static final boolean DEBUG = false;
     static int debugCount = 100;
-    
-    public static class Balls  extends TransformableDataSource{
-        
-
-        double period;
-        double RR, R2;
-
-        public Balls(double period, double radius){
-
-            this.period = period;
-
-            setRadius(radius);
-        }
-
-        public void setPeriod(double val) {
-            period = val;
-        }
-
-        public double getPeriod() {
-            return period;
-        }
-
-        public void setRadius(double radius) {
-            RR = radius*radius;
-
-            R2 = radius*2;
-        }
-
-        public double getRadius() {
-            return R2 / 2;
-        }
-
-        /**
-         * @noRefGuide
-         * @param pnt
-         * @param data
-         * @return
-         */
-        public int getDataValue(Vec pnt, Vec data){
-            super.transform(pnt);
-
-            double x = pnt.v[0];
-            double y = pnt.v[1];
-            double z = pnt.v[2];
-            double vs = pnt.getScaledVoxelSize();
-            
-            x -= period*floor(x/period);
-            y -= period*floor(y/period);
-            z -= period*floor(z/period);
-            
-            x -= period/2;
-            y -= period/2;
-            z -= period/2;
-            
-            double dist = ((x*x + y*y + z*z) - RR)/R2;
-            data.v[0] = step10(dist, 0,vs);
-
-            if(DEBUG && debugCount-- > 0)
-                printf("(%10.5f %10.5f %10.5f) -> %10.5f\n", x,y,z,data.v[0]);
-
-            super.getMaterialDataValue(pnt, data);
-
-            return RESULT_OK;
-        }
-        
-    }
-
-    public static class CubicGrid  extends TransformableDataSource{
-        
-
-
-        double period;
-        double RR, R2;
-
-        public CubicGrid(double period, double radius){
-
-            this.period = period;
-            setRadius(radius);
-        }
-
-        public void setPeriod(double val) {
-            period = val;
-        }
-
-        public double getPeriod() {
-            return period;
-        }
-
-        public void setRadius(double radius) {
-            RR = radius*radius;
-
-            R2 = radius*2;
-        }
-
-        public double getRadius() {
-            return R2 / 2;
-        }
-
-        /**
-         * @noRefGuide
-         * @param pnt
-         * @param data
-         * @return
-         */
-        public int getDataValue(Vec pnt, Vec data){
-            
-            super.transform(pnt);
-            double x = pnt.v[0];
-            double y = pnt.v[1];
-            double z = pnt.v[2];
-            double vs = pnt.getScaledVoxelSize();
-            
-            x -= period*floor(x/period);
-            y -= period*floor(y/period);
-            z -= period*floor(z/period);
-            
-            x -= period/2;
-            y -= period/2;
-            z -= period/2;
-            
-            double dxy = step10(((x*x + y*y) - RR)/R2, 0, vs);
-            double dyz = step10(((y*y + z*z) - RR)/R2, 0, vs);
-            double dzx = step10(((z*z + x*x) - RR)/R2, 0, vs);
-
-            double d = 0;
-            if( dxy > d) d = dxy;
-            if( dyz > d) d = dyz;
-            if( dzx > d) d = dzx;
-
-            data.v[0] = d;
-
-            super.getMaterialDataValue(pnt, data);
-
-            return RESULT_OK;
-        }
-        
-    } // class CubicGrid
-
 
     /**
        approximation to Gyroid 
@@ -551,6 +409,7 @@ public class VolumePatterns {
      *
      * @author Alan Hudson
      */
+    /*
     public static class ScherkSecond extends TransformableDataSource {
 
         double m_thickness;
@@ -578,9 +437,7 @@ public class VolumePatterns {
             mp_thickness.setValue(thickness);
         }
 
-        /**
-         * @noRefGuide
-         */
+         @noRefGuide
         public int initialize(){
 
             super.initialize();
@@ -594,9 +451,7 @@ public class VolumePatterns {
             return RESULT_OK;
         }
 
-        /**
-         * @noRefGuide
-         */
+         @noRefGuide
         public int getDataValue(Vec pnt, Vec data){
 
             super.transform(pnt);
@@ -617,12 +472,14 @@ public class VolumePatterns {
             return RESULT_OK;
         }
     }
+    */
 
     /**
      * Enneper Surface as describe here:  http://en.wikipedia.org/wiki/Enneper_surface
      *
      * @author Alan Hudson
      */
+    /*
     public static class Enneper extends TransformableDataSource{
 
         double m_level;
@@ -652,9 +509,7 @@ public class VolumePatterns {
             
         }
 
-        /**
-         * @noRefGuide
-         */
+         @noRefGuide
         public int initialize(){
 
             super.initialize();
@@ -668,9 +523,7 @@ public class VolumePatterns {
             return RESULT_OK;
         }
 
-        /**
-         * @noRefGuide
-         */
+         @noRefGuide
         public int getDataValue(Vec pnt, Vec data){
 
             super.transform(pnt);
@@ -707,5 +560,5 @@ public class VolumePatterns {
             return RESULT_OK;
         }
     }
-
+    */
 }

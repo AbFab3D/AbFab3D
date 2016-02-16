@@ -198,7 +198,10 @@ public class Union  extends TransformableDataSource implements SNode {
         return RESULT_OK;
     }
 
-    @Override
+    /**
+     * @override
+     * @noRefGuide
+     */
     public SNode[] getChildren() {
         vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
 

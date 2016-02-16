@@ -82,6 +82,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
     /**
      * Translate the source.  Equivalent to setTransform(new Translation(vec))
      * @param vec
+     * @noRefGuide
      */
     public void translate(Vector3d vec) {
         m_transform = new Translation(vec);
@@ -89,6 +90,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
     /**
      * Translate the source.  Equivalent to setTransform(new Translation(tx,ty,tz))
+     * @noRefGuide
      */
     public void translate(double tx,double ty, double tz) {
         m_transform = new Translation(tx,ty,tz);
@@ -97,6 +99,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
     /**
      * Scale the source.  Equivalent to setTransform(new Scale(vec))
      * @param vec
+     * @noRefGuide
      */
     public void scale(Vector3d vec) {
         m_transform = new Scale(vec);
@@ -104,6 +107,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
     /**
      * Scale the source.  Equivalent to setTransform(new Scale(sx,sy,sz))
+     * @noRefGuide
      */
     public void scale(double sx,double sy, double sz) {
         m_transform = new Scale(sx,sy,sz);
@@ -113,6 +117,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * Rotate the source.  Equivalent to setTransform(new Rotation(axis,angle))
      * @param axis
      * @param angle
+     * @noRefGuide
      */
     public void rotate(Vector3d axis, double angle){
         m_transform = new Rotation(axis,angle);
@@ -124,6 +129,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @param ay  y component of rotation axis
      * @param az  z component of rotation axis
      * @param angle  rotation angle is measured in radians
+     * @noRefGuide
      */
     public void rotate(double ax, double ay, double az, double angle){
         m_transform = new Rotation(ax,ay,az,angle);
@@ -131,6 +137,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
     /**
      * Union this datasource with another.  Equivalent to new Union(this,ds2)
+     * @noRefGuide
      */
     public TransformableDataSource union(TransformableDataSource ds2) {
         return new Union(this,ds2);
@@ -138,6 +145,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
     /**
      * Intersect this datasource with another.  Equivalent to new Intersection(this,ds2)
+     * @noRefGuide
      */
     public TransformableDataSource intersect(TransformableDataSource ds2) {
         return new Intersection(this,ds2);
@@ -147,6 +155,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * Subtract a datasource from this one.  Equivalent to new Subtraction(this,ds2)
      * @param ds2
      * @return
+     * @noRefGuide
      */
     public TransformableDataSource subtract(TransformableDataSource ds2) {
         return new Subtraction(this,ds2);
@@ -155,6 +164,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
     /**
      * Take the opposite of this data source.
      * @return
+     * @noRefGuide
      */
     public TransformableDataSource complement() {
         return new Complement(this);
@@ -192,7 +202,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
     /**
      * Call to update bounds after each param change that affects bounds
-     * @noRefGuide;
+     * @noRefGuide
      */
     protected void updateBounds() {
         boundsDirty = false;

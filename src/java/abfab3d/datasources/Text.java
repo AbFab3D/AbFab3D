@@ -25,12 +25,7 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.AxisAngle4d;
 
 
-import abfab3d.param.Vector3dParameter;
-import abfab3d.param.IntParameter;
-import abfab3d.param.DoubleParameter;
-import abfab3d.param.BooleanParameter;
-import abfab3d.param.StringParameter;
-import abfab3d.param.Parameter;
+import abfab3d.param.*;
 
 
 import abfab3d.util.Vec;
@@ -95,6 +90,7 @@ public class Text extends TransformableDataSource {
     DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the text bitmap", 0.025*MM);
 
     BooleanParameter  mp_useGrayscale = new BooleanParameter("useGrayscale","Use grayscale for text rendering", true);
+    ObjectParameter mp_font = new ObjectParameter("font","Specific font to use",null);
     StringParameter  mp_fontName = new StringParameter("fontName","Name of the font", "Times New Roman");
     StringParameter  mp_text = new StringParameter("text","text to be created", "Text");
     IntParameter  mp_fontStyle = new IntParameter("fontStyle","style of font(BOLD ,ITALIC, PLAIN)", PLAIN);
@@ -128,6 +124,29 @@ public class Text extends TransformableDataSource {
         mp_text.setValue(text);
         mp_fontName.setValue(fontName);
         
+    }
+
+    public Text(String text, Font font, double sx, double sy, double sz, double voxelSize){
+        initParams();
+        mp_size.setValue(new Vector3d(sx, sy, sz));
+        mp_voxelSize.setValue(new Double(voxelSize));
+        mp_text.setValue(text);
+        mp_font.setValue(font);
+    }
+
+    /**
+     * Set the specific font.  This overrides any value set in fontName
+     * @param font The font, or null to clear
+     */
+    public void setFont(Font font) {
+        mp_font.setValue(font);
+    }
+
+    /**
+     * Get the font set by setFont.  This will not return a font for Text created via the fontName route.
+     */
+    public Font getFont() {
+        return (Font) mp_font.getValue();
     }
 
     /**
@@ -255,7 +274,14 @@ public class Text extends TransformableDataSource {
         int fontStyle = mp_fontStyle.getValue();
 
 
-        BufferedImage img = TextUtil.createTextImage(nx, ny, text, new Font(fontName, fontStyle, m_fontSize), new Insets2(0,0,0,0), true);
+        BufferedImage img = null;
+        Font font = (Font) mp_font.getValue();
+        if (font != null) {
+            font = font.deriveFont(fontStyle,m_fontSize);
+            img = TextUtil.createTextImage(nx, ny, text, font, new Insets2(0,0,0,0), true);
+        } else {
+            img = TextUtil.createTextImage(nx, ny, text, new Font(fontName, fontStyle, m_fontSize), new Insets2(0, 0, 0, 0), true);
+        }
 
         printf("text bitmap: %d x %d\n", nx, ny);
         //Font font = new Font(m_fontName, m_fontStyle, m_fontSize);

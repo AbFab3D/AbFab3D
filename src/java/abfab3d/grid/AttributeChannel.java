@@ -90,7 +90,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
             m_maxValue = value0;
             m_minValue = value1;
         } else {
-            throw new RuntimeException("(value1 == value0) is not allowed");
+            throw new IllegalArgumentException("AttributeChannel (value0 == value1) is not allowed");
         }
         m_offset = value0;
         m_value0 = value0;

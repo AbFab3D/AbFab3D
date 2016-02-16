@@ -50,8 +50,8 @@ public class LocationParameter extends BaseParameter implements Cloneable {
     	if (minPoint == null) minPoint = DEFAULT_MIN_POINT;
     	if (maxPoint == null) maxPoint = DEFAULT_MAX_POINT;
     	
-        setMinPoint(minPoint);
-        setMaxPoint(maxPoint);
+        setPointMin(minPoint);
+        setPointMax(maxPoint);
 
         if (point != null && normal != null) {
         	setValue(new Vector3d[] {(Vector3d)point.clone(),(Vector3d)normal.clone()});
@@ -61,34 +61,48 @@ public class LocationParameter extends BaseParameter implements Cloneable {
     
     /**
      * Set the min location point
-     * @param value
      */
-    public void setMinPoint(Vector3d minPoint) {
+    public void setPointMin(Vector3d minPoint) {
     	if (this.minPoint == null) this.minPoint = new Vector3d();
     	
         this.minPoint.x = minPoint.x;
         this.minPoint.y = minPoint.y;
         this.minPoint.z = minPoint.z;
     }
-    
+
+    public void setPointMin(double px,double py,double pz) {
+        if (this.minPoint == null) this.minPoint = new Vector3d();
+
+        this.minPoint.x = px;
+        this.minPoint.y = py;
+        this.minPoint.z = pz;
+    }
+
     /**
      * Set the max location point
-     * @param value
      */
-    public void setMaxPoint(Vector3d maxPoint) {
+    public void setPointMax(Vector3d maxPoint) {
     	if (this.maxPoint == null) this.maxPoint = new Vector3d();
     	
         this.maxPoint.x = maxPoint.x;
         this.maxPoint.y = maxPoint.y;
         this.maxPoint.z = maxPoint.z;
     }
-    
-    public Vector3d getMinPoint() {
+
+    public void setPointMax(double px,double py,double pz) {
+        if (this.maxPoint == null) this.maxPoint = new Vector3d();
+
+        this.maxPoint.x = px;
+        this.maxPoint.y = py;
+        this.maxPoint.z = pz;
+    }
+
+    public Vector3d getPointMin() {
     	return minPoint;
     }
     
     
-    public Vector3d getMaxPoint() {
+    public Vector3d getPointMax() {
     	return maxPoint;
     }
     

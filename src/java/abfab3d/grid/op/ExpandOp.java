@@ -12,10 +12,14 @@
 
 package abfab3d.grid.op;
 import abfab3d.grid.*;
+import abfab3d.param.*;
 import abfab3d.util.ImageGray16;
-import abfab3d.util.ImageUtil;
 
-import java.util.EnumSet;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import static abfab3d.util.Output.printf;
 
 
 // External Imports
@@ -29,47 +33,49 @@ import java.util.EnumSet;
  *
  * @author Alan Hudson
  */
-public class ExpandOp implements Operation, Operation2D, AttributeOperation {
+public class ExpandOp extends BaseParameterizable implements Operation, Operation2D, AttributeOperation {
     private static final boolean DEBUG = false;
 
-    private int[] distances;
-    private long attribute;  //  the attribute value for new cells, defaults to white
+    LongParameter mp_attribute = new LongParameter("threshold", "Threshold for inside when using attribute grids", 0);
+    IntegerListParameter mp_distances = new IntegerListParameter("distances","How far to expand in each direction", null,0,Integer.MAX_VALUE);
+
+    Parameter m_aparam[] = new Parameter[]{
+            mp_attribute, mp_distances
+    };
 
     public ExpandOp(int[] distances) {
-        this.distances = distances.clone();
-
-        for(int i=0; i < distances.length; i++) {
-            if (distances[i] < 0) throw new IllegalArgumentException("Negative directions not supported yet");
-        }
-
-        attribute = ImageGray16.MAX_USHORT_S;
+        setDistances(distances);
+        setAttribute(ImageGray16.MAX_USHORT_S);
     }
 
     public ExpandOp(int[] distances, long att) {
-        this.distances = distances.clone();
-
-        for(int i=0; i < distances.length; i++) {
-            if (distances[i] < 0) throw new IllegalArgumentException("Negative directions not supported yet");
-        }
-
-        this.attribute = att;
+        setDistances(distances);
+        setAttribute(att);
     }
 
     public ExpandOp(int l, int t, int r, int b) {
-        this.distances = new int[] {l,t,r,b};
-        for(int i=0; i < distances.length; i++) {
-            if (distances[i] < 0) throw new IllegalArgumentException("Negative directions not supported yet");
-        }
-        attribute = ImageGray16.MAX_USHORT_S;
+        setDistances(new int[] {l,t,r,b});
+        setAttribute(ImageGray16.MAX_USHORT_S);
     }
 
     public ExpandOp(int l, int t, int r, int b, long att) {
-        this.distances = new int[] {l,t,r,b};
-        for(int i=0; i < distances.length; i++) {
-            if (distances[i] < 0) throw new IllegalArgumentException("Negative directions not supported yet");
-        }
+        setDistances(new int[] {l,t,r,b});
+        setAttribute(att);
+    }
 
-        attribute = att;
+    public void setAttribute(long val) {
+        mp_attribute.setValue(val);
+    }
+
+    public void setDistances(int[] val) {
+        mp_distances.setValue(val);
+    }
+
+    /**
+     * @noRefGuide
+     */
+    protected void initParams(){
+        super.addParams(m_aparam);
     }
 
     /**
@@ -80,6 +86,13 @@ public class ExpandOp implements Operation, Operation2D, AttributeOperation {
      * @return The new grid
      */
     public Grid2D execute(Grid2D src) {
+        long attribute = mp_attribute.getValue();
+        int[] distances = mp_distances.getValue((int[])null);
+
+        String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), src, m_aparam);
+        Object co = ParamCache.getInstance().get(vhash);
+        if (co != null) return ((Grid2D)co);
+
         int wdelta = distances[0] + distances[2];
         int hdelta = distances[1] + distances[3];
         int worigin = distances[0];
@@ -119,6 +132,10 @@ public class ExpandOp implements Operation, Operation2D, AttributeOperation {
                 }
             }
         }
+
+        // TODO: Need to restore for caching
+        //Grid2DSourceWrapper wrapper = new Grid2DSourceWrapper(vhash,dest);
+        //ParamCache.getInstance().put(vhash,wrapper);
         return dest;
     }
 
@@ -130,6 +147,9 @@ public class ExpandOp implements Operation, Operation2D, AttributeOperation {
      * @return The new grid
      */
     public AttributeGrid execute(AttributeGrid src) {
+        long attribute = mp_attribute.getValue();
+        int[] distances = mp_distances.getValue((int[])null);
+
         int wdelta = distances[0] + distances[2];
         int hdelta = distances[1] + distances[3];
         int ddelta = distances[4] + distances[5];
@@ -158,6 +178,9 @@ public class ExpandOp implements Operation, Operation2D, AttributeOperation {
      * @return The new grid
      */
     public Grid execute(Grid src) {
+        long attribute = mp_attribute.getValue();
+        int[] distances = mp_distances.getValue((int[])null);
+
         int wdelta = distances[0] + distances[2];
         int hdelta = distances[1] + distances[3];
         int ddelta = distances[4] + distances[5];

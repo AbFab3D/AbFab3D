@@ -174,7 +174,9 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
        
      */
     public void getPointsInGridUnits(double pntx[],double pnty[],double pntz[]){
-
+        if (DEBUG) {
+            m_points.printHistogram();
+        }
         //
         // coordinates are in grid units 
         //

@@ -52,6 +52,14 @@ public abstract class BaseParameter implements Parameter {
         this.group = group;
     }
 
+    public BaseParameter(String name, String desc, String group, String label) {
+
+        this.name = name;
+        this.label = label;
+        this.desc = desc;
+        this.group = group;
+    }
+
     /**
      * Get the parameter type enum.
      * @return The type
@@ -162,5 +170,10 @@ public abstract class BaseParameter implements Parameter {
         } catch(CloneNotSupportedException cnse) { cnse.printStackTrace(); }
 
         return null;
+    }
+
+    public String getParamString() {
+        if (value == null) return "null";
+        return value.toString();
     }
 }

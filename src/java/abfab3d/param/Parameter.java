@@ -87,4 +87,10 @@ public interface Parameter extends Cloneable {
     public void setLabel(String label);
     
     public String getLabel();
+
+    /**
+     * Get the string value to use for parameter hashes
+     * @return
+     */
+    public String getParamString();
 }

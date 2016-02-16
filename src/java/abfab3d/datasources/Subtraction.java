@@ -148,7 +148,11 @@ public class Subtraction extends TransformableDataSource implements SNode {
         return RESULT_OK;
     }
 
-    @Override
+
+    /**
+     * @override
+     * @noRefGuide
+     */
     public SNode[] getChildren() {
         return new SNode[] {(SNode)mp_shape1.getValue(),(SNode)mp_shape2.getValue()};
     }
