@@ -46,6 +46,13 @@ public class AttributeDesc  {
         addChannel(channel3);
     }
 
+    public AttributeDesc(AttributeChannel channel1, AttributeChannel channel2, AttributeChannel channel3,AttributeChannel channel4){
+        addChannel(channel1);
+        addChannel(channel2);
+        addChannel(channel3);
+        addChannel(channel4);
+    }
+
     Vector<AttributeChannel> m_channels = new Vector<AttributeChannel>();
 
     public int size(){
@@ -134,10 +141,22 @@ public class AttributeDesc  {
         return getChannel(0);
     }
 
+    /**
+       creates default attrinute descrition with single 8 bits density channel) 
+     */
     public static AttributeDesc getDefaultAttributeDesc(int bitCount){
         AttributeDesc at = new AttributeDesc();
         at.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "density", bitCount, 0, 0., 1.));
         return at;
+    }
+
+    /**
+       creates AttributeDesc with color+density channel 
+     */
+    public static AttributeDesc getDensityColor(){
+
+        return new AttributeDesc(new AttributeChannel(AttributeChannel.DENSITY_COLOR, "density_color", 32, 0, 0., 1.));
+
     }
 }
 

@@ -43,7 +43,7 @@ import static abfab3d.util.Output.printf;
 */
 public class PeriodicWrap extends BaseTransform implements Initializable {
     
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private Vector3d m_d1,m_d2, m_d3; // dual basis vectors
     private Vector3d m_a1, m_a2, m_a3; // basis vectors 

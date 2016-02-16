@@ -53,7 +53,7 @@ import abfab3d.distance.DistanceDataSegment;
 import abfab3d.distance.DistanceDataUnion;
 import abfab3d.distance.DensityFromDistance;
 
-import abfab3d.datasources.DataChannelMixer;
+import abfab3d.datasources.DataSourceMixer;
 import abfab3d.datasources.SolidColor;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Noise;
@@ -678,7 +678,7 @@ public class TestSlicesWriter extends TestCase {
         Sphere sphere = new Sphere(0, 0, 0,ballRadius);
         Torus torus = new Torus(0.34*CM, 0.15*CM);
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.5*CM, 0.05*CM);
-        DataChannelMixer mux = new DataChannelMixer(sphere, torus, gyroid);
+        DataSourceMixer mux = new DataSourceMixer(sphere, torus, gyroid);
         
         GridMaker gm = new GridMaker();  
 

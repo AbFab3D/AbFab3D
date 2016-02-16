@@ -30,7 +30,7 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
 import static abfab3d.util.ImageUtil.makeRGB;
-import static abfab3d.util.ImageUtil.makeRGBA;
+import static abfab3d.util.ImageUtil.makeARGB;
 import static abfab3d.util.ImageUtil.MAXC;
 
 
@@ -581,6 +581,6 @@ public class DistanceTransformFM  extends DistanceTransform implements Operation
 
     static final int COLOR_WHITE = makeRGB(MAXC,MAXC,MAXC);
     static final int COLOR_BLACK = makeRGB(0,0,0);
-    static final int COLOR_TRANSPARENT = makeRGBA(0,0,0,0);
+    static final int COLOR_TRANSPARENT = makeARGB(0,0,0,0);
     
 }

@@ -14,6 +14,14 @@
 package abfab3d.util;
 
 // External Imports
+import java.io.File;
+import java.util.Iterator;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.image.Raster;
+import java.awt.image.BufferedImage;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -52,4 +60,52 @@ public class TestImageUtil extends TestCase {
             
         }
     }
+        
+
+    void readJPG()throws Exception{
+
+        String path = "test/images/image_datafile.jpg";
+
+        File f = new File(path);
+
+        //Find a suitable ImageReader
+        Iterator readers = ImageIO.getImageReadersByFormatName("JPEG");
+        ImageReader reader = null;
+
+        while(readers.hasNext()) {
+            reader = (ImageReader)readers.next();
+            printf("reader  %s\n", reader);
+            if(reader.canReadRaster()) {
+                printf("reader found: %s\n", reader);
+                break;
+            }
+        }
+        
+        //Stream the image file (the original CMYK image)
+        ImageInputStream input = ImageIO.createImageInputStream(f); 
+        reader.setInput(input); 
+
+        //Read the image raster
+        Raster raster = reader.readRaster(0, null); 
+        
+        //Create a new RGB image
+        BufferedImage bi = new BufferedImage(raster.getWidth(), raster.getHeight(), 
+                                             BufferedImage.TYPE_4BYTE_ABGR); 
+        
+        //Fill the new image with the old raster
+        bi.getRaster().setRect(raster);
+        int w = bi.getWidth();
+        int h = bi.getHeight();
+
+        printf("image %s loaded [%d x %d]\n", path, w, h);
+
+    }
+
+ 
+    public static void main(String arg[])throws Exception {
+        
+        new TestImageUtil().readJPG();
+
+    }
+
 }

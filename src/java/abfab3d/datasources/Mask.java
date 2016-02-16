@@ -68,6 +68,10 @@ public class Mask extends TransformableDataSource {
         mp_thickness,
     };    
 
+    public Mask(DataSource source){
+        this(source, 0., 0.1*MM);
+    }
+
     public Mask(DataSource source, double threshold, double thickness){
 
         super.addParams(m_aparam);

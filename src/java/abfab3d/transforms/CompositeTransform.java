@@ -50,8 +50,54 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
         mp_transforms
     };
 
+    /**
+       creates empty composite transform
+     */
     public CompositeTransform() {
         addParams(m_aparams);
+    }
+
+    /**
+       creates composite transform with single transform 
+     */
+    public CompositeTransform(VecTransform transform) {
+
+        addParams(m_aparams);
+        add(transform);
+
+    }
+
+    /**
+       creates composite transform with two transforms 
+     */
+    public CompositeTransform(VecTransform transform1,VecTransform transform2) {
+        addParams(m_aparams);
+        add(transform1);
+        add(transform2);
+
+    }
+
+    /**
+       creates composite transform with three transforms 
+     */
+    public CompositeTransform(VecTransform transform1,VecTransform transform2, VecTransform transform3) {
+        addParams(m_aparams);
+        add(transform1);
+        add(transform2);
+        add(transform3);
+
+    }
+
+    /**
+       creates composite transform with four transforms 
+     */
+    public CompositeTransform(VecTransform transform1,VecTransform transform2, VecTransform transform3, VecTransform transform4) {
+        addParams(m_aparams);
+        add(transform1);
+        add(transform2);
+        add(transform3);
+        add(transform4);
+
     }
 
     /**

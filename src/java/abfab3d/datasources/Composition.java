@@ -14,13 +14,19 @@ package abfab3d.datasources;
 
 
 import java.util.Vector;
+import java.util.List;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.AxisAngle4d;
 
-
 import abfab3d.param.Parameterizable;
+import abfab3d.param.Parameter;
+import abfab3d.param.IntParameter;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.SNode;
+import abfab3d.param.SNodeListParameter;
+
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
@@ -42,11 +48,11 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   Composition of dta sources according to paper 
+   Composition of data sources according to paper 
    <i>Porter T.,Duff T.(1984) Composing Digital Images.</i>
    
    <p>
-   The composition can act as union intersection, difference etc.  
+   The composition can act as union, intersection, difference etc.  
    The value of the first data channel is assumed to be voxel fill density. 
    It plays the same role as alpha channel in image composing. 
    Other (materials) channels values are calculated using formulas from the image composing for RGB color component.
@@ -78,17 +84,21 @@ public class Composition  extends TransformableDataSource {
     
     
     public static final int  
-        A = 1,  // first shape 
-        B = 2,  // last shape 
-        BoverA = 3, // union of shapes, material of voxel is the last material presented at given voxel
-        AoverB = 4, // union of shapes, material of voxel is the first material presented at given voxel 
-        AinB = 5, // intersection, material of voxel is the first material presented at given voxel 
-        BinA = 6, // intersection, material of voxel is the last material presented at given voxel 
-        AoutB = 7, // difference of first shape and all others, material is material of first shape 
-        BoutA = 8, // difference of last shape and all others, material is material of last shape 
-        AatopB = 9, // last shape, material of voxel is material of first shape presented at the voxel 
-        BatopA = 10, // first shape, material of voxel is material of last shape presented oin the voxel 
-        AxorB = 11;  // exclusive difference of shapes. 
+        A = 1,  // shape A
+        B = 2,  // shape B
+        BoverA = 3,  //  B U (A-B)
+        AoverB = 4,  //  A U (B-A)
+        AinB = 5,    // (A I B) material A
+        BinA = 6,    // (A I B) material B
+        AoutB = 7,   // A - B  material A
+        BoutA = 8,   // B-A  material B
+        AatopB = 9,  // (B-A) U AinB 
+        BatopA = 10, // (A-B) U BinA
+        AxorB = 11;  // (A-B) U (B-A) 
+    //
+    // U = union
+    // I = intersection 
+
 
     public static final int[] allTypes = new int[]{
         A,
@@ -105,10 +115,20 @@ public class Composition  extends TransformableDataSource {
     };
     
 
-    protected int m_type = BoverA;
 
-    Vector<DataSource> dataSources = new Vector<DataSource>();
+    IntParameter mp_type = new IntParameter("type", "type of composition", BoverA);
+    DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
+    SNodeListParameter mp_sources = new SNodeListParameter("sources");
     
+    Parameter m_aparam[] = new Parameter[]{
+        mp_blendWidth,
+        mp_type,
+        mp_sources
+    };    
+    
+    protected int m_type = 0;
+    protected int m_count = 0;
+
     // fixed vector of data components (to speed up the calculations) 
     DataSource vDataSources[];
     // count of channes of each data components
@@ -119,14 +139,20 @@ public class Composition  extends TransformableDataSource {
        
      */
     public Composition(int type){
-        m_type = type;
+
+        addParams(m_aparam);        
+        mp_type.setValue(type);
+
     }
 
     /**
      * Composition of single shape
      */
     public Composition(int type, DataSource shape1){
-        m_type = type;
+
+        addParams(m_aparam);        
+
+        mp_type.setValue(type);
         add(shape1);
     }
 
@@ -136,7 +162,9 @@ public class Composition  extends TransformableDataSource {
      */
     public Composition(int type, DataSource shape1, DataSource shape2 ){
 
-        m_type = type;
+        addParams(m_aparam);        
+
+        mp_type.setValue(type);
         add(shape1);
         add(shape2);        
     }
@@ -146,24 +174,45 @@ public class Composition  extends TransformableDataSource {
      */
     public Composition(int type, DataSource shape1, DataSource shape2, DataSource shape3){
 
-        m_type = type;
+        addParams(m_aparam);        
+
+        mp_type.setValue(type);
         add(shape1);
         add(shape2);        
         add(shape3); 
 
     }
 
-    public void setType(int val) {
-        // TODO: this node is not using parameters yet
-        m_type = val;
+    /**
+       composition of four shapes 
+     */
+    public Composition(int type, DataSource shape1, DataSource shape2, DataSource shape3, DataSource shape4){
+
+        addParams(m_aparam);        
+
+        mp_type.setValue(type);
+        add(shape1);
+        add(shape2);        
+        add(shape3); 
+        add(shape4); 
+
+    }
+
+    /**
+       set composition type
+     */
+    public void setType(int value) {
+        mp_type.setValue(value);
     }
 
     /**
        add item to union. 
        @param shape item to add to union of multiple shapes 
     */
-    public void add(DataSource shape){
-        dataSources.add(shape);
+    public void add(DataSource source){
+
+        mp_sources.add((Parameterizable)source);
+
     }
 
     /**
@@ -173,14 +222,14 @@ public class Composition  extends TransformableDataSource {
      * @param src
      */
     public void set(int idx, DataSource src) {
-        dataSources.set(idx, src);
+        mp_sources.set(idx, (Parameterizable)src);
     }
 
     /**
      * Clear the datasources
      */
     public void clear() {
-        dataSources.clear();
+        mp_sources.clear();
     }
 
     /**
@@ -189,12 +238,21 @@ public class Composition  extends TransformableDataSource {
     public int initialize(){
 
         super.initialize();
-        vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
-        m_channelsCounts = new int[dataSources.size()];
+
+        List sources = mp_sources.getValue();
+        m_count = sources.size();
+        vDataSources = new DataSource[m_count];
+        for(int i = 0; i < m_count; i++){
+            vDataSources[i] = (DataSource)sources.get(i);
+        }
+        
+        m_type = mp_type.getValue();
+
+        m_channelsCounts = new int[m_count];
 
         int ccnt = 0;
 
-        for(int i = 0; i < vDataSources.length; i++){
+        for(int i = 0; i < m_count; i++){
             
             DataSource ds = vDataSources[i];
             if(ds instanceof Initializable){
@@ -307,6 +365,7 @@ public class Composition  extends TransformableDataSource {
      */
     static final void compose(double va[], double vb[], int cnt, int type){
 
+        // density of components 
         double Da = va[0];
         double Db = vb[0];
 

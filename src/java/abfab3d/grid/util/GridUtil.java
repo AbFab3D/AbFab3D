@@ -81,19 +81,38 @@ public class GridUtil  {
          return count;
      }
 
-     public static void printSliceAttribute(AttributeGrid grid, int z){
-         
+    public static void printGridAttribute(AttributeGrid grid, String format){
+        
+        int nz = grid.getDepth();
+        for(int z = 0; z < nz; z++)
+            printSliceAttribute(grid, z, format);
+    }
+    public static void printSliceAttribute(AttributeGrid grid, int z, String format){
          int nx = grid.getWidth();
          int ny = grid.getHeight();
          int nz = grid.getDepth();
          printf("grid slice z: %d\n", z);
          for(int y = 0; y < ny; y++){
              for(int x = 0; x < nx; x++){
-                 printf("%4d ", grid.getAttribute(x,y,z));
+                 printf(format, grid.getAttribute(x,y,z));
              }
              printf("\n");
-         }         
-   }
+         }                 
+    }
+    
+    public static void printSliceAttribute(AttributeGrid grid, int z){
+        
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        printf("grid slice z: %d\n", z);
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                printf("%4d ", grid.getAttribute(x,y,z));
+            }
+            printf("\n");
+        }         
+    }
 
     
     /**

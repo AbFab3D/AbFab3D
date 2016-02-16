@@ -13,7 +13,7 @@ import static java.lang.Math.abs;
 
 import static abfab3d.util.ImageUtil.MAXC;
 import static abfab3d.util.ImageUtil.makeRGB;
-import static abfab3d.util.ImageUtil.makeRGBA;
+import static abfab3d.util.ImageUtil.makeARGB;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Units.MM;
 import static abfab3d.util.MathUtil.L2S;

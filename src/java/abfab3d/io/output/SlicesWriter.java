@@ -184,12 +184,12 @@ public class SlicesWriter {
         int dataBitCount = getDataBitCount(voxelBitCount);
         BufferedImage outImage = makeImage(imgSize[0], imgSize[1], voxelBitCount);
         if(DEBUG) printf("outImage: %s\n", outImage);        
-        DataBuffer db = outImage.getRaster().getDataBuffer();
-        if(DEBUG) printf("DataBuffer: %s\n", db);
+        // images are created with byte buffer 
+        DataBufferByte dataBuffer = (DataBufferByte)(outImage.getRaster().getDataBuffer());
 
-        DataBufferByte dbi = (DataBufferByte)(db);
+        if(DEBUG) printf("DataBuffer: %s\n", dataBuffer);
 
-        byte[] sliceData = dbi.getData();
+        byte[] sliceData = dataBuffer.getData();
         if(DEBUG) printf("sliceData: %d\n", sliceData.length);
         
         
@@ -267,8 +267,6 @@ public class SlicesWriter {
             }
         }
         
-        //if(DEBUG) printf("bytesPerVoxel: %d\n",bytesPerVoxel); 
-
         for(int y = 0; y < height; y++){
 
             int pos = y * widthBytes;
@@ -277,8 +275,9 @@ public class SlicesWriter {
             int currentByte = 0;
             for(int x = 0; x < width; x++ ){
 
+                // coordinates of voxel in the grid depend on orientation 
                 getVoxelCoord(slice, x,y, coord, orientation);
-
+                // voxel data converted to format to be written 
                 long vdata = voxelDataConverter.get(grid.getAttribute(coord[0],coord[1],coord[2])); 
 
                 if(sliceBitCount < 8) {
@@ -297,8 +296,10 @@ public class SlicesWriter {
                 } else { // sliceDataBits > 8
                     
                     for(int b = 0; b < bytesPerVoxel; b++){
+                        
                         sliceData[pos++] = (byte)( vdata & 0xFF);
                         vdata = (vdata >> 8);
+                        
                     }                                        
                 }
             }
@@ -343,7 +344,13 @@ public class SlicesWriter {
         }
     }
 
-    static final BufferedImage makeImage(int imageWidth, int imageHeight, int voxelBitCount){
+    /**
+     *
+     *  makes image to held appropriate number of data bits 
+     *
+     */
+    static BufferedImage makeImage(int imageWidth, int imageHeight, int voxelBitCount){
+
         if(DEBUG) printf("makeImage(%d, %d, %d)\n", imageWidth, imageHeight, voxelBitCount);
         switch(voxelBitCount){
         case 1:

@@ -32,7 +32,7 @@ import junit.framework.TestSuite;
 import abfab3d.grid.op.GridMaker;
 
 import abfab3d.datasources.TransformableDataSource;
-import abfab3d.datasources.DataChannelMixer;
+import abfab3d.datasources.DataSourceMixer;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Sphere;
@@ -133,7 +133,7 @@ public class TestMeshMaker extends TestCase {
 
         DataSource color1 = new HalfGyroid(0.3*s);
 
-        DataChannelMixer mux = new DataChannelMixer(density, color1);
+        DataSourceMixer mux = new DataSourceMixer(density, color1);
 
         AttributeMaker attdens = new AttributeMakerDensity(subvoxelResolution);
         AttributeMaker attmuxer = new AttributeMakerGeneral(new int[]{8,8});
@@ -209,13 +209,13 @@ public class TestMeshMaker extends TestCase {
         density.add(new Plane(new Vector3d(1,0,0), 0));
 
 
-        //Intersection color1 = new Intersection();
-        //color1.add(new Plane(new Vector3d(0,1,0), 0.5*MM));
+        //Intersection color1 = new Intersection();k
+
         //color1.add(new Plane(new Vector3d(0,-1,0), 0.5*MM));
 
         DataSource color1 = new HalfGyroid(0.3*s);
 
-        DataChannelMixer mux = new DataChannelMixer(density, color1);
+        DataSourceMixer mux = new DataSourceMixer(density, color1);
 
         AttributeMaker attdens = new AttributeMakerDensity(subvoxelResolution);
         AttributeMaker attmuxer = new AttributeMakerGeneral(new int[]{8,8});
@@ -284,7 +284,7 @@ public class TestMeshMaker extends TestCase {
 
         DataSource color1 = new HalfGyroid(0.3*s);
 
-        DataChannelMixer mux = new DataChannelMixer(density, color1);
+        DataSourceMixer mux = new DataSourceMixer(density, color1);
 
         AttributeMaker attmuxer = new AttributeMakerGeneral(new int[]{8,8});
 

@@ -693,7 +693,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         int TIMES = 1;
 
         int cores = Runtime.getRuntime().availableProcessors();
-        cores = Math.min(cores,8); // I expect after 8 for it to level off
+        cores = Math.min(cores,4); // I expect after 8 for it to level off
         float expected_speedup = 0.5f * cores;
 
         long t0 = System.currentTimeMillis();
