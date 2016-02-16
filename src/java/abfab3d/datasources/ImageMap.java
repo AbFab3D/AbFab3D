@@ -315,7 +315,7 @@ public class ImageMap extends TransformableDataSource {
         m_valueOffset = black;
         m_valueFactor = white - black;
 
-        String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), imageParams);
+        String vhash = getParamString(imageParams);
 
         Object co = ParamCache.getInstance().get(vhash);
         if (co == null) {

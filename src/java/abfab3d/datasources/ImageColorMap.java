@@ -254,7 +254,7 @@ public class ImageColorMap extends TransformableDataSource {
     protected boolean needToPrepareImage(){
         return 
             (m_imageData == null) || 
-            !m_savedParamString.equals(getParamString(m_aparams));
+            !m_savedParamString.equals(getParamString(this.getClass().getSimpleName(),m_aparams));
         
     }
 
