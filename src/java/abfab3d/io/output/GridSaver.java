@@ -73,8 +73,7 @@ public class GridSaver {
 
     public static final int TYPE_UNDEFINED = -1;
     public static final int TYPE_UNKNOWN = 0;
-    public static final int TYPE_STL = 1;
-    public static final int TYPE_X3D = 2;
+    public static final int TYPE_STL = 1;    public static final int TYPE_X3D = 2;
     public static final int TYPE_X3DB = 3;
     public static final int TYPE_SVX =  4;  
 

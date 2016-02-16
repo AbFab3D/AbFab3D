@@ -16,6 +16,7 @@ package abfab3d.datasources;
 import javax.vecmath.Vector3d;
 
 import abfab3d.param.DoubleParameter;
+import abfab3d.param.Vector3dParameter;
 import abfab3d.param.Parameter;
 import abfab3d.util.Bounds;
 import abfab3d.util.Vec;
@@ -39,38 +40,55 @@ public class Torus extends TransformableDataSource {
     
     private double R, r;
     private double x0, y0, z0;
+    private double ax, ay, az;
 
-    DoubleParameter mp_centerX = new DoubleParameter("centerX","Center X",0);
-    DoubleParameter mp_centerY = new DoubleParameter("centerY","Center Y",0);
-    DoubleParameter mp_centerZ = new DoubleParameter("centerZ","Center Z",0);
+    Vector3dParameter mp_center = new Vector3dParameter("center","Center of torus",new Vector3d(0,0,0));
+    Vector3dParameter mp_axis = new Vector3dParameter("axis","Axis of torus",new Vector3d(0,0,1));
 
     private DoubleParameter  mp_rin = new DoubleParameter("rin","Radius of the torus tube", 1.*MM);
     private DoubleParameter  mp_rout = new DoubleParameter("rout","Radius of the torus spine", 5.*MM);
 
     Parameter m_aparam[] = new Parameter[]{
-        mp_centerX,mp_centerY,mp_centerZ,
+        mp_center,
+        mp_axis,
         mp_rout,
         mp_rin,
     };
 
     /**
+       torus centered ar center with axis parallel to z-axis
+       @param center - location of torus center
+       @param Rout - outer radius of torus
+       @param Rin - inner radius of torus
+
+     */
+    public Torus(Vector3d center, Vector3d axis, double Rout, double Rin) {
+        super.addParams(m_aparam);
+        mp_center.setValue(center);
+        mp_axis.setValue(axis);
+        mp_rin.setValue(Rin);
+        mp_rout.setValue(Rout);
+    }
+
+    /**
+       torus centered ar center with axis parallel to z-axis
        @param center - location of torus center
        @param Rout - outer radius of torus
        @param Rin - inner radius of torus
 
      */
     public Torus(Vector3d center, double Rout, double Rin) {
-        this(center.x,center.y,center.z,Rout,Rin);
+        this(center,new Vector3d(0,0,1),Rout,Rin);
     }
 
     /**
-       torus centered at origin
+       torus centered at origin with axis parallel to z-axis
        @param Rout - outer radius of torus
        @param Rin - innter radius of torus
 
      */
     public Torus(double Rout, double Rin){
-        this(0, 0, 0, Rout, Rin);
+        this(new Vector3d(0, 0, 0), Rout, Rin);
     }
 
     /**
@@ -82,97 +100,30 @@ public class Torus extends TransformableDataSource {
 
      */
     public Torus(double cx, double cy, double cz, double Rout, double Rin){
-        initParams();
-        setCenter(cx,cy,cz);
-        setRout(Rout);
-        setRin(Rin);
+        this(new Vector3d(cx,cy,cz),Rout, Rin);
     }
 
     /**
-     * @noRefGuide
-     */
-    protected void initParams() {
-        super.addParams(m_aparam);
-    }
-
-    /**
-     * Set the center of the coordinate system
+     * Set the center of the torus
      * @param val The value in meters
      */
     public void setCenter(Vector3d val) {
-        mp_centerX.setValue(val.x);
-        mp_centerY.setValue(val.y);
-        mp_centerZ.setValue(val.z);
-        boundsDirty = true;
+        mp_center.setValue(val);
     }
 
     /**
      * Set the center of the coordinate system
      */
     public void setCenter(double x,double y, double z) {
-        mp_centerX.setValue(x);
-        mp_centerY.setValue(y);
-        mp_centerZ.setValue(z);
-        boundsDirty = true;
+        mp_center.setValue(new Vector3d(x,y,z));
     }
 
     /**
-     * Set the center x position
-     * @param val The value in meters
-     */
-    public void setCenterX(double val) {
-        mp_centerX.setValue(val);
-        boundsDirty = true;
-    }
-
-    /**
-     * Get the center x position
-     * @return The value in meters
-     */
-    public double getCenterX() {
-        return mp_centerX.getValue();
-    }
-
-    /**
-     * Set the center y position
-     * @param val The value in meters
-     */
-    public void setCenterY(double val) {
-        mp_centerY.setValue(val);
-        boundsDirty = true;
-    }
-
-    /**
-     * Get the center y position
-     * @return The value in meters
-     */
-    public double getCenterY() {
-        return mp_centerY.getValue();
-    }
-
-    /**
-     * Set the center z position
-     * @param val The value in meters
-     */
-    public void setCenterZ(double val) {
-        mp_centerZ.setValue(val);
-        boundsDirty = true;
-    }
-
-    /**
-     * Get the center z position
-     * @return The value in meters
-     */
-    public double getCenterZ() {
-        return mp_centerY.getValue();
-    }
-
-    /**
-     * Get the center of the coordinate system.
+     * Get the center of the torus
      * @return The value in meters
      */
     public Vector3d getCenter() {
-        return new Vector3d(mp_centerX.getValue(),mp_centerY.getValue(),mp_centerZ.getValue());
+        return new Vector3d(mp_center.getValue());
     }
 
     /**
@@ -215,11 +166,9 @@ public class Torus extends TransformableDataSource {
         double rin = mp_rout.getValue();
 
         double r = rout + rin;
-        double centerX = mp_centerX.getValue();
-        double centerY = mp_centerY.getValue();
-        double centerZ = mp_centerZ.getValue();
+        Vector3d c = mp_center.getValue();
 
-        m_bounds = new Bounds(centerX - r,centerX + r,centerY - r,centerY + r,centerZ - r,centerZ + r);
+        m_bounds = new Bounds(c.x - r,c.x + r,c.y - r,c.y + r,c.z - rin, c.z + rin);
         boundsDirty = false;
     }
 
@@ -232,10 +181,16 @@ public class Torus extends TransformableDataSource {
 
         R = mp_rout.getValue();
         r = mp_rin.getValue();
+        Vector3d c = mp_center.getValue();
+        x0 = c.x;
+        y0 = c.y;
+        z0 = c.z;
 
-        x0 = mp_centerX.getValue();
-        y0 = mp_centerY.getValue();
-        z0 = mp_centerZ.getValue();
+        Vector3d a = mp_axis.getValue();
+
+        ax = a.x;
+        ay = a.y;
+        az = a.z;
 
         return RESULT_OK;
     }
@@ -254,10 +209,25 @@ public class Torus extends TransformableDataSource {
                 x = pnt.v[0] - x0,
                 y = pnt.v[1] - y0,
                 z = pnt.v[2] - z0;
-        
-        double rxy = sqrt(x*x + y*y) - R;
-        
-        data.v[0] = step10(((rxy*rxy + z*z) - r*r)/(2*r), 0, pnt.getScaledVoxelSize());
+
+        double u =  x*ax + y*ay + z*az; // projection on axis 
+
+        // coord of point in orthogonal plane 
+        double 
+            ppx = x - u*ax,
+            ppy = y - u*ay,
+            ppz = z - u*az;       
+
+        double v = Math.sqrt(ppx*ppx + ppy*ppy +ppz*ppz); // dist of point to axis 
+        v -= R;
+        // distance to torus surface 
+        double dist = Math.sqrt(v*v + u*u) - r;
+
+        // convert to density 
+        data.v[0] = step10(dist, 0, pnt.getScaledVoxelSize());
+
+        //double rxy = sqrt(x*x + y*y) - R;        
+        //data.v[0] = step10(((rxy*rxy + z*z) - r*r)/(2*r), 0, pnt.getScaledVoxelSize());
         
         super.getMaterialDataValue(pnt, data);        
         return RESULT_OK;

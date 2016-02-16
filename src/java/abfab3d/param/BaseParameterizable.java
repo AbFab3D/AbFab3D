@@ -96,6 +96,16 @@ public class BaseParameterizable implements Parameterizable, SNode {
     }
 
     /**
+     *  return param string for given params 
+     * @noRefGuide
+     */
+    public String getParamString(Parameter aparam[]){
+
+        return getParamString(getClass().getSimpleName(),aparam);
+
+    }
+
+    /**
      * saves array of parameters into a string
      * @noRefGuide
      */

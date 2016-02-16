@@ -57,7 +57,7 @@ import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Units.MM;
 import static abfab3d.util.ImageUtil.makeRGB;
-import static abfab3d.util.ImageUtil.makeRGBA;
+import static abfab3d.util.ImageUtil.makeARGB;
 import static abfab3d.util.ImageUtil.MAXC;
 
 import static java.lang.Math.sin;
@@ -288,7 +288,7 @@ public class DevTestDistanceTransformFM {
                 int v = (int)(MAXC  - (value * MAXC / maxvalue) & MAXC); 
                 return makeRGB(v, v, v);
             } else {                 
-                return makeRGBA(0,0,0,0);                 
+                return makeARGB(0,0,0,0);                 
             }
         }
     }    

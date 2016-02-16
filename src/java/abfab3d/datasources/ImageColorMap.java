@@ -23,11 +23,16 @@ import java.io.IOException;
 
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
-import abfab3d.param.*;
+import abfab3d.param.ObjectParameter;
+import abfab3d.param.IntParameter;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
+import abfab3d.param.BooleanParameter;
 
 import abfab3d.util.ImageUtil;
 import abfab3d.util.Vec;
-import abfab3d.util.ImageGray16;
+import abfab3d.util.ImageColor;
 
 
 import static java.lang.Math.floor;
@@ -45,9 +50,9 @@ import static abfab3d.util.Output.time;
 
 /**
  * <p>
- * DataSource which fills 3D box with data from from 2D image in xy plane.
+ * DataSource which fills 3D box with color data from from 2D image in xy plane.
  * </p><p>
- * ImageMap may have multiple channels, according to the source image type 
+ * ImageColorMap may have multiple channels, according to the source image type 
  * </p><p>
  * The 2D image is placed in the XY-plane and for each pixel of the image with coordinate (x,y) the column of voxel of size size.z
  * is formed in both sides of XY plane
@@ -57,18 +62,16 @@ import static abfab3d.util.Output.time;
  *
  * @author Vladimir Bulatov
  */
-public class ImageMap extends TransformableDataSource {
-    final static boolean DEBUG = false;
-    final static boolean DEBUG_VIZ = false;
+public class ImageColorMap extends TransformableDataSource {
+
+    final static boolean DEBUG = true;
 
     public static int REPEAT_NONE = 0, REPEAT_X = 1, REPEAT_Y = 2, REPEAT_BOTH = 3;
     
-    public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
     public static final double DEFAULT_VOXEL_SIZE = 0.1*MM;
 
     private boolean m_repeatX = false;
     private boolean m_repeatY = false;
-    private int m_interpolation = INTERPOLATION_BOX; 
     private double 
         m_originX,
         m_originY,
@@ -85,9 +88,6 @@ public class ImageMap extends TransformableDataSource {
     Vector3dParameter  mp_size = new Vector3dParameter("size","size of the image box",new Vector3d(0.1,0.1,0.1));
     BooleanParameter  mp_repeatX = new BooleanParameter("repeatX","repeat image along X", false);
     BooleanParameter  mp_repeatY = new BooleanParameter("repeatY","repeat image along Y", false);
-    DoubleParameter  mp_whiteDisp = new DoubleParameter("whiteDisplacement","displacement for white level", 0*MM);
-    DoubleParameter  mp_blackDisp = new DoubleParameter("blackDisplacement","displacement for black level", 1*MM);
-    DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
 
     Parameter m_aparams[] = new Parameter[]{
         mp_imageSource, 
@@ -95,45 +95,27 @@ public class ImageMap extends TransformableDataSource {
         mp_size,
         mp_repeatX,
         mp_repeatY,
-        mp_whiteDisp,
-        mp_blackDisp,
-        mp_blurWidth,
-
     };
 
-    /** Params which require changes in the underlying image */
-    private Parameter[] imageParams;
-
     // 
-    private ImageGray16 m_imageData;
+    private ImageColor m_imageData;
     private String m_savedParamString = "";    
 
     /**
-     * Creates ImageMap from a file
+     * Creates ImageColorMap from a file
      *
      * @param imageSource source of the image. Can be url, BufferedImage or ImageWrapper
      * @param sizex - width of the image
      * @param sizey - height of the image
      * @param sizez - depth of the image
      */
-    public ImageMap(Object imageSource, double sizex, double sizey, double sizez) {
+    public ImageColorMap(Object imageSource, double sizex, double sizey, double sizez) {
 
-        initParams();
+        super.addParams(m_aparams);
 
         mp_imageSource.setValue(imageSource);
         mp_size.setValue(new Vector3d(sizex, sizey, sizez));
 
-    }
-
-    /**
-     * @noRefGuide
-     */
-    protected void initParams(){
-        super.addParams(m_aparams);
-
-        imageParams = new Parameter[] {
-                mp_imageSource, mp_size, mp_blurWidth
-        };
     }
 
 
@@ -194,7 +176,7 @@ public class ImageMap extends TransformableDataSource {
     /**
      * Is repeatX set
      */
-    public boolean isRepeatX() {
+    public boolean getRepeatX() {
         return mp_repeatX.getValue();
     }
 
@@ -209,54 +191,8 @@ public class ImageMap extends TransformableDataSource {
     /**
      * Is repeatY set
      */
-    public boolean isRepeatY() {
+    public boolean getRepeatY() {
         return mp_repeatY.getValue();
-    }
-
-    /**
-     * Set how far white pixels displace the image
-     * @param val The value in meters. Default is 0.
-     */
-    public void setWhiteDisplacement(double val) {
-        mp_whiteDisp.setValue(val);
-    }
-
-    /**
-     * Get the white displacement
-     */
-    public double getWhiteDisplacement() {
-        return mp_whiteDisp.getValue();
-    }
-
-    /**
-     * Set how far black pixels displace the image
-     * @param val The value in meters. Default is 0.001.
-     */
-    public void setBlackDisplacement(double val) {
-        mp_blackDisp.setValue(val);
-    }
-
-    /**
-     * Get the black displacement
-     * @return
-     */
-    public double getBlackDisplacement() {
-        return mp_blackDisp.getValue();
-    }
-
-    /**
-     * Set the blurring width to apply to the image
-     * @param val The width in meters.  Default is 0.
-     */
-    public void setBlurWidth(double val) {
-        mp_blurWidth.setValue(val);
-    }
-
-    /**
-     * Get the blurWidth
-     */
-    public double getBlurWidth() {
-        return mp_blurWidth.getValue();
     }
 
     /**
@@ -276,17 +212,14 @@ public class ImageMap extends TransformableDataSource {
     /**
      * @noRefGuide
      */
-    public void getBitmapDataUByte(byte data[]){
+    public void getBitmapDataInt(int data[]){
 
         int nx = m_imageData.getWidth();
         int ny = m_imageData.getHeight();
         for(int y = 0;  y < ny; y++){
-            for(int x = 0;  x < nx; x++){
-                
-                double d = m_imageData.getDataD(x, y);
-                // d in (0,1) 
-                // normalization to byte 
-                data[x + y * nx] = (byte)((int)(d * 255.) & 0xFF); 
+            for(int x = 0;  x < nx; x++){                
+                int d = m_imageData.getDataI(x, y);
+                data[x + y * nx] = d; 
             }
         }
     }
@@ -297,6 +230,85 @@ public class ImageMap extends TransformableDataSource {
     public int initialize() {
         super.initialize();
 
+        // this may be different depending on the image 
+        m_channelsCount = 3;
+
+        if(needToPrepareImage()){
+
+            int res = prepareImage();
+            if(res != RESULT_OK){ 
+                // something wrong with the image 
+                throw new IllegalArgumentException("undefined image");
+            }
+            saveImageData();
+        }
+
+        return RESULT_OK;
+        
+    }
+
+    /**
+       checks if params used to generate image have chaned 
+     * @noRefGuide
+     */
+    protected boolean needToPrepareImage(){
+        return 
+            (m_imageData == null) || 
+            !m_savedParamString.equals(getParamString(this.getClass().getSimpleName(),m_aparams));
+        
+    }
+
+    /**
+       saves params used to generate the image 
+     * @noRefGuide
+     */
+    protected void saveImageData(){ 
+        m_savedParamString = getParamString(m_aparams);
+        if(DEBUG)printf("ImageColorMap.savedParamString:\n%s\n",m_savedParamString);
+    }
+
+
+    /**
+     * @noRefGuide
+     */
+    private int prepareImage(){
+
+        long t0 = time();
+
+        printf("ImageColorMap.prepareImage()\n");
+
+        Object imageSource = mp_imageSource.getValue();
+        if(imageSource == null)
+            throw new RuntimeException("imageSource is null");
+
+        if(imageSource instanceof String){
+            
+            try {
+                m_imageData = new ImageColor(ImageIO.read(new File((String)imageSource)));
+            } catch(IOException e) {
+                // empty 1x1 image 
+                m_imageData = new ImageColor(1,1);
+                throw new RuntimeException(e);
+            }
+
+        } else if(imageSource instanceof Text2D){
+            
+            m_imageData = new ImageColor(((Text2D)imageSource).getImage());
+
+        } else if(imageSource instanceof BufferedImage){
+
+            m_imageData = new ImageColor((BufferedImage)imageSource);                        
+
+        } else if(imageSource instanceof ImageWrapper){
+
+           m_imageData = new ImageColor(((ImageWrapper)imageSource).getImage());
+        } 
+
+        if (m_imageData == null) {
+            m_imageData = new ImageColor(1,1);
+            throw new IllegalArgumentException("Unhandled imageSource: " + imageSource);
+        }
+
         Vector3d center = (Vector3d)mp_center.getValue();
         Vector3d size = (Vector3d)mp_size.getValue();
         m_originX = center.x - size.x/2;
@@ -306,136 +318,22 @@ public class ImageMap extends TransformableDataSource {
         m_sizeY = size.y;
         m_sizeZ = size.z;
 
+        m_imageSizeX  = m_imageData.getWidth();
+        m_imageSizeY  = m_imageData.getHeight();
         m_repeatX = mp_repeatX.getValue();
         m_repeatY = mp_repeatY.getValue();
-
-        double white = mp_whiteDisp.getValue();
-        double black = mp_blackDisp.getValue();
-
-        m_valueOffset = black;
-        m_valueFactor = white - black;
-
-        String vhash = getParamString(imageParams);
-
-        Object co = ParamCache.getInstance().get(vhash);
-        if (co == null) {
-            int res = prepareImage();
-            if(res != RESULT_OK){
-                // something wrong with the image
-                throw new IllegalArgumentException("undefined image");
-            }
-
-            ParamCache.getInstance().put(vhash, m_imageData);
-
-        } else {
-            m_imageData = (ImageGray16) co;
-        }
-
-        m_imageSizeX  = m_imageData.getWidth();
-        m_imageSizeY  = m_imageData.getHeight();
-
-        return RESULT_OK;
         
-    }
+        printf("sizeX: %f\n",m_sizeX);
+        printf("sizeY: %f\n",m_sizeY);
+        printf("sizeZ: %f\n",m_sizeZ);
+        printf("originX: %f\n",m_originX);
+        printf("originY: %f\n",m_originY);
+        printf("originZ: %f\n",m_originZ);
+        printf("imageSizeX: %d\n",m_imageSizeX);
+        printf("imageSizeY: %d\n",m_imageSizeY);
 
-    /**
-     * @noRefGuide
-     */
-    private int prepareImage(){
-
-        long t0 = time();
-
-
-        Object imageSource = mp_imageSource.getValue();
-        if (DEBUG) printf("ImageMap.prepareImage().  source: %s\n",imageSource);
-
-        if(imageSource == null)
-            throw new RuntimeException("imageSource is null");
-
-        if(imageSource instanceof String){
-            
-            try {
-                m_imageData = new ImageGray16(ImageIO.read(new File((String)imageSource)));
-            } catch(IOException e) {
-                // empty 1x1 image 
-                m_imageData = new ImageGray16();
-                throw new RuntimeException(e);
-            }
-
-        } else if(imageSource instanceof Text2D){
-            if (DEBUG) printf("Getting text2d image\n");
-            m_imageData = new ImageGray16(((Text2D)imageSource).getImage());
-
-        } else if(imageSource instanceof BufferedImage){
-
-            m_imageData = new ImageGray16((BufferedImage)imageSource);                        
-
-        } else if(imageSource instanceof ImageWrapper){
-
-           m_imageData = new ImageGray16(((ImageWrapper)imageSource).getImage());
-        } else if (imageSource instanceof Grid2DShort) {
-            long t1 = System.currentTimeMillis();
-            m_imageData = new ImageGray16(Grid2DShort.convertGridToImage((Grid2DShort)imageSource));
-            printf("Convert to grid.  time: %d ms\n",(System.currentTimeMillis() - t1));
-        }
-
-        if (m_imageData == null) {
-            // Cast to String for now, not sure how to really handle this
-            String file = imageSource.toString();
-            printf("Converted to string: " + file);
-            try {
-                m_imageData = new ImageGray16(ImageIO.read(new File(file)));
-
-            } catch(IOException e) {
-                // empty 1x1 image
-                m_imageData = new ImageGray16();
-                throw new IllegalArgumentException("Unhandled imageSource: " + imageSource);
-            }
-        }
-
-
-        m_imageSizeX  = m_imageData.getWidth();
-        m_imageSizeY  = m_imageData.getHeight();
-
-        double blurWidth = mp_blurWidth.getValue();
-        if (blurWidth > 0.0) {
-            long t1 = System.currentTimeMillis();
-            double pixelSize = m_sizeX / m_imageSizeX;
-
-            double blurSizePixels = blurWidth / pixelSize;
-
-            m_imageData.gaussianBlur(blurSizePixels);
-            printf("ImageMap image[%d x %d] gaussian blur: %7.2f pixels blur width: %10.5fmm time: %d ms\n", 
-                   m_imageSizeX, m_imageSizeY, blurSizePixels, blurWidth/MM, (time() - t1));
-
-
-        }
-
-        printf("ImageMap.prepareImage() time: %d ms\n",(time() - t0));
-
-        if (DEBUG_VIZ) {
-            try {
-                printf("***Writing debug file for ImageMap");
-                String source = null;
-                Object src = mp_imageSource.getValue();
-                if (src instanceof SourceWrapper) {
-                    source = ((SourceWrapper)src).getParamString();
-                } else {
-                    source = "" + src.hashCode();
-                }
-                source = source.replace("\\","_");
-                source = source.replace("/","_");
-                source = source.replace(".","_");
-                source = source.replace("\"","_");
-                source = source.replace(";","_");
-
-                printf("final: %s\n",source);
-                m_imageData.write("/tmp/imagemap_" + source + ".png");
-            } catch(IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
-
+        printf("ImageColorMap.prepareImage() time: %d ms\n",(time() - t0));
+        
         return RESULT_OK;
     }
 
@@ -450,15 +348,15 @@ public class ImageMap extends TransformableDataSource {
         double y = pnt.v[1];
         double z = pnt.v[2];
 
+        //printf("[%3.1f %3.1f]", x, y);
+        
         x -= m_originX;
         y -= m_originY;
         z -= m_originZ;
 
-        // xy coordinates are normalized to the image size
-        x /= m_sizeX;
-        y /= m_sizeY;
+        //printf("[%3.1f %3.1f]", x, y);
 
-
+        // xy coordinates are normalized to the box size
         x /= m_sizeX;
         y /= m_sizeY;
 
@@ -474,8 +372,11 @@ public class ImageMap extends TransformableDataSource {
         x -= 0.5;
         y -= 0.5;
         
+        //printf("[%3.1f %3.1f]", x, y);
+
         int ix = (int)floor(x);
         int iy = (int)floor(y);
+
         double dx = x - ix;
         double dy = y - iy;
         if(ix < 0){
@@ -498,21 +399,53 @@ public class ImageMap extends TransformableDataSource {
         }
         
         double 
-            v00 = m_imageData.getDataD(ix, iy),
-            v10 = m_imageData.getDataD(ix1, iy),
-            v01 = m_imageData.getDataD(ix, iy1),
-            v11 = m_imageData.getDataD(ix1, iy1);
-        double 
             dx1 = 1.- dx,
-            dy1 = 1.- dy;
+            dy1 = 1.- dy,
+            dxdy = dx * dy,
+            dx1dy = dx1 * dy,
+            dxdy1 = dx * dy1,
+            dx1dy1 = dx1 * dy1;
+
+        int 
+            v00 = m_imageData.getDataI(ix, iy),
+            v10 = m_imageData.getDataI(ix1, iy),
+            v01 = m_imageData.getDataI(ix, iy1),
+            v11 = m_imageData.getDataI(ix1, iy1);
+
+        int 
+            r00 = getRed(v00),
+            r10 = getRed(v10),
+            r01 = getRed(v01),
+            r11 = getRed(v11),
+            g00 = getGreen(v00),
+            g10 = getGreen(v10),
+            g01 = getGreen(v01),
+            g11 = getGreen(v11),
+            b00 = getBlue(v00),
+            b10 = getBlue(v10),
+            b01 = getBlue(v01),
+            b11 = getBlue(v11);
 
 
-        double v = 
-            dx * dy * v11 + dx1 * dy * v01 + dx * dy1 * v10 + dx1 * dy1 * v00;
+        double r = (dxdy * r11 + dx1dy * r01 + dxdy1 * r10 + dx1dy1 * r00)/255.;
+        double g = (dxdy * g11 + dx1dy * g01 + dxdy1 * g10 + dx1dy1 * g00)/255.;
+        double b = (dxdy * b11 + dx1dy * b01 + dxdy1 * b10 + dx1dy1 * b00)/255.;
 
-        dataValue.v[0] = v*m_valueFactor + m_valueOffset;
+        dataValue.v[0] = r;
+        dataValue.v[1] = b;
+        dataValue.v[2] = b;
 
         return RESULT_OK;
     }
-    
+
+    final static int getRed(int color){
+        return (color >> 16) & 0xFF;
+    }
+    final static int getGreen(int color){
+        return (color >> 8) & 0xFF;
+    }
+    final static int getBlue(int color){
+        return (color) & 0xFF;
+    }
+   
 }

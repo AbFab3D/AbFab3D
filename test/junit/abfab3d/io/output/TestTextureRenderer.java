@@ -71,7 +71,7 @@ import abfab3d.util.ImageGray16;
 import abfab3d.util.DefaultLongConverter;
 import abfab3d.util.LongConverter;
 
-import abfab3d.datasources.DataChannelMixer;
+import abfab3d.datasources.DataSourceMixer;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Ring;
@@ -205,7 +205,7 @@ public class TestTextureRenderer extends TestCase {
         Sphere sphere3 = new Sphere(-0.1*sx, 0, 0, 0.35*sx);
         //VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.3*sx, 0.1*sx);
         //Torus torus = new Torus(0.2*sx, 0.1*sx);
-        DataChannelMixer mux = new DataChannelMixer(sphere1, sphere2, sphere3);
+        DataSourceMixer mux = new DataSourceMixer(sphere1, sphere2, sphere3);
         
         GridMaker gm = new GridMaker();  
         gm.setBounds(dataBounds);
@@ -391,7 +391,7 @@ public class TestTextureRenderer extends TestCase {
         //VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.3*sx, 0.1*sx);
         //Torus torus = new Torus(0.2*sx, 0.1*sx);
 
-        DataChannelMixer mux = new DataChannelMixer(sphere1, sphere2, sphere3);
+        DataSourceMixer mux = new DataSourceMixer(sphere1, sphere2, sphere3);
         
         GridMaker gm = new GridMaker();  
         gm.setThreadCount(1);
@@ -423,7 +423,7 @@ public class TestTextureRenderer extends TestCase {
         Sphere sphere2 = new Sphere(-0.1*sx, 0, 0, 0.45*sx);
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.5*sx, 0.02*sx);
 
-        DataChannelMixer mux = new DataChannelMixer(sphere1, sphere2, gyroid);
+        DataSourceMixer mux = new DataSourceMixer(sphere1, sphere2, gyroid);
         
         GridMaker gm = new GridMaker();  
         gm.setThreadCount(1);

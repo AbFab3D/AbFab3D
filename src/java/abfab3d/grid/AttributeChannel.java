@@ -30,8 +30,10 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     // standard chnnel types
     public static final String DENSITY = "DENSITY";
     public static final String COLOR = "COLOR";
+    public static final String DENSITY_COLOR = "DENSITY_COLOR";
     public static final String MATERIAL = "MATERIAL";
     public static final String DISTANCE = "DISTANCE";
+    public static final String DATA_FLOAT = "DATA_FLOAT";
 
     
     
@@ -41,8 +43,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     String m_type;
      // shift to move bits toward origin 
      int m_shift;
-     // bit count of the channel 
-     int m_bits;
+    int m_bits;
 
     // mask to get sign bit 
     long m_signMask;
@@ -179,7 +180,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     /**
        convert attribute bits into double value  
     */
-    public final double getValue(long attribute){
+    public double getValue(long attribute){
          return m_B2D*getBits(attribute)+m_offset;
     }
 
@@ -206,7 +207,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     /**
        convert double value into attribute bits
     */
-    public final long makeAtt(double value){
+    public long makeAtt(double value){
         value = (clamp(value, m_minValue, m_maxValue)-m_value0)*m_D2B;
         return (((long)(value + 0.5))& m_mask) << m_shift;
     }

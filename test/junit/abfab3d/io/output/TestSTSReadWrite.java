@@ -54,7 +54,7 @@ public class TestSTSReadWrite extends TestCase {
 
         DataSource color1 = new HalfGyroid(0.3*s);
 
-        DataChannelMixer mux = new DataChannelMixer(density, color1);
+        DataSourceMixer mux = new DataSourceMixer(density, color1);
 
         AttributeMaker attmuxer = new AttributeMakerGeneral(new int[]{8,8});
 
@@ -142,7 +142,7 @@ public class TestSTSReadWrite extends TestCase {
 
         DataSource color1 = new HalfGyroid(0.3*s);
 
-        DataChannelMixer mux = new DataChannelMixer(density, color1);
+        DataSourceMixer mux = new DataSourceMixer(density, color1);
 
         AttributeMaker attmuxer = new AttributeMakerGeneral(new int[]{8,8});
 

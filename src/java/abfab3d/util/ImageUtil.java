@@ -31,7 +31,7 @@ import static abfab3d.util.MathUtil.iround;
  * @author Vladimir Bulatov
  */
 public class ImageUtil {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     public static final int RESULT_OK = 1, RESULT_FAILURE = -1;
     public static int MAXC = 0xFF; //  maximal value of color component as int 
     public static final double CNORM = 255.; // maximal value of color component
@@ -55,6 +55,9 @@ public class ImageUtil {
         return ((rgb) & 0xFF);
     }
     
+    /**
+       combines 3 color components into single int RGB (0xFFRRGGBB) 
+     */
     public static final int makeRGB(int r, int g, int b){
         return 
             0xFF000000 |
@@ -63,7 +66,10 @@ public class ImageUtil {
             ((b & 0xFF) );            
     }
 
-    public static final int makeRGBA(int r, int g, int b, int a ){
+    /**
+       combines 4 color components into single int ARGB (0xAARRGGBB) 
+     */
+    public static final int makeARGB(int r, int g, int b, int a ){
         return 
             ((a & 0xFF) << 24 )|
             ((r & 0xFF) << 16) |
@@ -71,13 +77,13 @@ public class ImageUtil {
             ((b & 0xFF) );    
     }
 
-    public static final int makeRGBA(double r, double g, double b, double a ){
-        return makeRGBA((int)(r*255), (int)(g*255), (int)(b*255),(int)(a*255));
+    public static final int makeARGB(double r, double g, double b, double a ){
+        return makeARGB((int)(r*255+0.5), (int)(g*255+0.5), (int)(b*255+0.5),(int)(a*255+0.5));
     }
     
     public static final int lerpColors(int c1, int c2, double t){
 
-        return makeRGBA(iround(lerp(getRed(c1),getRed(c2),t)),
+        return makeARGB(iround(lerp(getRed(c1),getRed(c2),t)),
                         iround(lerp(getGreen(c1),getGreen(c2),t)),
                         iround(lerp(getBlue(c1),getBlue(c2),t)),
                         iround(lerp(getAlpha(c1),getAlpha(c2),t)));
@@ -145,7 +151,7 @@ public class ImageUtil {
         int b = combinePremultInt(getBlue(c1),  getBlue(c2), a);
         int a1 = combinePremultInt(getAlpha(c1),  a, a);
 
-        return makeRGBA(r,g,b,a1);
+        return makeARGB(r,g,b,a1);
 
     }
         
@@ -172,7 +178,7 @@ public class ImageUtil {
         int r = mul255(getRed(c),a);
         int g = mul255(getGreen(c),a);
         int b = mul255(getBlue(c),a);
-        return makeRGBA(r, g, b, a );
+        return makeARGB(r, g, b, a );
     }
 
     public static final int getGray(int c){
@@ -253,7 +259,7 @@ public class ImageUtil {
                 gs /= ws;
                 bs /= ws;
                 as /= ws;
-                outImage.setRGB(x,y, makeRGBA(rs,gs,bs,as));
+                outImage.setRGB(x,y, makeARGB(rs,gs,bs,as));
                 
             }
         }
@@ -380,6 +386,68 @@ public class ImageUtil {
         
     }
 
+
+    public static int[] getImageData_INT_ARGB(BufferedImage image){
+
+        String imageTypeName = ImageUtil.getImageTypeName(image.getType());
+
+        if (DEBUG) printf("getImageData_INT_ABGR() image type: %s\n",imageTypeName);
+
+        DataBuffer dataBuffer = image.getRaster().getDataBuffer();
+        if (DEBUG) printf("image data type: %s\n", ImageUtil.getDataTypeName(dataBuffer.getDataType()));
+        if (DEBUG) printf("buffer: %s\n", dataBuffer);
+        int imageWidth = image.getWidth();
+        int imageHeight = image.getHeight();
+        
+        int dataSize = imageWidth*imageHeight;
+
+        int intData[] = new int[dataSize];
+        
+        switch(image.getType()){
+        case BufferedImage.TYPE_CUSTOM: 
+            {
+                switch(dataBuffer.getDataType()){
+                default:
+                    throw new RuntimeException(fmt("unhandled image data type: %s",imageTypeName));
+                    //throw new IllegalArgumentException(fmt("unhandled image data format: %s \n",getDataTypeName(dataBuffer.getDataType())));
+                    //getGray16DataGeneric(image, grayData);
+                    //break;
+
+                case DataBuffer.TYPE_USHORT: 
+                    throw new RuntimeException(fmt("unhandled image data type: %s",imageTypeName));
+                    //if( ushort2gray16(((DataBufferUShort)dataBuffer).getData(), grayData) != RESULT_OK){
+                    //    getGray16DataGeneric(image, grayData);
+                    //}
+                    // break;
+                }
+                //break;
+            }
+            
+        case BufferedImage.TYPE_4BYTE_ABGR:
+            {                
+                BYTE_ABGR_2_INT_ARGB(((DataBufferByte)dataBuffer).getData(), intData);            
+                break;
+                
+            }
+        case BufferedImage.TYPE_3BYTE_BGR:
+            {
+                
+                BYTE3_BGR_2_INT_ARGB(((DataBufferByte)dataBuffer).getData(), intData);            
+                break;
+            }
+        default:
+            {
+                throw new RuntimeException(fmt("unhandled image data type: %s",imageTypeName));
+                //getGray16DataGeneric(image, grayData);
+                //break;
+            }            
+        }
+        
+        return intData;
+        
+    }
+
+
     public static void getGray16DataGeneric(BufferedImage image, short grayData[]){
 
         int imageWidth = image.getWidth();
@@ -418,6 +486,41 @@ public class ImageUtil {
         
             grayData[i] = (short)ub2us(gray);
             //grayData[i] = (short)((0xFFFF & (r + g + b)/3) << 8);
+    
+        }        
+    }
+
+    /**
+       convert array of 4 ARGB byte data in ARGB int 
+     */
+    public static void BYTE_ABGR_2_INT_ARGB(byte imageData[], int intData[]){
+
+        int len = intData.length;
+        for(int i = 0, k = 0; i < len; i++, k += 4){
+            
+            int a = ub2i(imageData[k]);
+            int b = ub2i(imageData[k+1]);
+            int g = ub2i(imageData[k+2]);
+            int r = ub2i(imageData[k+3]);
+
+            intData [i] = makeARGB(r,g,b,a);
+    
+        }        
+    }
+
+    /**
+       convert array of 4 ARGB byte data in ARGB int 
+     */
+    public static void BYTE3_BGR_2_INT_ARGB(byte imageData[], int intData[]){
+
+        int len = intData.length;
+        for(int i = 0, k = 0; i < len; i++, k += 3){
+            
+            int b = ub2i(imageData[k]);
+            int g = ub2i(imageData[k+1]);
+            int r = ub2i(imageData[k+2]);
+
+            intData [i] = makeARGB(r,g,b,0xFF);
     
         }        
     }
