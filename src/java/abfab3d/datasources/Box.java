@@ -48,9 +48,6 @@ public class Box extends TransformableDataSource {
             zmin,zmax;
     
     
-    //DoubleParameter mp_width = new DoubleParameter("width","Width",0.1,0.1*MM,Double.MAX_VALUE,0.1);
-    //DoubleParameter mp_height = new DoubleParameter("height","Height",0.1,0.1*MM,Double.MAX_VALUE,0.1);
-    //DoubleParameter mp_depth = new DoubleParameter("depth","Depth",0.1,0.1*MM,Double.MAX_VALUE,0.1);
     Vector3dParameter mp_center = new Vector3dParameter("center","Center of the box",new Vector3d(0.,0.,0.));
     Vector3dParameter mp_size = new Vector3dParameter("size","Size of the box",DEFAULT_SIZE);
     // rounding of the edges

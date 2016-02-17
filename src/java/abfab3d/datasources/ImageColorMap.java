@@ -88,6 +88,7 @@ public class ImageColorMap extends TransformableDataSource {
     Vector3dParameter  mp_size = new Vector3dParameter("size","size of the image box",new Vector3d(0.1,0.1,0.1));
     BooleanParameter  mp_repeatX = new BooleanParameter("repeatX","repeat image along X", false);
     BooleanParameter  mp_repeatY = new BooleanParameter("repeatY","repeat image along Y", false);
+    BooleanParameter  mp_repeatZ = new BooleanParameter("repeatZ","repeat image along Z", false);
 
     Parameter m_aparams[] = new Parameter[]{
         mp_imageSource, 
@@ -95,6 +96,7 @@ public class ImageColorMap extends TransformableDataSource {
         mp_size,
         mp_repeatX,
         mp_repeatY,
+        mp_repeatZ,
     };
 
     // 
@@ -343,7 +345,7 @@ public class ImageColorMap extends TransformableDataSource {
     public int getDataValue(Vec pnt, Vec dataValue){
 
         super.transform(pnt);
-
+        //TODO repeatX,Y,Z implementation 
         double x = pnt.v[0];
         double y = pnt.v[1];
         double z = pnt.v[2];
