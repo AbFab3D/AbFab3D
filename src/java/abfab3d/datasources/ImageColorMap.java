@@ -304,11 +304,23 @@ public class ImageColorMap extends TransformableDataSource {
         } else if(imageSource instanceof ImageWrapper){
 
            m_imageData = new ImageColor(((ImageWrapper)imageSource).getImage());
-        } 
+        }
 
         if (m_imageData == null) {
+            // Cast to String for now, not sure how to really handle this
+            String file = imageSource.toString();
+            printf("Converted to string: " + file);
+            try {
+                m_imageData = new ImageColor(ImageIO.read(new File(file)));
+            } catch(IOException e) {
+                // empty 1x1 image
+                m_imageData = new ImageColor(1,1);
+                throw new RuntimeException(e);
+            }
+        }
+        if (m_imageData == null) {
             m_imageData = new ImageColor(1,1);
-            throw new IllegalArgumentException("Unhandled imageSource: " + imageSource);
+            throw new IllegalArgumentException("Unhandled imageSource: " + imageSource + " class: " + imageSource.getClass());
         }
 
         Vector3d center = (Vector3d)mp_center.getValue();
