@@ -189,5 +189,9 @@ public class DoubleParameter extends NumberParameter {
             throw new IllegalArgumentException("Invalid double value: " + val + ", above maximum: " + maxRange + " in param: " + getName());
 
         }
+
+        if (Double.isNaN(d)) {
+            throw new IllegalArgumentException("Double cannot be NaN. In param: " + getName());
+        }
     }
 }
