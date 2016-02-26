@@ -9,18 +9,15 @@ import java.awt.*;
 
 import static abfab3d.util.Units.MM;
 import static java.awt.AWTEvent.WINDOW_EVENT_MASK;
+import static abfab3d.util.Output.printf;
 
-public class DevTestEditors extends JFrame {
+public class DevTestEditors extends JFrame, implements ChangeListener {
 
     public DevTestEditors() {
         super("Parameter Editor");
 
         int width = 512;
         int height = 512;
-
-        GraphicsEnvironment env =
-                GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice dev;
 
         enableEvents(WINDOW_EVENT_MASK);
         JPopupMenu.setDefaultLightWeightPopupEnabled(false);
@@ -39,6 +36,11 @@ public class DevTestEditors extends JFrame {
         ParamPanel panel = new ParamPanel(sphere);
 
         return panel;
+    }
+
+    @Override
+    public void valueChanged(Parameter param) {
+        printf("Val Changed: %s\n",param);
     }
 
     public static final void main(String[] args) {
