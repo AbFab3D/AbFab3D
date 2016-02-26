@@ -18,22 +18,22 @@ public class DevTestEditors extends JFrame implements ParamChangedListener {
     public DevTestEditors() {
         super("Parameter Editor");
 
-        int width = 512;
-        int height = 512;
+        int width = 100;
+        int height = 100;
 
         enableEvents(WINDOW_EVENT_MASK);
         JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 
         Box box = new Box();
 
-        ParamPanel seditor = new ParamPanel(box);
-        seditor.addParamChangedListener(this);
-        seditor.setVisible(true);
-
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         setSize(width, height);
         setVisible(true);
+
+        ParamPanel seditor = new ParamPanel(box);
+        seditor.addParamChangedListener(this);
+        seditor.setVisible(true);
 
     }
 
