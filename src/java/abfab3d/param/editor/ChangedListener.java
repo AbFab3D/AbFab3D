@@ -11,13 +11,11 @@
  ****************************************************************************/
 package abfab3d.param.editor;
 
-import abfab3d.param.Parameter;
-
 /**
- * Called when an editor changes a parameter
+ * Called for internal change listening
  *
  * @author Alan Hudson
  */
-public interface ParamChangedListener {
-    public void paramChanged(Parameter param);
+public interface ChangedListener {
+    public void valueChanged(Object val);
 }
