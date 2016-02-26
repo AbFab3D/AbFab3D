@@ -726,6 +726,17 @@
         </java>
     </target>
 
+    <target name="runEditors" depends="compile" description="Run the editors">
+        <echo message="jvmargs: ${jvmrunargs}"/>
+        <java classname="abfab3d.param.editor.DevTestEditors" fork="true">
+          <jvmarg line="${jvmrunargs}"/>
+          <classpath>
+            <pathelement path="${classes.dir}"/>
+            <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+          </classpath>
+        </java>
+    </target>
+    
     <!-- Begin Japex Tasks -->
     <target name="runJapex" depends="compile,compileJapex">
         <java dir="." fork="true" classname="com.sun.japex.Japex">
