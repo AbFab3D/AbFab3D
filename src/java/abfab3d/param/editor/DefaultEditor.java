@@ -11,26 +11,26 @@
  ****************************************************************************/
 package abfab3d.param.editor;
 
-import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
 
 import java.awt.TextField;
 import java.awt.Component;
 
 
 /**
- * Edits Double Parameter
+ * Edits default parameter 
  *
- * @author Alan Hudson
+ * @author Vladimir Bulatov
  */
-public class DoubleEditor extends BaseEditor {
+public class DefaultEditor extends BaseEditor {
 
     static final int EDITOR_SIZE = 10;
 
-    private DoubleParameter m_param;
+    private Parameter m_param;
 
     TextField  m_textField;
     
-    public DoubleEditor(DoubleParameter param) {
+    public DefaultEditor(Parameter param) {
 
         m_param = param;
         m_textField = new TextField(EDITOR_SIZE);

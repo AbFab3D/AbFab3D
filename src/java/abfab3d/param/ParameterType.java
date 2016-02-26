@@ -17,8 +17,40 @@ package abfab3d.param;
  * @author Alan Hudson
  */
 public enum ParameterType {
-    BOOLEAN, DATE_TIME, DOUBLE, FLOAT, BYTE, SHORT, INTEGER, LONG, MAP, STRING, URI, ENUM,
-    BOOLEAN_LIST, DATE_TIME_LIST, DOUBLE_LIST, FLOAT_LIST, BYTE_LIST, SHORT_LIST, INTEGER_LIST,
-    LONG_LIST, MAP_LIST, STRING_LIST, URI_LIST, ENUM_LIST, VECTOR_3D, AXIS_ANGLE_4D,SNODE, SNODE_LIST, MATRIX_4D,
-    OBJECT, LOCATION,LOCATION_LIST, USERDEFINED, USERDEFINED_LIST;
+    //
+    BOOLEAN, 
+        DATE_TIME, 
+        DOUBLE, 
+        FLOAT, 
+        BYTE, 
+        SHORT, 
+        INTEGER, 
+        LONG, 
+        MAP, 
+        STRING, 
+        URI, 
+        ENUM,
+        BOOLEAN_LIST, 
+        DATE_TIME_LIST, 
+        DOUBLE_LIST, 
+        FLOAT_LIST, 
+        BYTE_LIST, 
+        SHORT_LIST, 
+        INTEGER_LIST,
+        LONG_LIST, 
+        MAP_LIST, 
+        STRING_LIST, 
+        URI_LIST, 
+        ENUM_LIST, 
+        VECTOR_3D, 
+        AXIS_ANGLE_4D,
+        SNODE, 
+        SNODE_LIST, 
+        MATRIX_4D,
+        OBJECT, 
+        LOCATION,
+        LOCATION_LIST, 
+        USERDEFINED, 
+        USERDEFINED_LIST
+        ;
 }

@@ -20,12 +20,14 @@ import abfab3d.param.Parameter;
  * @author Alan Hudson
  */
 public class EditorFactory {
+
+    
     public Editor createEditor(Parameter param) {
         switch(param.getType()) {
             case DOUBLE:
                 return new DoubleEditor((DoubleParameter)param);
+        default: 
+            return new DefaultEditor(param);
         }
-
-        return null;
     }
 }

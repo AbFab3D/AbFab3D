@@ -12,8 +12,14 @@
 package abfab3d.param.editor;
 
 import abfab3d.param.Parameterizable;
+import abfab3d.param.Parameter;
 
 import java.awt.*;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import static abfab3d.util.Output.printf;
 
 /**
  * Creates an editing panel for a parameterizable
@@ -21,11 +27,28 @@ import java.awt.*;
  * @author Alan Hudson
  */
 public class ParamPanel extends Frame {
-    private Parameterizable m_param;
 
-    public ParamPanel(Parameterizable param) {
-        super("Editor: " + param.getClass().getSimpleName());
-        m_param = param;
+    static final int SPACE = 3;
+
+    private Parameterizable m_node;
+    private static EditorFactory sm_factory;
+    
+    private Frame m_frame;
+
+    public ParamPanel(Parameterizable node) {
+
+        super("Editor: " + node.getClass().getSimpleName());
+        setLayout(new GridBagLayout());
+        m_node = node;
+        if(sm_factory == null)
+            sm_factory = new EditorFactory();
+
+        Component parametersPanel = makeParamPanel(m_node);
+        WindowUtils.constrain(this, parametersPanel, 0,0,1,1, 
+                              GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
+        this.pack();
+        
+        
     }
 
     /**
@@ -34,4 +57,31 @@ public class ParamPanel extends Frame {
      */
     public void addChangeListener(ParamChangedListener l) {
     }
+
+    Component makeParamPanel(Parameterizable node){
+
+        Parameter[] param = node.getParams();
+        
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        
+        printf("adding editors\n");
+        for(int i=0; i < param.length; i++){
+
+            double hWeight = (i < param.length-1)? (0.) : (1.);
+            
+            WindowUtils.constrain(panel,new JLabel(param[i].getDesc()), 0,i,1,1,
+                                  GridBagConstraints.NONE,GridBagConstraints.NORTHEAST, 0.,hWeight,SPACE,SPACE,SPACE,0);
+
+            Editor editor = sm_factory.createEditor(param[i]);
+            printf("param: %s editor: %s\n", param[i], editor);
+
+            WindowUtils.constrain(panel,editor.getComponent(), 1,i,1,1,
+                                  GridBagConstraints.HORIZONTAL,GridBagConstraints.NORTH, 1.,hWeight, SPACE,SPACE,SPACE,0);
+            
+        }
+        return panel;
+                
+    }
+
 }
