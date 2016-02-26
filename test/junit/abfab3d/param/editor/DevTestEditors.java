@@ -22,20 +22,13 @@ public class DevTestEditors extends JFrame implements ParamChangedListener {
         enableEvents(WINDOW_EVENT_MASK);
         JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 
-        Component panel = createPanel();
+        TestSphere sphere = new TestSphere();
 
-        add(panel);
+        ParamPanel seditor = new ParamPanel(sphere);
+        seditor.setVisible(true);
 
         setSize(width, height);
         setVisible(true);
-    }
-
-    public Component createPanel() {
-        TestSphere sphere = new TestSphere();
-
-        ParamPanel panel = new ParamPanel(sphere);
-
-        return panel;
     }
 
     @Override
