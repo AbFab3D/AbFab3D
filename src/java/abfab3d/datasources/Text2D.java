@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  *                        Shapeways, Inc Copyright (c) 2011
  *                               Java Source
@@ -37,18 +36,13 @@ import static abfab3d.util.MathUtil.clamp;
 import static abfab3d.util.MathUtil.step10;
 
 import static abfab3d.util.Units.MM;
+import static abfab3d.util.Output.fmt;
 
 
 /**
 
-   makes 3D text shape from text string 
-
-   <embed src="doc-files/Text.svg" type="image/svg+xml"/> 
+   makes 2D image of text 
     
-   <p>
-   Text is oriented parallel to xy plane. The bounding box is centered at origin 
-   </p>
-
    @author Vladimir Bulatov
 
  */
@@ -96,7 +90,7 @@ public class Text2D extends BaseParameterizable {
     BooleanParameter mp_aspect    = new BooleanParameter("preserveAspect","keep text aspect ratio",true);
     DoubleParameter  mp_fontSize  = new DoubleParameter("fontSize","size of text font to use in points",30);
     DoubleParameter  mp_height = new DoubleParameter("height","height of text",5*MM);
-    DoubleParameter  mp_width = new DoubleParameter("width","width of text",20*MM);
+    DoubleParameter  mp_width = new DoubleParameter("width","width of text",0*MM); // width is initially undefined 
     DoubleParameter  mp_voxelSize = new DoubleParameter("voxelSize","size of voxel for text rendering", 0.05*MM);
     StringParameter  mp_fontName  = new StringParameter("fontName","Name of the font", "Times New Roman");
     StringParameter  mp_text      = new StringParameter("text","text to be created", "Text");
@@ -271,7 +265,7 @@ public class Text2D extends BaseParameterizable {
 
     public void setHeight(double val) {
         if (val <= 0) {
-            throw new IllegalArgumentException("Text2D height cannot be <= 0");
+            throw new IllegalArgumentException(fmt("illegal Text2D height:%11.9", val));
         }
 
         m_bitmap = null;
@@ -339,7 +333,7 @@ public class Text2D extends BaseParameterizable {
 
     protected void validateFontName(String fontName){
         if (!TextUtil.fontExists(fontName)) {
-            throw new IllegalArgumentException("Font not found:" + fontName);
+            throw new IllegalArgumentException(fmt("Text2D: Font \"%s\" not found",fontName));
         }
     }
     
@@ -375,15 +369,27 @@ public class Text2D extends BaseParameterizable {
        @noRefGuide
      */
     public int initialize(){
-        double voxelSize = mp_voxelSize.getValue();
 
+        if(DEBUG) printf("Text2D.initialize()\n");
+
+        double voxelSize = mp_voxelSize.getValue();
+        if(DEBUG) printf("  voxelSize:%7.5f\n", voxelSize);
         String fontName = mp_fontName.getValue();
+        if(DEBUG) printf("  fontName:%s\n", fontName);
+        
         validateFontName(fontName);
 
         int height = (int)Math.round(mp_height.getValue()/voxelSize);
+        if(DEBUG) printf("  text height:%d pixels\n", height);
+
+        if(mp_width.getValue() <= 0.) mp_width.setValue(getPreferredWidth());
+
         int width = (int)Math.round(mp_width.getValue()/voxelSize);         
+        if(DEBUG) printf("  text width:%d pixels\n", width);
 
         String text = mp_text.getValue();
+
+        if(DEBUG) printf("  text:\"%s\"\n", text);
 
         int fontStyle = mp_fontStyle.getValue();
         double inset = (mp_inset.getValue()/voxelSize);        

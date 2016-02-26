@@ -124,16 +124,17 @@ public class TextUtil {
         int renderHeight = (int)(imageHeight - (insets.top + insets.bottom));
 
         if (renderWidth < 0) {
-            throw new IllegalArgumentException("TextUtil width cannot be < 0");
+            throw new IllegalArgumentException("TextUtil: renderWidth < 0");
         }
 
         if (renderHeight < 0) {
-            throw new IllegalArgumentException("TextHeight width cannot be < 0");
+            throw new IllegalArgumentException("TextUtils: renderHeight < 0");
         }
 
         //BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_BYTE_GRAY);
         BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D)image.getGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 
         char ctext[] = text.toCharArray();
         GlyphVector gv = font.layoutGlyphVector(g.getFontRenderContext(), ctext, 0, ctext.length, 0);

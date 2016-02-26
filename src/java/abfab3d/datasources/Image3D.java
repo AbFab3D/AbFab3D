@@ -64,7 +64,7 @@ import static abfab3d.util.Output.time;
  */
 public class Image3D extends TransformableDataSource {
 
-    final static boolean DEBUG = false;
+    final static boolean DEBUG = true;
     final static boolean DEBUG_VIZ = false;
 
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
@@ -139,7 +139,7 @@ public class Image3D extends TransformableDataSource {
     private double imageZScale; // conversion form (0,1) to (0, imageZsize)
 
     private double xscale, yscale, zscale;
-    private boolean useGrayscale = true;
+    private boolean m_useGrayscale = true;
     private int imageWidth, imageHeight, imageWidth1, imageHeight1;
     
     // the image data is stored in the Grid2D 
@@ -563,7 +563,6 @@ public class Image3D extends TransformableDataSource {
      */
     public void setUseGrayscale(boolean value) {
         
-        useGrayscale = value;
         mp_useGrayscale.setValue(new Boolean(value));
     }
 
@@ -677,6 +676,7 @@ public class Image3D extends TransformableDataSource {
         m_baseThreshold = mp_baseThreshold.getValue();
         m_baseThickness = mp_baseThickness.getValue();
         m_imagePlace = mp_imagePlace.getValue();
+        m_useGrayscale = mp_useGrayscale.getValue();
 
         String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), imageParams);
 
@@ -849,7 +849,7 @@ public class Image3D extends TransformableDataSource {
 
         int res = 0;
 
-        if (!useGrayscale) {
+        if (!m_useGrayscale) {
             res = makeImageBlack(imageData);
         } else {
             res = makeImageGray(imageData);            
@@ -1056,7 +1056,7 @@ public class Image3D extends TransformableDataSource {
 
         double imageValue = 0.; // distance to the image 
 
-        if (!useGrayscale) {
+        if (!m_useGrayscale) {
 
             // black and white image 
             // image is precalculated to return normalized value of distance
@@ -1258,7 +1258,7 @@ public class Image3D extends TransformableDataSource {
         */
         double d = 0;
 
-        if (useGrayscale) {
+        if (m_useGrayscale) {
 
             // smooth transition 
             d = z - pixelValue;

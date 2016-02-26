@@ -126,6 +126,10 @@ public class Text extends TransformableDataSource {
         
     }
 
+    
+    /**
+       @noRefGuide
+     */
     public Text(String text, Font font, double sx, double sy, double sz, double voxelSize){
         initParams();
         mp_size.setValue(new Vector3d(sx, sy, sz));
@@ -294,9 +298,8 @@ public class Text extends TransformableDataSource {
         m_bitmap.setBaseThickness(0.);
         m_bitmap.setImageType(Image3D.IMAGE_TYPE_EMBOSSED);
         m_bitmap.setTiles(1, 1);
-        m_bitmap.setBlurWidth(mp_blurWidth.getValue());
-        m_bitmap.setUseGrayscale(false); // VB - temp fix for GPU
-        //m_bitmap.setUseGrayscale(true);
+        m_bitmap.set("blurWidth", mp_blurWidth.getValue());
+        m_bitmap.set("useGrayscale",false); // text is always black and white
         m_bitmap.setInterpolationType(Image3D.INTERPOLATION_LINEAR);
         m_bitmap.setTransform(getTransform());
         

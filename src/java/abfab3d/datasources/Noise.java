@@ -56,6 +56,7 @@ public class Noise extends TransformableDataSource {  // Periodic noise in 3D
     IntParameter mp_nx = new IntParameter("nx","x-dimension of grid",1);
     IntParameter mp_ny = new IntParameter("ny","y-dimension of grid",1);
     IntParameter mp_nz = new IntParameter("nz","z-dimension of grid",1);
+    IntParameter mp_periodic = new IntParameter("periodic","noise is periodic?",0);
     IntParameter mp_seed = new IntParameter("seed","seed of random number generator",11);
     DoubleParameter mp_offset = new DoubleParameter("offset","offset in (result = value*factor+offset) ",0.);
     DoubleParameter mp_factor = new DoubleParameter("factor","factor in (result = value*factor+offset)",1.);
@@ -69,6 +70,7 @@ public class Noise extends TransformableDataSource {  // Periodic noise in 3D
         mp_seed,
         mp_factor,
         mp_offset,
+        mp_periodic,
     };
 
     public Noise(Vector3d size, int nx,int ny,int nz){
