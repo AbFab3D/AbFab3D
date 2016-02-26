@@ -38,6 +38,7 @@ public class DoubleEditor extends BaseEditor implements ChangeListener {
     @Override
     public void stateChanged(ChangeEvent e) {
         if (m_listener != null) m_listener.paramChanged(m_param);
+        m_param.setValue((Double)spinnerModel.getValue());
     }
 
     /**
