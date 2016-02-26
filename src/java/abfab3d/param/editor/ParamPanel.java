@@ -20,10 +20,17 @@ import java.awt.*;
  *
  * @author Alan Hudson
  */
-public class ParamPanel {
+public class ParamPanel extends Component {
     private Parameterizable m_param;
-    public Component ParamPanel(Parameterizable param) {
+
+    public ParamPanel(Parameterizable param) {
         m_param = param;
-        return null;
+    }
+
+    /**
+     * Get notification of any parameter changes from this editor
+     * @param l
+     */
+    public void addChangeListener(ChangeListener l) {
     }
 }
