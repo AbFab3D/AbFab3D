@@ -13,11 +13,13 @@ package abfab3d.param.editor;
 
 import abfab3d.param.DoubleParameter;
 
-import java.awt.TextField;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import static abfab3d.util.Output.printf;
+
+import javax.swing.JSpinner;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 
 /**
  * Edits Double Parameter
@@ -29,15 +31,11 @@ public class DoubleEditor extends BaseEditor implements ActionListener {
     static final int EDITOR_SIZE = 10;
 
     private DoubleParameter m_param;
+    private SpinnerModel spinnerModel;
 
-    TextField  m_textField;
     
     public DoubleEditor(DoubleParameter param) {
-
         m_param = param;
-        m_textField = new TextField(EDITOR_SIZE);
-        m_textField.setText(m_param.getValue().toString());
-        m_textField.addActionListener(this);
     }
 
     @Override
@@ -50,8 +48,15 @@ public class DoubleEditor extends BaseEditor implements ActionListener {
        @Override
     */
     public Component getComponent() {
-        
-        return m_textField;
-        
+      setSpinnerModel();
+      return new JSpinner(spinnerModel);
+    }
+    
+    private void setSpinnerModel() {
+    	double def_val = (Double) m_param.getDefaultValue();
+    	double min_val = m_param.getMinRange();
+    	double max_val = m_param.getMaxRange();
+    	double step = m_param.getStep();
+    	spinnerModel = new SpinnerNumberModel(def_val, min_val, max_val, step);
     }
 }
