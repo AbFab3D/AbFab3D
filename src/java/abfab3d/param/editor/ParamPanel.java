@@ -39,7 +39,7 @@ public class ParamPanel extends Frame {
 
     public ParamPanel(Parameterizable node) {
 
-        super("Editor: " + node.getClass().getSimpleName());
+        super(node.getClass().getSimpleName());
         setLayout(new GridBagLayout());
         m_node = node;
         if(sm_factory == null)
