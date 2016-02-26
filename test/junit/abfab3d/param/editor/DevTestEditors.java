@@ -27,8 +27,11 @@ public class DevTestEditors extends JFrame implements ParamChangedListener {
         ParamPanel seditor = new ParamPanel(sphere);
         seditor.setVisible(true);
 
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
         setSize(width, height);
         setVisible(true);
+
     }
 
     @Override
