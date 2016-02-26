@@ -732,6 +732,7 @@
           <jvmarg line="${jvmrunargs}"/>
           <classpath>
             <pathelement path="${classes.dir}"/>
+            <pathelement path="${test.classes.dir}" />
             <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
           </classpath>
         </java>
