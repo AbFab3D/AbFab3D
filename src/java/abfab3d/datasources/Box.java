@@ -51,7 +51,7 @@ public class Box extends TransformableDataSource {
     Vector3dParameter mp_center = new Vector3dParameter("center","Center of the box",new Vector3d(0.,0.,0.));
     Vector3dParameter mp_size = new Vector3dParameter("size","Size of the box",DEFAULT_SIZE);
     // rounding of the edges
-    DoubleParameter  mp_rounding = new DoubleParameter("rounding","Width of rounding of the box edges", 0.);
+    DoubleParameter  mp_rounding = new DoubleParameter("rounding","Width of rounding of the box edges", 0.,0,Double.MAX_VALUE,0.1*MM);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_size,
