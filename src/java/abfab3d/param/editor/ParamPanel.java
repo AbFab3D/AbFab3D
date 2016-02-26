@@ -26,4 +26,11 @@ public class ParamPanel extends Component {
     public ParamPanel(Parameterizable param) {
         m_param = param;
     }
+
+    /**
+     * Get notification of any parameter changes from this editor
+     * @param l
+     */
+    public void addChangeListener(ChangeListener l) {
+    }
 }

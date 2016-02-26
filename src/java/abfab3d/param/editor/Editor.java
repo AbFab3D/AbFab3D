@@ -24,4 +24,10 @@ public interface Editor {
      * @return
      */
     public Component getComponent();
+
+    /**
+     * Get notification of any parameter changes from this editor
+     * @param l
+     */
+    public void addChangeListener(ChangeListener l);
 }

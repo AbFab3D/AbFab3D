@@ -20,7 +20,7 @@ import java.awt.*;
  *
  * @author Alan Hudson
  */
-public class DoubleEditor implements Editor {
+public class DoubleEditor extends BaseEditor {
     private DoubleParameter m_param;
 
     public DoubleEditor(DoubleParameter param) {
