@@ -29,5 +29,5 @@ public interface Editor {
      * Get notification of any parameter changes from this editor
      * @param l
      */
-    public void addChangeListener(ChangeListener l);
+    public void addChangeListener(ParamChangedListener l);
 }

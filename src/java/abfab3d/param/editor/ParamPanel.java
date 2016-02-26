@@ -20,7 +20,7 @@ import java.awt.*;
  *
  * @author Alan Hudson
  */
-public class ParamPanel extends Component {
+public class ParamPanel extends Frame {
     private Parameterizable m_param;
 
     public ParamPanel(Parameterizable param) {
@@ -31,6 +31,6 @@ public class ParamPanel extends Component {
      * Get notification of any parameter changes from this editor
      * @param l
      */
-    public void addChangeListener(ChangeListener l) {
+    public void addChangeListener(ParamChangedListener l) {
     }
 }
