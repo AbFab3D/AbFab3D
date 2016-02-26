@@ -1128,7 +1128,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
             Vertex.getPoint(vertices, v2, pnt);
             p2.set(pnt);
 
-            tc.addTri(p0, p1, p2);
+            if (!tc.addTri(p0, p1, p2)) return false;
 
             f = Face.getNext(faces, f);
         }

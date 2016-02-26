@@ -210,7 +210,7 @@ public class STLWriter implements TriangleCollector {
     }
 
     /**
-       method of interface TrianleCollector 
+       method of interface TriangleCollector
      */
     public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2 ){
 
@@ -221,13 +221,13 @@ public class STLWriter implements TriangleCollector {
             writeVector(m_output, v0);
             writeVector(m_output, v1);
             writeVector(m_output, v2);
-            
+
             writeInt2(m_output, 0); // attribute byte count 0
             return true;
 
-        } catch(Exception e){
+        } catch(IOException e){
             e.printStackTrace();
-            return false;
+            throw new IllegalArgumentException("IOError: " + e.getMessage());
         }
     }
 } // class STLWriter
