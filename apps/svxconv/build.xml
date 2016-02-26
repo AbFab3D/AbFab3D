@@ -125,9 +125,9 @@
             <jvmarg line="${jvmrunargs}"/>
             <arg value="-input" />
 <!--            <arg value="/tmp/voxelsize/original-3000075_v0.stl" /> -->
-            <arg value="box.svx" />
+            <arg value="ShoeDryer.svx" />
             <arg value="-output" />
-            <arg value="box.x3db" />
+            <arg value="shoe.x3db" />
 <!--
             <arg value="-input" />
             <arg value="cf6_1024.svx" />
