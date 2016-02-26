@@ -15,6 +15,7 @@ import abfab3d.param.Parameterizable;
 import abfab3d.param.Parameter;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -36,10 +37,13 @@ public class ParamPanel extends Frame {
     private ParamChangedListener m_plistener;
     
     private Frame m_frame;
+    private ArrayList<Editor> editors;
 
     public ParamPanel(Parameterizable node) {
 
         super(node.getClass().getSimpleName());
+
+        editors = new ArrayList<Editor>();
         setLayout(new GridBagLayout());
         m_node = node;
         if(sm_factory == null)
@@ -59,6 +63,10 @@ public class ParamPanel extends Frame {
      */
     public void addParamChangedListener(ParamChangedListener l) {
         m_plistener = l;
+
+        for(Editor e: editors) {
+            e.addChangeListener(m_plistener);
+        }
     }
 
     Component makeParamPanel(Parameterizable node){
@@ -73,11 +81,12 @@ public class ParamPanel extends Frame {
 
             double hWeight = (i < param.length-1)? (0.) : (1.);
             
-            WindowUtils.constrain(panel,new JLabel(param[i].getName()), 0,i,1,1,
-                                  GridBagConstraints.NONE,GridBagConstraints.NORTHEAST, 0.,hWeight,SPACE,SPACE,SPACE,0);
+            WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, i, 1, 1,
+                    GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 0., hWeight, SPACE, SPACE, SPACE, 0);
 
             Editor editor = sm_factory.createEditor(param[i]);
             editor.addChangeListener(m_plistener);
+            editors.add(editor);
             printf("param: %s editor: %s\n", param[i], editor);
 
             WindowUtils.constrain(panel,editor.getComponent(), 1,i,1,1,

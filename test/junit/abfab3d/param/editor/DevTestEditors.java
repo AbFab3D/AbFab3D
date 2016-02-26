@@ -5,8 +5,6 @@ import abfab3d.param.*;
 import javax.swing.*;
 import javax.vecmath.Vector3d;
 
-import java.awt.*;
-
 import abfab3d.datasources.Box;
 
 
@@ -29,6 +27,7 @@ public class DevTestEditors extends JFrame implements ParamChangedListener {
         Box box = new Box();
 
         ParamPanel seditor = new ParamPanel(box);
+        seditor.addParamChangedListener(this);
         seditor.setVisible(true);
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

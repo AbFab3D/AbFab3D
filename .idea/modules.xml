@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/apps/common/src/AppCommon.iml" filepath="$PROJECT_DIR$/apps/common/src/AppCommon.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/dla/src/Dla.iml" filepath="$PROJECT_DIR$/apps/dla/src/Dla.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/imagepopper/src/Imagepopper.iml" filepath="$PROJECT_DIR$/apps/imagepopper/src/Imagepopper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/src/build/Manual.iml" filepath="$PROJECT_DIR$/src/build/Manual.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/rectsidedpopper/src/RectSidedPopper.iml" filepath="$PROJECT_DIR$/apps/rectsidedpopper/src/RectSidedPopper.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" filepath="$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" filepath="$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" />
