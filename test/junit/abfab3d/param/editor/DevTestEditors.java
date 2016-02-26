@@ -7,6 +7,10 @@ import javax.vecmath.Vector3d;
 
 import java.awt.*;
 
+import abfab3d.datasources.Box;
+
+
+
 import static abfab3d.util.Units.MM;
 import static java.awt.AWTEvent.WINDOW_EVENT_MASK;
 import static abfab3d.util.Output.printf;
@@ -22,9 +26,9 @@ public class DevTestEditors extends JFrame implements ParamChangedListener {
         enableEvents(WINDOW_EVENT_MASK);
         JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 
-        TestSphere sphere = new TestSphere();
+        Box box = new Box();
 
-        ParamPanel seditor = new ParamPanel(sphere);
+        ParamPanel seditor = new ParamPanel(box);
         seditor.setVisible(true);
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

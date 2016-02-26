@@ -25,6 +25,7 @@ import static abfab3d.util.Output.printf;
  * Creates an editing panel for a parameterizable
  *
  * @author Alan Hudson
+ * @author Vladimir Bulatov
  */
 public class ParamPanel extends Frame {
 
@@ -70,7 +71,7 @@ public class ParamPanel extends Frame {
 
             double hWeight = (i < param.length-1)? (0.) : (1.);
             
-            WindowUtils.constrain(panel,new JLabel(param[i].getDesc()), 0,i,1,1,
+            WindowUtils.constrain(panel,new JLabel(param[i].getName()), 0,i,1,1,
                                   GridBagConstraints.NONE,GridBagConstraints.NORTHEAST, 0.,hWeight,SPACE,SPACE,SPACE,0);
 
             Editor editor = sm_factory.createEditor(param[i]);
