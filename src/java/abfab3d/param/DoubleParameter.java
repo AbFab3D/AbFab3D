@@ -64,7 +64,7 @@ public class DoubleParameter extends NumberParameter {
     public DoubleParameter(String name, String desc, double initialValue,
                            double minRange, double maxRange, double step) {
 
-    	this(name,desc,initialValue,minRange,maxRange,DEFAULT_STEP,DEFAULT_UNIT);
+    	this(name,desc,initialValue,minRange,maxRange,step,DEFAULT_UNIT);
     }
     
     public DoubleParameter(String name, String desc, double initialValue,
