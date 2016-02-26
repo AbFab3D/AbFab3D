@@ -11,7 +11,7 @@ import static abfab3d.util.Units.MM;
 import static java.awt.AWTEvent.WINDOW_EVENT_MASK;
 import static abfab3d.util.Output.printf;
 
-public class DevTestEditors extends JFrame, implements ChangeListener {
+public class DevTestEditors extends JFrame implements ChangeListener {
 
     public DevTestEditors() {
         super("Parameter Editor");
