@@ -24,6 +24,7 @@ public class ParamPanel extends Frame {
     private Parameterizable m_param;
 
     public ParamPanel(Parameterizable param) {
+        super("Editor: " + param.getClass().getSimpleName());
         m_param = param;
     }
 

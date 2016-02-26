@@ -216,8 +216,7 @@ public class DevTestSlicesWriter extends TestCase {
         //Triangle triangle = new Triangle(v0, v1, v2, thickness);
         Triangle triangle = new Triangle(v0, v1, v2, thickness);
         
-        VolumePatterns.Balls balls = new VolumePatterns.Balls(0.5*CM, 0.25*CM);  
-        VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(12*MM, 0.8*MM);  
+        VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(12*MM, 0.8*MM);
 
         Rotation rotation = new Rotation(new Vector3d(1,1,0), Math.PI/10);
         GridMaker gm = new GridMaker();  
@@ -312,8 +311,7 @@ public class DevTestSlicesWriter extends TestCase {
         //Triangle triangle = new Triangle(v0, v1, v2, thickness);
         Triangle triangle = new Triangle(v0, v1, v2, thickness);
         
-        VolumePatterns.Balls balls = new VolumePatterns.Balls(0.5*CM, 0.25*CM);  
-        VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(12*MM, 0.8*MM);  
+        VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(12*MM, 0.8*MM);
 
         Rotation rotation = new Rotation(new Vector3d(1,1,0), Math.PI/10);
         GridMaker gm = new GridMaker();  
