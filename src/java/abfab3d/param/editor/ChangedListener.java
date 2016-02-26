@@ -11,26 +11,11 @@
  ****************************************************************************/
 package abfab3d.param.editor;
 
-import abfab3d.param.Parameterizable;
-
-import java.awt.*;
-
 /**
- * Creates an editing panel for a parameterizable
+ * Called for internal change listening
  *
  * @author Alan Hudson
  */
-public class ParamPanel extends Frame {
-    private Parameterizable m_param;
-
-    public ParamPanel(Parameterizable param) {
-        m_param = param;
-    }
-
-    /**
-     * Get notification of any parameter changes from this editor
-     * @param l
-     */
-    public void addChangeListener(ParamChangedListener l) {
-    }
+public interface ChangedListener {
+    public void valueChanged(Object val);
 }
