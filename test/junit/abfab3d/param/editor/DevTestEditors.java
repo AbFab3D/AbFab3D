@@ -2,20 +2,47 @@ package abfab3d.param.editor;
 
 import abfab3d.param.*;
 
+import javax.swing.*;
 import javax.vecmath.Vector3d;
 
+import java.awt.*;
+
 import static abfab3d.util.Units.MM;
+import static java.awt.AWTEvent.WINDOW_EVENT_MASK;
 
-public class DevTestEditors {
+public class DevTestEditors extends JFrame {
 
-    public static void showPanel() {
+    public DevTestEditors() {
+        super("Parameter Editor");
+
+        int width = 512;
+        int height = 512;
+
+        GraphicsEnvironment env =
+                GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice dev;
+
+        enableEvents(WINDOW_EVENT_MASK);
+        JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+
+        Component panel = createPanel();
+
+        add(panel);
+
+        setSize(width, height);
+        setVisible(true);
+    }
+
+    public Component createPanel() {
         TestSphere sphere = new TestSphere();
 
         ParamPanel panel = new ParamPanel(sphere);
+
+        return panel;
     }
 
     public static final void main(String[] args) {
-        showPanel();
+        DevTestEditors tester = new DevTestEditors();
     }
 }
 
