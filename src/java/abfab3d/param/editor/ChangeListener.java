@@ -16,7 +16,6 @@ import abfab3d.param.Parameter;
 /**
  * Called when an editor changes a parameter
  *
- * @author Alan Hudson
  */
 public interface ChangeListener {
     public void valueChanged(Parameter param);
