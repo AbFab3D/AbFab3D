@@ -15,6 +15,10 @@ import abfab3d.param.Parameter;
 
 import java.awt.TextField;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import static abfab3d.util.Output.printf;
 
 
 /**
@@ -22,7 +26,7 @@ import java.awt.Component;
  *
  * @author Vladimir Bulatov
  */
-public class DefaultEditor extends BaseEditor {
+public class DefaultEditor extends BaseEditor implements ActionListener {
 
     static final int EDITOR_SIZE = 10;
 
@@ -35,6 +39,12 @@ public class DefaultEditor extends BaseEditor {
         m_param = param;
         m_textField = new TextField(EDITOR_SIZE);
         m_textField.setText(m_param.getValue().toString());
+        m_textField.addActionListener(this);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (m_listener != null) m_listener.paramChanged(m_param);
     }
 
     /**

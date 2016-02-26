@@ -15,14 +15,16 @@ import abfab3d.param.DoubleParameter;
 
 import java.awt.TextField;
 import java.awt.Component;
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import static abfab3d.util.Output.printf;
 
 /**
  * Edits Double Parameter
  *
  * @author Alan Hudson
  */
-public class DoubleEditor extends BaseEditor {
+public class DoubleEditor extends BaseEditor implements ActionListener {
 
     static final int EDITOR_SIZE = 10;
 
@@ -35,6 +37,12 @@ public class DoubleEditor extends BaseEditor {
         m_param = param;
         m_textField = new TextField(EDITOR_SIZE);
         m_textField.setText(m_param.getValue().toString());
+        m_textField.addActionListener(this);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (m_listener != null) m_listener.paramChanged(m_param);
     }
 
     /**

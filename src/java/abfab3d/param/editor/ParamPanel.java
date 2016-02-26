@@ -33,6 +33,7 @@ public class ParamPanel extends Frame {
 
     private Parameterizable m_node;
     private static EditorFactory sm_factory;
+    private ParamChangedListener m_plistener;
     
     private Frame m_frame;
 
@@ -56,7 +57,8 @@ public class ParamPanel extends Frame {
      * Get notification of any parameter changes from this editor
      * @param l
      */
-    public void addChangeListener(ParamChangedListener l) {
+    public void addParamChangedListener(ParamChangedListener l) {
+        m_plistener = l;
     }
 
     Component makeParamPanel(Parameterizable node){
@@ -75,6 +77,7 @@ public class ParamPanel extends Frame {
                                   GridBagConstraints.NONE,GridBagConstraints.NORTHEAST, 0.,hWeight,SPACE,SPACE,SPACE,0);
 
             Editor editor = sm_factory.createEditor(param[i]);
+            editor.addChangeListener(m_plistener);
             printf("param: %s editor: %s\n", param[i], editor);
 
             WindowUtils.constrain(panel,editor.getComponent(), 1,i,1,1,
