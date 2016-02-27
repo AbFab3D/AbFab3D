@@ -18,6 +18,7 @@ import java.awt.Component;
 
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.SpinnerModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.vecmath.Vector3d;
@@ -32,8 +33,11 @@ public class Vector3dEditor extends BaseEditor implements ChangeListener {
     static final int EDITOR_SIZE = 10;
 
     private Vector3dParameter m_param;
-     private JPanel mainPanel;
+    private JPanel mainPanel;
     
+    private DoubleEditor x_editor;
+    private DoubleEditor y_editor;
+    private DoubleEditor z_editor;
     
     public Vector3dEditor(Vector3dParameter param) {
         m_param = param;
@@ -41,6 +45,11 @@ public class Vector3dEditor extends BaseEditor implements ChangeListener {
 
     @Override
     public void stateChanged(ChangeEvent e) {
+    	double x = (Double) x_editor.getModel().getValue();
+    	double y = (Double) y_editor.getModel().getValue();
+    	double z = (Double) z_editor.getModel().getValue();
+    	m_param.setValue(new Vector3d(x, y, z));
+    	
         if (m_listener != null) m_listener.paramChanged(m_param);
     }
     
@@ -58,9 +67,9 @@ public class Vector3dEditor extends BaseEditor implements ChangeListener {
     	DoubleParameter xParam = new DoubleParameter("X", "X Position", val.x);
     	DoubleParameter yParam = new DoubleParameter("Y", "Y Position", val.y);
     	DoubleParameter zParam = new DoubleParameter("Z", "Z Position", val.z);
-    	DoubleEditor x_editor = new DoubleEditor(xParam);
-    	DoubleEditor y_editor = new DoubleEditor(yParam);
-    	DoubleEditor z_editor = new DoubleEditor(zParam);
+    	x_editor = new DoubleEditor(xParam);
+    	y_editor = new DoubleEditor(yParam);
+    	z_editor = new DoubleEditor(zParam);
     	
     	Component x_comp = x_editor.getComponent();
     	Component y_comp = y_editor.getComponent();

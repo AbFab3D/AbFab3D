@@ -60,4 +60,8 @@ public class DoubleEditor extends BaseEditor implements ChangeListener {
         double step = m_param.getStep();
         spinnerModel = new SpinnerNumberModel(def_val, min_val, max_val, step);
     }
+    
+    public SpinnerModel getModel() {
+    	return spinnerModel;
+    }
 }
