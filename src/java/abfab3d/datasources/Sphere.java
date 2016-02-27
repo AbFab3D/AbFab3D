@@ -46,7 +46,7 @@ public class Sphere extends TransformableDataSource {
     
 
     Vector3dParameter mp_center = new Vector3dParameter("center","Center",new Vector3d(0,0,0));
-    private DoubleParameter  mp_radius = new DoubleParameter("radius","radius of the sphere", 1.*MM);
+    private DoubleParameter  mp_radius = new DoubleParameter("radius","radius of the sphere", 1.*MM,Double.MIN_VALUE,Double.MAX_VALUE,0.1*MM);
 
     private double R, R2, RR;
     private double x0,y0,z0;
