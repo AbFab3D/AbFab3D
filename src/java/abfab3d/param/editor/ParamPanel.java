@@ -17,8 +17,7 @@ import abfab3d.param.Parameter;
 import java.awt.*;
 import java.util.ArrayList;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 
 import static abfab3d.util.Output.printf;
 
