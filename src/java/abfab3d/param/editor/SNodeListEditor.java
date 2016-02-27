@@ -75,6 +75,7 @@ public class SNodeListEditor extends BaseEditor implements ActionListener {
             vals[i] = field.getClass().getName();
         }
         component = new JComboBox(vals);
+        component.setSelectedIndex(-1);
         component.addActionListener(this);
 
         return component;

@@ -59,7 +59,7 @@ public class DoubleEditor extends BaseEditor implements ChangeListener {
         double def_val = (Double) m_param.getDefaultValue();
         double min_val = m_param.getMinRange();
         double max_val = m_param.getMaxRange();
-        max_val = 10;
+        max_val = 1000;
 
         double step = m_param.getStep();
 
