@@ -52,8 +52,9 @@ public class ParamPanel extends Frame {
         WindowUtils.constrain(this, parametersPanel, 0,0,1,1, 
                               GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
         this.pack();
-        
-        
+
+        WindowManager wm = WindowManager.getInstance();
+        wm.addPanel(this);
     }
 
     /**

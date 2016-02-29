@@ -12,11 +12,8 @@ package abfab3d.param.editor;
 
 import abfab3d.param.Parameterizable;
 import abfab3d.param.SNodeListParameter;
-import abfab3d.util.DataSource;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -49,10 +46,14 @@ public class SNodeListEditor extends BaseEditor implements ActionListener {
         List list = m_param.getValue();
         Parameterizable node = (Parameterizable)list.get(sel);
 
-        printf("Got selection: %s\n",node);
+        printf("Got selection: %s\n", node);
+        WindowManager wm = WindowManager.getInstance();
+        int lastY = wm.getLastY();
         ParamPanel panel = new ParamPanel(node);
         panel.addParamChangedListener(m_listener);
         children.add(panel);
+
+        panel.setLocation(565,lastY);
         panel.setVisible(true);
 
         if (m_listener != null) m_listener.paramChanged(m_param);

@@ -7,7 +7,6 @@ package abfab3d.param.editor;
  */
 public abstract class BaseEditor implements Editor {
     protected ParamChangedListener m_listener;
-
     /**
      * Get notification of any parameter changes from this editor
      * @param l
