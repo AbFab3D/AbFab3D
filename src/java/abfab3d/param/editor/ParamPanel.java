@@ -29,7 +29,7 @@ import static abfab3d.util.Output.printf;
  */
 public class ParamPanel extends Frame {
 
-    static final int SPACE = 3;
+    static final int SPACE = 2;
 
     private Parameterizable m_node;
     private static EditorFactory sm_factory;

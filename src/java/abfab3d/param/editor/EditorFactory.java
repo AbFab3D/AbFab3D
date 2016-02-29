@@ -28,7 +28,8 @@ public class EditorFactory {
     public Editor createEditor(Parameter param) {
         switch(param.getType()) {
             case DOUBLE:
-                return new DoubleEditor((DoubleParameter)param);
+                //return new DoubleEditor((DoubleParameter)param);
+                return new DoubleEditorScroll((DoubleParameter)param);
             case VECTOR_3D:
                 return new Vector3dEditor((Vector3dParameter)param);
             case ENUM:

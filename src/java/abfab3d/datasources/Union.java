@@ -84,6 +84,29 @@ public class Union  extends TransformableDataSource implements SNode {
     }
 
     /**
+       union of three shapes 
+     */
+    public Union(DataSource shape1, DataSource shape2, DataSource shape3 ){
+        initParams();
+        
+        add(shape1);
+        add(shape2);        
+        add(shape3);        
+    }
+
+    /**
+       union of four shapes 
+     */
+    public Union(DataSource shape1, DataSource shape2, DataSource shape3, DataSource shape4){
+        initParams();
+        
+        add(shape1);
+        add(shape2);        
+        add(shape3);        
+        add(shape4); 
+    }
+
+    /**
      * @noRefGuide
      */
     protected void initParams() {
