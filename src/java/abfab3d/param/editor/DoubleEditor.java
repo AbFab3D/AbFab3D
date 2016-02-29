@@ -11,6 +11,8 @@
 package abfab3d.param.editor;
 
 import abfab3d.param.DoubleParameter;
+import abfab3d.util.Unit;
+import abfab3d.util.Units;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -57,7 +59,15 @@ public class DoubleEditor extends BaseEditor implements ChangeListener {
         double def_val = (Double) m_param.getDefaultValue();
         double min_val = m_param.getMinRange();
         double max_val = m_param.getMaxRange();
+        max_val = 1000;
+
         double step = m_param.getStep();
+
+        step = 1 * Units.MM;
         spinnerModel = new SpinnerNumberModel(def_val, min_val, max_val, step);
+    }
+    
+    public SpinnerModel getModel() {
+    	return spinnerModel;
     }
 }
