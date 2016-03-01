@@ -30,13 +30,10 @@ public class DefaultEditor extends BaseEditor implements ActionListener {
 
     static final int EDITOR_SIZE = 10;
 
-    private Parameter m_param;
-
     TextField  m_textField;
     
     public DefaultEditor(Parameter param) {
-
-        m_param = param;
+        super(param);
         m_textField = new TextField(EDITOR_SIZE);
         m_textField.setText(m_param.getValue().toString());
         m_textField.addActionListener(this);

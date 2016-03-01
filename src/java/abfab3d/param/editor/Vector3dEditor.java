@@ -39,6 +39,7 @@ public class Vector3dEditor extends BaseEditor implements ChangeListener {
     private DoubleEditor z_editor;
     
     public Vector3dEditor(Vector3dParameter param) {
+        super(param);
         m_param = param;
     }
 

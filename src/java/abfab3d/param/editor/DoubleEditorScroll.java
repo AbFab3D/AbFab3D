@@ -40,10 +40,11 @@ public class DoubleEditorScroll extends BaseEditor {
     
     DoubleParameter parameter;
     Vector valueListeners=null;
-    ScrollTextField textField;
+    ScrollTextField m_textField;
     JButton buttonUp, buttonDown;
+
+    double m_currentIncrement = 0.0001;
     
-    double increment = 0.01;
     int m_length;
 
     JPanel m_component;
@@ -56,11 +57,12 @@ public class DoubleEditorScroll extends BaseEditor {
     }
     public DoubleEditorScroll(DoubleParameter parameter, int length){
         
-        
-        textField = new ScrollTextField(parameter.getValue().toString(), parameter.getDesc(), m_length, false); //false - process floats
-        //textField.addValueChangedListener(this);
-        textField.addFocusListener(new MyFocusListener());
-        textField.addKeyListener(new MyKeyListener());
+        super(parameter);
+
+        m_textField = new ScrollTextField(parameter.getValue().toString(), parameter.getDesc(), m_length, false); //false - process floats
+        m_textField.addChangedListener(new ScrollTextChangedListener());
+        m_textField.addFocusListener(new MyFocusListener());
+        m_textField.addKeyListener(new MyKeyListener());
         
         ButtonMouseListener ml_up   = new ButtonMouseListener(1);    
         ButtonMouseListener ml_down = new ButtonMouseListener(-1);    
@@ -83,7 +85,7 @@ public class DoubleEditorScroll extends BaseEditor {
         
         m_component = new JPanel();
         m_component.setLayout(new GridBagLayout());
-        WindowUtils.constrain(m_component,textField, 0,0,1,1,   gbc.HORIZONTAL, gbc.CENTER, 1., 0.1, 0,0,0,0); 
+        WindowUtils.constrain(m_component,m_textField, 0,0,1,1,   gbc.HORIZONTAL, gbc.CENTER, 1., 0.1, 0,0,0,0); 
         WindowUtils.constrain(m_component,buttons,  1,0,1,1,   gbc.NONE,       gbc.CENTER,  0., 0.1, 1,0,1,0); 
         this.parameter = parameter;
     }
@@ -96,67 +98,31 @@ public class DoubleEditorScroll extends BaseEditor {
     public void setParam(DoubleParameter parameter){
         
         this.parameter = parameter;
-        setValue(parameter.getValue().toString());  
+        //setValue(parameter.getValue().toString());  
         
     }
     
     
     public void setEditable(boolean mode){
         
-        textField.setEditable(mode);
+        m_textField.setEditable(mode);
         
     }
-    /*
-      public void addValueChangedListener(ValueChangedListener listener) {
-      if(valueListeners == null){
-      valueListeners = new Vector(1);
-      } 
-      valueListeners.addElement(listener);
-      }
-    */
-    /**
-     *  ValueChangedListener    callback    
-     */
-    public void valueChanged(Object obj){
-        processValueChanged();
-    }
-    /**
-       void valueChanged()
-    */
-    public void processValueChanged(){
-        
-        parameter.setValue(textField.getText());
-        textField.setText(getFormattedValue());
-        informListeners();
-    }
-    
-    void informListeners(){
-        
-        if(valueListeners == null)
-            return;    
-        
-        for(int i =0; i < valueListeners.size(); i++){
-            
-            //ValueChangedListener listener = (ValueChangedListener)valueListeners.elementAt(i);
-            //listener.valueChanged(this);
-            
-        }
-    }
-    
-    public String getValue(){
-        return textField.getText();
-    }
-    
-    public void setValue(String value){
-        textField.setText(value);
-    }
+
     
     public void updateEditor(){
         
-        textField.setText(getFormattedValue());
+        //textField.setText(getFormattedValue());
         
     }
     
+    void processValueChanged(){
+
+        Double nvalue = new Double(Double.parseDouble(m_textField.getText()));
+        parameter.setValue(nvalue);
+        //textField.setText(getFormattedValue());
+        informListeners();    
+    }
     public void onActionEvent(Object userData){
         
     }
@@ -189,13 +155,12 @@ public class DoubleEditorScroll extends BaseEditor {
         
         void doIncrement(){
             
-            increment = 0.001;//parameter.getIncrement();
+            double increment = m_textField.getIncrement();
             double v = (parameter.getValue().doubleValue() + sign * increment);
             double res = round(parameter.getValue().doubleValue() + sign * increment, increment);
             //System.out.println("v:" + v + " increment: " + increment + " res: " + res);
             parameter.setValue(res);
-            String text = parameter.getValue().toString();
-            textField.setText(text);      
+            m_textField.setValue(parameter.getValue());
             informListeners();
             
         }
@@ -247,10 +212,10 @@ public class DoubleEditorScroll extends BaseEditor {
                 return;
             }
             
-            // do sliding mode   
-            parameter.setValue(round(startDragValue + (mouseDownY-y) * startDragIncrement, startDragIncrement));
-            String text = parameter.getValue().toString();
-            textField.setText(text);      
+            // do sliding mode  
+            double value = round(startDragValue + (mouseDownY-y) * startDragIncrement, startDragIncrement);
+            parameter.setValue(value);
+            m_textField.setValue(value); 
           informListeners();      
           
       }
@@ -277,12 +242,11 @@ public class DoubleEditorScroll extends BaseEditor {
             }
         }
     } // class ButtonMouseListener
-    
+        
     
     public void updateParameter(){
         
-        parameter.setValue(new Double(Double.parseDouble(textField.getText())));
-        textField.setText(getFormattedValue());
+        parameter.setValue(m_textField.getValue());
         
     }
     
@@ -294,7 +258,6 @@ public class DoubleEditorScroll extends BaseEditor {
 
     public void focusLost(FocusEvent e){
 
-      //System.out.println("focusLost()");
       updateParameter();
       
     }
@@ -346,9 +309,22 @@ public class DoubleEditorScroll extends BaseEditor {
             default: 
                 return;
             case KeyEvent.VK_ENTER:  
-                valueChanged(null);
+                processValueChanged();
                 return;
             }
         }
     }// class MyKeyListener 
+
+    class ScrollTextChangedListener implements ChangedListener {
+        
+        /**
+         *  ValueChangedListener    callback    
+         */
+        public void valueChanged(Object obj){
+            m_currentIncrement = m_textField.getIncrement();
+            processValueChanged();            
+        }
+    }
+    
+
 }

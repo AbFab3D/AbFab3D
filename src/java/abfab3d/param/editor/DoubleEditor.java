@@ -28,19 +28,20 @@ public class DoubleEditor extends BaseEditor implements ChangeListener {
 
     static final int EDITOR_SIZE = 10;
 
-    private DoubleParameter m_param;
+    private DoubleParameter m_dparam;
     private SpinnerModel spinnerModel;
 
 
     public DoubleEditor(DoubleParameter param) {
-        m_param = param;
+        super(param);
+        m_dparam = param;
     }
 
 
     @Override
     public void stateChanged(ChangeEvent e) {
         m_param.setValue((Double)spinnerModel.getValue());
-        if (m_listener != null) m_listener.paramChanged(m_param);
+        informListeners();
     }
 
     /**
@@ -57,13 +58,13 @@ public class DoubleEditor extends BaseEditor implements ChangeListener {
 
     private void setSpinnerModel() {
         double def_val = (Double) m_param.getDefaultValue();
-        double min_val = m_param.getMinRange();
-        double max_val = m_param.getMaxRange();
+        double min_val = m_dparam.getMinRange();
+        double max_val = m_dparam.getMaxRange();
         max_val = 1000;
 
-        double step = m_param.getStep();
+        double step = m_dparam.getStep();
 
-        step = 1 * Units.MM;
+        step = 0.1 * Units.MM;
         spinnerModel = new SpinnerNumberModel(def_val, min_val, max_val, step);
     }
     

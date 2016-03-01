@@ -40,7 +40,7 @@ public class DevTestEditors extends JFrame implements ParamChangedListener {
     
     @Override
         public void paramChanged(Parameter param) {
-        printf("Val Changed: %s\n",param);
+        printf("paramChanged: %s\n",param.getValue());
     }
     
     Parameterizable makeBox(){

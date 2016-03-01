@@ -35,6 +35,7 @@ public class SNodeListEditor extends BaseEditor implements ActionListener {
     private ArrayList<ParamPanel> children;
 
     public SNodeListEditor(SNodeListParameter param) {
+        super(param);
         m_param = param;
         children = new ArrayList<ParamPanel>();
     }
@@ -56,7 +57,7 @@ public class SNodeListEditor extends BaseEditor implements ActionListener {
         panel.setLocation(565,lastY);
         panel.setVisible(true);
 
-        if (m_listener != null) m_listener.paramChanged(m_param);
+        informListeners();
 
     }
 

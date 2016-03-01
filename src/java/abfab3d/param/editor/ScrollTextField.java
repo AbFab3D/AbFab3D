@@ -21,7 +21,9 @@ import static abfab3d.util.Output.printf;
 public class ScrollTextField extends TextField {
     
     private double incrementStep = 0.1;
+    private String m_currentFormat = "%7.5f";
     double value_down;
+    double m_value;
     int y_down, y_old;
     private int compHeight = 0;
     private boolean mouseDraggedFlag = false;
@@ -35,20 +37,13 @@ public class ScrollTextField extends TextField {
     private boolean processUpDownArrowKeys = true;
     
     AFocusListener focusListener = new AFocusListener();
-    
-    public ScrollTextField(String value, String desc, int columns){
         
-        super(value, columns);
-        //this.step = step;
-        initListeners();
-        
-    }
-    
     public ScrollTextField(String value, int columns){
         
         super(value, columns);
         
         initListeners();
+        m_value = Double.parseDouble(value);
         
     }
     
@@ -82,10 +77,10 @@ public class ScrollTextField extends TextField {
                     // user really drags
                     mouseDraggedFlag = true;
                 }		
-      }
-            if(Math.abs(y-y_old) < dragSensitivity){
-                return;
             }
+            //if(Math.abs(y-y_old) < dragSensitivity){
+            //    return;
+            //}
             double value = value_down;
                         
             value = value_down - ((y-y_down)/dragSensitivity)*incrementStep;
@@ -104,21 +99,37 @@ public class ScrollTextField extends TextField {
                 
             } else {
                 
-                updateNumber(fmt("%10.8f",value));
+                updateNumber(fmt(m_currentFormat,value));
             }
             y_old = y;
-            valueChanged();
+            informListeners();
         } 
     }
     
+    public void setValue(double value){
+
+        m_value = value;
+        setText(fmt(m_currentFormat,m_value));
+        
+    }
+
+    
+
+    public double getValue(){
+
+        return m_value;
+        
+    }
+
+
     private void updateNumber(String number){
         
         setText(number + appendix);
-        valueChanged();
+        informListeners();
         
     }
     
-    private String appendix = "mm";  // text at the end of number, should be appended 
+    private String appendix = "";  // text at the end of number, should be appended 
     
     private String extractNumber(){
         
@@ -159,7 +170,7 @@ public class ScrollTextField extends TextField {
     /**
        used by subclasses to know, that value was changed 
     */
-    public void valueChanged(){
+    public void informListeners(){
         
         if(valueListeners != null){
             for(int i = 0; i < valueListeners.size(); i++){
@@ -168,15 +179,14 @@ public class ScrollTextField extends TextField {
             }
         }
     }
-    /*
-      public void addValueChangedListener(ValueChangedListener listener) {
-      
-      if(valueListeners == null){
-      valueListeners = new Vector(1);
-      } 
-      valueListeners.addElement(listener);
-      }
-    */
+    
+    public void addChangedListener(ChangedListener listener) {
+        
+        if(valueListeners == null){
+            valueListeners = new Vector(1);
+        } 
+        valueListeners.addElement(listener);
+    }    
     
     private void makeIncrementStep(int caret_position, String text){
         
@@ -215,81 +225,18 @@ public class ScrollTextField extends TextField {
         }
         
         incrementStep = delta;
+        int digits = (int)Math.max(0.,-Math.floor(Math.log10(incrementStep)));
+        printf("digits: %d\n", digits);
+
+        m_currentFormat = "%" + (digits+2) + "." + digits+"f";
         
     }
-    
-    private void makeIncrementStep_old(int caret_position, String text){
-        
-        double v1 = Double.valueOf(text).doubleValue();
-        double v2;
-        int dot_position = text.lastIndexOf('.');
-        if(dot_position < 0){
-            // no decimal dot in the number 
-            v2 = Double.valueOf(text+".1").doubleValue();      
-            
-        } else {
-            
-            v2 = Double.valueOf(text+"1").doubleValue();
-            
-        }
-        System.out.println("v1: " + v1 + " v2: " + v2);
-        
-        double delta = v2-v1;
-        if(delta < 0){
-            delta = -delta; 
-        } if(delta == 0.0){
-            delta = 1;
-        }
-        
-        int diff = text.length() - caret_position;
-        if(caret_position <= dot_position){
-            diff --;
-        }
-        while(diff > 0){
-            diff --;
-            delta *= 10.;
-        }
-        delta = round10(delta);
-        if(doInteger){
-            delta = (int)delta;
-            if(delta == 0){
-                delta = 1;
-            }
-        }
-        //System.out.println("caret_position: " + caret_position + " delta: " + delta);
-        incrementStep = delta;
+
+    public double getIncrement(){
+        return incrementStep;
     }
-    
-    /**
-     *
-     *
-     *
-     */
-    double round10(double v){
-        if(v == 0)
-            return 0;
-        System.out.println("v: " + v);
-        double power = Math.log(v*1.1)/Math.log(10);
-        int i = (int)Math.floor(power);
-        double x = 1;
-        System.out.println("power: " + power + " i: " + i);
-        if(i == 0){
-            return x;
-        } else if( i < 0){
-            while(i < 0){
-                x /= 10;
-                i++;
-            }
-            return x;
-        } else { // i > 0
-            while(i > 0){
-                x *= 10;
-                i--;
-            }
-            return x;      
-        }
-    }
-    
+
+
     
     /**
      *
@@ -348,7 +295,7 @@ public class ScrollTextField extends TextField {
             // potentially editing was changed 
             String newValue = getText();
             if(!oldValue.equals(newValue))
-                valueChanged();
+                informListeners();
         }    
     }
     
@@ -383,7 +330,7 @@ public class ScrollTextField extends TextField {
                 number += sign*incrementStep;
                 
                 double scale = 1/incrementStep;
-                number = Math.round(number*scale)/(scale);    
+                //number = Math.round(number*scale)/(scale);    
                 
                 if(doInteger){
                     
@@ -391,7 +338,7 @@ public class ScrollTextField extends TextField {
                     
                 }  else {
                     
-                    updateNumber(String.valueOf(number));
+                    updateNumber(fmt(m_currentFormat, number));
                 }
                 
                 setCaretPosition(cp);
@@ -401,4 +348,3 @@ public class ScrollTextField extends TextField {
     }
     
 }
-

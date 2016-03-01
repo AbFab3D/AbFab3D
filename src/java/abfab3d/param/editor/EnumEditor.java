@@ -27,17 +27,18 @@ public class EnumEditor extends BaseEditor implements ActionListener {
 
     static final int EDITOR_SIZE = 10;
 
-    private EnumParameter m_param;
+    private EnumParameter m_eparam;
     private JComboBox component;
 
     public EnumEditor(EnumParameter param) {
-        m_param = param;
+        super(param);
+        m_eparam = param;
     }
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
         m_param.setValue((String) component.getSelectedItem());
-        if (m_listener != null) m_listener.paramChanged(m_param);
+        informListeners();
 	}
 
     /**
@@ -47,9 +48,9 @@ public class EnumEditor extends BaseEditor implements ActionListener {
     public Component getComponent() {
     	if (component != null) return component;
     	
-        String[] vals = m_param.getValues();
+        String[] vals = m_eparam.getValues();
         component = new JComboBox(vals);
-        component.setSelectedItem(m_param.getValue());
+        component.setSelectedItem(m_eparam.getValue());
 
         component.addActionListener(this);
         return component;
