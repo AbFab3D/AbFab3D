@@ -25,6 +25,8 @@ import abfab3d.param.Vector3dParameter;
 public class EditorFactory {
 
     
+    private static EditorFactory sm_factory;
+    
     public Editor createEditor(Parameter param) {
         switch(param.getType()) {
             case DOUBLE:
@@ -40,4 +42,11 @@ public class EditorFactory {
             return new DefaultEditor(param);
         }
     }
+    
+    public static EditorFactory getInstance(){
+        if(sm_factory == null)
+            sm_factory = new EditorFactory();
+        return sm_factory;
+    }
+    
 }

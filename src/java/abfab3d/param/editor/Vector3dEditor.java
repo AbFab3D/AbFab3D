@@ -13,13 +13,16 @@ package abfab3d.param.editor;
 
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
+import abfab3d.param.Parameter;
 
 import java.awt.Component;
+import java.awt.GridLayout;
 
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
 import javax.vecmath.Vector3d;
 
 /**
@@ -27,16 +30,17 @@ import javax.vecmath.Vector3d;
  *
  * @author Tony Wong
  */
-public class Vector3dEditor extends BaseEditor implements ChangeListener {
+public class Vector3dEditor extends BaseEditor implements ParamChangedListener {
 
     static final int EDITOR_SIZE = 10;
 
     private Vector3dParameter m_param;
     private JPanel mainPanel;
     
-    private DoubleEditor x_editor;
-    private DoubleEditor y_editor;
-    private DoubleEditor z_editor;
+    private DoubleParameter 
+        m_xparam,
+        m_yparam,
+        m_zparam;
     
     public Vector3dEditor(Vector3dParameter param) {
         super(param);
@@ -44,13 +48,16 @@ public class Vector3dEditor extends BaseEditor implements ChangeListener {
     }
 
     @Override
-    public void stateChanged(ChangeEvent e) {
-    	double x = (Double) x_editor.getModel().getValue();
-    	double y = (Double) y_editor.getModel().getValue();
-    	double z = (Double) z_editor.getModel().getValue();
+        public void paramChanged(Parameter p) {
+
+        double x = m_xparam.getValue();
+        double y = m_yparam.getValue();
+        double z = m_zparam.getValue();
+
     	m_param.setValue(new Vector3d(x, y, z));
     	
-        if (m_listener != null) m_listener.paramChanged(m_param);
+        informListeners();
+
     }
     
     /**
@@ -63,22 +70,25 @@ public class Vector3dEditor extends BaseEditor implements ChangeListener {
     	if (mainPanel == null) {
     		mainPanel = new JPanel();
     	}
-
-    	DoubleParameter xParam = new DoubleParameter("X", "X Position", val.x);
-    	DoubleParameter yParam = new DoubleParameter("Y", "Y Position", val.y);
-    	DoubleParameter zParam = new DoubleParameter("Z", "Z Position", val.z);
-    	x_editor = new DoubleEditor(xParam);
-    	y_editor = new DoubleEditor(yParam);
-    	z_editor = new DoubleEditor(zParam);
+        
+    	m_xparam = new DoubleParameter("X", "X Position", val.x);
+    	m_yparam = new DoubleParameter("Y", "Y Position", val.y);
+    	m_zparam = new DoubleParameter("Z", "Z Position", val.z);
+        EditorFactory factory = EditorFactory.getInstance();
+        
+    	Editor x_editor = factory.createEditor(m_xparam);
+    	Editor y_editor = factory.createEditor(m_yparam);
+    	Editor z_editor = factory.createEditor(m_zparam);
     	
     	Component x_comp = x_editor.getComponent();
     	Component y_comp = y_editor.getComponent();
     	Component z_comp = z_editor.getComponent();
-    	((JSpinner)x_comp).addChangeListener(this);
-    	((JSpinner)y_comp).addChangeListener(this);
-    	((JSpinner)z_comp).addChangeListener(this);
-    	
+        x_editor.addChangeListener(this);
+        y_editor.addChangeListener(this);
+        z_editor.addChangeListener(this);
+
     	mainPanel.removeAll();
+        mainPanel.setLayout(new GridLayout(1,3));
     	mainPanel.add(x_comp);
     	mainPanel.add(y_comp);
     	mainPanel.add(z_comp);
