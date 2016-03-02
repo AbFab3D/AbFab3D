@@ -13,24 +13,9 @@ package abfab3d.param;
 
 
 /**
- * A DataSource node that contains multiple children
- *
- * @author Alan Hudson
+   interface to create new nodes via name
  */
-public interface SNode {
-    /**
-     * Get the children of this node.
-     * @return A live array of children or null if no children
-     */
-    public SNode[] getChildren();
-
-    /**
-     * Get the bounds of this source containing all its children.
-     * Return null for infinite or unknown bounds
-     *
-     * @return The bounds or null
-     */
-    /*
-      public double[] getBounds();
-    */
+public interface SNodeFactory {
+    public String[] getNames();
+    public SNode createSNode(String nodeName);
 }

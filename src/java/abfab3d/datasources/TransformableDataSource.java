@@ -12,13 +12,32 @@
 
 package abfab3d.datasources;
 
+import java.util.List;
+
+
+import javax.vecmath.Vector3d;
+
+
 import abfab3d.param.BaseParameterizable;
+import abfab3d.param.Parameter;
+import abfab3d.param.SNodeListParameter;
+import abfab3d.param.SNode;
+import abfab3d.param.Parameterizable;
+import abfab3d.param.BaseSNodeFactory;
+
+
 import abfab3d.transforms.Rotation;
 import abfab3d.transforms.Scale;
 import abfab3d.transforms.Translation;
-import abfab3d.util.*;
+import abfab3d.transforms.CompositeTransform;
+import abfab3d.transforms.TransformsFactory;
 
-import javax.vecmath.Vector3d;
+import abfab3d.util.DataSource;
+import abfab3d.util.Initializable;
+import abfab3d.util.VecTransform;
+import abfab3d.util.Vec;
+import abfab3d.util.Bounds;
+
 
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
@@ -44,20 +63,31 @@ import static abfab3d.util.Output.printf;
  */
 public abstract class TransformableDataSource extends BaseParameterizable implements DataSource, Initializable {
 
+    static final boolean DEBUG = true;
     // transformation which is applied to the data point before the calculation of data value
     protected VecTransform m_transform = null; 
     // count of data channels 
+
     protected int m_channelsCount = 1;
     // count of channels of material 
     protected int m_materialChannelsCount = 0;
     // material used for this shape 
 
     // the material is potential multichannel data source and it adds channels to the total channels count
+    //TODO - make material a param
     protected DataSource m_material = null; 
     protected Bounds m_bounds = null;
     protected boolean boundsDirty = false;
 
+    SNodeListParameter mp_transform = new SNodeListParameter("transform", new BaseSNodeFactory(TransformsFactory.getNames(), TransformsFactory.getClassNames()));
+    
+    private Parameter m_aparam[] = new Parameter[]{
+        mp_transform
+    };
+    
+
     protected TransformableDataSource(){
+        addParams(m_aparam);
     }
 
     /**
@@ -66,7 +96,9 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @param transform General transformation to apply to the object before it is rendered
      */
     public void setTransform(VecTransform transform){
-        m_transform = transform; 
+        
+        mp_transform.set((Parameterizable)transform);
+
     }
 
     /**
@@ -91,6 +123,25 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
         return m_transform;
     }
 
+    public VecTransform makeTransform() {
+
+        List list = mp_transform.getValue();
+        
+        Object tr[] = list.toArray();
+        if(DEBUG)printf("makeTransform() %s count: %d\n", this, tr.length);
+        if(tr.length == 0){
+            return null;
+        } else if(tr.length == 1){
+            return (VecTransform)tr[0];
+        } else {
+            CompositeTransform ct = new CompositeTransform();
+            for(int k = 0 ; k < tr.length; k++){
+                ct.add((VecTransform)tr[k]);
+            }
+            return ct;
+        }
+    }
+
 
     // Helpers to make code less verbose
     /**
@@ -99,7 +150,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @noRefGuide
      */
     public void translate(Vector3d vec) {
-        m_transform = new Translation(vec);
+        setTransform(new Translation(vec));
     }
 
     /**
@@ -107,7 +158,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @noRefGuide
      */
     public void translate(double tx,double ty, double tz) {
-        m_transform = new Translation(tx,ty,tz);
+        setTransform(new Translation(tx,ty,tz));
     }
 
     /**
@@ -116,7 +167,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @noRefGuide
      */
     public void scale(Vector3d vec) {
-        m_transform = new Scale(vec);
+        setTransform(new Scale(vec));
     }
 
     /**
@@ -124,7 +175,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @noRefGuide
      */
     public void scale(double sx,double sy, double sz) {
-        m_transform = new Scale(sx,sy,sz);
+        setTransform(new Scale(sx,sy,sz));
     }
 
     /**
@@ -134,7 +185,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @noRefGuide
      */
     public void rotate(Vector3d axis, double angle){
-        m_transform = new Rotation(axis,angle);
+        setTransform( new Rotation(axis,angle));
     }
 
     /**
@@ -146,7 +197,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @noRefGuide
      */
     public void rotate(double ax, double ay, double az, double angle){
-        m_transform = new Rotation(ax,ay,az,angle);
+        setTransform( new Rotation(ax,ay,az,angle));
     }
 
     /**
@@ -239,9 +290,11 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
         int res = RESULT_OK;
 
-        if(m_transform != null && m_transform instanceof Initializable){
+        m_transform = makeTransform();
+        if(m_transform != null && m_transform  instanceof Initializable){
             res = ((Initializable)m_transform).initialize();
         }
+
 
         if(m_material != null){
             if( m_material instanceof Initializable){

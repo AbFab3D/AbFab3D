@@ -25,7 +25,7 @@ import javax.vecmath.Vector3d;
 /**
  * Performs translation in space
  */
-public class Translation extends BaseTransform implements VecTransform {
+public class Translation extends BaseTransform {
 
     protected double tx = 1, ty = 1, tz = 1;
     protected Vector3dParameter  mp_trans = new Vector3dParameter("translation","translation",new Vector3d(0,0,0));

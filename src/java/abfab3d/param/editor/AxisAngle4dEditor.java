@@ -12,7 +12,7 @@
 package abfab3d.param.editor;
 
 import abfab3d.param.DoubleParameter;
-import abfab3d.param.Vector3dParameter;
+import abfab3d.param.AxisAngle4dParameter;
 import abfab3d.param.Parameter;
 
 import java.awt.Component;
@@ -23,26 +23,25 @@ import javax.swing.JSpinner;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import javax.vecmath.Vector3d;
+import javax.vecmath.AxisAngle4d;
 
 /**
- * Edits Vector3d Parameter
+ * Edits AxisAngle4d Parameter
  *
- * @author Tony Wong
+ * @author Vladimkir Bulatov
  */
-public class Vector3dEditor extends BaseEditor implements ParamChangedListener {
+public class AxisAngle4dEditor extends BaseEditor implements ParamChangedListener {
 
-    static final int EDITOR_SIZE = 10;
-
-    private Vector3dParameter m_param;
+    private AxisAngle4dParameter m_param;
     private JPanel mainPanel;
     
     private DoubleParameter 
         m_xparam,
         m_yparam,
-        m_zparam;
+        m_zparam,
+        m_aparam;
     
-    public Vector3dEditor(Vector3dParameter param) {
+    public AxisAngle4dEditor(AxisAngle4dParameter param) {
         super(param);
         m_param = param;
     }
@@ -53,8 +52,9 @@ public class Vector3dEditor extends BaseEditor implements ParamChangedListener {
         double x = m_xparam.getValue();
         double y = m_yparam.getValue();
         double z = m_zparam.getValue();
+        double a = m_aparam.getValue();
 
-    	m_param.setValue(new Vector3d(x, y, z));
+    	m_param.setValue(new AxisAngle4d(x, y, z,a));
     	
         informListeners();
 
@@ -65,7 +65,8 @@ public class Vector3dEditor extends BaseEditor implements ParamChangedListener {
        @Override
     */
     public Component getComponent() {
-    	Vector3d val = m_param.getValue();
+
+    	AxisAngle4d val = m_param.getValue();
       	
     	if (mainPanel == null) {
     		mainPanel = new JPanel();
@@ -74,24 +75,31 @@ public class Vector3dEditor extends BaseEditor implements ParamChangedListener {
     	m_xparam = new DoubleParameter("X", "X Position", val.x);
     	m_yparam = new DoubleParameter("Y", "Y Position", val.y);
     	m_zparam = new DoubleParameter("Z", "Z Position", val.z);
+    	m_aparam = new DoubleParameter("Angle", "Angle", val.angle);
+
         EditorFactory factory = EditorFactory.getInstance();
         
     	Editor x_editor = factory.createEditor(m_xparam);
     	Editor y_editor = factory.createEditor(m_yparam);
     	Editor z_editor = factory.createEditor(m_zparam);
+    	Editor a_editor = factory.createEditor(m_aparam);
     	
     	Component x_comp = x_editor.getComponent();
     	Component y_comp = y_editor.getComponent();
     	Component z_comp = z_editor.getComponent();
+    	Component a_comp = a_editor.getComponent();
+
         x_editor.addChangeListener(this);
         y_editor.addChangeListener(this);
         z_editor.addChangeListener(this);
+        a_editor.addChangeListener(this);
 
     	mainPanel.removeAll();
-        mainPanel.setLayout(new GridLayout(3,1));
+        mainPanel.setLayout(new GridLayout(4,1));
     	mainPanel.add(x_comp);
     	mainPanel.add(y_comp);
     	mainPanel.add(z_comp);
+    	mainPanel.add(a_comp);
     	
     	return mainPanel;
     }

@@ -23,8 +23,8 @@ import abfab3d.util.Unit;
 public class DoubleParameter extends NumberParameter {
 	/*public enum Unit {NONE, M, CM, MM, M3, CM3, MM3, FT, IN, UM, PT}; */
 	
-    public static final double DEFAULT_MIN_RANGE = Double.NEGATIVE_INFINITY;
-    public static final double DEFAULT_MAX_RANGE = Double.POSITIVE_INFINITY;
+    public static final double DEFAULT_MIN_RANGE = -Double.MAX_VALUE;
+    public static final double DEFAULT_MAX_RANGE = Double.MAX_VALUE;
     public static final double DEFAULT_STEP = 1;
     public static final Unit DEFAULT_UNIT = Unit.NONE;
 

@@ -31,6 +31,7 @@ import javax.swing.plaf.basic.BasicArrowButton;
 
 import abfab3d.param.DoubleParameter;
 
+import static abfab3d.util.MathUtil.clamp;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
 
@@ -38,7 +39,8 @@ import static abfab3d.util.Output.printf;
 public class DoubleEditorScroll extends BaseEditor { 
   
     
-    DoubleParameter parameter;
+    DoubleParameter m_dparam;
+
     Vector valueListeners=null;
     ScrollTextField m_textField;
     JButton buttonUp, buttonDown;
@@ -50,20 +52,32 @@ public class DoubleEditorScroll extends BaseEditor {
     JPanel m_component;
     final Dimension sliderDimension = new Dimension(15,25);
     
+    double m_minRange = -Double.MAX_VALUE;
+    double m_maxRange = Double.MAX_VALUE;
+    
     static final int DEFAULT_LENGTH = 10;
     
     public DoubleEditorScroll(DoubleParameter parameter){
         this(parameter, DEFAULT_LENGTH);
     }
+
     public DoubleEditorScroll(DoubleParameter parameter, int length){
         
         super(parameter);
+        m_dparam = parameter;
+        
+        m_minRange = m_dparam.getMinRange();
+        m_maxRange = m_dparam.getMaxRange();
 
-        m_textField = new ScrollTextField(parameter.getValue().toString(), parameter.getDesc(), m_length, false); //false - process floats
-        m_textField.addChangedListener(new ScrollTextChangedListener());
+        m_textField = new ScrollTextField(parameter.getValue(), parameter.getDesc(), m_length, false); //false - process floats
+
+        m_textField.addChangedListener(new MyTextChangedListener());
         m_textField.addFocusListener(new MyFocusListener());
         m_textField.addKeyListener(new MyKeyListener());
-        
+
+        m_textField.setMinRange(m_minRange);
+        m_textField.setMaxRange(m_maxRange);
+
         ButtonMouseListener ml_up   = new ButtonMouseListener(1);    
         ButtonMouseListener ml_down = new ButtonMouseListener(-1);    
         
@@ -87,7 +101,6 @@ public class DoubleEditorScroll extends BaseEditor {
         m_component.setLayout(new GridBagLayout());
         WindowUtils.constrain(m_component,m_textField, 0,0,1,1,   gbc.HORIZONTAL, gbc.CENTER, 1., 0.1, 0,0,0,0); 
         WindowUtils.constrain(m_component,buttons,  1,0,1,1,   gbc.NONE,       gbc.CENTER,  0., 0.1, 1,0,1,0); 
-        this.parameter = parameter;
     }
     
     public Component getComponent(){
@@ -97,8 +110,8 @@ public class DoubleEditorScroll extends BaseEditor {
     
     public void setParam(DoubleParameter parameter){
         
-        this.parameter = parameter;
-        //setValue(parameter.getValue().toString());  
+        m_dparam = parameter;
+        m_textField.setValue(m_dparam.getValue().doubleValue());  
         
     }
     
@@ -119,10 +132,11 @@ public class DoubleEditorScroll extends BaseEditor {
     void processValueChanged(){
 
         Double nvalue = new Double(Double.parseDouble(m_textField.getText()));
-        parameter.setValue(nvalue);
+        m_dparam.setValue(nvalue);
         //textField.setText(getFormattedValue());
         informListeners();    
     }
+
     public void onActionEvent(Object userData){
         
     }
@@ -156,11 +170,11 @@ public class DoubleEditorScroll extends BaseEditor {
         void doIncrement(){
             
             double increment = m_textField.getIncrement();
-            double v = (parameter.getValue().doubleValue() + sign * increment);
-            double res = round(parameter.getValue().doubleValue() + sign * increment, increment);
-            //System.out.println("v:" + v + " increment: " + increment + " res: " + res);
-            parameter.setValue(res);
-            m_textField.setValue(parameter.getValue());
+            double v = (m_dparam.getValue().doubleValue() + sign * increment);
+            double res = round(v, increment);
+            //printf("v: %10.8f inc: %10.8f, res:%10.8f",v,increment, res);
+            m_dparam.setValue(res);
+            m_textField.setValue(res);
             informListeners();
             
         }
@@ -204,7 +218,7 @@ public class DoubleEditorScroll extends BaseEditor {
                     return;
                 } 
                 isReallyDragging = true;
-                startDragValue = parameter.getValue().doubleValue();
+                startDragValue = m_dparam.getValue().doubleValue();
                 //TODO 
                 startDragIncrement = 0.0001; //parameter.getIncrement();
                 if(repeater.isAlive())
@@ -213,10 +227,10 @@ public class DoubleEditorScroll extends BaseEditor {
             }
             
             // do sliding mode  
-            double value = round(startDragValue + (mouseDownY-y) * startDragIncrement, startDragIncrement);
-            parameter.setValue(value);
+            double value = clamp(round(startDragValue + (mouseDownY-y) * startDragIncrement, startDragIncrement),m_minRange, m_maxRange);
+            m_dparam.setValue(value);
             m_textField.setValue(value); 
-          informListeners();      
+            informListeners();      
           
       }
       
@@ -246,12 +260,12 @@ public class DoubleEditorScroll extends BaseEditor {
     
     public void updateParameter(){
         
-        parameter.setValue(m_textField.getValue());
+        m_dparam.setValue(m_textField.getValue());
         
     }
     
     String getFormattedValue(){
-        return fmt("%10.8f",parameter.getValue().doubleValue());
+        return fmt("%10.8f",m_dparam.getValue().doubleValue());
     }
 
   class MyFocusListener extends FocusAdapter {
@@ -315,7 +329,7 @@ public class DoubleEditorScroll extends BaseEditor {
         }
     }// class MyKeyListener 
 
-    class ScrollTextChangedListener implements ChangedListener {
+    class MyTextChangedListener implements ChangedListener {
         
         /**
          *  ValueChangedListener    callback    

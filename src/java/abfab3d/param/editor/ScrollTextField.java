@@ -21,7 +21,7 @@ import static abfab3d.util.Output.printf;
 public class ScrollTextField extends TextField {
     
     private double incrementStep = 0.1;
-    private String m_currentFormat = "%7.5f";
+    private String m_currentFormat = "%10.8f";
     double value_down;
     double m_value;
     int y_down, y_old;
@@ -32,26 +32,46 @@ public class ScrollTextField extends TextField {
     boolean doInteger = false;  
     private int top = Integer.MAX_VALUE;
     private int bottom = Integer.MIN_VALUE;
-    
+
+    double m_minValue = -Double.MAX_VALUE;
+    double m_maxValue = Double.MAX_VALUE;
     
     private boolean processUpDownArrowKeys = true;
     
     AFocusListener focusListener = new AFocusListener();
         
-    public ScrollTextField(String value, int columns){
+    public ScrollTextField(double value, int columns){
         
-        super(value, columns);
+        super("", columns);
         
         initListeners();
-        m_value = Double.parseDouble(value);
+        setValue(value);
         
     }
     
-    public ScrollTextField(String value, String desc, int columns, boolean doInteger){
-        super(value, columns);
+    public ScrollTextField(double value, String desc, int columns, boolean doInteger){
+
+        super("", columns);
         initListeners();
-        
+
         this.doInteger = doInteger; 
+        
+        setValue(value);
+        
+    }
+
+    /**
+       set minimal possible value
+     */
+    public void setMinRange(double value){
+        m_minValue = value;
+    }
+
+    /**
+       set maximal possible value
+     */
+    public void setMaxRange(double value){
+        m_maxValue = value;
     }
     
     protected void initListeners(){
@@ -94,18 +114,17 @@ public class ScrollTextField extends TextField {
                     value = top;
                 if(value < bottom)
                     value = bottom;
-                
-                updateNumber(String.valueOf((int)value));
-                
-            } else {
-                
-                updateNumber(fmt(m_currentFormat,value));
             }
+            
+            updateValue(value);
+            
             y_old = y;
-            informListeners();
         } 
     }
     
+    /**
+       set numeric value from outside
+     */
     public void setValue(double value){
 
         m_value = value;
@@ -114,7 +133,9 @@ public class ScrollTextField extends TextField {
     }
 
     
-
+    /**
+       return current numeric value 
+     */
     public double getValue(){
 
         return m_value;
@@ -122,11 +143,16 @@ public class ScrollTextField extends TextField {
     }
 
 
-    private void updateNumber(String number){
-        
-        setText(number + appendix);
-        informListeners();
-        
+    private void updateValue(double value){
+        value = Math.max(m_minValue, value);
+        value = Math.min(m_maxValue, value);
+        if(doInteger)
+            value = Math.round(value);
+        if(m_value != value){
+            m_value = value;
+            setText(fmt(m_currentFormat,value));            
+            informListeners();
+        }        
     }
     
     private String appendix = "";  // text at the end of number, should be appended 
@@ -324,21 +350,21 @@ public class ScrollTextField extends TextField {
             if(sign != 0) {
                 
                 int cp = getCaretPosition();
-                double number = Double.parseDouble(extractNumber()); 
+                double value = Double.parseDouble(extractNumber()); 
                 makeIncrementStep(cp, extractNumber());
                 
-                number += sign*incrementStep;
+                value += sign*incrementStep;
                 
                 double scale = 1/incrementStep;
                 //number = Math.round(number*scale)/(scale);    
                 
                 if(doInteger){
                     
-                    updateNumber(String.valueOf((int)number));
+                    updateValue((int)value);
                     
                 }  else {
                     
-                    updateNumber(fmt(m_currentFormat, number));
+                    updateValue(value);
                 }
                 
                 setCaretPosition(cp);

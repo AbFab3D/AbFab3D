@@ -14,6 +14,8 @@ package abfab3d.param;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static abfab3d.util.Output.fmt;
+
 /**
  * Base code for all Parameterizable
  *
@@ -60,6 +62,10 @@ public class BaseParameterizable implements Parameterizable, SNode {
      */
     public void addParams(Parameter aparam[]){
         for(int i = 0; i < aparam.length; i++){
+            String pname = aparam[i].getName();
+            if(params.get(pname) != null){
+                throw new RuntimeException(fmt("duplicate param name: %s",pname));
+            }
             params.put(aparam[i].getName(),aparam[i]);
         }        
     }

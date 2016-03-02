@@ -22,21 +22,41 @@ import java.util.List;
  * @author Alan Hudson
  */
 public class SNodeListParameter extends BaseParameter {
+
+
+    SNodeFactory m_nodeFactory;
+
     public SNodeListParameter(String name) {
 
         this(name, name);
     }
 
-    public SNodeListParameter(String name, String desc) {
-
-        this(name, desc, new ArrayList());
+    public SNodeListParameter(String name, SNodeFactory nodeFactory) {
+        this(name, name, new ArrayList(), nodeFactory);
     }
 
-    public SNodeListParameter(String name, String desc, List initialValue) {
+    public SNodeListParameter(String name, String desc) {
+
+        this(name, desc, new ArrayList(), new BaseSNodeFactory());
+    }
+
+    public SNodeListParameter(String name, String desc, SNodeFactory nodeFactory) {
+
+        this(name, desc, new ArrayList(), nodeFactory);
+    }
+
+    public SNodeListParameter(String name, String desc, List initialValue, SNodeFactory nodeFactory) {
 
         super(name, desc);
-
+        m_nodeFactory = nodeFactory;
         setValue(initialValue);
+    }
+
+    /**
+       retursn factory to create new nodes 
+     */
+    public SNodeFactory getSNodeFactory(){
+        return m_nodeFactory;
     }
 
     /**
@@ -51,12 +71,40 @@ public class SNodeListParameter extends BaseParameter {
         ((List) value).add(source);
     }
 
+    /**
+       set value to be list of single data source
+     */
+    public void set(Parameterizable node){
+        ((List) value).clear();
+        ((List) value).add(node);
+    }
+
+    /**
+       set value at specific index 
+     */
     public void set(int index, Parameterizable source){
         ((List) value).set(index, source);
     }
 
+    /**
+       remove item with given index
+     */
+    public void remove(int index){
+        ((List) value).remove(index);
+    }
+
     public void clear() {
         ((List) value).clear();
+    }
+
+    public void setValue(Object val) {
+        if(val instanceof List){
+            value = val;
+        } else {
+            List list = new ArrayList();
+            list.add(val);
+            value = list;
+        }
     }
 
     /**
