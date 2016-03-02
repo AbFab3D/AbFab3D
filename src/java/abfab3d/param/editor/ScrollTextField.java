@@ -20,7 +20,7 @@ import static abfab3d.util.Output.printf;
 
 public class ScrollTextField extends TextField {
     
-    private double incrementStep = 0.1;
+    private double m_currentIncrement = 0.0001;
     private String m_currentFormat = "%10.8f";
     double value_down;
     double m_value;
@@ -103,9 +103,9 @@ public class ScrollTextField extends TextField {
             //}
             double value = value_down;
                         
-            value = value_down - ((y-y_down)/dragSensitivity)*incrementStep;
+            value = value_down - ((y-y_down)/dragSensitivity)*m_currentIncrement;
             
-            double scale = 1/incrementStep;
+            double scale = 1/m_currentIncrement;
             value = (int)(value*scale)/(scale);    
             
             if(doInteger) {
@@ -250,8 +250,8 @@ public class ScrollTextField extends TextField {
             }
         }
         
-        incrementStep = delta;
-        int digits = (int)Math.max(0.,-Math.floor(Math.log10(incrementStep)));
+        m_currentIncrement = delta;
+        int digits = (int)Math.max(0.,-Math.floor(Math.log10(m_currentIncrement)));
         printf("digits: %d\n", digits);
 
         m_currentFormat = "%" + (digits+2) + "." + digits+"f";
@@ -259,7 +259,7 @@ public class ScrollTextField extends TextField {
     }
 
     public double getIncrement(){
-        return incrementStep;
+        return m_currentIncrement;
     }
 
 
@@ -353,9 +353,9 @@ public class ScrollTextField extends TextField {
                 double value = Double.parseDouble(extractNumber()); 
                 makeIncrementStep(cp, extractNumber());
                 
-                value += sign*incrementStep;
+                value += sign*m_currentIncrement;
                 
-                double scale = 1/incrementStep;
+                double scale = 1/m_currentIncrement;
                 //number = Math.round(number*scale)/(scale);    
                 
                 if(doInteger){
