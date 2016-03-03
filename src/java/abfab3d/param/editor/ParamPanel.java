@@ -36,6 +36,7 @@ public class ParamPanel extends Frame {
     private ParamChangedListener m_plistener;
     
     private ArrayList<Editor> editors;
+    private boolean closeAllowed;
 
     public ParamPanel(Parameterizable node) {
 
@@ -95,4 +96,11 @@ public class ParamPanel extends Frame {
                 
     }
 
+    public boolean isCloseAllowed() {
+        return closeAllowed;
+    }
+
+    public void setCloseAllowed(boolean val) {
+        closeAllowed = val;
+    }
 }

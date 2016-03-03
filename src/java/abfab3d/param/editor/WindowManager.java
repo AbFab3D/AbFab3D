@@ -1,5 +1,6 @@
 package abfab3d.param.editor;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -14,9 +15,13 @@ public class WindowManager implements WindowListener {
     private static int lastY;
     private ArrayList<ParamPanel> panels;
     private static WindowManager manager;
+    private Image icon;
 
     private WindowManager() {
         panels = new ArrayList<ParamPanel>();
+
+        icon = new ImageIcon("classes/images/shapejs_icon_32.png").getImage();
+
     }
 
     public static WindowManager getInstance() {
@@ -28,14 +33,22 @@ public class WindowManager implements WindowListener {
     }
 
     public void addPanel(ParamPanel p) {
+        if (panels.size() == 0) {
+            p.setCloseAllowed(false);
+        } else {
+            p.setCloseAllowed(true);
+        }
         panels.add(p);
 
         lastY += p.getHeight();
         p.addWindowListener(this);
+        p.setIconImage(icon);
+
     }
 
     public void closeAll() {
         for(ParamPanel p : panels) {
+            p.setCloseAllowed(true);
             ((Frame)p).dispatchEvent(new WindowEvent(p, WindowEvent.WINDOW_CLOSING));
         }
 
@@ -57,7 +70,8 @@ public class WindowManager implements WindowListener {
     @Override
     public void windowClosing(WindowEvent e) {
         ParamPanel panel = (ParamPanel) e.getWindow();
-        if (panel != panels.get(0)) {
+
+        if (panel.isCloseAllowed()) {
             e.getWindow().dispose();
 
             /*
