@@ -35,7 +35,6 @@ public class ParamPanel extends Frame {
     private static EditorFactory sm_factory;
     private ParamChangedListener m_plistener;
     
-    private Frame m_frame;
     private ArrayList<Editor> editors;
 
     public ParamPanel(Parameterizable node) {
@@ -51,6 +50,7 @@ public class ParamPanel extends Frame {
         Component parametersPanel = makeParamPanel(m_node);
         WindowUtils.constrain(this, parametersPanel, 0,0,1,1, 
                               GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
+
         this.pack();
 
         WindowManager wm = WindowManager.getInstance();
@@ -76,7 +76,6 @@ public class ParamPanel extends Frame {
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
         
-        printf("adding editors\n");
         for(int i=0; i < param.length; i++){
 
             double hWeight = (i < param.length-1)? (0.) : (1.);
@@ -87,7 +86,6 @@ public class ParamPanel extends Frame {
             Editor editor = sm_factory.createEditor(param[i]);
             editor.addChangeListener(m_plistener);
             editors.add(editor);
-            printf("param: %s editor: %s\n", param[i], editor);
 
             WindowUtils.constrain(panel,editor.getComponent(), 1,i,1,1,
                                   GridBagConstraints.HORIZONTAL,GridBagConstraints.NORTH, 1.,hWeight, SPACE,SPACE,SPACE,0);

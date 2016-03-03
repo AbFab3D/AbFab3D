@@ -2,6 +2,7 @@ package abfab3d.param.editor;
 
 import java.awt.*;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.ArrayList;
 
 /**
@@ -9,7 +10,7 @@ import java.util.ArrayList;
  *
  * @author Alan Hudson
  */
-public class WindowManager {
+public class WindowManager implements WindowListener {
     private static int lastY;
     private ArrayList<ParamPanel> panels;
     private static WindowManager manager;
@@ -30,7 +31,7 @@ public class WindowManager {
         panels.add(p);
 
         lastY += p.getHeight();
-        abfab3d.util.Output.printf("lastY: %d\n",lastY);
+        p.addWindowListener(this);
     }
 
     public void closeAll() {
@@ -39,9 +40,60 @@ public class WindowManager {
         }
 
         panels.clear();
+        lastY = 0;
     }
 
     public int getLastY() {
         return lastY;
     }
+
+    // WindowListener methods
+
+    @Override
+    public void windowOpened(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowClosing(WindowEvent e) {
+        ParamPanel panel = (ParamPanel) e.getWindow();
+        if (panel != panels.get(0)) {
+            e.getWindow().dispose();
+
+            /*
+            lastY = 0;
+            for(ParamPanel p : panels) {
+                if (p.getHeight() > lastY) {
+                    lastY =
+                }
+            }
+            */
+        }
+    }
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+    }
+
+    @Override
+    public void windowIconified(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowDeiconified(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowActivated(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowDeactivated(WindowEvent e) {
+
+    }
+
+    // end WindowListener methods
 }

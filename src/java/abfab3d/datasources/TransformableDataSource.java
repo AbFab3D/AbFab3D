@@ -63,7 +63,7 @@ import static abfab3d.util.Output.printf;
  */
 public abstract class TransformableDataSource extends BaseParameterizable implements DataSource, Initializable {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     // transformation which is applied to the data point before the calculation of data value
     protected VecTransform m_transform = null; 
     // count of data channels 
