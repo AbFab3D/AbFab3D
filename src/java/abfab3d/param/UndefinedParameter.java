@@ -20,16 +20,16 @@ package abfab3d.param;
  */
 public class UndefinedParameter extends BaseParameter implements Cloneable {
 
-    public UndefinedParameter(String name, String desc) {
-        super(name,desc);
-    }
-
     public UndefinedParameter() {
         this("undefined");
     }
 
     public UndefinedParameter(String name) {
         super(name, name);
+    }
+
+    public UndefinedParameter(String name, String desc) {
+        super(name,desc);
     }
 
     public UndefinedParameter clone() {

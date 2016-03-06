@@ -29,7 +29,7 @@ public class SNodeParameter extends BaseParameter {
 
     public SNodeParameter(String name,  SNodeFactory nodeFactory) {
 
-        this(name, name, new UndefinedParameter(), nodeFactory);
+        this(name, name, new UndefinedParameter("undefined"), nodeFactory);
     }
 
     public SNodeParameter(String name, String desc) {

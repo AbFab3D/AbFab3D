@@ -64,6 +64,7 @@ public class SNodeEditor extends BaseEditor  {
     }
 
     void editNode(){
+
         Object p = m_param.getValue();
 
         if(!(p instanceof Parameterizable)){
@@ -92,7 +93,9 @@ public class SNodeEditor extends BaseEditor  {
         String names[] = factory.getNames();
         Parameterizable node = (Parameterizable)factory.createSNode(names[index]);
         m_param.setValue(node);
+
         m_textField.setText(node.getClass().getSimpleName());
+
         ParamPanel panel = new ParamPanel(node);
         panel.addParamChangedListener(m_listener);
         if(child != null)
@@ -118,6 +121,11 @@ public class SNodeEditor extends BaseEditor  {
 
     }
 
+    String makeDisplayString(){
+        Object value = m_param.getValue();
+        return value.getClass().getSimpleName();        
+    }
+
     protected JComponent makeComponent(){
         
         JPanel panel = new JPanel();
@@ -125,11 +133,12 @@ public class SNodeEditor extends BaseEditor  {
         panel.setLayout(new GridBagLayout());
         m_textField = new JTextField(10);
         m_textField.setEditable(false);
+        m_textField.setText(makeDisplayString());
 
         m_editButton = new JButton(">");
-        m_editButton.setToolTipText("edit selected node");
+        m_editButton.setToolTipText("edit node");
         m_newButton = new JButton("+");
-        m_newButton.setToolTipText("create new node");
+        m_newButton.setToolTipText("create/replace node");
 
         m_editButton.addActionListener(new EditAction());
         m_newButton.addActionListener(new NewAction());
