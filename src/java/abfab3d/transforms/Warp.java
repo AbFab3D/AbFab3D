@@ -25,6 +25,7 @@ import abfab3d.param.Parameter;
 import abfab3d.param.Parameterizable;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeParameter;
+import abfab3d.param.BaseSNodeFactory;
 import abfab3d.util.VecTransform;
 import abfab3d.util.Vec;
 import abfab3d.util.Initializable;
@@ -47,8 +48,20 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
  */
 public class Warp extends BaseTransform implements VecTransform, Initializable {
    
+    static final String sm_warpNames[] = new String[]{"Noise", "Abs", "Mul", "Constant"};
+    static String sm_warpClasses[];
+
+    static {
+
+        sm_warpClasses = new String[sm_warpNames.length];
+        String packName = "abfab3d.datasources.";        
+        for(int i = 0; i < sm_warpNames.length; i++){
+            sm_warpClasses[i] = packName + sm_warpNames[i];
+        }
+    }
+    
     DataSource m_source;
-    SNodeParameter mp_source = new SNodeParameter("source");
+    SNodeParameter mp_source = new SNodeParameter("source", new BaseSNodeFactory(sm_warpNames, sm_warpClasses));
 
     protected Parameter m_aparams[] = new Parameter[]{
         mp_source

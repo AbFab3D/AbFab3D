@@ -43,6 +43,10 @@ public class Mul extends TransformableDataSource {
         mp_d2,
     };    
 
+    public Mul(){
+        super.addParams(m_aparam);
+    }
+
     public Mul(DataSource d1, DataSource d2){
 
         super.addParams(m_aparam);

@@ -41,6 +41,9 @@ public class Max extends TransformableDataSource {
         mp_d2,
     };    
 
+    public Max(){
+        super.addParams(m_aparam);
+    }
     public Max(DataSource source1, DataSource source2){
 
         super.addParams(m_aparam);

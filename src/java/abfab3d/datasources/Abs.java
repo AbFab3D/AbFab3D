@@ -45,11 +45,15 @@ public class Abs extends TransformableDataSource {
     
     DataSource m_data;
 
-    SNodeParameter mp_data = new SNodeParameter("source");
+    SNodeParameter mp_data = new SNodeParameter("source", ShapesFactory.getInstance());
 
     Parameter m_aparam[] = new Parameter[]{
         mp_data,
     };    
+
+    public Abs(){
+        super.addParams(m_aparam);        
+    }
 
     /**
      * Create an Abs of a data source

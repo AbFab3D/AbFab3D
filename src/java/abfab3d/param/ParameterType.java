@@ -50,6 +50,7 @@ public enum ParameterType {
         OBJECT, 
         LOCATION,
         LOCATION_LIST, 
+        UNDEFINED, 
         USERDEFINED, 
         USERDEFINED_LIST
         ;

@@ -73,6 +73,10 @@ public class Noise extends TransformableDataSource {  // Periodic noise in 3D
         mp_periodic,
     };
 
+    public Noise(){
+        super.addParams(m_aparam);
+    }
+
     public Noise(Vector3d size, int nx,int ny,int nz){
         super.addParams(m_aparam);
 

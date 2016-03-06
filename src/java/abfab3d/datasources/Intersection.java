@@ -41,7 +41,7 @@ public class Intersection extends TransformableDataSource implements SNode {
     DataSource vDataSources[];
 
     DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
-    SNodeListParameter mp_dataSources = new SNodeListParameter("sources");
+    SNodeListParameter mp_dataSources = new SNodeListParameter("sources", ShapesFactory.getInstance());
     
     Parameter m_aparam[] = new Parameter[]{
         mp_blendWidth,

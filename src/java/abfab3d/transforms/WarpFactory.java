@@ -13,16 +13,16 @@
 package abfab3d.transforms;
 
 
-public class TransformsFactory {
+/**
+   list nodes whiuch can be used as for Warp nodes
+*/
+public class WarpFactory {
 
-    static final String sm_names[] = new String[]{"Translation", "Rotation", "Scale", 
-                                                  "PlaneReflection", "SphereInversion", 
-                                                  "RingWrap", "Warp", "ReflectionSymmetry", 
-                                                  "FriezeSymmetry", "WallpaperSymmetry", "PeriodicWrap"};
+    static final String sm_names[] = new String[]{"Noise"};
 
     static String sm_classNames[];
 
-    static String packName = "abfab3d.transforms.";
+    static String packName = "abfab3d.datasources.";
 
     static {
         sm_classNames = new String[sm_names.length];

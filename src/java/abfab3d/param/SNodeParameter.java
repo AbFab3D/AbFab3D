@@ -19,20 +19,28 @@ package abfab3d.param;
  * @author Alan Hudson
  */
 public class SNodeParameter extends BaseParameter {
+
+    SNodeFactory m_nodeFactory;
+
     public SNodeParameter(String name) {
 
-        this(name, name, null);
+        this(name, name, new UndefinedParameter(), new BaseSNodeFactory());
+    }
+
+    public SNodeParameter(String name,  SNodeFactory nodeFactory) {
+
+        this(name, name, new UndefinedParameter(), nodeFactory);
     }
 
     public SNodeParameter(String name, String desc) {
 
-        this(name, desc, null);
+        this(name, desc, new UndefinedParameter(), new BaseSNodeFactory());
     }
 
-    public SNodeParameter(String name, String desc, Object initialValue) {
+    public SNodeParameter(String name, String desc, Object initialValue, SNodeFactory nodeFactory) {
 
         super(name, desc);
-
+        m_nodeFactory = nodeFactory;
         setValue(initialValue);
     }
 
@@ -42,6 +50,14 @@ public class SNodeParameter extends BaseParameter {
      */
     public ParameterType getType() {
         return ParameterType.SNODE;
+    }
+
+
+    /**
+       retursn factory to create new nodes 
+     */
+    public SNodeFactory getSNodeFactory(){
+        return m_nodeFactory;
     }
 
     /**

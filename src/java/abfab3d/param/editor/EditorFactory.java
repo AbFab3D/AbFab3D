@@ -15,6 +15,7 @@ import abfab3d.param.DoubleParameter;
 import abfab3d.param.EnumParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNodeListParameter;
+import abfab3d.param.SNodeParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.AxisAngle4dParameter;
 
@@ -41,6 +42,8 @@ public class EditorFactory {
                 return new EnumEditor((EnumParameter)param);
             case SNODE_LIST:
                 return new SNodeListEditor((SNodeListParameter)param);
+            case SNODE:
+                return new SNodeEditor((SNodeParameter)param);
         default:
             return new DefaultEditor(param);
         }

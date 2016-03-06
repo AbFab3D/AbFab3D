@@ -10,19 +10,18 @@
  *
  ****************************************************************************/
 
-package abfab3d.transforms;
+package abfab3d.datasources;
 
+import abfab3d.param.BaseSNodeFactory;
+import abfab3d.param.SNodeFactory;
 
-public class TransformsFactory {
+public class ShapesFactory extends BaseSNodeFactory {
 
-    static final String sm_names[] = new String[]{"Translation", "Rotation", "Scale", 
-                                                  "PlaneReflection", "SphereInversion", 
-                                                  "RingWrap", "Warp", "ReflectionSymmetry", 
-                                                  "FriezeSymmetry", "WallpaperSymmetry", "PeriodicWrap"};
+    static final String sm_names[] = new String[]{"Sphere", "Box", "Cylinder", "Cone", "Image3D", "Torus", "Union", "Intersection", "Subtraction", "Complement"};
 
     static String sm_classNames[];
 
-    static String packName = "abfab3d.transforms.";
+    static String packName = "abfab3d.datasources.";
 
     static {
         sm_classNames = new String[sm_names.length];
@@ -31,11 +30,17 @@ public class TransformsFactory {
         }
     }
 
+    static ShapesFactory sm_instance;
 
-    public static String[] getNames(){
-        return sm_names;
+    public ShapesFactory(){
+        super(sm_names,sm_classNames);
     }
-    public static String[] getClassNames(){
-        return sm_classNames;
+
+    public static SNodeFactory getInstance(){
+        if(sm_instance == null) 
+            sm_instance = new ShapesFactory();
+
+        return sm_instance;
     }
+
 }

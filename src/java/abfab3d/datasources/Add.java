@@ -43,6 +43,9 @@ public class Add extends TransformableDataSource {
         mp_d2,
     };    
 
+    public Add(){
+        super.addParams(m_aparam);
+    }
     /**
      * Addition of two data sources.
      */

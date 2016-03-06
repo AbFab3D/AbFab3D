@@ -32,12 +32,15 @@ public class Complement extends TransformableDataSource {
 
     private DataSource dataSource = null;
 
-    SNodeParameter mp_data = new SNodeParameter("source");
+    SNodeParameter mp_data = new SNodeParameter("source", ShapesFactory.getInstance());
 
     Parameter m_aparam[] = new Parameter[]{
         mp_data,
     };    
 
+    public Complement() {
+        super.addParams(m_aparam);
+    }
     /**
      * Complement of the given datasource.
      * @param source  object to which the complement is generated

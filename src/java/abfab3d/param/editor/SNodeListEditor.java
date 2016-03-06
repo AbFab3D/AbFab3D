@@ -30,14 +30,13 @@ import java.util.List;
 import static abfab3d.util.Output.printf;
 
 /**
- * Edits Double Parameter
+ * Edits SNodeList Parameter
  *
- * @author Alan Hudson
+ * @author Vladimir Bulatov
  */
-public class SNodeListEditor extends BaseEditor implements ActionListener {
+public class SNodeListEditor extends BaseEditor {
 
     private SNodeListParameter m_param;
-    private JComboBox cbox;
     private JComponent m_panel;
     private HashMap<Parameterizable,ParamPanel> children;
     DefaultListModel m_listDataModel;
@@ -79,14 +78,6 @@ public class SNodeListEditor extends BaseEditor implements ActionListener {
         return pnt;
     }
 
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
-        int sel = cbox.getSelectedIndex();
-        editNode(sel);
-
-    }
 
     void editNode(int index){
         
@@ -263,25 +254,7 @@ public class SNodeListEditor extends BaseEditor implements ActionListener {
         
         
     }
-
     
-    protected JComponent makeCombobox(){                
-        
-        List list = m_param.getValue();
-        String[] vals = new String[list.size()];
-        int len = list.size();
-        for(int i=0; i < len; i++) {
-            Parameterizable field  = (Parameterizable) list.get(i);
-            vals[i] = field.getClass().getSimpleName();
-        }
-        JComboBox cbox = new JComboBox(vals);
-        cbox.setSelectedIndex(-1);
-        cbox.addActionListener(this);
-
-        return cbox;
-        
-    }
-
     class EditAction implements ActionListener {
 
         public void actionPerformed(ActionEvent e){

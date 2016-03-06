@@ -22,6 +22,8 @@ import abfab3d.param.Parameter;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeListParameter;
 import abfab3d.param.DoubleParameter;
+import abfab3d.param.BaseSNodeFactory;
+
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
@@ -51,7 +53,7 @@ public class Union  extends TransformableDataSource implements SNode {
     // fixed vector for calculations
     DataSource vDataSources[];
     DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
-    SNodeListParameter mp_dataSources = new SNodeListParameter("sources");
+    SNodeListParameter mp_dataSources = new SNodeListParameter("sources", ShapesFactory.getInstance());
     
     Parameter m_aparam[] = new Parameter[]{
         mp_blendWidth,

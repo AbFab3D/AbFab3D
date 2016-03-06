@@ -50,8 +50,8 @@ public class Subtraction extends TransformableDataSource implements SNode {
     DataSource dataSource1;
     DataSource dataSource2;
 
-    SNodeParameter mp_shape1 = new SNodeParameter("shape1");
-    SNodeParameter mp_shape2 = new SNodeParameter("shape2");
+    SNodeParameter mp_shape1 = new SNodeParameter("shape1", ShapesFactory.getInstance());
+    SNodeParameter mp_shape2 = new SNodeParameter("shape2", ShapesFactory.getInstance());
     DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
 
     Parameter m_aparam[] = new Parameter[]{
@@ -59,6 +59,10 @@ public class Subtraction extends TransformableDataSource implements SNode {
         mp_shape2,
         mp_blendWidth,
     };    
+
+    public Subtraction(){
+        super.addParams(m_aparam);        
+    }
 
     /**
        shape which is result of subtracting shape2 from shape1

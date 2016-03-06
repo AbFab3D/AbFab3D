@@ -60,6 +60,10 @@ public class Mix extends TransformableDataSource{
         mp_mixer,
     };    
 
+    public Mix(){
+        super.addParams(m_aparam);        
+    }
+
     public Mix(DataSource source1, DataSource source2, DataSource mix){
 
         super.addParams(m_aparam);
