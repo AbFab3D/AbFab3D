@@ -96,6 +96,13 @@ public class ParamPanel extends Frame {
                 
     }
 
+    public void closeWithChildren(){
+        //TODO 
+        // close all children 
+        setVisible(false);
+        
+    }
+
     public boolean isCloseAllowed() {
         return closeAllowed;
     }
