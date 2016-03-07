@@ -76,14 +76,14 @@ public class SNodeEditor extends BaseEditor  {
         ParamPanel panel = child;
         if(panel == null){
             panel = new ParamPanel(node);
-            panel.addParamChangedListener(m_listener);
+            panel.addParamChangedListeners(getParamChangedListeners());
             child = panel;
             panel.setLocation(getNewLocation());
         }
 
         panel.setVisible(true);
 
-        informListeners();
+        informParamChangedListeners();
     }
 
 
@@ -97,7 +97,7 @@ public class SNodeEditor extends BaseEditor  {
         m_textField.setText(node.getClass().getSimpleName());
 
         ParamPanel panel = new ParamPanel(node);
-        panel.addParamChangedListener(m_listener);
+        panel.addParamChangedListeners(getParamChangedListeners());
         if(child != null)
             child.setVisible(false);
 
@@ -108,7 +108,7 @@ public class SNodeEditor extends BaseEditor  {
 
         updateUI();
 
-        informListeners();
+        informParamChangedListeners();
     }
 
     /**

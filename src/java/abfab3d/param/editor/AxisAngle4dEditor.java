@@ -56,7 +56,7 @@ public class AxisAngle4dEditor extends BaseEditor implements ParamChangedListene
 
     	m_param.setValue(new AxisAngle4d(x, y, z,a));
     	
-        informListeners();
+        informParamChangedListeners();
 
     }
     
@@ -89,10 +89,10 @@ public class AxisAngle4dEditor extends BaseEditor implements ParamChangedListene
     	Component z_comp = z_editor.getComponent();
     	Component a_comp = a_editor.getComponent();
 
-        x_editor.addChangeListener(this);
-        y_editor.addChangeListener(this);
-        z_editor.addChangeListener(this);
-        a_editor.addChangeListener(this);
+        x_editor.addParamChangedListener(this);
+        y_editor.addParamChangedListener(this);
+        z_editor.addParamChangedListener(this);
+        a_editor.addParamChangedListener(this);
 
     	mainPanel.removeAll();
         mainPanel.setLayout(new GridLayout(4,1));

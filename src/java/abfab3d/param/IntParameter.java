@@ -24,23 +24,22 @@ public class IntParameter extends NumberParameter {
 
     /** Min range for numeric values */
     private int minRange;
-
     /** Max range for numeric values */
     private int maxRange;
+    // increent step
+    private int m_step = 1;
 
     public IntParameter(String name, String desc, int initialValue) {
 
         this(name, desc, initialValue, DEFAULT_MIN_RANGE, DEFAULT_MAX_RANGE);
     }
 
-    public IntParameter(String name, String desc, int initialValue,
-                           int minRange, int maxRange) {
+    public IntParameter(String name, String desc, int initialValue, int minRange, int maxRange) {
 
         super(name, desc);
-
+        
         setMinRange(minRange);
         setMaxRange(maxRange);
-
         defaultValue = initialValue;
         setValue(initialValue);
     }

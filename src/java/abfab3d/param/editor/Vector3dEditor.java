@@ -56,7 +56,7 @@ public class Vector3dEditor extends BaseEditor implements ParamChangedListener {
 
     	m_param.setValue(new Vector3d(x, y, z));
     	
-        informListeners();
+        informParamChangedListeners();
 
     }
     
@@ -83,9 +83,9 @@ public class Vector3dEditor extends BaseEditor implements ParamChangedListener {
     	Component x_comp = x_editor.getComponent();
     	Component y_comp = y_editor.getComponent();
     	Component z_comp = z_editor.getComponent();
-        x_editor.addChangeListener(this);
-        y_editor.addChangeListener(this);
-        z_editor.addChangeListener(this);
+        x_editor.addParamChangedListener(this);
+        y_editor.addParamChangedListener(this);
+        z_editor.addParamChangedListener(this);
 
     	mainPanel.removeAll();
         mainPanel.setLayout(new GridLayout(3,1));

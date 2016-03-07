@@ -16,6 +16,7 @@ import abfab3d.param.Parameter;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import javax.swing.*;
 
@@ -33,7 +34,7 @@ public class ParamPanel extends Frame {
 
     private Parameterizable m_node;
     private static EditorFactory sm_factory;
-    private ParamChangedListener m_plistener;
+    private Vector<ParamChangedListener> m_plisteners;
     
     private ArrayList<Editor> editors;
     private boolean closeAllowed;
@@ -60,15 +61,27 @@ public class ParamPanel extends Frame {
 
     /**
      * Get notification of any parameter changes from this editor
-     * @param l
+     * @param listener
      */
-    public void addParamChangedListener(ParamChangedListener l) {
-        m_plistener = l;
-
+    public void addParamChangedListener(ParamChangedListener listener) {
+        if(m_plisteners == null){
+            m_plisteners = new Vector<ParamChangedListener>();
+        }
+        m_plisteners.add(listener);
+        
         for(Editor e: editors) {
-            e.addChangeListener(m_plistener);
+            e.addParamChangedListener(listener);
         }
     }
+
+    public void addParamChangedListeners(Vector<ParamChangedListener> listeners) {
+        if(listeners == null)
+            return;
+        for(int i = 0; i < listeners.size(); i++){
+            addParamChangedListener(listeners.get(i));
+        }
+    }
+
 
     Component makeParamPanel(Parameterizable node){
 
@@ -85,7 +98,7 @@ public class ParamPanel extends Frame {
                     GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 0., hWeight, SPACE, SPACE, SPACE, 0);
 
             Editor editor = sm_factory.createEditor(param[i]);
-            editor.addChangeListener(m_plistener);
+            editor.addParamChangedListeners(m_plisteners);
             editors.add(editor);
 
             WindowUtils.constrain(panel,editor.getComponent(), 1,i,1,1,

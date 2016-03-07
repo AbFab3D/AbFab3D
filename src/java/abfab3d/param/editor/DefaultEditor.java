@@ -41,7 +41,7 @@ public class DefaultEditor extends BaseEditor implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (m_listener != null) m_listener.paramChanged(m_param);
+        informParamChangedListeners();
     }
 
     /**

@@ -34,6 +34,7 @@ public class EditorFactory {
             case DOUBLE:
                 //return new DoubleEditor((DoubleParameter)param);
                 return new DoubleEditorScroll((DoubleParameter)param);
+                //return new DoubleEditorScroll_v2((DoubleParameter)param);
             case VECTOR_3D:
                 return new Vector3dEditor((Vector3dParameter)param);
         case AXIS_ANGLE_4D:

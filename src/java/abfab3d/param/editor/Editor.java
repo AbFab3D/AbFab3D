@@ -11,7 +11,10 @@
  ****************************************************************************/
 package abfab3d.param.editor;
 
-import java.awt.*;
+import java.awt.Component;
+
+import java.util.Vector;
+
 
 /**
  * Editor for a parameter
@@ -27,7 +30,9 @@ public interface Editor {
 
     /**
      * Get notification of any parameter changes from this editor
-     * @param l
+     * @param listener
      */
-    public void addChangeListener(ParamChangedListener l);
+    public void addParamChangedListener(ParamChangedListener listener);
+
+    public void addParamChangedListeners(Vector<ParamChangedListener> listeners);
 }

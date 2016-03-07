@@ -41,7 +41,7 @@ public class DoubleEditor extends BaseEditor implements ChangeListener {
     @Override
     public void stateChanged(ChangeEvent e) {
         m_param.setValue((Double)spinnerModel.getValue());
-        informListeners();
+        informParamChangedListeners();
     }
 
     /**

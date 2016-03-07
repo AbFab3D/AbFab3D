@@ -90,14 +90,14 @@ public class SNodeListEditor extends BaseEditor {
         ParamPanel panel = children.get(node);
         if(panel == null){
             panel = new ParamPanel(node);
-            panel.addParamChangedListener(m_listener);
+            panel.addParamChangedListeners(getParamChangedListeners());
             children.put(node, panel);
             panel.setLocation(getNewLocation());
         }
 
         panel.setVisible(true);
 
-        informListeners();
+        informParamChangedListeners();
     }
 
 
@@ -109,7 +109,7 @@ public class SNodeListEditor extends BaseEditor {
         m_param.add(node);
         printf("created new: %s\n", node);
         ParamPanel panel = new ParamPanel(node);
-        panel.addParamChangedListener(m_listener);
+        panel.addParamChangedListeners(getParamChangedListeners());
         children.put(node, panel);
         
         panel.setLocation(getNewLocation());
@@ -117,7 +117,7 @@ public class SNodeListEditor extends BaseEditor {
 
         updateUI();
 
-        informListeners();
+        informParamChangedListeners();
     }
 
     void removeNode(int index){
@@ -131,7 +131,7 @@ public class SNodeListEditor extends BaseEditor {
 
         updateUI();
 
-        informListeners();
+        informParamChangedListeners();
     }
 
     void moveUp(int index){
@@ -147,7 +147,7 @@ public class SNodeListEditor extends BaseEditor {
 
         updateUI();
 
-        informListeners();
+        informParamChangedListeners();
     }
 
     void moveDown(int index){
@@ -166,7 +166,7 @@ public class SNodeListEditor extends BaseEditor {
 
         updateUI();
 
-        informListeners();
+        informParamChangedListeners();
     }
 
     /**

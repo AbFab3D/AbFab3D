@@ -38,7 +38,7 @@ public class EnumEditor extends BaseEditor implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
         m_param.setValue((String) component.getSelectedItem());
-        informListeners();
+        informParamChangedListeners();
 	}
 
     /**

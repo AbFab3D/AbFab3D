@@ -21,7 +21,7 @@ import static abfab3d.util.Output.printf;
 public class ScrollTextField extends TextField {
     
     private double m_currentIncrement = 0.0001;
-    private String m_currentFormat = "%10.8f";
+    private String m_currentFormat = "%7.4f";
     double value_down;
     double m_value;
     int y_down, y_old;
