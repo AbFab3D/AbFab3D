@@ -19,11 +19,22 @@ package abfab3d.param;
  * @author Vladimir Bulatov
  */
 public class URIParameter extends BaseParameter {
+    private String[] validMimeTypes = new String[] {"*"};
 
     public URIParameter(String name, String desc, String initialValue) {
         super(name, desc);
         defaultValue = initialValue;
         setValue(initialValue);
+    }
+
+    public URIParameter(String name, String desc, String initialValue, String[] validMimeTypes) {
+        super(name, desc);
+        defaultValue = initialValue;
+        setValue(initialValue);
+
+        if (validMimeTypes != null) {
+            this.validMimeTypes = validMimeTypes.clone();
+        }
     }
 
     @Override
@@ -37,6 +48,14 @@ public class URIParameter extends BaseParameter {
      */
     public ParameterType getType() {
         return ParameterType.URI;
+    }
+
+    public void setValidMimeTypes(String[] val) {
+        validMimeTypes = val.clone();
+    }
+
+    public String[] getValidMimeTypes() {
+        return validMimeTypes;
     }
 
     /**
