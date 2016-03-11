@@ -58,7 +58,7 @@ import static abfab3d.util.Output.time;
  * @author Vladimir Bulatov
  */
 public class ImageMap extends TransformableDataSource {
-    final static boolean DEBUG = false;
+    final static boolean DEBUG = true;
     final static boolean DEBUG_VIZ = false;
 
     public static int REPEAT_NONE = 0, REPEAT_X = 1, REPEAT_Y = 2, REPEAT_BOTH = 3;
@@ -355,7 +355,9 @@ public class ImageMap extends TransformableDataSource {
         if(imageSource instanceof String){
             
             try {
-                m_imageData = new ImageGray16(ImageIO.read(new File((String)imageSource)));
+                String fname = (String)imageSource;
+                if(DEBUG)printf("reading image from file: %s\n",fname);
+                m_imageData = new ImageGray16(ImageIO.read(new File(fname)));
             } catch(IOException e) {
                 // empty 1x1 image 
                 m_imageData = new ImageGray16();
@@ -376,8 +378,10 @@ public class ImageMap extends TransformableDataSource {
         } else if (imageSource instanceof Grid2DShort) {
             long t1 = System.currentTimeMillis();
             m_imageData = new ImageGray16(Grid2DShort.convertGridToImage((Grid2DShort)imageSource));
-            printf("Convert to grid.  time: %d ms\n",(System.currentTimeMillis() - t1));
+            if(DEBUG)printf("Convert to grid.  time: %d ms\n",(System.currentTimeMillis() - t1));
         }
+
+        if(DEBUG)printf("m_imageData: %s\n",m_imageData);
 
         if (m_imageData == null) {
             // Cast to String for now, not sure how to really handle this

@@ -106,15 +106,11 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @noRefGuide
      * @param transform General transformation to apply to the object before it is rendered
      */
-    /*
+    
     public void addTransform(VecTransform transform){
-        if(m_transform == null)
-            m_transform = transform;        
-        throw new RuntimeException();
-        //TODO need to move transforms to this package 
-        //else if(m_transform instanceof )
+        mp_transform.add((Parameterizable)transform);        
     }
-    */
+    
     /**
      * @noRefGuide
        @return Transformation the object

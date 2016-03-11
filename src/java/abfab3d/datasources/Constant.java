@@ -28,7 +28,7 @@ import abfab3d.util.Bounds;
  *
  * @author Vladimir Bulatov
  */
-public class Constant extends BaseParameterizable implements DataSource {
+public class Constant extends TransformableDataSource {//BaseParameterizable implements DataSource {
 
     private double m_value0,m_value1,m_value2,m_value3;
     private int m_dimension = 1;
@@ -119,6 +119,7 @@ public class Constant extends BaseParameterizable implements DataSource {
         m_value2 = mp_value2.getValue();
         m_value3 = mp_value3.getValue();
         m_dimension = mp_dimension.getValue();
+        m_channelsCount = m_dimension;
         return RESULT_OK;
     }
 

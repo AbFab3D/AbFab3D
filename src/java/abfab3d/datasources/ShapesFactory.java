@@ -15,6 +15,9 @@ package abfab3d.datasources;
 import abfab3d.param.BaseSNodeFactory;
 import abfab3d.param.SNodeFactory;
 
+/**
+   factory of nodes which can be used as shapes. 
+ */
 public class ShapesFactory extends BaseSNodeFactory {
 
     static final String sm_names[] = new String[]{"Sphere", "Box", "Cylinder", "Cone", "Image3D", "Torus", "Union", "Intersection", "Subtraction", "Complement"};

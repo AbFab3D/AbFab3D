@@ -37,7 +37,7 @@ import static java.lang.Math.floor;
  * ImageColorMap may have multiple channels, according to the source image type 
  * </p><p>
  * The 2D image is placed in the XY-plane and for each pixel of the image with coordinate (x,y) the column of voxel of size size.z
- * is formed in both sides of XY plane
+* is formed in both sides of XY plane
  * </p>
  * The image can be periodically repeated in X,Y and Z directions.
  *
@@ -46,7 +46,7 @@ import static java.lang.Math.floor;
  */
 public class ImageColorMap extends TransformableDataSource {
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
 
     private boolean m_repeatX = false;
     private boolean m_repeatY = false;
