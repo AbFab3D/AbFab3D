@@ -343,8 +343,8 @@
                 abfab3d/geom/*
                 abfab3d/grid/*
                 abfab3d/grid/maker/*
-                abfab3d/grid/op/*
                 abfab3d/grid/query/*
+                abfab3d/grid/op/*
                 abfab3d/grid/util/*
                 abfab3d/intersect/*
                 abfab3d/distance/*
