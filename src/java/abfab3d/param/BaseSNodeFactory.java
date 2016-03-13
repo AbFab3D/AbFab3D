@@ -60,7 +60,8 @@ public class BaseSNodeFactory implements SNodeFactory {
         try {
             c = Class.forName(className);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(fmt("failed to create Class: %s", className));
+            
+            throw new RuntimeException(fmt("class not found exception: %s", className));
         }
         try {
             return (SNode)c.newInstance();

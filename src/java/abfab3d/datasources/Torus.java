@@ -28,7 +28,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   Torus centered at the given point with axis parallel to z-axis
+   Torus centered at the given point with given axis
 
    <embed src="doc-files/Torus.svg" type="image/svg+xml"/> 
 
@@ -43,7 +43,7 @@ public class Torus extends TransformableDataSource {
     private double ax, ay, az;
 
     Vector3dParameter mp_center = new Vector3dParameter("center","Center of torus",new Vector3d(0,0,0));
-    Vector3dParameter mp_axis = new Vector3dParameter("axis","Axis of torus",new Vector3d(0,0,1));
+    Vector3dParameter mp_axis = new Vector3dParameter("axis","Axis of the torus",new Vector3d(0,0,1));
 
     private DoubleParameter  mp_rin = new DoubleParameter("rin","Radius of the torus tube", 1.*MM);
     private DoubleParameter  mp_rout = new DoubleParameter("rout","Radius of the torus spine", 5.*MM);
@@ -187,6 +187,7 @@ public class Torus extends TransformableDataSource {
         z0 = c.z;
 
         Vector3d a = mp_axis.getValue();
+        a.normalize();
 
         ax = a.x;
         ay = a.y;

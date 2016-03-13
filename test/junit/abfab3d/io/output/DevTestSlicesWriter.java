@@ -434,7 +434,7 @@ public class DevTestSlicesWriter extends TestCase {
         //symm.setGroup(getQuad(20*MM, 20*MM, 28*MM, PI/3));
         //symm.setGroup(getQuad1(20*MM, 25*MM, PI/3));
         //symm.setGroup(getXYZ(20*MM, PI/3,PI/3,PI/8));
-        symm.setGroup(getXYZ(20*MM, PI/3,PI/3,PI/5));
+        //symm.setGroup(getXYZ(20*MM, PI/3,PI/3,PI/5));
         gm.setThreadCount(threadCount);
         gm.setMaxAttributeValue(maxAttributeValue);
         gm.setVoxelSize(voxelSize*surfareThickness);
@@ -725,7 +725,7 @@ public class DevTestSlicesWriter extends TestCase {
 
         ReflectionSymmetry symm = new ReflectionSymmetry();
         //symm.setRiemannSphereRadius(15*MM);
-        symm.setGroup(getIcosahedralKaleidoscope());
+        //symm.setGroup(getIcosahedralKaleidoscope());
         
         double sg = 10*MM;
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid();  

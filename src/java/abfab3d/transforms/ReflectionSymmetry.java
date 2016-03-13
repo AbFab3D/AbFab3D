@@ -20,6 +20,7 @@ import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.param.SNodeParameter;
 import abfab3d.param.ObjectParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.IntParameter;
@@ -33,6 +34,7 @@ import abfab3d.util.ReflectionGroup;
 import abfab3d.util.VecTransform;
 import abfab3d.util.DataSource;
 import abfab3d.util.Units;
+import abfab3d.util.SymmetryGenerator;
 
 import net.jafama.FastMath;
 
@@ -64,18 +66,19 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
     static final boolean DEBUG = false;
     static int debugCount = 1000;    
     
-    private ReflectionGroup group;
+    private ReflectionGroup m_group;
     //double riemannSphereRadius;
     //int m_maxCount = 100;
-    
-    private ReflectionGroup.SPlane defaultSplanes[] = new ReflectionGroup.SPlane[]{new ReflectionGroup.Plane(new Vector3d(1,0,0),0)};
+   
+    //ObjectParameter  mp_splanes = new ObjectParameter("splanes","array of splanes",defaultSplanes);
 
-    ObjectParameter  mp_splanes = new ObjectParameter("splanes","array of splanes",defaultSplanes);
+    SNodeParameter mp_symmetry = new SNodeParameter("symmetry", "symmetry", new ReflectionSymmetries.Plane(), ReflectionSymmetries.getFactory());
     IntParameter  mp_iterations = new IntParameter("iterations","max iterations to reflect into fundamental domain",100);
     DoubleParameter  mp_riemannSphereRadius = new DoubleParameter("riemannSphereRadius","Riemann Sphere Radius",0.);
 
     Parameter m_aparam[] = new Parameter[]{
-        mp_splanes,
+        //mp_splanes,
+        mp_symmetry,
         mp_iterations,
         mp_riemannSphereRadius,
     };
@@ -92,24 +95,22 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
      */
     public ReflectionSymmetry(ReflectionGroup.SPlane fundamentalDomain[]){
         initParams();
-        mp_splanes.setValue(fundamentalDomain);
+        mp_symmetry.setValue(new ReflectionSymmetries.General(fundamentalDomain));
     }
 
     /**
        @noRefGuide
      */
-    public void setGroup(ReflectionGroup group){
-        this.group = group;
-    }
+    //public void _setGroup(ReflectionGroup group){
+    //    this.group = group;
+    //}
 
     /**
        sets the fundamental fomain of the group
      */
-    public void setGroup(ReflectionGroup.SPlane fundamentalDomain[]){
-
-        mp_splanes.setValue(fundamentalDomain);
-
-    }
+    //public void setGroup(ReflectionGroup.SPlane fundamentalDomain[]){
+    //    mp_splanes.setValue(fundamentalDomain);
+    //    }
 
     /**
        set max count of reflection to be used in group generation. Default value is 100.
@@ -127,7 +128,7 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
     
 
     public ReflectionGroup getReflectionGroup(){
-        return group;
+        return m_group;
     }
 
     /**
@@ -142,12 +143,15 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
      */
     public int initialize(){
         
-        ReflectionGroup.SPlane[] splanes = (ReflectionGroup.SPlane[])mp_splanes.getValue();
+        //ReflectionGroup.SPlane[] splanes = (ReflectionGroup.SPlane[])mp_splanes.getValue();
+
+        SymmetryGenerator gen = (SymmetryGenerator)mp_symmetry.getValue();
+        ReflectionGroup.SPlane[] splanes = gen.getFundamentalDomain();
         
-        group = new ReflectionGroup(splanes);
+        m_group = new ReflectionGroup(splanes);
                 
-        group.setRiemannSphereRadius(mp_riemannSphereRadius.getValue());
-        group.setMaxIterations(mp_iterations.getValue());
+        m_group.setRiemannSphereRadius(mp_riemannSphereRadius.getValue());
+        m_group.setMaxIterations(mp_iterations.getValue());
         return RESULT_OK;
     }
     
@@ -173,7 +177,7 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
         if(DEBUG && debugCount-- > 0)
             printf("vs before: %5.3f\n", in.getScaledVoxelSize()/Units.MM);
 
-        int res = group.toFundamentalDomain(out);
+        int res = m_group.toFundamentalDomain(out);
 
         if(DEBUG && debugCount-- > 0)
             printf("vs after: %5.3f\n", out.getScaledVoxelSize()/Units.MM);
