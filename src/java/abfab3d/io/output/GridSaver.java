@@ -1,46 +1,34 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
- *                               Java Source
- *
+ * Shapeways, Inc Copyright (c) 2011
+ * Java Source
+ * <p/>
  * This source is licensed under the GNU LGPL v2.1
  * Please read http://www.gnu.org/copyleft/lgpl.html for more information
- *
+ * <p/>
  * This software comes with the standard NO WARRANTY disclaimer for any
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
- *
  ****************************************************************************/
 
 package abfab3d.io.output;
 
-import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.Grid;
 import abfab3d.grid.util.ExecutionStoppedException;
-import abfab3d.io.output.IsosurfaceMaker;
-import abfab3d.io.output.MeshExporter;
-
-import abfab3d.util.Units;
-import org.apache.commons.io.FilenameUtils;
-
 import abfab3d.mesh.*;
-
-import abfab3d.util.MathUtil;
-import abfab3d.util.TriangleCounter;
+import abfab3d.util.Units;
+import org.web3d.vrml.sav.BinaryContentHandler;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.*;
 
-import static java.lang.System.currentTimeMillis;
+import static abfab3d.util.MathUtil.extendBounds;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.MathUtil.extendBounds;
-
-import org.web3d.vrml.sav.BinaryContentHandler;
-
-import javax.vecmath.Point3d;
+import static java.lang.System.currentTimeMillis;
 
 
 /**
@@ -53,18 +41,18 @@ public class GridSaver {
 
     static final boolean DEBUG = true;
 
-    protected double m_meshErrorFactor = 0.1; 
+    protected double m_meshErrorFactor = 0.1;
     protected double m_meshSmoothingWidth = 0.2;
 
-    final static public double VOLUME_UNDEFINED  = -Double.MAX_VALUE;
-    final static public int SHELLS_COUNT_UNDEFINED  = Integer.MAX_VALUE;
+    final static public double VOLUME_UNDEFINED = -Double.MAX_VALUE;
+    final static public int SHELLS_COUNT_UNDEFINED = Integer.MAX_VALUE;
 
     /** Skipp shell removal entirely if shell count is less than or equal to this value */
     int m_minShellCount = 0;
-    
+
     int m_maxShellsCount = SHELLS_COUNT_UNDEFINED;
     double m_minShellVolume = VOLUME_UNDEFINED;
-    
+
     int m_maxThreads = 0;
     int m_maxTrianglesCount = 2000000;
     int m_maxDecimationCount = 10;
@@ -73,122 +61,123 @@ public class GridSaver {
 
     public static final int TYPE_UNDEFINED = -1;
     public static final int TYPE_UNKNOWN = 0;
-    public static final int TYPE_STL = 1;    public static final int TYPE_X3D = 2;
+    public static final int TYPE_STL = 1;
+    public static final int TYPE_X3D = 2;
     public static final int TYPE_X3DB = 3;
-    public static final int TYPE_SVX =  4;  
+    public static final int TYPE_SVX = 4;
 
     int m_savingType = TYPE_UNDEFINED;
 
-    public GridSaver(){
-        
+    public GridSaver() {
+
     }
-    
-    public void setMaxTrianglesCount(int value){
+
+    public void setMaxTrianglesCount(int value) {
         m_maxTrianglesCount = value;
     }
 
-    public void setMeshErrorFactor(double value){
+    public void setMeshErrorFactor(double value) {
         m_meshErrorFactor = value;
     }
 
-    public void setMeshSmoothingWidth(double value){
+    public void setMeshSmoothingWidth(double value) {
         m_meshSmoothingWidth = value;
     }
-    public void setMaxShellsCount(int value){
+
+    public void setMaxShellsCount(int value) {
         m_maxShellsCount = value;
     }
-    public void setMinShellCount(int value){
+
+    public void setMinShellCount(int value) {
         m_minShellCount = value;
     }
-    public void setMaxThreads(int value){
+
+    public void setMaxThreads(int value) {
         m_maxThreads = value;
     }
-    public void setMinShellVolume(double value){
+
+    public void setMinShellVolume(double value) {
         m_minShellVolume = value;
     }
 
-    static int getOutputType(String fname){
+    static int getOutputType(String fname) {
 
         fname = fname.toLowerCase();
 
-        if(fname.endsWith(".stl")) return TYPE_STL;        
-        if(fname.endsWith(".svx")) return TYPE_SVX;
-        if(fname.endsWith(".x3d")) return TYPE_X3D;
-        if(fname.endsWith(".x3db")) return TYPE_X3DB;
+        if (fname.endsWith(".stl")) return TYPE_STL;
+        if (fname.endsWith(".svx")) return TYPE_SVX;
+        if (fname.endsWith(".x3d")) return TYPE_X3D;
+        if (fname.endsWith(".x3db")) return TYPE_X3DB;
         return TYPE_UNKNOWN;
     }
-        
+
     public void write(AttributeGrid grid, String outFile) throws IOException {
 
         // Write output to a file
-        int type = getOutputType(outFile);        
-        switch(type){
-        default: 
-            throw new RuntimeException(fmt("unknow output file type: '%s'",outFile));
-        case TYPE_STL:           
-            {
-                WingedEdgeTriangleMesh mesh = getMesh(grid);            
+        int type = getOutputType(outFile);
+        switch (type) {
+            default:
+                throw new RuntimeException(fmt("unknow output file type: '%s'", outFile));
+            case TYPE_STL: {
+                WingedEdgeTriangleMesh mesh = getMesh(grid);
                 STLWriter stl = new STLWriter(outFile);
                 mesh.getTriangles(stl);
                 stl.close();
-            } 
+            }
             break;
-        case TYPE_X3D:
-        case TYPE_X3DB:
-            {
-                WingedEdgeTriangleMesh mesh = getMesh(grid);                        
+            case TYPE_X3D:
+            case TYPE_X3DB: {
+                WingedEdgeTriangleMesh mesh = getMesh(grid);
                 writeMesh(mesh, outFile);
-            } 
+            }
             break;
-        case TYPE_SVX:
-            {
+            case TYPE_SVX: {
                 SVXWriter writer = new SVXWriter();
-                writer.write(grid, outFile);                
+                writer.write(grid, outFile);
             }
             break;
         }
     }
-    
+
     public WingedEdgeTriangleMesh writeAsMesh(AttributeGrid grid, String outFile) throws IOException {
-    	WingedEdgeTriangleMesh mesh = null;
-    	
+        WingedEdgeTriangleMesh mesh = null;
+
         // Write output to a file
-        int type = getOutputType(outFile);        
-        switch(type){
-        default: 
-            throw new RuntimeException(fmt("unknow output file type: '%s'",outFile));
-        case TYPE_STL:           
-            {
-                mesh = getMesh(grid);            
+        int type = getOutputType(outFile);
+        switch (type) {
+            default:
+                throw new RuntimeException(fmt("unknow output file type: '%s'", outFile));
+            case TYPE_STL: {
+                mesh = getMesh(grid);
                 STLWriter stl = new STLWriter(outFile);
                 mesh.getTriangles(stl);
                 stl.close();
-            } 
+            }
             break;
-        case TYPE_X3D:
-        case TYPE_X3DB:
-            {
-                mesh = getMesh(grid);                        
+            case TYPE_X3D:
+            case TYPE_X3DB: {
+                mesh = getMesh(grid);
                 writeMesh(mesh, outFile);
-            } 
+            }
             break;
         }
-        
+
         return mesh;
     }
-    
+
     public void write(AttributeGrid grid, OutputStream os, int type) throws IOException {
 
-    	// TODO: Handle other file types
-        WingedEdgeTriangleMesh mesh = getMesh(grid);            
+        // TODO: Handle other file types
+        WingedEdgeTriangleMesh mesh = getMesh(grid);
 
-        printf("min shell Volume: %f  max shellCount: %d\n",m_minShellVolume,m_maxShellsCount);
+        printf("min shell Volume: %f  max shellCount: %d\n", m_minShellVolume, m_maxShellsCount);
         if (m_minShellVolume != VOLUME_UNDEFINED || m_maxShellsCount != SHELLS_COUNT_UNDEFINED) {
 
             ShellResults sr = GridSaver.getLargestShells(mesh, m_maxShellsCount, m_minShellVolume);
             mesh = sr.getLargestShell();
             int regions_removed = sr.getShellsRemoved();
-            if(DEBUG) printf("maxShells: %d minVol: %4.2f shells removed: %d\n",m_maxShellsCount,m_minShellVolume,regions_removed);
+            if (DEBUG)
+                printf("maxShells: %d minVol: %4.2f shells removed: %d\n", m_maxShellsCount, m_minShellVolume, regions_removed);
         }
 
         STLWriter stl = new STLWriter(os, mesh.getTriangleCount());
@@ -247,7 +236,7 @@ public class GridSaver {
 
         double voxelSize = grid.getVoxelSize();
 
-        if(DEBUG)printf("getMesh.  error factor: %f\n",m_meshErrorFactor);
+        if (DEBUG) printf("getMesh.  error factor: %f\n", m_meshErrorFactor);
         double maxDecimationError = m_meshErrorFactor * voxelSize * voxelSize;
 
         // Write out the grid to an STL file
@@ -262,15 +251,16 @@ public class GridSaver {
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
         meshmaker.makeMesh(grid, its);
 
-        if(DEBUG)printf("decimated mesh vertices: %d faces: %d\n", its.getVertexCount(), its.getFaceCount());
+        if (DEBUG) printf("decimated mesh vertices: %d faces: %d\n", its.getVertexCount(), its.getFaceCount());
 
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
-        
+
         if (m_minShellVolume != VOLUME_UNDEFINED || m_maxShellsCount != SHELLS_COUNT_UNDEFINED) {
             ShellResults sr = GridSaver.getLargestShells(mesh, m_maxShellsCount, m_minShellVolume, m_minShellCount);
             mesh = sr.getLargestShell();
             int regions_removed = sr.getShellsRemoved();
-            if(DEBUG) printf("maxShells: %d minVol: %4.2f shells removed: %d\n",m_maxShellsCount,m_minShellVolume,regions_removed);
+            if (DEBUG)
+                printf("maxShells: %d minVol: %4.2f shells removed: %d\n", m_maxShellsCount, m_minShellVolume, regions_removed);
         }
 
         return mesh;
@@ -335,6 +325,7 @@ public class GridSaver {
         }
     }
     */
+
     /**
      * Write a grid using the IsoSurfaceMaker to the specified file
      *
@@ -350,8 +341,8 @@ public class GridSaver {
         double vs = grid.getVoxelSize();
 
 
-        double gbounds[] = new double[]{-nx*vs/2,nx*vs/2,-ny*vs/2,ny*vs/2,-nz*vs/2,nz*vs/2};
-        double ibounds[] = extendBounds(gbounds, -vs/2);
+        double gbounds[] = new double[]{-nx * vs / 2, nx * vs / 2, -ny * vs / 2, ny * vs / 2, -nz * vs / 2, nz * vs / 2};
+        double ibounds[] = extendBounds(gbounds, -vs / 2);
 
         IsosurfaceMaker im = new IsosurfaceMaker();
         im.setIsovalue(0.);
@@ -371,18 +362,18 @@ public class GridSaver {
         ls.setCenterWeight(centerWeight);
 
         long t0 = currentTimeMillis();
-        printf("smoothMesh(%d)\n",smoothSteps);
+        printf("smoothMesh(%d)\n", smoothSteps);
         t0 = currentTimeMillis();
         ls.processMesh(mesh, smoothSteps);
-        printf("mesh smoohed in %d ms\n",(currentTimeMillis() - t0));
+        printf("mesh smoohed in %d ms\n", (currentTimeMillis() - t0));
 
         int fcount = faces.length;
 
         if (maxCollapseError > 0) {
-            mesh  = decimateMesh(mesh,maxCollapseError);
+            mesh = decimateMesh(mesh, maxCollapseError);
         }
 
-        float[] pos = new float[] {0,0,(float) getViewDistance(grid)};
+        float[] pos = new float[]{0, 0, (float) getViewDistance(grid)};
 
         if (encoding.equals("stl")) {
             // TODO: Need to implement streaming version
@@ -592,10 +583,10 @@ public class GridSaver {
     public static void writeMesh(WingedEdgeTriangleMesh mesh,
                                  double viewDistance,
                                  BinaryContentHandler writer,
-                                 Map<String,Object> params,
-                                 boolean meshOnly ) throws IOException {
+                                 Map<String, Object> params,
+                                 boolean meshOnly) throws IOException {
 
-        float[] pos = new float[] {0,0,(float) viewDistance};
+        float[] pos = new float[]{0, 0, (float) viewDistance};
 
         MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly, null);
 
@@ -603,9 +594,9 @@ public class GridSaver {
     }
 
     /**
-       retuns good viewpoint for given box
+     retuns good viewpoint for given box
      */
-    public static double getViewDistance(Grid grid){
+    public static double getViewDistance(Grid grid) {
 
         double bounds[] = new double[6];
         grid.getGridBounds(bounds);
@@ -615,8 +606,8 @@ public class GridSaver {
         double sizez = bounds[5] - bounds[4];
 
         double max = sizex;
-        if(sizey > max) max = sizey;
-        if(sizez > max) max = sizez;
+        if (sizey > max) max = sizey;
+        if (sizez > max) max = sizez;
 
         double z = 2 * max / Math.tan(Math.PI / 4);
         return z;
@@ -624,29 +615,29 @@ public class GridSaver {
     }
 
     /**
-       returns mesh with largest shell
+     returns mesh with largest shell
      */
-    public static ShellResults getLargestShell(WingedEdgeTriangleMesh mesh, int minVolume){
+    public static ShellResults getLargestShell(WingedEdgeTriangleMesh mesh, int minVolume) {
 
         ShellFinder shellFinder = new ShellFinder();
         ShellFinder.ShellInfo shells[] = shellFinder.findShells(mesh);
-        printf("shellsCount: %d\n",shells.length);
+        printf("shellsCount: %d\n", shells.length);
 
         int regions_removed = 0;
 
-        if(shells.length > 1){
+        if (shells.length > 1) {
 
             ShellFinder.ShellInfo maxShell = shells[0];
 
-            for(int i = 0; i < shells.length; i++){
+            for (int i = 0; i < shells.length; i++) {
 
-                printf("shell: %d faces\n",shells[i].faceCount);
-                if(shells[i].faceCount > maxShell.faceCount){
+                printf("shell: %d faces\n", shells[i].faceCount);
+                if (shells[i].faceCount > maxShell.faceCount) {
                     maxShell = shells[i];
                 }
             }
 
-            for(int i = 0; i < shells.length; i++){
+            for (int i = 0; i < shells.length; i++) {
 
                 if (shells[i] != maxShell) {
                     if (shells[i].faceCount >= minVolume) {
@@ -654,15 +645,15 @@ public class GridSaver {
                     }
                 }
             }
-            printf("extracting largest shell: %d\n",maxShell.faceCount);
+            printf("extracting largest shell: %d\n", maxShell.faceCount);
             IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(maxShell.faceCount);
             shellFinder.getShell(mesh, maxShell.startFace, its);
-            mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
+            mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
             return new ShellResults(mesh, regions_removed);
 
         } else {
 
-            return new ShellResults(mesh,regions_removed);
+            return new ShellResults(mesh, regions_removed);
         }
     }
 
@@ -673,54 +664,19 @@ public class GridSaver {
      * @param numShells The maximum number of shells
      * @param minVolume The minimum volume
      */
-    public static ShellResults getLargestShells(WingedEdgeTriangleMesh mesh, int numShells, double minVolume){
+    public static ShellResults getLargestShells(WingedEdgeTriangleMesh mesh, int numShells, double minVolume) {
 
         ShellFinder shellFinder = new ShellFinder();
         ShellFinder.ShellInfo shells[] = shellFinder.findShells(mesh);
-        printf("shellsCount: %d\n",shells.length);
+        printf("shellsCount: %d\n", shells.length);
 
-        int regions_removed = 0;
-
-        //System.out.println("Minimum volume: " + (minVolume / Units.CM3));
-        ArrayList<ShellData> saved_shells = new ArrayList<ShellData>();
-        int face_count = 0;
-        int cnt = 0;
-        for(int i=0; i < shells.length; i++) {
-            AreaCalculator ac = new AreaCalculator();
-            shellFinder.getShell(mesh, shells[i].startFace, ac);
-            mesh.getTriangles(ac);
-            double volume = ac.getVolume();
-
-            //System.out.println("   vol: " + (volume / Units.CM3));
-            if (volume >= minVolume) {
-                System.out.println("Keeping shell: " + volume / Units.CM3 + " cm^3");
-                saved_shells.add(new ShellData(shells[i],volume));
-                if (cnt < numShells) {
-                    face_count += shells[i].faceCount;
-                }
-                cnt++;
-            } else {
-                //System.out.println("Removing shell.  vol: " + (volume / Units.CM3));
-                regions_removed++;
-            }
+        if (shells.length > 5) {
+            return extractShellsMT(mesh, numShells, minVolume, shellFinder, shells);
+        } else {
+            return extractShellsST(mesh, numShells, minVolume, shellFinder, shells);
         }
-
-        Collections.sort(saved_shells, Collections.reverseOrder());
-
-        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(face_count);
-        int shell_cnt = 0;
-        for(ShellData sd : saved_shells) {
-            shellFinder.getShell(mesh, sd.info.startFace, its);
-            shell_cnt++;
-            if (shell_cnt >= numShells) break;
-        }
-
-        printf("extracting largest shells: face: %d  shells: %d  removed: %d\n",face_count,shell_cnt,(shells.length - shell_cnt));
-        mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
-
-        return new ShellResults(mesh, shells.length - shell_cnt);
     }
-    
+
     /**
      * Returns up to numShells shells that are above the minimum volume.
      * TODO: Commonize getLargestShells methods
@@ -729,28 +685,102 @@ public class GridSaver {
      * @param numShells The maximum number of shells
      * @param minVolume The minimum volume
      */
-    public static ShellResults getLargestShells(WingedEdgeTriangleMesh mesh, int numShells, double minVolume, int minShellCount){
+    public static ShellResults getLargestShells(WingedEdgeTriangleMesh mesh, int numShells, double minVolume, int minShellCount) {
 
         ShellFinder shellFinder = new ShellFinder();
         ShellFinder.ShellInfo shells[] = shellFinder.findShells(mesh);
-        printf("shellsCount: %d\n",shells.length);
-        
+        printf("shellsCount: %d\n", shells.length);
+
         if (shells.length <= minShellCount) {
-        	return new ShellResults(mesh, 0);
+            return new ShellResults(mesh, 0);
         }
 
         return extractShells(mesh, numShells, minVolume, shellFinder, shells);
     }
-    
+
     public static ShellResults extractShells(WingedEdgeTriangleMesh mesh, int numShells, double minVolume,
-    		ShellFinder shellFinder, ShellFinder.ShellInfo shells[]) {
+                                             ShellFinder shellFinder, ShellFinder.ShellInfo shells[]) {
+
+        printf("Extracting shells.  numShells: %d\n",shells.length);
+        if (shells.length > 5) {
+            return extractShellsMT(mesh, numShells, minVolume, shellFinder, shells);
+        } else {
+            return extractShellsST(mesh, numShells, minVolume, shellFinder, shells);
+        }
+    }
+
+    public static ShellResults extractShellsMT(WingedEdgeTriangleMesh mesh, int numShells, double minVolume,
+                                               ShellFinder shellFinder, ShellFinder.ShellInfo shells[]) {
+        //System.out.println("Minimum volume: " + (minVolume / Units.CM3));
+        ArrayBlockingQueue<ShellData> saved_shells = new ArrayBlockingQueue<ShellData>(shells.length);
+        int face_count = 0;
+        int cnt = 0;
+
+        int threads = 8;
+        ShellExtracter[] workers = new ShellExtracter[threads];
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+
+        ConcurrentLinkedQueue<ShellFinder.ShellInfo> work = new ConcurrentLinkedQueue();
+        for (ShellFinder.ShellInfo shell : shells) {
+            work.add(shell);
+        }
+
+        for (int i = 0; i < threads; i++) {
+            workers[i] = new ShellExtracter(mesh, minVolume, saved_shells, work);
+            executor.submit(workers[i]);
+        }
+
+        executor.shutdown();
+
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        int regions_removed = 0;
+        for (int i = 0; i < threads; i++) {
+            regions_removed += workers[i].getRemoved();
+        }
+
+        ArrayList<ShellData> ss = new ArrayList<ShellData>(saved_shells.size());
+        ss.addAll(saved_shells);
+        Collections.sort(ss, Collections.reverseOrder());
+
+        int shell_cnt = 0;
+
+        for (ShellData sd : ss) {
+            face_count += sd.info.faceCount;
+            shell_cnt++;
+            if (shell_cnt >= numShells) break;
+        }
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(face_count);
+        shell_cnt = 0;
+        for (ShellData sd : ss) {
+            shellFinder.getShell(mesh, sd.info.startFace, its);
+            shell_cnt++;
+            if (shell_cnt >= numShells) break;
+        }
+
+        printf("extracting largest shells: face: %d  shells: %d  removed: %d\n", face_count, shell_cnt, (shells.length - shell_cnt));
+        mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        return new ShellResults(mesh, shells.length - shell_cnt);
+    }
+
+    public static ShellResults extractShellsST(WingedEdgeTriangleMesh mesh, int numShells, double minVolume,
+                                               ShellFinder shellFinder, ShellFinder.ShellInfo shells[]) {
         int regions_removed = 0;
 
         //System.out.println("Minimum volume: " + (minVolume / Units.CM3));
         ArrayList<ShellData> saved_shells = new ArrayList<ShellData>();
         int face_count = 0;
         int cnt = 0;
-        for(int i=0; i < shells.length; i++) {
+
+        printf("here1");
+        // TODO: this is single threaded and very slow for large numbers of shells.  Sadly ShellFinder is not thread safe
+        for (int i = 0; i < shells.length; i++) {
             AreaCalculator ac = new AreaCalculator();
             shellFinder.getShell(mesh, shells[i].startFace, ac);
             mesh.getTriangles(ac);
@@ -759,7 +789,7 @@ public class GridSaver {
             //System.out.println("   vol: " + (volume / Units.CM3));
             if (volume >= minVolume) {
                 System.out.println("Keeping shell: " + volume / Units.CM3 + " cm^3");
-                saved_shells.add(new ShellData(shells[i],volume));
+                saved_shells.add(new ShellData(shells[i], volume));
                 if (cnt < numShells) {
                     face_count += shells[i].faceCount;
                 }
@@ -774,19 +804,19 @@ public class GridSaver {
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(face_count);
         int shell_cnt = 0;
-        for(ShellData sd : saved_shells) {
+        for (ShellData sd : saved_shells) {
             shellFinder.getShell(mesh, sd.info.startFace, its);
             shell_cnt++;
             if (shell_cnt >= numShells) break;
         }
 
-        printf("extracting largest shells: face: %d  shells: %d  removed: %d\n",face_count,shell_cnt,(shells.length - shell_cnt));
-        mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
+        printf("extracting largest shells: face: %d  shells: %d  removed: %d\n", face_count, shell_cnt, (shells.length - shell_cnt));
+        mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
 
         return new ShellResults(mesh, shells.length - shell_cnt);
     }
 
-    public static WingedEdgeTriangleMesh decimateMesh(WingedEdgeTriangleMesh mesh, double maxCollapseError ){
+    public static WingedEdgeTriangleMesh decimateMesh(WingedEdgeTriangleMesh mesh, double maxCollapseError) {
 
         printf("GridSaver.decimateMesh()\n");
 
@@ -799,7 +829,7 @@ public class GridSaver {
         int current = fcount;
         printf("   Original face count: " + fcount);
 
-        while(true) {
+        while (true) {
             if (Thread.currentThread().isInterrupted()) {
                 throw new ExecutionStoppedException();
             }
@@ -816,7 +846,7 @@ public class GridSaver {
             }
         }
         fcount = current;
-        printf("   Final face count: %d \n",fcount);
+        printf("   Final face count: %d \n", fcount);
         return mesh;
     }
 
@@ -824,7 +854,6 @@ public class GridSaver {
     /**
      * Write a grid mesh into output
      *
-     * @param maxCollapseError
      * @throws IOException
      */
     /*
@@ -912,5 +941,50 @@ public class GridSaver {
         return;
     }
     */
+
+}
+
+class ShellExtracter implements Runnable {
+    private boolean terminate;
+    private WingedEdgeTriangleMesh mesh;
+    private double minVolume;
+    private BlockingQueue<ShellData> saved;
+    private int removed;
+    private ConcurrentLinkedQueue<ShellFinder.ShellInfo> shells;
+
+    public ShellExtracter(WingedEdgeTriangleMesh mesh, double minVolume, BlockingQueue<ShellData> saved, ConcurrentLinkedQueue<ShellFinder.ShellInfo> shells) {
+        this.mesh = mesh;
+        this.minVolume = minVolume;
+        this.saved = saved;
+        this.shells = shells;
+    }
+
+    public void run() {
+        while (!terminate) {
+            ShellFinder.ShellInfo shell = shells.poll();
+            if (shell == null) break;
+
+
+            AreaCalculator ac = new AreaCalculator();
+            ShellFinder sf = new ShellFinder();
+//            shellFinder.getShell(mesh, shells[i].startFace, ac);
+            sf.getShell(mesh, shell.startFace, ac);
+            mesh.getTriangles(ac);
+            double volume = ac.getVolume();
+
+            //System.out.println("   vol: " + (volume / Units.CM3));
+            if (volume >= minVolume) {
+                System.out.println("Keeping shell: " + volume / Units.CM3 + " cm^3");
+                saved.add(new ShellData(shell, volume));
+            } else {
+                //System.out.println("Removing shell.  vol: " + (volume / Units.CM3));
+                removed++;
+            }
+        }
+    }
+
+    public int getRemoved() {
+        return removed;
+    }
 }
 
