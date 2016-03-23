@@ -53,8 +53,8 @@ import static java.lang.Math.round;
 
  inside distances are negative
  outside distances are positive
- inside voxels not reached by maxInDistance are initialized to DEFAULT_IN_VALUE
- outside voxels not reached by maxOutDistance are initialized to DEFAULT_OUT_VALUE
+ inside voxels not reached by maxInDistance are initialized to m_defaultInVaue;
+ outside voxels not reached by maxOutDistance are initialized to m_defaultOutValueDEFAULT_OUT_VALUE
 
  algorithm works as follows 
  - calculate vertices of isosurface and store them in the PointSet 
@@ -73,10 +73,6 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
     static int debugCount = 100;
 
     static final int AXIS_X = 0, AXIS_Y = 1, AXIS_Z = 2; // direction  of surface offset from the interior surface point 
-
-    int m_subvoxelResolution = 100; // distance normalization 
-    double m_inDistance = 0;
-    double m_outDistance = 0;
 
     long m_defaultInValue = -Short.MAX_VALUE;
     long m_defaultOutValue = Short.MAX_VALUE;
@@ -144,8 +140,8 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
         double bounds[] = new double[6];
         grid.getGridBounds(bounds);
         m_voxelSize = vs;
-        m_defaultInValue = -(long)((m_inDistance/m_voxelSize)*m_subvoxelResolution + 1);
-        m_defaultOutValue = (long)((m_outDistance/m_voxelSize)*m_subvoxelResolution + 1);
+        m_defaultInValue = -(long)((m_inDistance/m_voxelSize)*m_subvoxelResolution);
+        m_defaultOutValue = (long)((m_outDistance/m_voxelSize)*m_subvoxelResolution);
 
         // center of corner voxel 
         m_xmin = bounds[0] + vs/2;

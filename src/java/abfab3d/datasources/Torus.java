@@ -56,6 +56,15 @@ public class Torus extends TransformableDataSource {
     };
 
     /**
+       creates default torus centered at origin 
+       rout = 5mm 
+       rin 1mm 
+     */
+    public Torus() {
+
+    }
+
+    /**
        torus centered ar center with axis parallel to z-axis
        @param center - location of torus center
        @param Rout - outer radius of torus

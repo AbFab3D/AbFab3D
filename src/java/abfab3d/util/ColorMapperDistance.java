@@ -14,7 +14,7 @@ package abfab3d.util;
 
 
 /**
-   class to calculate color fro given densitry value
+   class to calculate color for given densitry value
    densty is expacted in the range (0,1)
    the density is shown as stripes of changing colors from color0 to color1
    
@@ -53,9 +53,9 @@ public class ColorMapperDistance implements ColorMapper {
         double v = value / m_stripeWidth;
         
         if(v >= 0.0) {
-            return ImageUtil.lerpColors(m_extColor0, m_extColor1, v);
+            return ImageUtil.lerpColors(m_extColor0, m_extColor1, MathUtil.frac(v));
         } else {
-            return ImageUtil.lerpColors(m_intColor0, m_intColor1,-v);
+            return ImageUtil.lerpColors(m_intColor0, m_intColor1, MathUtil.frac(-v));
         }
         
     }

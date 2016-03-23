@@ -29,6 +29,11 @@ public class IntParameter extends NumberParameter {
     // increent step
     private int m_step = 1;
 
+    public IntParameter(String name, int initialValue) {
+
+        this(name, name, initialValue);
+    }
+
     public IntParameter(String name, String desc, int initialValue) {
 
         this(name, desc, initialValue, DEFAULT_MIN_RANGE, DEFAULT_MAX_RANGE);

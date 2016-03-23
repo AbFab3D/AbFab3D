@@ -107,7 +107,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
 
     /**
        this is signed variant of AttributeChannel to work with short
-       it is legacy varian to work with code which stores distance data as signed short 
+       it is legacy variant to work with code which stores distance data as signed short 
        @param physicalUnit conversion factor from int to physical units 
      */
     public AttributeChannel(String type, String name, double physicalUnit, double minValue, double maxValue){
@@ -118,7 +118,8 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
         m_mask = 0xFFFF;
 
         m_bitsExtractor = new ShortBitsExtractor();
-        
+
+        m_bits = 16;
 
         m_B2D = physicalUnit;        
         m_D2B = 1./m_B2D;
@@ -159,7 +160,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     }
     
     public String toString(){
-        return  fmt("AttribiuteChannel(%s:%s:%d:%7.4f:%7.4f)", getType(),  getName(), getBitCount(), m_value0, m_value1);
+        return  fmt("AttributeChannel(%s;%s; bitCount:%d; offset:%d; valueo:%7.4f; value1:%7.4f; B2D:%11.9f)", getType(),  getName(), getBitCount(), m_shift, m_value0, m_value1, m_B2D);
     }
 
     public double getValue0(){

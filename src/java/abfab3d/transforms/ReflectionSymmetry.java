@@ -72,13 +72,13 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
    
     //ObjectParameter  mp_splanes = new ObjectParameter("splanes","array of splanes",defaultSplanes);
 
-    SNodeParameter mp_symmetry = new SNodeParameter("symmetry", "symmetry", new ReflectionSymmetries.Plane(), ReflectionSymmetries.getFactory());
+    SNodeParameter mp_generator = new SNodeParameter("generator", "symmetry generator", new ReflectionSymmetries.Plane(), ReflectionSymmetries.getFactory());
     IntParameter  mp_iterations = new IntParameter("iterations","max iterations to reflect into fundamental domain",100);
     DoubleParameter  mp_riemannSphereRadius = new DoubleParameter("riemannSphereRadius","Riemann Sphere Radius",0.);
 
     Parameter m_aparam[] = new Parameter[]{
         //mp_splanes,
-        mp_symmetry,
+        mp_generator,
         mp_iterations,
         mp_riemannSphereRadius,
     };
@@ -89,13 +89,22 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
     public ReflectionSymmetry(){            
         initParams();        
     }
+
+    /**
+       creates reflection symmetyr with given generator
+     */
+    public ReflectionSymmetry(SymmetryGenerator generator){            
+        initParams();        
+        
+        mp_generator.setValue(generator);
+    }
     
     /**
        Reflection symmetry with specified fundamental domain
      */
     public ReflectionSymmetry(ReflectionGroup.SPlane fundamentalDomain[]){
         initParams();
-        mp_symmetry.setValue(new ReflectionSymmetries.General(fundamentalDomain));
+        mp_generator.setValue(new ReflectionSymmetries.General(fundamentalDomain));
     }
 
     /**
@@ -145,7 +154,7 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
         
         //ReflectionGroup.SPlane[] splanes = (ReflectionGroup.SPlane[])mp_splanes.getValue();
 
-        SymmetryGenerator gen = (SymmetryGenerator)mp_symmetry.getValue();
+        SymmetryGenerator gen = (SymmetryGenerator)mp_generator.getValue();
         ReflectionGroup.SPlane[] splanes = gen.getFundamentalDomain();
         
         m_group = new ReflectionGroup(splanes);

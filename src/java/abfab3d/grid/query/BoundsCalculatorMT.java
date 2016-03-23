@@ -18,7 +18,7 @@ package abfab3d.grid.query;
 
 import abfab3d.grid.AttributeChannel;
 import abfab3d.grid.AttributeGrid;
-import abfab3d.io.input.*;
+//import abfab3d.io.input.*;
 import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.Bounds;
 

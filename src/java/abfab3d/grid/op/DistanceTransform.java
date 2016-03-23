@@ -16,6 +16,8 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridShort;
 
 import abfab3d.grid.GridShortIntervals;
+import abfab3d.grid.AttributeDesc;
+import abfab3d.grid.AttributeChannel;
 import abfab3d.util.MathUtil;
 
 
@@ -26,6 +28,10 @@ public class DistanceTransform {
     
     // temlate to be used for distance grid creation 
     protected AttributeGrid m_distanceGridTemplate; 
+    protected int m_subvoxelResolution = 100; // distance presision per voxel 
+
+    protected double m_inDistance = 0; // max interior distance 
+    protected double m_outDistance = 0; // max exterior distance
 
     /**
        set template to be used for distance grid creation 
@@ -60,6 +66,8 @@ public class DistanceTransform {
             }
         }
         distGrid.setGridBounds(bounds);
+        distGrid.setAttributeDesc(new AttributeDesc(new AttributeChannel(AttributeChannel.DISTANCE, "distance", vs/m_subvoxelResolution, -m_inDistance, m_outDistance)));
+
         return distGrid;
     }   
 

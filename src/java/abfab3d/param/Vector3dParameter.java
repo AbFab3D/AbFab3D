@@ -28,6 +28,9 @@ public class Vector3dParameter extends NumberParameter {
     public Vector3dParameter(String name, String desc) {
         this(name, desc, new Vector3d(0, 0, 0));
     }
+    public Vector3dParameter(String name, Vector3d initialValue) {
+        this(name, name, initialValue);
+    }
 
     public Vector3dParameter(String name, String desc, Vector3d initialValue) {
         super(name, desc);

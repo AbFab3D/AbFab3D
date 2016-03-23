@@ -69,9 +69,9 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     static public final int ALG_EXACT = 1; // straightforward exact calculation
     static public final int ALG_LAYERED = 2; // building distance in layers 
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     static final boolean DEBUG_GRID = false;
-    static final boolean DEBUG_TIMING = false;
+    static final boolean DEBUG_TIMING = true;
     int m_debugCount = 200;
     int m_subvoxelResolution = 100;
     long m_defaultInValue = -Short.MAX_VALUE;
@@ -241,8 +241,10 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         m_maxInDistSubvoxels = (int)Math.ceil(m_maxInDistance*m_subvoxelResolution/m_voxelSize);
 
         if(DEBUG){
-            printf("maxOutDist: %d subvoxels\n",m_maxOutDistSubvoxels);
-            printf("maxInDist: %d subvoxels\n",m_maxInDistSubvoxels);
+            printf("DistanceToPointSet maxOutDistance: %8.5f \n",m_maxOutDistance);
+            printf("DistanceToPointSet maxInDistance: %8.5f \n",m_maxInDistance);
+            printf("DistanceToPointSet maxOutDist: %d subvoxels\n",m_maxOutDistSubvoxels);
+            printf("DistanceToPointSet maxInDist: %d subvoxels\n",m_maxInDistSubvoxels);
         }
         
         
@@ -390,7 +392,8 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
             printSlice(closestPoints,m_nx, m_ny, m_nz, m_nz/2);
         }
         
-        //m_threadCount = 1;
+        //m_threadCount = 1; 
+        //iter += 1; // iter count seems too low, we are not reaching max distance
         if(DEBUG)printf("threads: %d, iterations: %d\n", m_threadCount, iter);
         long t00 = time();
         for(int k = 0; k < iter; k++){
@@ -583,7 +586,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
             }
         }
         if(DEBUG)printf("points sorting time: %5d ms\n", (time() - t0));
-        if(DEBUG){
+        if(false) {
             for(int k = 0; k < pnts.length; k++){
                 if(pnts[k] != null)printf("pnt: %5d\n", pnts[k].size());
                 else printf("pnt: NULL\n");
@@ -1003,7 +1006,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                 slice = slicer.getNextSlice(slice);
                 if(slice == null)
                     break;
-                if(DEBUG)printf("slice: [%3d %3d; %2d]\n",slice.smin, slice.smax, slice.index);
+                if(false)printf("slice: [%3d %3d; %2d]\n",slice.smin, slice.smax, slice.index);
                 if(points[slice.index] != null){
                     int count = makeFirstLayerSlice(slice.smin, slice.smax, points[slice.index], inds[slice.index], neig, closestPoints, freshLayer);            
                     counter.addAndGet(count);
