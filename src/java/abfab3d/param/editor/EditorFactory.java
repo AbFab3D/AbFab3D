@@ -11,7 +11,9 @@
  ****************************************************************************/
 package abfab3d.param.editor;
 
+import abfab3d.param.BooleanParameter;
 import abfab3d.param.DoubleParameter;
+import abfab3d.param.IntParameter;
 import abfab3d.param.EnumParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNodeListParameter;
@@ -31,18 +33,21 @@ public class EditorFactory {
     
     public Editor createEditor(Parameter param) {
         switch(param.getType()) {
-            case DOUBLE:
-                //return new DoubleEditor((DoubleParameter)param);
-                return new DoubleEditorScroll((DoubleParameter)param);
-                //return new DoubleEditorScroll_v2((DoubleParameter)param);
-            case VECTOR_3D:
-                return new Vector3dEditor((Vector3dParameter)param);
+        case INTEGER:
+            return new IntEditor((IntParameter)param);
+        case DOUBLE:
+            //return new DoubleEditor((DoubleParameter)param);
+            return new DoubleEditorScroll((DoubleParameter)param);
+        case VECTOR_3D:
+            return new Vector3dEditor((Vector3dParameter)param);
         case AXIS_ANGLE_4D:
-                return new AxisAngle4dEditor((AxisAngle4dParameter)param);            
-            case ENUM:
-                return new EnumEditor((EnumParameter)param);
-            case SNODE_LIST:
-                return new SNodeListEditor((SNodeListParameter)param);
+            return new AxisAngle4dEditor((AxisAngle4dParameter)param);            
+        case ENUM:
+            return new EnumEditor((EnumParameter)param);
+        case BOOLEAN:
+            return new BooleanEditor((BooleanParameter)param);
+        case SNODE_LIST:
+            return new SNodeListEditor((SNodeListParameter)param);
             case SNODE:
                 return new SNodeEditor((SNodeParameter)param);
         default:

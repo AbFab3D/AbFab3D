@@ -20,6 +20,9 @@ package abfab3d.param;
  */
 public class BooleanParameter extends BaseParameter {
 
+    public BooleanParameter(String name, boolean initialValue) {
+        this(name,name, initialValue);
+    }
     public BooleanParameter(String name, String desc, boolean initialValue) {
         super(name, desc);
         defaultValue = initialValue;

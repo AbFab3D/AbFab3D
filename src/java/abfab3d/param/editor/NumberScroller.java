@@ -168,7 +168,7 @@ public class NumberScroller extends  JPanel {
         
         public void mousePressed( MouseEvent e ) {
             
-            updateParameter();
+            //updateParameter();
             
             mouseDownY = e.getY();
             isReallyDragging = false;
@@ -236,19 +236,12 @@ public class NumberScroller extends  JPanel {
         }
     } // class ButtonMouseListener
         
-    
-    public void updateParameter(){
-        
-        //m_dparam.setValue(m_textField.getValue());
-        
-    }
-    
-    
+            
     class MyFocusListener extends FocusAdapter {
         
         public void focusLost(FocusEvent e){
             
-            updateParameter();
+            m_textField.updateValue();
             
         }
     }
@@ -299,8 +292,9 @@ public class NumberScroller extends  JPanel {
             default: 
                 return;
             case KeyEvent.VK_ENTER:  
-                //TODO 
-                informListeners();
+                m_textField.updateValue();
+                //m_value = m_textField.getValue();
+                //informListeners();
                 return;
             }
         }
@@ -317,7 +311,5 @@ public class NumberScroller extends  JPanel {
             informListeners();            
         }
     }   
- 
-
      
 }

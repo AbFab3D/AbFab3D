@@ -23,6 +23,7 @@ import javax.vecmath.AxisAngle4d;
 import abfab3d.param.SNodeParameter;
 import abfab3d.param.ObjectParameter;
 import abfab3d.param.DoubleParameter;
+import abfab3d.param.BooleanParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
@@ -75,26 +76,54 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
     SNodeParameter mp_generator = new SNodeParameter("generator", "symmetry generator", new ReflectionSymmetries.Plane(), ReflectionSymmetries.getFactory());
     IntParameter  mp_iterations = new IntParameter("iterations","max iterations to reflect into fundamental domain",100);
     DoubleParameter  mp_riemannSphereRadius = new DoubleParameter("riemannSphereRadius","Riemann Sphere Radius",0.);
+    BooleanParameter mp_g1 = new BooleanParameter("g1", true);
+    BooleanParameter mp_g2 = new BooleanParameter("g2", true);
+    BooleanParameter mp_g3 = new BooleanParameter("g3", true);
+    BooleanParameter mp_g4 = new BooleanParameter("g4", true);
+    BooleanParameter mp_g5 = new BooleanParameter("g5", true);
+    BooleanParameter mp_g6 = new BooleanParameter("g6", true);
+    BooleanParameter mp_g7 = new BooleanParameter("g7", true);
+    BooleanParameter mp_g8 = new BooleanParameter("g8", true);
+
 
     Parameter m_aparam[] = new Parameter[]{
         //mp_splanes,
         mp_generator,
         mp_iterations,
         mp_riemannSphereRadius,
+        mp_g1,
+        mp_g2,
+        mp_g3,
+        mp_g4,
+        mp_g5,
+        mp_g6,
+        mp_g7,
+        mp_g8,
     };
     
+    BooleanParameter m_gens[] = {
+        mp_g1,
+        mp_g2,
+        mp_g3,
+        mp_g4,
+        mp_g5,
+        mp_g6,
+        mp_g7,
+        mp_g8,
+    };
+
     /**
       Reflection symmetry with empty fundamental domain
      */
     public ReflectionSymmetry(){            
-        initParams();        
+        super.addParams(m_aparam);
     }
 
     /**
        creates reflection symmetyr with given generator
      */
     public ReflectionSymmetry(SymmetryGenerator generator){            
-        initParams();        
+        super.addParams(m_aparam);
         
         mp_generator.setValue(generator);
     }
@@ -103,23 +132,9 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
        Reflection symmetry with specified fundamental domain
      */
     public ReflectionSymmetry(ReflectionGroup.SPlane fundamentalDomain[]){
-        initParams();
+        super.addParams(m_aparam);
         mp_generator.setValue(new ReflectionSymmetries.General(fundamentalDomain));
     }
-
-    /**
-       @noRefGuide
-     */
-    //public void _setGroup(ReflectionGroup group){
-    //    this.group = group;
-    //}
-
-    /**
-       sets the fundamental fomain of the group
-     */
-    //public void setGroup(ReflectionGroup.SPlane fundamentalDomain[]){
-    //    mp_splanes.setValue(fundamentalDomain);
-    //    }
 
     /**
        set max count of reflection to be used in group generation. Default value is 100.
@@ -137,14 +152,10 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
     
 
     public ReflectionGroup getReflectionGroup(){
+        
+        if(m_group == null) 
+            initialize();
         return m_group;
-    }
-
-    /**
-       @noRefGuide
-     */
-    protected void initParams(){
-        super.addParams(m_aparam);
     }
 
     /**
@@ -156,8 +167,21 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
 
         SymmetryGenerator gen = (SymmetryGenerator)mp_generator.getValue();
         ReflectionGroup.SPlane[] splanes = gen.getFundamentalDomain();
-        
-        m_group = new ReflectionGroup(splanes);
+        int count = 0;
+        for(int i = 0; i < splanes.length; i++){
+            if(m_gens[i].getValue()) 
+                count++;
+        }
+        ReflectionGroup.SPlane[] activeSplanes = new ReflectionGroup.SPlane[count];
+        count = 0;
+        for(int i = 0; i < splanes.length; i++){
+            if(m_gens[i].getValue()){
+                activeSplanes[count] = splanes[i];
+                count++;
+            }
+        }        
+
+        m_group = new ReflectionGroup(activeSplanes);
                 
         m_group.setRiemannSphereRadius(mp_riemannSphereRadius.getValue());
         m_group.setMaxIterations(mp_iterations.getValue());

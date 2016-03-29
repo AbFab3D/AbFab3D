@@ -31,6 +31,10 @@ public class EnumParameter extends BaseParameter {
     }
     */
 
+    public EnumParameter(String name, String values[], String initialValue) {
+        this(name, name, values, initialValue);
+    }
+
     public EnumParameter(String name, String desc, String values[], String initialValue) {
         super(name, desc);
         m_values = values.clone();

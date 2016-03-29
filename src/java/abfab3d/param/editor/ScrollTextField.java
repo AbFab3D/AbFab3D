@@ -142,6 +142,14 @@ public class ScrollTextField extends TextField {
         
     }
 
+    
+    public void updateValue(){
+
+        m_value = Double.parseDouble(extractNumber()); 
+        //setText(fmt(m_currentFormat,m_value));            
+        informListeners();
+        
+    }
 
     private void updateValue(double value){
         value = Math.max(m_minValue, value);
@@ -157,7 +165,7 @@ public class ScrollTextField extends TextField {
     
     private String appendix = "";  // text at the end of number, should be appended 
     
-    private String extractNumber(){
+    public String extractNumber(){
         
         String text = getText();
         int len = text.length();
