@@ -71,8 +71,8 @@ public class IsosurfaceMaker {
     }
 
     /**
-       set grid size to calculate isosirface on 
-       the area is divide into [(nx-1) x (ny-1) x (nz-1)] cubes 
+       set grid size to calculate isosurface on 
+       the area is divided into [(nx-1) x (ny-1) x (nz-1)] cubes 
        data is calculated in the corners of the cubes 
      */
     public void setGridSize(int nx, int ny, int nz ){
