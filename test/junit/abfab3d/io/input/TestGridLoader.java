@@ -15,12 +15,7 @@ package abfab3d.io.input;
 // External Imports
 
 
-import java.util.Map;
-
-
 // external imports
-import abfab3d.grid.query.CountMaterials;
-import abfab3d.grid.query.CountStates;
 
 import abfab3d.util.ColorMapper;
 import abfab3d.util.ColorMapperDistance;
@@ -32,30 +27,17 @@ import junit.framework.TestSuite;
 
 
 // Internal Imports
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.GridShortIntervals;
-import abfab3d.grid.AttributeDesc;
-import abfab3d.grid.AttributeChannel;
+        import abfab3d.grid.AttributeGrid;
+        import abfab3d.grid.GridDataDesc;
+import abfab3d.grid.GridDataChannel;
 
 import abfab3d.distance.DistanceData;
 import abfab3d.distance.DistanceDataSphere;
 
 import abfab3d.grid.util.GridUtil;
 
-import abfab3d.geom.TriangulatedModels;
 
-import abfab3d.io.output.STLWriter;
-import abfab3d.io.output.MeshMakerMT;
-import abfab3d.io.output.SlicesWriter;
-
-import abfab3d.util.MathUtil;
-import abfab3d.util.ColorMapper;
-import abfab3d.util.ColorMapperDensity;
-
-
-import static java.lang.Math.max;
+        import static java.lang.Math.max;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
@@ -63,8 +45,7 @@ import static abfab3d.util.Output.time;
 import static abfab3d.util.Units.CM3;
 import static abfab3d.util.Units.MM;
 import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.lerp2;
-import static abfab3d.util.ImageUtil.lerpColors;
+        import static abfab3d.util.ImageUtil.lerpColors;
 
 
 /**
@@ -126,7 +107,7 @@ public class TestGridLoader extends TestCase {
         assertTrue("((diff2 < 0.044) != true)\n", (diff.diff2/voxelSize < 0.044));
         
         if(false){
-            AttributeChannel dataChannel = grid.getAttributeDesc().getChannel(0);
+            GridDataChannel dataChannel = grid.getDataDesc().getChannel(0);
             ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, 2*MM);
             int iz = grid.getDepth()/2;
             GridUtil.writeSlice(grid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));
@@ -177,7 +158,7 @@ public class TestGridLoader extends TestCase {
         assertTrue("((diff2 < 0.057) != true)\n", (diff.diff2/voxelSize < 0.057));
         
         if(false){
-            AttributeChannel dataChannel = grid.getAttributeDesc().getChannel(0);
+            GridDataChannel dataChannel = grid.getDataDesc().getChannel(0);
             ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, 2*MM);
             int iz = grid.getDepth()/2;
             GridUtil.writeSlice(grid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));
@@ -228,7 +209,7 @@ public class TestGridLoader extends TestCase {
             printf("volume: %7.3f CM^3 in %d ms\n", volume/CM3, (time() - t0));
             //for(int iz = densGrid.getDepth()/2; iz < densGrid.getDepth()/2+1; iz++){
             for(int iz = 0; iz < densGrid.getDepth(); iz++){
-                AttributeChannel dataChannel = densGrid.getAttributeDesc().getChannel(0);
+                GridDataChannel dataChannel = densGrid.getDataDesc().getChannel(0);
                 ColorMapper colorMapper = new ColorMapperDensity(0xFF000000, 0xFFFF0000, 1./2);
                 GridUtil.writeSlice(densGrid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dens%03d.png", iz));
                 //GridUtil.printSliceAttribute(densGrid, iz);
@@ -297,7 +278,7 @@ public class TestGridLoader extends TestCase {
             //if(false){int iz = grid.getDepth()/2;
             //for(int iz = grid.getDepth()/2; iz < grid.getDepth()/2+1; iz++){
             for(int iz = 0; iz < grid.getDepth(); iz += 1){
-                AttributeChannel dataChannel = grid.getAttributeDesc().getChannel(0);
+                GridDataChannel dataChannel = grid.getDataDesc().getChannel(0);
                 ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, bandWidth);
                 GridUtil.writeSlice(grid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));
             }
@@ -312,8 +293,8 @@ public class TestGridLoader extends TestCase {
         int nx = grid.getWidth();
         int ny = grid.getHeight();
         int nz = grid.getDepth();
-        AttributeDesc ad = grid.getAttributeDesc();
-        AttributeChannel ch = ad.getDensityChannel();
+        GridDataDesc ad = grid.getDataDesc();
+        GridDataChannel ch = ad.getDensityChannel();
         double sum = 0;
         double voxelVolume = grid.getVoxelSize();
         voxelVolume = voxelVolume*voxelVolume*voxelVolume;
@@ -342,7 +323,7 @@ public class TestGridLoader extends TestCase {
         double diff2Sum = 0;
         int count = 0;
 
-        AttributeChannel dataChannel = grid.getAttributeDesc().getChannel(0);
+        GridDataChannel dataChannel = grid.getDataDesc().getChannel(0);
         double pnt[] = new double[3];
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){

@@ -69,9 +69,9 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     static public final int ALG_EXACT = 1; // straightforward exact calculation
     static public final int ALG_LAYERED = 2; // building distance in layers 
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static final boolean DEBUG_GRID = false;
-    static final boolean DEBUG_TIMING = true;
+    static final boolean DEBUG_TIMING = false;
     int m_debugCount = 200;
     int m_subvoxelResolution = 100;
     long m_defaultInValue = -Short.MAX_VALUE;

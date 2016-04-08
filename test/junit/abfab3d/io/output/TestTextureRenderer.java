@@ -23,18 +23,11 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.BasicStroke;
 
-import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
 
 
 import java.io.File;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
 import java.io.IOException;
-
-import java.util.Vector;
-
 
 
 import javax.vecmath.Vector3d;
@@ -52,63 +45,27 @@ import junit.framework.TestSuite;
 // Internal Imports
 import abfab3d.grid.AttributeMakerGeneral;
 import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridInt;
-import abfab3d.grid.ArrayAttributeGridLong;
-import abfab3d.grid.AttributeDesc;
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataDesc;
+import abfab3d.grid.GridDataChannel;
 
 import abfab3d.util.TriangleProducer;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.RectPacking;
 
 import abfab3d.geom.TriangulatedModels;
-import abfab3d.geom.ParametricSurfaces;
-import abfab3d.geom.ParametricSurfaceMaker;
 
 import abfab3d.util.MathUtil;
-import abfab3d.util.ImageGray16;
-import abfab3d.util.DefaultLongConverter;
-import abfab3d.util.LongConverter;
 
 import abfab3d.datasources.DataSourceMixer;
-import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
-import abfab3d.datasources.Ring;
-import abfab3d.datasources.Torus;
-import abfab3d.datasources.DataTransformer;
-import abfab3d.datasources.Intersection;
-import abfab3d.datasources.Union;
-import abfab3d.datasources.Subtraction;
-import abfab3d.datasources.Triangle;
-import abfab3d.datasources.Cylinder;
-import abfab3d.datasources.LimitSet;
-import abfab3d.datasources.VolumePatterns;
-
-import abfab3d.transforms.RingWrap;
-import abfab3d.transforms.FriezeSymmetry;
-import abfab3d.transforms.WallpaperSymmetry;
-import abfab3d.transforms.Rotation;
-import abfab3d.transforms.CompositeTransform;
-import abfab3d.transforms.Scale;
-import abfab3d.transforms.SphereInversion;
-import abfab3d.transforms.Translation;
-import abfab3d.transforms.PlaneReflection;
-
-import abfab3d.mesh.IndexedTriangleSetBuilder;
-
 import abfab3d.datasources.VolumePatterns;
 
 import abfab3d.grid.op.GridMaker;
-
-import static java.lang.Math.sqrt;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
 
 import static abfab3d.util.MathUtil.maxDistance;
-import static abfab3d.util.MathUtil.copyVector3;
 
 import static abfab3d.util.Units.MM;
 
@@ -220,9 +177,9 @@ public class TestTextureRenderer extends TestCase {
         printf("gm.makeGrid() done\n");
 
         
-        AttributeDesc attDesc = new AttributeDesc();
-        attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24, 0));
-        dataGrid.setAttributeDesc(attDesc);
+        GridDataDesc attDesc = new GridDataDesc();
+        attDesc.addChannel(new GridDataChannel(GridDataChannel.COLOR, "color", 24, 0));
+        dataGrid.setDataDesc(attDesc);
         new SVXWriter().write(dataGrid, "/tmp/slices/dataGrid.svx");
 
         TextureRenderer renderer = new TextureRenderer(dataGrid, texGrid);
@@ -239,7 +196,7 @@ public class TestTextureRenderer extends TestCase {
         renderer.renderTriangle(dataTri, texTri);
         renderer.renderTriangle(dataTri, texTri1);
         
-        texGrid.setAttributeDesc(attDesc);
+        texGrid.setDataDesc(attDesc);
         new SVXWriter().write(texGrid, "/tmp/slices/texGrid.svx");
 
         //double v3[][] = new double[][]{{}}; 
@@ -326,15 +283,15 @@ public class TestTextureRenderer extends TestCase {
         int ngx = (int)gs;        
         AttributeGrid colorGrid = makeColorGrid_2(bounds, vs);
 
-        AttributeDesc attDesc = new AttributeDesc();
-        attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24, 0));
-        colorGrid.setAttributeDesc(attDesc);
+        GridDataDesc attDesc = new GridDataDesc();
+        attDesc.addChannel(new GridDataChannel(GridDataChannel.COLOR, "color", 24, 0));
+        colorGrid.setDataDesc(attDesc);
         new SVXWriter(2).write(colorGrid, baseDir + "colorGrid.svx");
 
         double texBounds[] = new double[]{0, imgWidth*vs, 0, vs, 0, imgHeight*vs};
         AttributeGrid texGrid = new ArrayAttributeGridInt(imgWidth,1,imgHeight, vs, vs);
         texGrid.setGridBounds(texBounds);
-        texGrid.setAttributeDesc(attDesc);
+        texGrid.setDataDesc(attDesc);
         
         tp.renderTexturedTriangles(colorGrid, texGrid, triExtWidth);
 

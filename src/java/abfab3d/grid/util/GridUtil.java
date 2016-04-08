@@ -14,7 +14,6 @@
 
 // External Imports
 import java.io.IOException;
-import java.util.*;
 
 import java.io.File;
 import javax.imageio.ImageIO;
@@ -26,7 +25,7 @@ import java.awt.image.DataBufferInt;
 import abfab3d.util.ColorMapper;
 
 import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.Grid2D;
 
 
@@ -119,7 +118,7 @@ public class GridUtil  {
        writes grid slice slice into image file using given magnification and ColorMapper
        
      */
-    public static void writeSlice(AttributeGrid grid, int magnification, int iz, AttributeChannel dataChannel, ColorMapper colorMapper, String path) throws IOException {
+    public static void writeSlice(AttributeGrid grid, int magnification, int iz, GridDataChannel dataChannel, ColorMapper colorMapper, String path) throws IOException {
 
         int imgx = grid.getWidth()*magnification;
         int imgy = grid.getHeight()*magnification;
@@ -136,12 +135,12 @@ public class GridUtil  {
      writes grid slice slice into image file using given magnification and ColorMapper
 
      */
-    public static void writeSlice(AttributeGrid grid, int iz, AttributeChannel dataChannel, ColorMapper colorMapper, BufferedImage image){
+    public static void writeSlice(AttributeGrid grid, int iz, GridDataChannel dataChannel, ColorMapper colorMapper, BufferedImage image){
 
         writeSlice(grid, 1, iz, dataChannel, colorMapper, image);
     }
 
-    public static void writeSlice(AttributeGrid grid, int magnification, int iz, AttributeChannel dataChannel, ColorMapper colorMapper, BufferedImage image) {
+    public static void writeSlice(AttributeGrid grid, int magnification, int iz, GridDataChannel dataChannel, ColorMapper colorMapper, BufferedImage image) {
 
         int gnx = grid.getWidth();
         int gny = grid.getHeight();

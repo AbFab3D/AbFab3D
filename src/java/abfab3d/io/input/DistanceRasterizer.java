@@ -15,16 +15,13 @@ package abfab3d.io.input;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.geom.ZBuffer;
 import abfab3d.util.TriangleCollector;
 import abfab3d.util.TriangleProducer;
 import abfab3d.util.Bounds;
-import abfab3d.util.Initializable;
 import abfab3d.util.DataSource;
 
-import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.GridMask;
 
@@ -234,7 +231,7 @@ public class DistanceRasterizer implements TriangleCollector {
         //makeDensityFromDistance(m_shellBuilder.getDistanceGrid(), interiorGrid, densityGrid );
         t0 = time();
         ClosestPointIndexer.makeDensityGrid(m_indexGrid, pntx, pnty, pntz,
-                                           interiorGrid, densityGrid, densityGrid.getAttributeDesc().getChannel(0));
+                                           interiorGrid, densityGrid, densityGrid.getDataDesc().getChannel(0));
         printf("ClosestPointIndexer.makeDensityGrid() %d ms\n", (time() - t0));
         if(false){
             int z = interiorGrid.getDepth()/2;
@@ -258,7 +255,7 @@ public class DistanceRasterizer implements TriangleCollector {
             ny = distGrid.getHeight(),
             nz = distGrid.getDepth();
 
-        AttributeChannel dataChannel = densityGrid.getAttributeDesc().getChannel(0);
+        GridDataChannel dataChannel = densityGrid.getDataDesc().getChannel(0);
 
         double voxelSize = distGrid.getVoxelSize();        
         for(int y = 0; y < ny; y++){

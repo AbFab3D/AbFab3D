@@ -245,7 +245,7 @@ public class GridMaker implements Operation, AttributeOperation {
         
         if(m_attributeMaker == null){
             // no attibute maker given -> try to make one             
-            AttributeDesc attDesc = m_grid.getAttributeDesc();        
+            GridDataDesc attDesc = m_grid.getDataDesc();
             if(attDesc == null) {
                 // unknow grid 
                 m_attributeMaker = new AttributeMakerDensity((int)m_subvoxelResolution);

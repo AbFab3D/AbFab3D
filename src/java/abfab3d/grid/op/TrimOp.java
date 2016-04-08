@@ -18,8 +18,6 @@ package abfab3d.grid.op;
 import abfab3d.grid.*;
 import abfab3d.param.*;
 
-import java.util.HashMap;
-
 /**
  * Trim a grid to its smallest size based on where INSIDE voxels are.
  *
@@ -340,7 +338,7 @@ public class TrimOp extends BaseParameterizable implements Operation, AttributeO
         int x0 = 0, xn = width;
         int y0 = 0, yn = height;
 
-        AttributeChannel dataChannel = src.getAttributeDesc().getChannel(0);
+        GridDataChannel dataChannel = src.getAttributeDesc().getChannel(0);
 
         // Find x0 range
         loop: for(int x=0; x < width; x++) {

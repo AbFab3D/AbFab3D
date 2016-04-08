@@ -19,8 +19,6 @@ import junit.framework.TestCase;
 
 // Internal Imports
 
-import abfab3d.io.output.SVXWriter;
-
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 
@@ -50,14 +48,14 @@ public class TestGrid2DInt extends TestCase {
         int nx = 1024;
         int ny = 1024;
 
-        AttributeDesc attDesc = new AttributeDesc();
+        GridDataDesc attDesc = new GridDataDesc();
         //attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24, 0));
         //attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "d1", 8, 0));
         //attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "d2", 8, 8));
         //attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "d3", 8, 16));
         //attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "d4", 8, 24));
-        attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24, 0));
-        attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "d", 8, 24));
+        attDesc.addChannel(new GridDataChannel(GridDataChannel.COLOR, "color", 24, 0));
+        attDesc.addChannel(new GridDataChannel(GridDataChannel.DENSITY, "d", 8, 24));
 
         Grid2D grid = new Grid2DInt(nx, ny);
         grid.setAttributeDesc(attDesc);

@@ -14,79 +14,86 @@ package abfab3d.grid;
 
 // External Imports
 
+// Internal Imports
+
 import abfab3d.util.Bounds;
 
 import javax.vecmath.Tuple3d;
 import javax.vecmath.Tuple3i;
 
 /**
- * A voxel grid.  Grids can either be uniform or
- * have the same XZ with a different Y size.
- *
- * Uses the X3D coordinate system.  Y-up.  Grid is located
- * on positive right side octant.
+ * Base implementation of a wrapper that is just a passthrough
  *
  * @author Alan Hudson
  */
-public interface Grid extends Cloneable {
-    // The voxel is outside any object
-    public static final byte OUTSIDE = 0;
+public abstract class BaseWrapper implements GridWrapper {
+    /** The wrapper grid */
+    protected Grid grid;
 
-    // The voxel is an interior voxel
-    public static final byte INSIDE = 1;
-
-
-
-    /** The value for a voxel with no specified material */
-    public static final int NO_MATERIAL = 0;
+    public BaseWrapper() {
+    }
 
     /**
-     * Get the data for a voxel.
+     * Constructor.
      *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
+     * @param grid The grid to wrap
+     */
+    public BaseWrapper(Grid grid) {
+        setGrid(grid);
+    }
+
+    /**
+     * Copy Constructor.
+     *
+     * @param wrap The wrapper to copy
+     */
+    public BaseWrapper(BaseWrapper wrap) {
+        if (wrap == null) {
+            setGrid(wrap);
+
+            return;
+        }
+    }
+
+    /**
+     * Create an empty grid of the specified size.  Reuses
+     * the grid type and material type(byte, short, int).
+     *
+     * @param w The number of voxels in width
+     * @param h The number of voxels in height
+     * @param d The number of voxels in depth
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
+     */
+    public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
+        return grid.createEmpty(w,h,d,pixel,sheight);
+    }
+
+    /**
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
+     *
      * @return The voxel data
      */
-    public void getDataWorld(double x, double y, double z, VoxelData data);
+    public VoxelData getVoxelData() {
+        return grid.getVoxelData();
+    }
 
     /**
-     * Get the data for a voxel.
+     * Sets the underlying grid to use.
      *
-     * TODO:  some tests have shown this to be 5X slower then getAttribute!
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @return The voxel data
+     * @param grid The grid or null to clear.
      */
-    public void getData(int x, int y, int z, VoxelData data);
+    public void setGrid(Grid grid) {
+        this.grid = grid;
+    }
 
-    /**
-    * Get the state of the voxels specified in the area.
-    *
-    * @param x1 The starting x grid coordinate
-    * @param x2 The ending x grid coordinate
-    * @param y1 The starting y grid coordinate
-    * @param y2 The ending y grid coordinate
-    * @param z1 The starting z grid coordinate
-    * @param z2 The ending z grid coordinate
-    *
-    * @param ret Returns the data at each position.  3 dim array represented as flat, must be preallocated
-    */
-     // Proposed addition but not implemented yet
-/*
-    public void getData(int x1, int x2, int y1, int y2, int z1, int z2, VoxelData[] ret);
-*/
-    /**
-     * Get the state of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel state
-     */
-    public byte getStateWorld(double x, double y, double z);
+    public Grid getGrid() {
+        return grid;
+    }
+
+    //----------------------------------------------------------
+    // Grid methods
+    //----------------------------------------------------------
 
     /**
      * Get the state of the voxel.
@@ -96,18 +103,57 @@ public interface Grid extends Cloneable {
      * @param z The z grid coordinate
      * @return The voxel state
      */
-    public byte getState(int x, int y, int z);
+    public void getData(int x, int y, int z, VoxelData vd) {
+        grid.getData(x,y,z,vd);
+    }
 
     /**
-     * Set the state value of a voxel.  Leaves the material unchanged.
+     * Get the data for a voxel
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @return The voxel data
+     */
+    public void getDataWorld(double x, double y, double z, VoxelData vd) {
+        grid.getDataWorld(x, y, z, vd);
+    }
+
+    /**
+     * Get the state of the voxel
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @return The voxel state
+     */
+    public byte getStateWorld(double x, double y, double z) {
+        return grid.getStateWorld(x, y, z);
+    }
+
+    /**
+     * Get the state of the voxel.
      *
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param state The value.  0 = nothing. > 0 materialID
-     * @return material The materialID
+     * @return The voxel state
      */
-    public void setState(int x, int y, int z, byte state);
+    public byte getState(int x, int y, int z) {
+        return grid.getState(x, y, z);
+    }
+
+    /**
+     * Set the state value of a voxel.  Leaves the material unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param state The value.  0 = nothing. > 0 materialID
+     */
+    public void setState(int x, int y, int z, byte state) {
+        grid.setState(x,y,z,state);
+    }
 
     /**
      * Set the state value of a voxel.  Leaves the material unchanged.
@@ -118,7 +164,9 @@ public interface Grid extends Cloneable {
      * @param state The value.  0 = nothing. > 0 materialID
      * @return material The materialID
      */
-    public void setStateWorld(double x, double y, double z, byte state);
+    public void setStateWorld(double x, double y, double z, byte state) {
+        grid.setStateWorld(x, y, z, state);
+    }
 
     /**
      * Get the grid coordinates for a world coordinate.
@@ -128,7 +176,9 @@ public interface Grid extends Cloneable {
      * @param z The z value in world coords
      * @param coords The ans is placed into this preallocated array(3).
      */
-    public void getGridCoords(double x, double y, double z, int[] coords);
+    public void getGridCoords(double x, double y, double z, int[] coords) {
+        grid.getGridCoords(x, y, z, coords);
+    }
 
     /**
      * Get the grid coordinates for a world coordinate.
@@ -138,7 +188,9 @@ public interface Grid extends Cloneable {
      * @param z The z value in world coords
      * @param coords The ans is placed into this preallocated array(3).
      */
-    public void getGridCoords(double x, double y, double z, Tuple3i coords);
+    public void getGridCoords(double x, double y, double z, Tuple3i coords) {
+        grid.getGridCoords(x, y, z, coords);
+    }
 
     /**
      * Get the world coordinates for a grid coordinate.
@@ -148,7 +200,9 @@ public interface Grid extends Cloneable {
      * @param z The z value in grid coords
      * @param coords The ans is placed into this preallocated array(3).
      */
-    public void getWorldCoords(int x, int y, int z, double[] coords);
+    public void getWorldCoords(int x, int y, int z, Tuple3d coords) {
+        grid.getWorldCoords(x, y, z, coords);
+    }
 
     /**
      * Get the world coordinates for a grid coordinate.
@@ -158,7 +212,9 @@ public interface Grid extends Cloneable {
      * @param z The z value in grid coords
      * @param coords The ans is placed into this preallocated array(3).
      */
-    public void getWorldCoords(int x, int y, int z, Tuple3d coords);
+    public void getWorldCoords(int x, int y, int z, double[] coords) {
+        grid.getWorldCoords(x, y, z, coords);
+    }
 
     /**
      * Get the grid bounds in world coordinates.
@@ -166,31 +222,47 @@ public interface Grid extends Cloneable {
      * @param min The min coordinate
      * @param max The max coordinate
      */
-    public void getGridBounds(double[] min, double[] max);
-    
+    public void getGridBounds(double[] min, double[] max) {
+        grid.getGridBounds(min, max);
+    }
 
-    /**
-     * Get the grid bounds in world coordinates.
-     *
-     */
-    public Bounds getGridBounds();
 
     /**
      * Get the grid bounds in world coordinates.
      *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
      */
-    public void getGridBounds(double[] bounds);
+    public void getGridBounds(double[] bounds){
+        grid.getGridBounds(bounds);
+    }
 
     /**
-     * Set the grid bounds in world coordinates.
-     *
+     * Get the grid bounds in world coordinates.
      */
-    public void setGridBounds(Bounds bounds);
+    public Bounds getGridBounds(){
+
+        return grid.getGridBounds();
+
+    }
+
     /**
      * Set the grid bounds in world coordinates.
      *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
      */
-    public void setGridBounds(double[] bounds);
+    public void setGridBounds(double[] bounds){
+
+        grid.setGridBounds(bounds);
+
+    }
+
+    /**
+     * Set the grid bounds in world coordinates.
+     *  @param bounds griud bounds 
+     */
+    public void setGridBounds(Bounds bounds){
+
+        grid.setGridBounds(bounds);
+
+    }
 
     /**
      * Count a class of voxels types.  May be much faster then
@@ -199,16 +271,20 @@ public interface Grid extends Cloneable {
      * @param vc The class of voxels to traverse
      * @return The number
      */
-    public int findCount(VoxelClasses vc);
+    public int findCount(VoxelClasses vc) {
+        return grid.findCount(vc);
+    }
 
     /**
-     * Count a class of voxels types.  May be much faster then
+     * Traverse a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *
      * @param vc The class of voxels to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(VoxelClasses vc, ClassTraverser t);
+    public void find(VoxelClasses vc, ClassTraverser t) {
+        grid.find(vc, t);
+    }
 
     /**
      * Traverse a class of voxels types over given rectangle in xy plane.  
@@ -221,8 +297,10 @@ public interface Grid extends Cloneable {
      * @param ymin - minimal y - coordinate of voxels 
      * @param ymax - maximal y - coordinate of voxels 
      */
-    public void find(VoxelClasses vc, ClassTraverser t, int xmin, int xmax, int ymin, int ymax);
+    public void find(VoxelClasses vc, ClassTraverser t, int xmin, int xmax, int ymin, int ymax){
+        grid.find(vc, t, xmin, xmax, ymin, ymax);
 
+    }
     /**
      * Traverse a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
@@ -230,76 +308,68 @@ public interface Grid extends Cloneable {
      * @param vc The class of voxels to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(VoxelClasses vc, ClassTraverser t);
+    public void findInterruptible(VoxelClasses vc, ClassTraverser t) {
+        grid.findInterruptible(vc, t);
+    }
 
     /**
      * Get the number of height cells.
      *
      * @return the val
      */
-    public int getHeight();
+    public int getHeight() {
+        return grid.getHeight();
+    }
 
     /**
      * Get the number of width cells.
      *
      * @return the val
      */
-    public int getWidth();
+    public int getWidth() {
+        return grid.getWidth();
+    }
 
     /**
      * Get the number of depth cells.
      *
      * @return the val
      */
-    public int getDepth();
+    public int getDepth() {
+        return grid.getDepth();
+    }
 
     /**
      * Get the voxel size in xz.
      *
      * @return The value
      */
-    public double getVoxelSize();
+    public double getVoxelSize() {
+        return grid.getVoxelSize();
+    }
 
     /**
      * Get the slice height.
      *
      * @return The value
      */
-    public double getSliceHeight();
+    public double getSliceHeight() {
+        return grid.getSliceHeight();
+    }
 
     /**
      * Print out a slice of data.
      */
-    public String toStringSlice(int s);
+    public String toStringSlice(int s) {
+        return grid.toStringSlice(s);
+    }
 
     /**
      * Print out all slices.
      */
-    public String toStringAll();
-
-    /**
-     * Clone the grid.
-     */
-    public Object clone();
-
-    /**
-     * Create an empty grid of the specified size.
-     * Reuses the grid type, attribute size and
-     *
-     * @param w The number of voxels in width
-     * @param h The number of voxels in height
-     * @param d The number of voxels in depth
-     * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
-     */
-    public Grid createEmpty(int w, int h, int d, double pixel, double sheight);
-
-    /**
-     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
-     *
-     * @return The voxel data
-     */
-    public VoxelData getVoxelData();
+    public String toStringAll() {
+        return grid.toStringAll();
+    }
 
     /**
      * Determine if a voxel coordinate is inside the grid space.
@@ -309,7 +379,9 @@ public interface Grid extends Cloneable {
      * @param z The z coordinate
      * @return True if the coordinate is inside the grid space
      */
-    public boolean insideGrid(int x,int y, int z);
+    public boolean insideGrid(int x, int y, int z) {
+        return grid.insideGrid(x, y, z);
+    }
 
     /**
      * Determine if a voxel coordinate is inside the grid space.
@@ -319,7 +391,14 @@ public interface Grid extends Cloneable {
      * @param wz The z world coordinate
      * @return True if the coordinate is inside the grid space
      */
-    public boolean insideGridWorld(double wx, double wy, double wz);
+    public boolean insideGridWorld(double wx, double wy, double wz) {
+        return grid.insideGridWorld(wx, wy, wz);
+    }
 
+    /**
+     * Clone this object.
+     */
+    public Object clone() {
+        throw new RuntimeException("Not implemented");
+    }
 }
-

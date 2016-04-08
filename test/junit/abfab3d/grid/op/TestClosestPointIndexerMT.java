@@ -26,8 +26,8 @@ import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
 import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.AttributeDesc;
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataDesc;
+import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.util.GridUtil;
@@ -163,7 +163,7 @@ public class TestClosestPointIndexerMT extends TestCase {
     AttributeGrid  makeDistanceGrid(Bounds bounds, double minDistance, double maxDistance, int bitCount, double voxelSize){
 
         AttributeGrid grid = new ArrayAttributeGridShort(bounds, voxelSize, voxelSize);
-        grid.setAttributeDesc(new AttributeDesc(new AttributeChannel(AttributeChannel.DISTANCE,"dist",bitCount, 0, minDistance, maxDistance)));
+        grid.setDataDesc(new GridDataDesc(new GridDataChannel(GridDataChannel.DISTANCE, "dist", bitCount, 0, minDistance, maxDistance)));
         return grid;
 
     }

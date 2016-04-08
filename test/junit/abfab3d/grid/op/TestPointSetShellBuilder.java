@@ -16,23 +16,19 @@ import java.util.Random;
 import javax.vecmath.Vector3d;
 
 
-import abfab3d.grid.VectorIndexerStructMap;
-
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
 
 import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.AttributeChannel;
-import abfab3d.grid.AttributeDesc;
+import abfab3d.grid.GridDataChannel;
+import abfab3d.grid.GridDataDesc;
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.ArrayAttributeGridInt;
-import abfab3d.grid.VectorIndexerArray;
 
 import abfab3d.grid.util.GridUtil;
 
-import abfab3d.geom.PointCloud;
 import abfab3d.util.Bounds;
 import abfab3d.util.PointSet;
 import abfab3d.util.PointSetArray;
@@ -46,7 +42,6 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
 import static abfab3d.util.Units.MM;
-import static abfab3d.util.MathUtil.L2S;
 
 /**
  * Test the PointSetShellBuilder
@@ -268,11 +263,11 @@ public class TestPointSetShellBuilder extends TestCase {
         sb.execute(indexGrid);
 
         AttributeGrid distGrid = new ArrayAttributeGridShort(bounds, vs, vs);
-        AttributeChannel distanceChannel = new AttributeChannel(AttributeChannel.DISTANCE, "dist", distanceBitCount, 0, 0, maxOutDistance);
-        distGrid.setAttributeDesc(new AttributeDesc(distanceChannel));        
+        GridDataChannel distanceChannel = new GridDataChannel(GridDataChannel.DISTANCE, "dist", distanceBitCount, 0, 0, maxOutDistance);
+        distGrid.setDataDesc(new GridDataDesc(distanceChannel));
         ClosestPointIndexer.makeDistanceGrid(indexGrid, pnts, null, distGrid, 0, maxOutDistance);
 
-        AttributeChannel dataChannel = distGrid.getAttributeDesc().getChannel(0);
+        GridDataChannel dataChannel = distGrid.getDataDesc().getChannel(0);
         ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, bandWidth);
 
         for(int iz = 0; iz < distGrid.getDepth(); iz++){
@@ -368,11 +363,11 @@ public class TestPointSetShellBuilder extends TestCase {
         sb.execute(indexGrid);
 
         AttributeGrid distGrid = new ArrayAttributeGridShort(bounds, vs, vs);
-        AttributeChannel distanceChannel = new AttributeChannel(AttributeChannel.DISTANCE, "dist", distanceBitCount, 0, 0, maxOutDistance);
-        distGrid.setAttributeDesc(new AttributeDesc(distanceChannel));        
+        GridDataChannel distanceChannel = new GridDataChannel(GridDataChannel.DISTANCE, "dist", distanceBitCount, 0, 0, maxOutDistance);
+        distGrid.setDataDesc(new GridDataDesc(distanceChannel));
         ClosestPointIndexer.makeDistanceGrid(indexGrid, pnts, null, distGrid, 0, maxOutDistance);
 
-        AttributeChannel dataChannel = distGrid.getAttributeDesc().getChannel(0);
+        GridDataChannel dataChannel = distGrid.getDataDesc().getChannel(0);
         ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, bandWidth);
 
         for(int iz = 0; iz < distGrid.getDepth(); iz++){
@@ -434,11 +429,11 @@ public class TestPointSetShellBuilder extends TestCase {
         long t0 = time();
         sb.execute(indexGrid);
         AttributeGrid distGrid = new ArrayAttributeGridShort(bounds, vs, vs);
-        AttributeChannel distanceChannel = new AttributeChannel(AttributeChannel.DISTANCE, "dist", distanceBitCount, 0, 0, maxOutDistance);
-        distGrid.setAttributeDesc(new AttributeDesc(distanceChannel));        
+        GridDataChannel distanceChannel = new GridDataChannel(GridDataChannel.DISTANCE, "dist", distanceBitCount, 0, 0, maxOutDistance);
+        distGrid.setDataDesc(new GridDataDesc(distanceChannel));
         ClosestPointIndexer.makeDistanceGrid(indexGrid, pnts, null, distGrid, 0, maxOutDistance);
 
-        AttributeChannel dataChannel = distGrid.getAttributeDesc().getChannel(0);
+        GridDataChannel dataChannel = distGrid.getDataDesc().getChannel(0);
         ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, bandWidth);
 
         for(int iz = 0; iz < distGrid.getDepth(); iz++){

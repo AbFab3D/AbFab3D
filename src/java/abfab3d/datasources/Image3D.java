@@ -15,9 +15,8 @@ package abfab3d.datasources;
 
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.op.DistanceTransform2DOp;
-import abfab3d.grid.util.GridUtil;
 import abfab3d.param.*;
 import abfab3d.util.*;
 
@@ -26,7 +25,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
 
 
@@ -64,7 +62,7 @@ import static abfab3d.util.Output.time;
  */
 public class Image3D extends TransformableDataSource {
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
     final static boolean DEBUG_VIZ = false;
 
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
@@ -145,7 +143,7 @@ public class Image3D extends TransformableDataSource {
     // the image data is stored in the Grid2D 
     protected Grid2D m_imageGrid = null; 
     // converted to get physical value from grid attribute 
-    protected AttributeChannel m_dataChannel;
+    protected GridDataChannel m_dataChannel;
 
     // image is stored in mipmap
     private ImageMipMapGray16 m_mipMap;

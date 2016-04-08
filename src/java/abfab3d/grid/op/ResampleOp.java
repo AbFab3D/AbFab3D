@@ -62,7 +62,7 @@ public class ResampleOp implements Operation2D {
 
         Grid2DShort ssrc = (Grid2DShort) src;
 
-        AttributeChannel dataChannel = src.getAttributeDesc().getChannel(0);
+        GridDataChannel dataChannel = src.getAttributeDesc().getChannel(0);
 
         double wr = (double) width / src.getWidth();
         double hr = (double) height / src.getHeight();

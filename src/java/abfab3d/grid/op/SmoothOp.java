@@ -16,15 +16,11 @@ package abfab3d.grid.op;
 
 // Internal Imports
 
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.Grid2D;
-import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.Operation2D;
 import abfab3d.util.MathUtil;
 
-import java.util.Arrays;
-
-import static abfab3d.util.ImageUtil.us2i;
 import static abfab3d.util.MathUtil.clamp;
 
 /**
@@ -63,7 +59,7 @@ public class SmoothOp implements Operation2D {
 
 
     private void convoluteX(Grid2D src, double kernel[],int rlen){
-        AttributeChannel channel = src.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = src.getAttributeDesc().getDefaultChannel();
         int w = src.getWidth();
         int h = src.getHeight();
 
@@ -95,7 +91,7 @@ public class SmoothOp implements Operation2D {
     }
 
     private void convoluteY(Grid2D src,double kernel[],int rlen){
-        AttributeChannel channel = src.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = src.getAttributeDesc().getDefaultChannel();
 
         int w = src.getWidth();
         int h = src.getHeight();

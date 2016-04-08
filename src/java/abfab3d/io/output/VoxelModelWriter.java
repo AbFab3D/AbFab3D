@@ -1,7 +1,7 @@
 package abfab3d.io.output;
 
-import abfab3d.grid.AttributeChannel;
-import abfab3d.grid.AttributeDesc;
+import abfab3d.grid.GridDataChannel;
+import abfab3d.grid.GridDataDesc;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ModelWriter;
 import abfab3d.util.TriangleMesh;
@@ -30,9 +30,9 @@ public class VoxelModelWriter implements ModelWriter {
     @Override
     public void execute(AttributeGrid grid) throws IOException {
         // TODO: Not sure how these should be sourced yet
-        AttributeDesc attDesc = new AttributeDesc();
-        attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0, 0., 1.));
-        grid.setAttributeDesc(attDesc);
+        GridDataDesc attDesc = new GridDataDesc();
+        attDesc.addChannel(new GridDataChannel(GridDataChannel.DENSITY, "dens", 8, 0, 0., 1.));
+        grid.setDataDesc(attDesc);
 
         SVXWriter writer = new SVXWriter();
         writer.write(grid, os);

@@ -16,9 +16,8 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridShort;
 
 import abfab3d.grid.GridShortIntervals;
-import abfab3d.grid.AttributeDesc;
-import abfab3d.grid.AttributeChannel;
-import abfab3d.util.MathUtil;
+import abfab3d.grid.GridDataDesc;
+import abfab3d.grid.GridDataChannel;
 
 
 /**
@@ -66,7 +65,7 @@ public class DistanceTransform {
             }
         }
         distGrid.setGridBounds(bounds);
-        distGrid.setAttributeDesc(new AttributeDesc(new AttributeChannel(AttributeChannel.DISTANCE, "distance", vs/m_subvoxelResolution, -m_inDistance, m_outDistance)));
+        distGrid.setDataDesc(new GridDataDesc(new GridDataChannel(GridDataChannel.DISTANCE, "distance", vs / m_subvoxelResolution, -m_inDistance, m_outDistance)));
 
         return distGrid;
     }   

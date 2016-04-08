@@ -38,14 +38,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Alan Hudson
  * @author Vladimir Bulatov
  */
-public class MaterialIndexedWrapper implements AttributeGridWrapper {
+public class MaterialIndexedWrapper extends BaseAttributeWrapper implements AttributeGridWrapper {
     private static final boolean CONCURRENT = true;
 
     /** Starting size of Sets per material */
     private static final int INDEX_SIZE = 1024;
-
-    /** The wrapper grid */
-    private AttributeGrid grid;
 
     /** The index */
     private Map<Long, Set<VoxelCoordinate>> index;
@@ -65,7 +62,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param grid The grid to wrap
      */
     public MaterialIndexedWrapper(AttributeGrid grid) {
-        this.grid = grid;
+        super(grid);
 
         if (CONCURRENT) {
             index = new ConcurrentHashMap<Long, Set<VoxelCoordinate>>();
@@ -82,10 +79,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param wrap The wrapper to copy
      */
     public MaterialIndexedWrapper(MaterialIndexedWrapper wrap) {
-        if (wrap == null) {
-            setGrid(wrap);
-            return;
-        }
+        super((AttributeGrid)wrap.getGrid());
 
         if (wrap.grid != null)
             this.grid = (AttributeGrid) wrap.grid.clone();
@@ -109,7 +103,8 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param optRead Optimize for read usage
      */
     public MaterialIndexedWrapper(AttributeGrid grid, boolean optRead) {
-        this.grid = grid;
+        super(grid);
+
         this.optRead = optRead;
 
         if (CONCURRENT) {
@@ -180,7 +175,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
             Iterator<VoxelCoordinate> itr = coords.iterator();
             while(itr.hasNext()) {
                 VoxelCoordinate vc = itr.next();
-                grid.setAttribute(vc.getX(), vc.getY(), vc.getZ(), matID);
+                ((AttributeGrid)grid).setAttribute(vc.getX(), vc.getY(), vc.getZ(), matID);
                 target.add(vc);
             }
 
@@ -208,7 +203,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
         Iterator<VoxelCoordinate> itr = coords.iterator();
         while(itr.hasNext()) {
             VoxelCoordinate vc = itr.next();
-            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.OUTSIDE, 0);
+            ((AttributeGrid)grid).setData(vc.getX(), vc.getY(), vc.getZ(), Grid.OUTSIDE, 0);
         }
 
         index.remove(b);
@@ -284,10 +279,10 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      */
     public long getAttributeWorld(double x, double y, double z) {
-        return grid.getAttributeWorld(x, y, z);
+        return ((AttributeGrid)grid).getAttributeWorld(x, y, z);
     }
     public void setAttributeWorld(double x, double y, double z, long attribute) {
-        grid.setAttributeWorld(x, y, z, attribute);
+        ((AttributeGrid)grid).setAttributeWorld(x, y, z, attribute);
     }
 
     /**
@@ -298,7 +293,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param z The z grid coordinate
      */
     public long getAttribute(int x, int y, int z) {
-        return grid.getAttribute(x, y, z);
+        return ((AttributeGrid)grid).getAttribute(x, y, z);
     }
 
     /**
@@ -330,7 +325,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
         VoxelCoordinate vc = new VoxelCoordinate(gcoords[0], gcoords[1], gcoords[2]);
         coords.add(vc);
 
-        grid.setData(gcoords[0],gcoords[1],gcoords[2],state,material);
+        ((AttributeGrid)grid).setData(gcoords[0],gcoords[1],gcoords[2],state,material);
 
         optIndex = null;
     }
@@ -361,7 +356,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
         VoxelCoordinate vc = new VoxelCoordinate(x,y,z);
         coords.add(vc);
 
-        grid.setData(x,y,z,state,material);
+        ((AttributeGrid)grid).setData(x,y,z,state,material);
 
         optIndex = null;
     }
@@ -392,7 +387,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
         VoxelCoordinate vc = new VoxelCoordinate(x,y,z);
         coords.add(vc);
 
-        grid.setAttribute(x, y, z, material);
+        ((AttributeGrid)grid).setAttribute(x, y, z, material);
 
         optIndex = null;
     }
@@ -594,7 +589,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param ymax - maximal y - coordinate of voxels
      */
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t, int xmin, int xmax, int ymin, int ymax) {
-        grid.findAttribute(vc,t,xmin,xmax,ymin,ymax);
+        ((AttributeGrid)grid).findAttribute(vc,t,xmin,xmax,ymin,ymax);
     }
 
     /**
@@ -668,7 +663,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t) {
-        grid.findAttribute(vc, t);
+        ((AttributeGrid)grid).findAttribute(vc, t);
     }
 
     /**
@@ -874,7 +869,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttributeInterruptible(VoxelClasses vc, ClassAttributeTraverser t) {
-        grid.findAttributeInterruptible(vc, t);
+        ((AttributeGrid)grid).findAttributeInterruptible(vc, t);
     }
 
     /**
@@ -1050,23 +1045,23 @@ System.out.println("Speed opt: " + (System.currentTimeMillis() - startTime));
        @param description The attirbute description 
        @override 
     */
-    public void setAttributeDesc(AttributeDesc description){
-        grid.setAttributeDesc(description);
+    public void setDataDesc(GridDataDesc description){
+        ((AttributeGrid)grid).setDataDesc(description);
     }
 
     /**
        @return voxel attribute description assigned to the grid
        @override 
     */
-    public AttributeDesc getAttributeDesc(){
-        return grid.getAttributeDesc(); 
+    public GridDataDesc getDataDesc(){
+        return ((AttributeGrid)grid).getDataDesc();
     }
 
     /**
        copy data from fromGrid into this grid 
      */
     public void copyData(AttributeGrid fromGrid){
-        grid.copyData(fromGrid);
+        ((AttributeGrid)grid).copyData(fromGrid);
     }
 
 } // MaterialIndexerWrapper 

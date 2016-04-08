@@ -1,6 +1,6 @@
 package abfab3d.datasources;
 
-import abfab3d.grid.AttributeDesc;
+import abfab3d.grid.GridDataDesc;
 import abfab3d.grid.Grid2D;
 import abfab3d.param.SourceWrapper;
 import abfab3d.util.Bounds;
@@ -57,7 +57,7 @@ public class Grid2DSourceWrapper implements Grid2D, SourceWrapper {
     }
 
     @Override
-    public AttributeDesc getAttributeDesc() {
+    public GridDataDesc getAttributeDesc() {
         return grid.getAttributeDesc();
     }
     @Override
@@ -88,7 +88,7 @@ public class Grid2DSourceWrapper implements Grid2D, SourceWrapper {
     }
 
     @Override
-    public void setAttributeDesc(AttributeDesc desc) {
+    public void setAttributeDesc(GridDataDesc desc) {
         // TODO: not sure this is necessary
         if (DEBUG) {
             printf("Grid2D altered clearing source");

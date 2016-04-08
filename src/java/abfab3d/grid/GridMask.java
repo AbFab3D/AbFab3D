@@ -47,7 +47,7 @@ public class GridMask extends BaseAttributeGrid implements GridBit {
         data = new int[nx*ny*lenz];
         
         // this is binary grid, make default attributeDesc
-        m_attributeDesc = AttributeDesc.getDefaultAttributeDesc(1);
+        m_gridDataDesc = GridDataDesc.getDefaultAttributeDesc(1);
         
     }
     

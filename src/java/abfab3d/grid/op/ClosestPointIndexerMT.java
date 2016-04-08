@@ -23,20 +23,10 @@ import static java.lang.Math.min;
 import static java.lang.Math.abs;
 
 import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.AttributeChannel;
-import abfab3d.grid.AttributeDesc;
 
-import abfab3d.grid.ArrayAttributeGridShort;
-import abfab3d.grid.Grid2D;
-
-import abfab3d.grid.op.Neighborhood;
 import abfab3d.util.Bounds;
 import abfab3d.util.SliceManager;
 import abfab3d.util.Slice;
-
-import java.util.Arrays;
-
-import static java.lang.Math.sqrt;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;

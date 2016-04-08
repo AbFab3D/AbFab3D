@@ -16,6 +16,8 @@ package abfab3d.grid;
 
 import abfab3d.util.Bounds;
 
+import javax.vecmath.Tuple3d;
+import javax.vecmath.Tuple3i;
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -506,6 +508,20 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
     }
 
     /**
+     * Get the grid coordinates for a world coordinate.
+     *
+     * @param x      The x value in world coords
+     * @param y      The y value in world coords
+     * @param z      The z value in world coords
+     * @param coords The ans is placed into this preallocated array(3).
+     */
+    public void getGridCoords(double x, double y, double z, Tuple3i coords) {
+        coords.x = (int) ((x - xorig) / pixelSize);
+        coords.y = (int) ((y - yorig) / sheight);
+        coords.z = (int) ((z - zorig) / pixelSize);
+    }
+
+    /**
      * Get the world coordinates of from the grid coordinates without half voxel shift 
      * 
      * @param x      The x value in grid coords
@@ -518,6 +534,25 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
         coords[0] = x * pixelSize + hpixelSize + xorig;
         coords[1] = y * sheight + hsheight + yorig;
         coords[2] = z * pixelSize + hpixelSize + zorig;
+
+        //coords[0] = x * pixelSize + xorig;
+        //coords[1] = y * sheight   + yorig;
+        //coords[2] = z * pixelSize + zorig;
+    }
+
+    /**
+     * Get the world coordinates of from the grid coordinates without half voxel shift
+     *
+     * @param x      The x value in grid coords
+     * @param y      The y value in grid coords
+     * @param z      The z value in grid coords
+     * @param coords The ans is placed into this preallocated array(3).
+     */
+    public void getWorldCoords(int x, int y, int z, Tuple3d coords) {
+
+        coords.x = x * pixelSize + hpixelSize + xorig;
+        coords.y = y * sheight + hsheight + yorig;
+        coords.z = z * pixelSize + hpixelSize + zorig;
 
         //coords[0] = x * pixelSize + xorig;
         //coords[1] = y * sheight   + yorig;

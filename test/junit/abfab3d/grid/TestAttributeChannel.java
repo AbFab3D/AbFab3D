@@ -39,8 +39,8 @@ public class TestAttributeChannel extends BaseTestAttributeGrid {
      */
     public void testRoundTrip63() {
         printf("test64\n");
-        AttributeDesc adesc = AttributeDesc.getDefaultAttributeDesc(63);
-        AttributeChannel channel = adesc.getChannel(0);
+        GridDataDesc adesc = GridDataDesc.getDefaultAttributeDesc(63);
+        GridDataChannel channel = adesc.getChannel(0);
 
         double EPS = 1e-14;
         double orig = 0.5;
@@ -79,8 +79,8 @@ public class TestAttributeChannel extends BaseTestAttributeGrid {
      */
     public void testRoundTrip32() {
         printf("test32\n");
-        AttributeDesc adesc = AttributeDesc.getDefaultAttributeDesc(32);
-        AttributeChannel channel = adesc.getChannel(0);
+        GridDataDesc adesc = GridDataDesc.getDefaultAttributeDesc(32);
+        GridDataChannel channel = adesc.getChannel(0);
 
         double EPS = 1e-6;
         double orig = 0.5;
@@ -119,8 +119,8 @@ public class TestAttributeChannel extends BaseTestAttributeGrid {
      */
     public void testRoundTrip16() {
         printf("test16\n");
-        AttributeDesc adesc = AttributeDesc.getDefaultAttributeDesc(16);
-        AttributeChannel channel = adesc.getChannel(0);
+        GridDataDesc adesc = GridDataDesc.getDefaultAttributeDesc(16);
+        GridDataChannel channel = adesc.getChannel(0);
 
         double EPS = 1e-5;
         double orig = 0.5;
@@ -159,8 +159,8 @@ public class TestAttributeChannel extends BaseTestAttributeGrid {
      */
     public void testRoundTrip8() {
         printf("test8\n");
-        AttributeDesc adesc = AttributeDesc.getDefaultAttributeDesc(8);
-        AttributeChannel channel = adesc.getChannel(0);
+        GridDataDesc adesc = GridDataDesc.getDefaultAttributeDesc(8);
+        GridDataChannel channel = adesc.getChannel(0);
 
         double EPS = 1e-2;
         double orig = 0.5;

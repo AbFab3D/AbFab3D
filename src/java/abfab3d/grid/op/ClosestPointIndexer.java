@@ -16,27 +16,21 @@ package abfab3d.grid.op;
 import javax.vecmath.Vector3d;
 
 import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.AttributeChannel;
-import abfab3d.grid.AttributeDesc;
+import abfab3d.grid.GridDataChannel;
 
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.Grid2D;
 
-import abfab3d.grid.op.Neighborhood;
 import abfab3d.util.Bounds;
 import abfab3d.util.PointSet;
-
-import java.util.Arrays;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
 
-import static abfab3d.util.Units.MM;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
-import static abfab3d.util.MathUtil.sqr;
 import static abfab3d.util.MathUtil.step10;
 
 /**
@@ -1306,7 +1300,7 @@ public class ClosestPointIndexer {
             nx = indexGrid.getWidth(),
             ny = indexGrid.getHeight(),
             nz = indexGrid.getDepth();
-        AttributeChannel dataChannel = distanceGrid.getAttributeDesc().getChannel(0);
+        GridDataChannel dataChannel = distanceGrid.getDataDesc().getChannel(0);
 
         long inAtt = dataChannel.makeAtt(-maxInDistance);
         long outAtt = dataChannel.makeAtt(maxOutDistance);
@@ -1379,7 +1373,7 @@ public class ClosestPointIndexer {
             nx = indexGrid.getWidth(),
             ny = indexGrid.getHeight(),
             nz = indexGrid.getDepth();
-        AttributeChannel dataChannel = distanceGrid.getAttributeDesc().getChannel(0);
+        GridDataChannel dataChannel = distanceGrid.getDataDesc().getChannel(0);
 
         long inAtt = dataChannel.makeAtt(-maxInDistance);
         long outAtt = dataChannel.makeAtt(maxOutDistance);
@@ -1460,7 +1454,7 @@ public class ClosestPointIndexer {
             nx = indexGrid.getWidth(),
             nz = indexGrid.getDepth();
 
-        AttributeChannel distanceDataChannel = distanceGrid.getAttributeDesc().getChannel(0);
+        GridDataChannel distanceDataChannel = distanceGrid.getDataDesc().getChannel(0);
         double vs = bounds.getVoxelSize();
         double vs2 = vs/2;
         double xmin = bounds.xmin+vs2;
@@ -1541,7 +1535,7 @@ public class ClosestPointIndexer {
             nx = indexGrid.getWidth(),
             ny = indexGrid.getHeight();
         
-        AttributeChannel distChannel = distanceGrid.getAttributeDesc().getChannel(0);
+        GridDataChannel distChannel = distanceGrid.getAttributeDesc().getChannel(0);
 
         long intAtt = distChannel.makeAtt(maxInDistance);
         long extAtt = distChannel.makeAtt(maxOutDistance);
@@ -1576,7 +1570,7 @@ public class ClosestPointIndexer {
                                        double pntx[], double pnty[], double pntz[], 
                                        AttributeGrid interiorGrid, 
                                        AttributeGrid densityGrid,
-                                       AttributeChannel dataChannel){
+                                       GridDataChannel dataChannel){
         int 
             nx = indexGrid.getWidth(),
             ny = indexGrid.getHeight(),

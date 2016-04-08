@@ -13,16 +13,14 @@
 
 package abfab3d.grid;
 
-import abfab3d.util.LongConverter;
-
 import static abfab3d.util.Output.fmt;
 
 /**
    attribute channel to represent float as int bits 
  */
-public class AttributeChannelFloat extends AttributeChannel {
+public class GridDataChannelFloat extends GridDataChannel {
 
-    public AttributeChannelFloat(String type, String name, int shift){
+    public GridDataChannelFloat(String type, String name, int shift){
         super(type, name, 32, shift);
     }
 

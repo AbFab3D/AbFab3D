@@ -20,8 +20,8 @@ import abfab3d.util.Bounds;
 import abfab3d.grid.op.DistanceTransformLayered;
 
 import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.AttributeChannel;
-import abfab3d.grid.AttributeDesc;
+import abfab3d.grid.GridDataChannel;
+import abfab3d.grid.GridDataDesc;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridShort;
 
@@ -206,8 +206,8 @@ public class GridLoader {
                                 
                 AttributeGrid distanceGrid = dt.execute(densityGrid);
                 //TODO - move this into DistanceTransformLayered
-                AttributeChannel channel = new AttributeChannel(AttributeChannel.DISTANCE,"distance",voxelSize/svr, -maxInDist, maxOutDist);
-                distanceGrid.setAttributeDesc(new AttributeDesc(channel));
+                GridDataChannel channel = new GridDataChannel(GridDataChannel.DISTANCE,"distance",voxelSize/svr, -maxInDist, maxOutDist);
+                distanceGrid.setDataDesc(new GridDataDesc(channel));
                 return distanceGrid;
                 
             }
@@ -379,8 +379,8 @@ public class GridLoader {
         double voxelSize = bounds.getVoxelSize();
         AttributeGrid distanceGrid = (AttributeGrid)m_distanceGridTemplate.createEmpty(nx, ny, nz, voxelSize, voxelSize);
         distanceGrid.setGridBounds(bounds);
-        AttributeChannel distanceChannel = new AttributeChannel(AttributeChannel.DISTANCE, "dist", m_distanceBitCount, 0, -m_maxInDistance, m_maxOutDistance);
-        distanceGrid.setAttributeDesc(new AttributeDesc(distanceChannel));        
+        GridDataChannel distanceChannel = new GridDataChannel(GridDataChannel.DISTANCE, "dist", m_distanceBitCount, 0, -m_maxInDistance, m_maxOutDistance);
+        distanceGrid.setDataDesc(new GridDataDesc(distanceChannel));
         return distanceGrid;
     }
 
@@ -394,8 +394,8 @@ public class GridLoader {
 
         AttributeGrid densityGrid = (AttributeGrid)m_densityGridTemplate.createEmpty(nx, ny, nz, voxelSize, voxelSize);
         densityGrid.setGridBounds(bounds);
-        AttributeChannel densityChannel = new AttributeChannel(AttributeChannel.DENSITY, "dens", m_densityBitCount, 0, 0., 1.);
-        densityGrid.setAttributeDesc(new AttributeDesc(densityChannel));
+        GridDataChannel densityChannel = new GridDataChannel(GridDataChannel.DENSITY, "dens", m_densityBitCount, 0, 0., 1.);
+        densityGrid.setDataDesc(new GridDataDesc(densityChannel));
         return densityGrid;
 
     }

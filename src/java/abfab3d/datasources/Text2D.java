@@ -47,7 +47,7 @@ import static abfab3d.util.Output.fmt;
 
  */
 public class Text2D extends BaseParameterizable {
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     public enum Fit {VERTICAL, HORIZONTAL, BOTH}
     public enum HorizAlign {LEFT, CENTER, RIGHT}
@@ -148,7 +148,7 @@ public class Text2D extends BaseParameterizable {
      */
     public Text2D(String text){
         super.addParams(m_aparam);
-        mp_text.setValue(text);        
+        mp_text.setValue(text);
     }
 
     /**
@@ -228,6 +228,8 @@ public class Text2D extends BaseParameterizable {
 
     public void setSpacing(double val) {
         m_bitmap = null;
+
+        System.out.println("Inside setspacing: " + val + " isNaN: " + Double.isNaN(val));
         mp_spacing.setValue(val);
     }
 

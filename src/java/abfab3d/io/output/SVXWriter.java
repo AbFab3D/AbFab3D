@@ -12,9 +12,8 @@
 package abfab3d.io.output;
 
 import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeDesc;
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataDesc;
+import abfab3d.grid.GridDataChannel;
 import org.apache.commons.io.IOUtils;
 
 
@@ -90,11 +89,11 @@ public class SVXWriter {
             zos.closeEntry();
 
             SlicesWriter sw = new SlicesWriter();
-            AttributeDesc attDesc = grid.getAttributeDesc();
+            GridDataDesc attDesc = grid.getDataDesc();
 
             for(int i = 0; i < attDesc.size(); i++){
 
-                AttributeChannel channel = attDesc.getChannel(i);
+                GridDataChannel channel = attDesc.getChannel(i);
                 String channelPattern = channel.getName() + "/" + "slice%04d.png";
                 sw.writeSlices(grid,zos,channelPattern,0,0,getSlicesCount(grid), m_orientation, channel.getBitCount(), channel);
             }
@@ -121,7 +120,7 @@ public class SVXWriter {
 
         int subvoxelBits = 8; // where it should came from? 
 
-        AttributeDesc attDesc = grid.getAttributeDesc();        
+        GridDataDesc attDesc = grid.getDataDesc();
         if(attDesc == null) 
             throw new RuntimeException("grid attribute description is null");
         PrintStream ps = new PrintStream(os);
@@ -142,7 +141,7 @@ public class SVXWriter {
         
         for(int i = 0; i < attDesc.size(); i++){
 
-            AttributeChannel channel = attDesc.getChannel(i);
+            GridDataChannel channel = attDesc.getChannel(i);
 
             String channelPattern = channel.getName() + "/" + "slice%04d.png";
             int bits = channel.getBitCount(); 
