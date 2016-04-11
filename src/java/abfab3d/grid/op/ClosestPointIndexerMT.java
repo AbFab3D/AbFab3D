@@ -87,7 +87,7 @@ public class ClosestPointIndexerMT {
      *  @param coordx  array of x coordinates. coordx[0] is unused 
      *  @param coordy  array of y coordinates. coordy[0] is unused  
      *  @param coordz  array of y coordinates. coordz[0] is unused 
-     *  @param maxDistance maximal distance to calculate distances. if maxDIastance == 0, the full range is calculated 
+     *  @param maxDistance maximal distance to calculate distances. if maxDistance == 0, the full range is calculated 
      *  @param indexGrid - on input has indices of closest points in thin layer around the point cloud 
      *                   - on output has indices of closest point for each grid point 
      *                   valid indices start from 1, index value 0 means "undefined" 

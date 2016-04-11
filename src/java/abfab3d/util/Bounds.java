@@ -243,6 +243,7 @@ public class Bounds implements Cloneable {
     /*
     public void _setGridSize(int width,int height, int depth){
 
+
         this.nx = width;
         this.ny = height;
         this.nz = depth;

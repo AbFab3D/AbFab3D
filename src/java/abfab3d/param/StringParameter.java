@@ -20,6 +20,10 @@ package abfab3d.param;
  */
 public class StringParameter extends BaseParameter {
 
+    public StringParameter(String name, String initialValue) {
+        this(name, name, initialValue);
+    }
+
     public StringParameter(String name, String desc, String initialValue) {
         super(name, desc);
         defaultValue = initialValue;
