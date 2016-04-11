@@ -12,8 +12,8 @@
 
 package abfab3d.grid.op;
 
-import abfab3d.grid.AttributeChannel;
-import abfab3d.grid.AttributeDesc;
+import abfab3d.grid.GridDataChannel;
+import abfab3d.grid.GridDataDesc;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
 
@@ -106,7 +106,7 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
 
     public void _test2(){
 
-        AttributeChannel at = new AttributeChannel(AttributeChannel.DISTANCE, "distance", 10, 0, 1.,10.);
+        GridDataChannel at = new GridDataChannel(GridDataChannel.DISTANCE, "distance", 10, 0, 1.,10.);
         for(int i = -100; i < 100; i++){
             double v = 0.2*i;
             long bits = at.makeAtt(v);
@@ -141,7 +141,7 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
     }
     void printGridValue(Grid2D grid){
 
-        AttributeChannel vm = grid.getAttributeDesc().getChannel(0);
+        GridDataChannel vm = grid.getAttributeDesc().getChannel(0);
         int xmax = 20; 
         int ymax = 20;
         printf("printGridValue()\n");
@@ -160,8 +160,8 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
         int ny = grid.getHeight();
         int imgx = nx*magnification;
         int imgy = ny*magnification;
-        AttributeDesc adesc = grid.getAttributeDesc();
-        AttributeChannel ac = adesc.getChannel(0);
+        GridDataDesc adesc = grid.getAttributeDesc();
+        GridDataChannel ac = adesc.getChannel(0);
 
         BufferedImage image =  new BufferedImage(imgx, imgy, BufferedImage.TYPE_INT_ARGB);
         DataBufferInt db = (DataBufferInt)image.getRaster().getDataBuffer();
@@ -207,7 +207,7 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
     static Grid2D makeTestGrid(int w, int h) {
 
         Grid2D grid = new Grid2DShort(w,h, pixelSize);
-        grid.setAttributeDesc(AttributeDesc.getDefaultAttributeDesc(16));
+        grid.setAttributeDesc(GridDataDesc.getDefaultAttributeDesc(16));
 
         for(int y = 7; y < 15; y++){
             for(int x = 7; x < 15; x++){ 

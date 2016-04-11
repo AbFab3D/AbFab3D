@@ -18,35 +18,30 @@ package abfab3d.grid;
 
 import abfab3d.util.Bounds;
 
-import javax.vecmath.Tuple3d;
-import javax.vecmath.Tuple3i;
-
 /**
- * Masks the usage of setData calls with an attribute to an underlying grid that may not
- * contain attributes.  This adds overhead to each call but avoid code duplication.  Use this
- * for non-critical code where code maintenance if more important then speed.
+ * Detects whether any operations exceed the dimensions specified by
+ * the grid.  Useful for debugging code with boundary issues.
+ * Not all grid implementations will issue ArrayOutOfBounds exceptions
+ * so this class is useful for detecting those.
+ *
+ * This class is not designed to be performant.  Don't leave it in
+ * place for production code.
  *
  * @author Alan Hudson
  * @author Vladimir Bulatov
  */
-public class DualWrapper implements AttributeGridWrapper {
-    private int width;
-    private int height;
-    private int depth;
-
-    /** The wrapper grid */
-    private AttributeGrid gridAtt;
-
-    /** The wrapper grid */
-    private Grid grid;
+public abstract class BaseAttributeWrapper extends BaseWrapper implements AttributeGridWrapper {
+    public BaseAttributeWrapper() {
+        super();
+    }
 
     /**
      * Constructor.
      *
      * @param grid The grid to wrap
      */
-    public DualWrapper(Grid grid) {
-        setGrid(grid);
+    public BaseAttributeWrapper(AttributeGrid grid) {
+        super(grid);
     }
 
     /**
@@ -54,18 +49,8 @@ public class DualWrapper implements AttributeGridWrapper {
      *
      * @param wrap The wrapper to copy
      */
-    public DualWrapper(DualWrapper wrap) {
-        if (wrap == null) {
-            setGrid(wrap);
-
-            return;
-        }
-
-        if (wrap.grid != null)
-            this.grid = (AttributeGrid) wrap.grid.clone();
-        this.width = wrap.width;
-        this.height = wrap.height;
-        this.depth = wrap.depth;
+    public BaseAttributeWrapper(BaseAttributeWrapper wrap) {
+        super(wrap);
     }
 
     /**
@@ -79,7 +64,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param sheight The slice height in meters
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
-        return grid.createEmpty(w,h,d,pixel,sheight);
+        return grid.createEmpty(w, h, d, pixel, sheight);
     }
 
     /**
@@ -88,55 +73,24 @@ public class DualWrapper implements AttributeGridWrapper {
      * @return The voxel data
      */
     public VoxelData getVoxelData() {
-        return gridAtt.getVoxelData();
-    }
-
-    /**
-     * Sets the underlying grid to use.
-     *
-     * @param grid The grid or null to clear.
-     */
-    public void setGrid(Grid grid) {
-        if (grid instanceof AttributeGrid) {
-            gridAtt = (AttributeGrid) grid;
-        }
-
-        this.grid = grid;
-
-        if (grid != null) {
-            width = grid.getWidth();
-            height = grid.getHeight();
-            depth = grid.getDepth();
-        } else {
-            width = 0;
-            height = 0;
-            depth = 0;
-        }
-    }
-
-    /**
-     * Sets the underlying grid to use.
-     *
-     * @param grid The grid or null to clear.
-     */
-    public void setGrid(AttributeGrid grid) {
-        gridAtt = (AttributeGrid) grid;
-        this.grid = grid;
-
-        if (grid != null) {
-            width = grid.getWidth();
-            height = grid.getHeight();
-            depth = grid.getDepth();
-        } else {
-            width = 0;
-            height = 0;
-            depth = 0;
-        }
+        return grid.getVoxelData();
     }
 
     //----------------------------------------------------------
     // Grid methods
     //----------------------------------------------------------
+
+    /**
+     * Get the state of the voxel.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @return The voxel state
+     */
+    public void getData(int x, int y, int z, VoxelData vd) {
+        grid.getData(x, y, z, vd);
+    }
 
     /**
      * Get the data for a voxel
@@ -148,18 +102,6 @@ public class DualWrapper implements AttributeGridWrapper {
      */
     public void getDataWorld(double x, double y, double z, VoxelData vd) {
         grid.getDataWorld(x, y, z, vd);
-    }
-
-    /**
-     * Get the state of the voxel.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @return The voxel state
-     */
-    public void getData(int x, int y, int z,VoxelData vd) {
-        grid.getData(x, y, z, vd);
     }
 
     /**
@@ -195,15 +137,11 @@ public class DualWrapper implements AttributeGridWrapper {
      * @return The voxel material
      */
     public long getAttributeWorld(double x, double y, double z) {
-        if (gridAtt != null) {
-            return gridAtt.getAttributeWorld(x, y, z);
-        } else {
-            return Grid.NO_MATERIAL;
-        }
+        return ((AttributeGrid)grid).getAttributeWorld(x, y, z);
     }
 
     public void setAttributeWorld(double x, double y, double z, long attribute) {
-        gridAtt.setAttributeWorld(x, y, z, attribute);
+        ((AttributeGrid)grid).setAttributeWorld(x, y, z, attribute);
     }
 
     /**
@@ -215,11 +153,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @return The voxel material
      */
     public long getAttribute(int x, int y, int z) {
-        if (gridAtt != null) {
-            return gridAtt.getAttribute(x, y, z);
-        } else {
-            return Grid.NO_MATERIAL;
-        }
+        return ((AttributeGrid)grid).getAttribute(x, y, z);
     }
 
     /**
@@ -231,9 +165,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param material The materialID
      */
     public void setDataWorld(double x, double y, double z, byte state, long material) {
-
 /*
-        VoxelData vd = grid.getData(x,y,z);
         // Not sure why this was here, doesn't seem to make sense.
 
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
@@ -241,11 +173,7 @@ public class DualWrapper implements AttributeGridWrapper {
             throw new IllegalArgumentException("Invalid state change at pos: " + x + " " + y + " " + z);
         }
   */
-        if (gridAtt != null) {
-            gridAtt.setDataWorld(x, y, z, state, material);
-        } else {
-            grid.setStateWorld(x, y, z, state);
-        }
+        ((AttributeGrid)grid).setDataWorld(x, y, z, state, material);
     }
 
     /**
@@ -258,10 +186,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param material The new material value.  0 = nothing. > 0 materialID
      */
     public void setData(int x, int y, int z, byte state, long material) {
-
 /*
-        VoxelData vd = grid.getData(x,y,z);
-
         // Not sure why this was here, doesn't seem to make sense.
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
             && vd.getAttribute() != material ) {
@@ -271,11 +196,7 @@ public class DualWrapper implements AttributeGridWrapper {
             throw new IllegalArgumentException("Invalid state change at index: " + x + " " + y + " " + z);
         }
   */
-        if (gridAtt != null) {
-            gridAtt.setData(x, y, z, state, material);
-        } else {
-            grid.setState(x, y, z, state);
-        }
+        ((AttributeGrid)grid).setData(x, y, z, state, material);
     }
 
     /**
@@ -287,9 +208,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param material The materialID
      */
     public void setAttribute(int x, int y, int z, long material) {
-        if (gridAtt != null) {
-            gridAtt.setAttribute(x, y, z, material);
-        }
+        ((AttributeGrid)grid).setAttribute(x, y, z, material);
     }
 
     /**
@@ -301,7 +220,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param state The value.  0 = nothing. > 0 materialID
      */
     public void setState(int x, int y, int z, byte state) {
-        grid.setState(x,y,z,state);
+        grid.setState(x, y, z, state);
     }
 
     /**
@@ -330,30 +249,6 @@ public class DualWrapper implements AttributeGridWrapper {
     }
 
     /**
-     * Get the grid coordinates for a world coordinate.
-     *
-     * @param x The x value in world coords
-     * @param y The y value in world coords
-     * @param z The z value in world coords
-     * @param coords The ans is placed into this preallocated array(3).
-     */
-    public void getGridCoords(double x, double y, double z, Tuple3i coords) {
-        grid.getGridCoords(x, y, z, coords);
-    }
-
-    /**
-     * Get the world coordinates for a grid coordinate.
-     *
-     * @param x The x value in grid coords
-     * @param y The y value in grid coords
-     * @param z The z value in grid coords
-     * @param coords The ans is placed into this preallocated array(3).
-     */
-    public void getWorldCoords(int x, int y, int z, Tuple3d coords) {
-        grid.getWorldCoords(x, y, z, coords);
-    }
-
-    /**
      * Get the world coordinates for a grid coordinate.
      *
      * @param x The x value in grid coords
@@ -372,10 +267,9 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param max The max coordinate
      */
     public void getGridBounds(double[] min, double[] max) {
-        verifyGrid();
-
         grid.getGridBounds(min, max);
     }
+
 
     /**
      * Get the grid bounds in world coordinates.
@@ -383,13 +277,15 @@ public class DualWrapper implements AttributeGridWrapper {
      */
     public void getGridBounds(double[] bounds){
 
-        verifyGrid();
         grid.getGridBounds(bounds);
 
     }
+
+    /**
+     * Get the grid bounds in world coordinates.
+     */
     public Bounds getGridBounds(){
 
-        verifyGrid();
         return grid.getGridBounds();
 
     }
@@ -400,18 +296,15 @@ public class DualWrapper implements AttributeGridWrapper {
      */
     public void setGridBounds(double[] bounds){
 
-        verifyGrid();
         grid.setGridBounds(bounds);
 
     }
 
     public void setGridBounds(Bounds bounds){
 
-        verifyGrid();
         grid.setGridBounds(bounds);
 
     }
-
 
     /**
      * Count a class of voxels types.  May be much faster then
@@ -421,8 +314,6 @@ public class DualWrapper implements AttributeGridWrapper {
      * @return The number
      */
     public int findCount(VoxelClasses vc) {
-        verifyGrid();
-
         return grid.findCount(vc);
     }
 
@@ -434,12 +325,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttribute(long mat, ClassAttributeTraverser t) {
-        if (gridAtt != null) {
-            gridAtt.findAttribute(mat,t);
-        } else {
-            // error
-            throw new IllegalArgumentException("findAttribute not available on grid");
-        }
+        ((AttributeGrid)grid).findAttribute(mat, t);
     }
 
     /**
@@ -478,12 +364,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t) {
-        if (gridAtt != null) {
-            gridAtt.findAttribute(vc, t);
-        } else {
-            // error
-            throw new IllegalArgumentException("findAttribute not available on grid");
-        }
+        ((AttributeGrid)grid).findAttribute(vc, t);
     }
 
     /**
@@ -495,12 +376,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
-        if (gridAtt != null) {
-            gridAtt.findAttribute(vc, mat, t);
-        } else {
-            // error
-            throw new IllegalArgumentException("findAttribute not available on grid");
-        }
+        ((AttributeGrid)grid).findAttribute(vc, mat, t);
     }
 
     /**
@@ -515,12 +391,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param ymax - maximal y - coordinate of voxels
      */
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t, int xmin, int xmax, int ymin, int ymax) {
-        if (gridAtt != null) {
-            gridAtt.findAttribute(vc,t,xmin,xmax,ymin,ymax);
-        } else {
-            // error
-            throw new IllegalArgumentException("findAttribute not available on grid");
-        }
+        ((AttributeGrid)grid).findAttribute(vc, t, xmin, xmax, ymin, ymax);
     }
 
     /**
@@ -531,12 +402,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttributeInterruptible(long mat, ClassAttributeTraverser t) {
-        if (gridAtt != null) {
-            gridAtt.findAttributeInterruptible(mat, t);
-        } else {
-            // error
-            throw new IllegalArgumentException("findAttribute not available on grid");
-        }
+        ((AttributeGrid)grid).findAttributeInterruptible(mat, t);
     }
 
     /**
@@ -558,12 +424,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttributeInterruptible(VoxelClasses vc, ClassAttributeTraverser t) {
-        if (gridAtt != null) {
-            gridAtt.findAttributeInterruptible(vc, t);
-        } else {
-            // error
-            throw new IllegalArgumentException("findAttribute not available on grid");
-        }
+        ((AttributeGrid)grid).findAttributeInterruptible(vc, t);
     }
 
     /**
@@ -572,15 +433,10 @@ public class DualWrapper implements AttributeGridWrapper {
      *
      * @param vc The class of voxels to traverse
      * @param mat The material to traverse
-     * @param t The traverser to call for each voxel
+     * @param t The traverer to call for each voxel
      */
     public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
-        if (gridAtt != null) {
-            gridAtt.findAttributeInterruptible(vc, mat, t);
-        } else {
-            // error
-            throw new IllegalArgumentException("findAttribute not available on grid");
-        }
+        ((AttributeGrid)grid).findAttributeInterruptible(vc, mat, t);
     }
 
     /**
@@ -591,12 +447,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @return The number
      */
     public int findCount(long mat) {
-        if (gridAtt != null) {
-            return gridAtt.findCount(mat);
-        } else {
-            // error
-            throw new IllegalArgumentException("findCount not available on grid");
-        }
+        return ((AttributeGrid)grid).findCount(mat);
     }
 
     /**
@@ -605,12 +456,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param mat The aterialID
      */
     public void removeAttribute(long mat) {
-        if (gridAtt != null) {
-            gridAtt.removeAttribute(mat);
-        } else {
-            // error
-            throw new IllegalArgumentException("removeAttribute not available on grid");
-        }
+        ((AttributeGrid)grid).removeAttribute(mat);
     }
 
     /**
@@ -620,13 +466,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param matID The new materialID
      */
     public void reassignAttribute(long[] materials, long matID) {
-        if (gridAtt != null) {
-            gridAtt.reassignAttribute(materials, matID);
-        } else {
-            // error
-            throw new IllegalArgumentException("removeAttribute not available on grid");
-        }
-
+        ((AttributeGrid)grid).reassignAttribute(materials, matID);
     }
 
     /**
@@ -706,9 +546,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * Clone this object.
      */
     public Object clone() {
-        DualWrapper new_wrapper = new DualWrapper(this);
-
-        return new_wrapper;
+        throw new RuntimeException("Not implemented");
     }
 
     /**
@@ -750,7 +588,7 @@ public class DualWrapper implements AttributeGridWrapper {
        @override 
     */
     public void setDataDesc(GridDataDesc description){
-        gridAtt.setDataDesc(description);
+        ((AttributeGrid)grid).setDataDesc(description);
     }
 
     /**
@@ -758,7 +596,7 @@ public class DualWrapper implements AttributeGridWrapper {
        @override 
     */
     public GridDataDesc getDataDesc(){
-        return gridAtt.getDataDesc();
+        return ((AttributeGrid)grid).getDataDesc();
     }
 
     /**
@@ -775,4 +613,7 @@ public class DualWrapper implements AttributeGridWrapper {
     public GridDataChannel getDataChannel(int idx) {
         return ((AttributeGrid)grid).getDataChannel(idx);
     }
+
+
+
 }

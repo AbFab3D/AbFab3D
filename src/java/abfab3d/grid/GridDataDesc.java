@@ -17,43 +17,41 @@ import java.util.Vector;
 
 import abfab3d.util.Vec;
 
-import static abfab3d.util.Output.fmt;
-
 /**
  * A description of a grid attribute
  *
  * @author Vladimir Bulatov
  */
-public class AttributeDesc  {
+public class GridDataDesc {
 
     AttributeMaker m_attributeMaker; 
 
-    public AttributeDesc(){
+    public GridDataDesc(){
     }
 
-    public AttributeDesc(AttributeChannel channel){
+    public GridDataDesc(GridDataChannel channel){
         addChannel(channel);
     }
 
-    public AttributeDesc(AttributeChannel channel1, AttributeChannel channel2){
+    public GridDataDesc(GridDataChannel channel1, GridDataChannel channel2){
         addChannel(channel1);
         addChannel(channel2);
     }
 
-    public AttributeDesc(AttributeChannel channel1, AttributeChannel channel2, AttributeChannel channel3){
+    public GridDataDesc(GridDataChannel channel1, GridDataChannel channel2, GridDataChannel channel3){
         addChannel(channel1);
         addChannel(channel2);
         addChannel(channel3);
     }
 
-    public AttributeDesc(AttributeChannel channel1, AttributeChannel channel2, AttributeChannel channel3,AttributeChannel channel4){
+    public GridDataDesc(GridDataChannel channel1, GridDataChannel channel2, GridDataChannel channel3, GridDataChannel channel4){
         addChannel(channel1);
         addChannel(channel2);
         addChannel(channel3);
         addChannel(channel4);
     }
 
-    Vector<AttributeChannel> m_channels = new Vector<AttributeChannel>();
+    Vector<GridDataChannel> m_channels = new Vector<GridDataChannel>();
 
     public int size(){
         return m_channels.size();
@@ -62,28 +60,28 @@ public class AttributeDesc  {
     public int getBitCount(){
         int cnt = 0;
         for(int i = 0; i < m_channels.size(); i++){
-            AttributeChannel ac = m_channels.get(i);
+            GridDataChannel ac = m_channels.get(i);
             cnt += ac.getBitCount();
         }
         return cnt;
     }
 
 
-    public AttributeChannel getChannel(int index){
+    public GridDataChannel getChannel(int index){
         return m_channels.get(index);
     }
 
-    public AttributeChannel getChannelWithType(String channelType){
+    public GridDataChannel getChannelWithType(String channelType){
         
         for(int i = 0; i < m_channels.size(); i++){
-            AttributeChannel channel = m_channels.get(i);
+            GridDataChannel channel = m_channels.get(i);
             if(channel.getType().equals(channelType))
                 return channel;
         }
         return null;
     }
     
-    public void addChannel(AttributeChannel channel){
+    public void addChannel(GridDataChannel channel){
 
         m_channels.add(channel);
 
@@ -115,7 +113,7 @@ public class AttributeDesc  {
 
     public static class DefaultAttributeMaker implements AttributeMaker {
         int resolution[];
-        public DefaultAttributeMaker(AttributeDesc attDesc){
+        public DefaultAttributeMaker(GridDataDesc attDesc){
             resolution = new int[attDesc.size()];
             for(int i = 0; i < resolution.length;i++){
                 //TODO 
@@ -128,34 +126,34 @@ public class AttributeDesc  {
         }        
     }
 
-    public AttributeChannel getDensityChannel() {
+    public GridDataChannel getDensityChannel() {
         for(int i = 0; i < m_channels.size(); i++){
-            AttributeChannel ac = m_channels.get(i);
-            if(AttributeChannel.DENSITY.equals(ac.m_type))
+            GridDataChannel ac = m_channels.get(i);
+            if(GridDataChannel.DENSITY.equals(ac.m_type))
                 return ac;
         }
         return null;
     }
 
-    public AttributeChannel getDefaultChannel() {
+    public GridDataChannel getDefaultChannel() {
         return getChannel(0);
     }
 
     /**
        creates default attrinute descrition with single 8 bits density channel) 
      */
-    public static AttributeDesc getDefaultAttributeDesc(int bitCount){
-        AttributeDesc at = new AttributeDesc();
-        at.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "density", bitCount, 0, 0., 1.));
+    public static GridDataDesc getDefaultAttributeDesc(int bitCount){
+        GridDataDesc at = new GridDataDesc();
+        at.addChannel(new GridDataChannel(GridDataChannel.DENSITY, "density", bitCount, 0, 0., 1.));
         return at;
     }
 
     /**
        creates AttributeDesc with color+density channel 
      */
-    public static AttributeDesc getDensityColor(){
+    public static GridDataDesc getDensityColor(){
 
-        return new AttributeDesc(new AttributeChannel(AttributeChannel.DENSITY_COLOR, "density_color", 32, 0, 0., 1.));
+        return new GridDataDesc(new GridDataChannel(GridDataChannel.DENSITY_COLOR, "density_color", 32, 0, 0., 1.));
 
     }
 }

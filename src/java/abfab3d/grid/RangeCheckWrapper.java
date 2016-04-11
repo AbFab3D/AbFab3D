@@ -29,19 +29,19 @@ import abfab3d.util.Bounds;
  *
  * @author Alan Hudson
  */
-public class RangeCheckWrapper implements GridWrapper {
-    private int width;
-    private int height;
-    private int depth;
+public class RangeCheckWrapper extends BaseWrapper {
+    protected int width;
+    protected int height;
+    protected int depth;
 
     /** The wrapper grid */
-    private Grid grid;
+    protected Grid grid;
 
     /** Should we check conversion like getGridCoords */
-    private boolean checkConversion;
+    protected boolean checkConversion;
 
     /** Should we expand the grid if out of range */
-    private boolean expandGrid;
+    protected boolean expandGrid;
 
     /**
      * Constructor.
@@ -69,10 +69,16 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param checkConversions Should we check read accesses.
      */
     public RangeCheckWrapper(Grid grid, boolean checkConversions, boolean expandGrid) {
-        setGrid(grid);
+        super(grid);
 
         checkConversion = checkConversions;
         this.expandGrid = expandGrid;
+
+        if (grid == null) return;
+
+        this.width = grid.getWidth();
+        this.height = grid.getHeight();
+        this.depth = grid.getDepth();
     }
 
     /**
@@ -81,9 +87,9 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param wrap The wrapper to copy
      */
     public RangeCheckWrapper(RangeCheckWrapper wrap) {
-        if (wrap == null) {
-            setGrid(wrap);
+        super();
 
+        if (wrap == null) {
             return;
         }
 

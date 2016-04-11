@@ -55,9 +55,9 @@ public class TestResample extends BaseTestAttributeGrid {
         double pixelSize = 0.001;
         Grid2DShort grid = new Grid2DShort(w,h,pixelSize);
         grid.setGridBounds(new Bounds(0, w * pixelSize, 0, h * pixelSize, 0, pixelSize));
-        AttributeDesc adesc = AttributeDesc.getDefaultAttributeDesc(16);
+        GridDataDesc adesc = GridDataDesc.getDefaultAttributeDesc(16);
         grid.setAttributeDesc(adesc);
-        AttributeChannel channel = adesc.getChannel(0);
+        GridDataChannel channel = adesc.getChannel(0);
 
         double ival = 0.5;
         grid.setAttribute(1, 0, channel.makeAtt(ival));
@@ -102,9 +102,9 @@ public class TestResample extends BaseTestAttributeGrid {
         double pixelSize = 0.001;
         Grid2DShort grid = new Grid2DShort(w,h,pixelSize);
         grid.setGridBounds(new Bounds(0, w * pixelSize, 0, h * pixelSize, 0, pixelSize));
-        AttributeDesc adesc = AttributeDesc.getDefaultAttributeDesc(16);
+        GridDataDesc adesc = GridDataDesc.getDefaultAttributeDesc(16);
         grid.setAttributeDesc(adesc);
-        AttributeChannel channel = adesc.getChannel(0);
+        GridDataChannel channel = adesc.getChannel(0);
 
         double ival = 0.5;
         grid.setAttribute(1, 0, channel.makeAtt(ival));
@@ -149,9 +149,9 @@ public class TestResample extends BaseTestAttributeGrid {
         double pixelSize = 0.001;
         Grid2DShort grid = new Grid2DShort(w,h,pixelSize);
         grid.setGridBounds(new Bounds(0, w * pixelSize, 0, h * pixelSize, 0, pixelSize));
-        AttributeDesc adesc = AttributeDesc.getDefaultAttributeDesc(16);
+        GridDataDesc adesc = GridDataDesc.getDefaultAttributeDesc(16);
         grid.setAttributeDesc(adesc);
-        AttributeChannel channel = adesc.getChannel(0);
+        GridDataChannel channel = adesc.getChannel(0);
 
         double ival = 0.5;
         grid.setAttribute(1, 0, channel.makeAtt(ival));

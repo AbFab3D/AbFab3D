@@ -168,7 +168,6 @@ public class Union  extends TransformableDataSource implements SNode {
        @noRefGuide
     */
     public int initialize(){
-
         super.initialize();
         vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
 

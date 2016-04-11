@@ -27,7 +27,7 @@ import abfab3d.util.Bounds;
  * @author Alan Hudson
  * @author Vladimir Bulatov
  */
-public class OccupiedWrapper implements AttributeGridWrapper {
+public class OccupiedWrapper extends BaseAttributeWrapper implements AttributeGridWrapper {
     /** The wrapper grid */
     private AttributeGrid grid;
 
@@ -40,7 +40,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param grid The grid to wrap
      */
     public OccupiedWrapper(AttributeGrid grid) {
-        this.grid = grid;
+        super(grid);
 
         vd = grid.getVoxelData();
     }
@@ -51,11 +51,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param wrap The wrapper to copy
      */
     public OccupiedWrapper(OccupiedWrapper wrap) {
-        if (wrap == null) {
-            setGrid(wrap);
-
-            return;
-        }
+        super((AttributeGrid)wrap.getGrid());
 
         if (wrap.grid != null)
             this.grid = (AttributeGrid) wrap.grid.clone();
@@ -583,16 +579,16 @@ public class OccupiedWrapper implements AttributeGridWrapper {
        @param description The attirbute description 
        @override 
     */
-    public void setAttributeDesc(AttributeDesc description){
-        grid.setAttributeDesc(description);
+    public void setDataDesc(GridDataDesc description){
+        grid.setDataDesc(description);
     }
 
     /**
        @return voxel attribute description assigned to the grid
        @override 
     */
-    public AttributeDesc getAttributeDesc(){
-        return grid.getAttributeDesc(); 
+    public GridDataDesc getDataDesc(){
+        return grid.getDataDesc();
     }
 
 

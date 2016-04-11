@@ -13,10 +13,9 @@
 package abfab3d.datasources;
 
 
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataChannel;
 import abfab3d.util.Vec;
 
-import abfab3d.grid.Grid;
 import abfab3d.util.Bounds;
 
 import abfab3d.grid.AttributeGrid;
@@ -50,7 +49,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
 
     protected AttributeGrid m_grid;
-    protected AttributeChannel m_dataChannel;
+    protected GridDataChannel m_dataChannel;
     protected byte[] m_cachedByteData;
 
     int m_nx, m_ny, m_nz;
@@ -93,7 +92,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         mp_grid.setValue(grid);
 
         m_grid = grid;
-        m_dataChannel = m_grid.getAttributeDesc().getDefaultChannel();
+        m_dataChannel = m_grid.getDataDesc().getDefaultChannel();
         
         Bounds bounds = m_grid.getGridBounds();
         
@@ -176,7 +175,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         return m_nz;
     }
 
-    public AttributeChannel getDataChannel() {
+    public GridDataChannel getDataChannel() {
         return m_dataChannel;
     }
 

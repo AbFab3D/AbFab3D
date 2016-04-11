@@ -1,6 +1,6 @@
 package abfab3d.grid.op;
 
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.Operation2D;
@@ -192,7 +192,7 @@ public class TestSmooth extends TestCase {
         int w = src.getWidth();
         int h = src.getHeight();
 
-        AttributeChannel channel = src.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = src.getAttributeDesc().getDefaultChannel();
 
         for(int x=0; x < w; x++) {
             for(int y=0; y < h; y++) {
@@ -209,7 +209,7 @@ public class TestSmooth extends TestCase {
      * @param image
      */
     public static double getAverageIntensity(Grid2D image) {
-        AttributeChannel channel = image.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = image.getAttributeDesc().getDefaultChannel();
 
         int width = image.getWidth();
         int height = image.getHeight();

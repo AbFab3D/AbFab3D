@@ -30,24 +30,14 @@ import abfab3d.util.Bounds;
  * @author Alan Hudson
  * @author Vladimir Bulatov
  */
-public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
-    private int width;
-    private int height;
-    private int depth;
-
-    /** The wrapper grid */
-    private AttributeGrid grid;
-
-    /** Should we check conversion like getGridCoords */
-    private boolean checkConversion;
-
+public class RangeCheckAttributeWrapper extends RangeCheckWrapper implements AttributeGridWrapper {
     /**
      * Constructor.
      *
      * @param grid The grid to wrap
      */
     public RangeCheckAttributeWrapper(AttributeGrid grid) {
-        setGrid(grid);
+        super(grid);
 
         checkConversion = true;
     }
@@ -59,9 +49,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
      * @param checkConversions Should we check read accesses.
      */
     public RangeCheckAttributeWrapper(AttributeGrid grid, boolean checkConversions) {
-        setGrid(grid);
-
-        checkConversion = checkConversions;
+        super(grid,checkConversions);
     }
 
     /**
@@ -70,17 +58,17 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
      * @param wrap The wrapper to copy
      */
     public RangeCheckAttributeWrapper(RangeCheckAttributeWrapper wrap) {
+        super(null);
+
         if (wrap == null) {
             setGrid(wrap);
 
             return;
         }
 
-        if (wrap.grid != null)
-            this.grid = (AttributeGrid) wrap.grid.clone();
-        this.width = wrap.width;
-        this.height = wrap.height;
-        this.depth = wrap.depth;
+        if (wrap.grid != null) {
+            super.setGrid((AttributeGrid)wrap.grid.clone());
+        }
     }
 
     /**
@@ -166,7 +154,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
      * @return The voxel state
      */
     public byte getStateWorld(double x, double y, double z) {
-        verifyRange(x,y,z);
+        verifyRange(x, y, z);
 
         return grid.getStateWorld(x, y, z);
     }
@@ -180,7 +168,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
      * @return The voxel state
      */
     public byte getState(int x, int y, int z) {
-        verifyRange(x,y,z);
+        verifyRange(x, y, z);
 
         return grid.getState(x,y,z);
     }
@@ -196,11 +184,11 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public long getAttributeWorld(double x, double y, double z) {
         verifyRange(x,y,z);
 
-        return grid.getAttributeWorld(x, y, z);
+        return ((AttributeGrid)grid).getAttributeWorld(x, y, z);
     }
     public void setAttributeWorld(double x, double y, double z, long attribute) {
         verifyRange(x,y,z);
-        grid.setAttributeWorld(x, y, z, attribute);
+        ((AttributeGrid)grid).setAttributeWorld(x, y, z, attribute);
     }
 
     /**
@@ -214,7 +202,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public long getAttribute(int x, int y, int z) {
         verifyRange(x,y,z);
 
-        return grid.getAttribute(x, y, z);
+        return ((AttributeGrid)grid).getAttribute(x, y, z);
     }
 
     /**
@@ -236,7 +224,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
             throw new IllegalArgumentException("Invalid state change at pos: " + x + " " + y + " " + z);
         }
   */
-        grid.setDataWorld(x, y, z, state, material);
+        ((AttributeGrid)grid).setDataWorld(x, y, z, state, material);
     }
 
     /**
@@ -261,7 +249,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
             throw new IllegalArgumentException("Invalid state change at index: " + x + " " + y + " " + z);
         }
   */
-        grid.setData(x,y,z,state,material);
+        ((AttributeGrid)grid).setData(x, y, z, state, material);
     }
 
     /**
@@ -275,7 +263,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public void setAttribute(int x, int y, int z, long material) {
         verifyRange(x,y,z);
 
-        grid.setAttribute(x, y, z, material);
+        ((AttributeGrid)grid).setAttribute(x, y, z, material);
     }
 
     /**
@@ -289,7 +277,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public void setState(int x, int y, int z, byte state) {
         verifyRange(x,y,z);
 
-        grid.setState(x,y,z,state);
+        grid.setState(x, y, z, state);
     }
 
     /**
@@ -318,7 +306,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public void getGridCoords(double x, double y, double z, int[] coords) {
         if (checkConversion) verifyRange(x,y,z);
 
-        grid.getGridCoords(x,y,z,coords);
+        grid.getGridCoords(x, y, z, coords);
     }
 
     /**
@@ -332,7 +320,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public void getWorldCoords(int x, int y, int z, double[] coords) {
         if (checkConversion) verifyRange(x,y,z);
 
-        grid.getWorldCoords(x,y,z,coords);
+        grid.getWorldCoords(x, y, z, coords);
     }
 
     /**
@@ -344,7 +332,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public void getGridBounds(double[] min, double[] max) {
         verifyGrid();
 
-        grid.getGridBounds(min,max);
+        grid.getGridBounds(min, max);
     }
 
 
@@ -406,7 +394,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public void findAttribute(long mat, ClassAttributeTraverser t) {
         verifyGrid();
 
-        grid.findAttribute(mat,t);
+        ((AttributeGrid)grid).findAttribute(mat, t);
     }
 
     /**
@@ -449,7 +437,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t) {
         verifyGrid();
 
-        grid.findAttribute(vc, t);
+        ((AttributeGrid)grid).findAttribute(vc, t);
     }
 
     /**
@@ -463,7 +451,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         verifyGrid();
 
-        grid.findAttribute(vc, mat, t);
+        ((AttributeGrid)grid).findAttribute(vc, mat, t);
     }
 
     /**
@@ -480,7 +468,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t, int xmin, int xmax, int ymin, int ymax) {
         verifyGrid();
 
-        grid.findAttribute(vc,t,xmin,xmax,ymin,ymax);
+        ((AttributeGrid)grid).findAttribute(vc,t,xmin,xmax,ymin,ymax);
     }
 
     /**
@@ -493,7 +481,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public void findAttributeInterruptible(long mat, ClassAttributeTraverser t) {
         verifyGrid();
 
-        grid.findAttributeInterruptible(mat,t);
+        ((AttributeGrid)grid).findAttributeInterruptible(mat, t);
     }
 
     /**
@@ -519,7 +507,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public void findAttributeInterruptible(VoxelClasses vc, ClassAttributeTraverser t) {
         verifyGrid();
 
-        grid.findAttributeInterruptible(vc, t);
+        ((AttributeGrid)grid).findAttributeInterruptible(vc, t);
     }
 
     /**
@@ -533,7 +521,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         verifyGrid();
 
-        grid.findAttributeInterruptible(vc, mat, t);
+        ((AttributeGrid)grid).findAttributeInterruptible(vc, mat, t);
     }
 
     /**
@@ -546,7 +534,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public int findCount(long mat) {
         verifyGrid();
 
-        return grid.findCount(mat);
+        return ((AttributeGrid)grid).findCount(mat);
     }
 
     /**
@@ -555,7 +543,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
      * @param mat The aterialID
      */
     public void removeAttribute(long mat) {
-        grid.removeAttribute(mat);
+        ((AttributeGrid)grid).removeAttribute(mat);
     }
 
     /**
@@ -565,7 +553,7 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
      * @param matID The new materialID
      */
     public void reassignAttribute(long[] materials, long matID) {
-        grid.reassignAttribute(materials, matID);
+        ((AttributeGrid)grid).reassignAttribute(materials, matID);
     }
 
     /**
@@ -740,24 +728,32 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
        @param description The attirbute description 
        @override 
     */
-    public void setAttributeDesc(AttributeDesc description){
-        grid.setAttributeDesc(description);
+    public void setDataDesc(GridDataDesc description){
+        ((AttributeGrid)grid).setDataDesc(description);
     }
 
     /**
        @return voxel attribute description assigned to the grid
        @override 
     */
-    public AttributeDesc getAttributeDesc(){
-        return grid.getAttributeDesc(); 
+    public GridDataDesc getDataDesc(){
+        return ((AttributeGrid)grid).getDataDesc();
     }
 
     /**
        copy data from fromGrid into this grid 
      */
     public void copyData(AttributeGrid fromGrid){
-        grid.copyData(fromGrid);
+        ((AttributeGrid)grid).copyData(fromGrid);
     }
 
+
+    public GridDataChannel getDataChannel() {
+        return ((AttributeGrid)grid).getDataChannel();
+    }
+
+    public GridDataChannel getDataChannel(int idx) {
+        return ((AttributeGrid)grid).getDataChannel(idx);
+    }
 
 }

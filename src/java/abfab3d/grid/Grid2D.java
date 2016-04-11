@@ -98,11 +98,11 @@ public interface Grid2D {
      assign to the grid a description of a voxel attributes
      @param description The attirbute description
      */
-    public void setAttributeDesc(AttributeDesc description);
+    public void setAttributeDesc(GridDataDesc description);
 
     /**
      @return voxel attribute description assigned to the grid
      */
-    public AttributeDesc getAttributeDesc();
+    public GridDataDesc getAttributeDesc();
 
 }

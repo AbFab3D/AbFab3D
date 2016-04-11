@@ -25,7 +25,7 @@ import static abfab3d.util.MathUtil.clamp;
  *
  * @author Vladimir Bulatov
  */
-public class AttributeChannel  implements LongConverter { // , ValueMaker { 
+public class GridDataChannel implements LongConverter { // , ValueMaker {
     
     // standard chnnel types
     public static final String DENSITY = "DENSITY";
@@ -60,6 +60,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
     double m_B2D; // Bits -> Double conversion factor 
 
     BitsExtractor m_bitsExtractor;
+    AttributeGrid m_grid;
     
     /**
        attribute channel stores data in given number of bits 
@@ -70,7 +71,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
        this is unsigned variant of AttributeChannel 
        
      */
-    public AttributeChannel(String type, String name, int bits, int shift, double value0, double value1){
+    public GridDataChannel(String type, String name, int bits, int shift, double value0, double value1){
         if (bits >= 64) {
             throw new IllegalArgumentException("Class doesn't work for >= 64 bits");
         }
@@ -100,7 +101,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
 
     }
 
-    public AttributeChannel(String type, String name, int bits, int shift){
+    public GridDataChannel(String type, String name, int bits, int shift){
         this(type, name, bits, shift, 0., 1.);
     }
     
@@ -110,7 +111,7 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
        it is legacy variant to work with code which stores distance data as signed short 
        @param physicalUnit conversion factor from int to physical units 
      */
-    public AttributeChannel(String type, String name, double physicalUnit, double minValue, double maxValue){
+    public GridDataChannel(String type, String name, double physicalUnit, double minValue, double maxValue){
 
         m_type = type;
         m_name = name;
@@ -232,5 +233,13 @@ public class AttributeChannel  implements LongConverter { // , ValueMaker {
         final public long extract(long att){
             return getBits_unsigned(att);
         }
-    }    
+    }
+
+    protected void setGrid(AttributeGrid grid) {
+        m_grid = grid;
+    }
+
+    public double getValue(int x, int y, int z) {
+        return getValue(m_grid.getAttribute(x,y,z));
+    }
 }

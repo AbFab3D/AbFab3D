@@ -35,7 +35,7 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
     protected InsideOutsideFunc ioFunc;
 
     // attribute descriptor used for this grid
-    protected AttributeDesc m_attributeDesc = AttributeDesc.getDefaultAttributeDesc(8);
+    protected GridDataDesc m_gridDataDesc = GridDataDesc.getDefaultAttributeDesc(8);
 
     /**
      * Constructor.
@@ -477,16 +477,16 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
        @param description The attirbute description 
        @override 
     */
-    public void setAttributeDesc(AttributeDesc description){
-        m_attributeDesc = description;
+    public void setDataDesc(GridDataDesc description){
+        m_gridDataDesc = description;
     }
 
     /**
        @return voxel attribute description assigned to the grid
        @override 
     */
-    public AttributeDesc getAttributeDesc(){
-        return m_attributeDesc; 
+    public GridDataDesc getDataDesc(){
+        return m_gridDataDesc;
     }
 
 
@@ -523,9 +523,9 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
     /**
      */
     public void setAttributeWorld(double x, double y, double z, long attribute) {
-        setAttribute((int)((x-xorig) / pixelSize), 
-                     (int)((y-yorig) / sheight),
-                     (int)((z-zorig) / pixelSize), attribute); 
+        setAttribute((int) ((x - xorig) / pixelSize),
+                (int) ((y - yorig) / sheight),
+                (int) ((z - zorig) / pixelSize), attribute);
         
     }
 
@@ -533,19 +533,19 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
        deprecated method 
      */
     public byte getStateWorld(double x, double y, double z) {
-        return getState((int)((x-xorig) / pixelSize), 
-                        (int)((y-yorig) / sheight),
-                        (int)((z-zorig) / pixelSize));         
+        return getState((int) ((x - xorig) / pixelSize),
+                (int) ((y - yorig) / sheight),
+                (int) ((z - zorig) / pixelSize));
     }
 
     /**
        deprecated method 
      */
     public void getDataWorld(double x, double y, double z, VoxelData vd) {
-        getData((int)((x-xorig) / pixelSize), 
-                 (int)((y-yorig) / sheight),
-                 (int)((z-zorig) / pixelSize),
-                 vd);         
+        getData((int) ((x - xorig) / pixelSize),
+                (int) ((y - yorig) / sheight),
+                (int) ((z - zorig) / pixelSize),
+                vd);
         
     }
     /**
@@ -586,6 +586,18 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
                 }
             }
         } 
+    }
+
+    public GridDataChannel getDataChannel() {
+        return getDataChannel(0);
+    }
+
+    public GridDataChannel getDataChannel(int idx) {
+        GridDataChannel channel = m_gridDataDesc.getChannel(idx);
+        if (channel == null) throw new IllegalArgumentException("Invalid channel idx");
+        channel.setGrid(this);
+
+        return channel;
     }
 
 }

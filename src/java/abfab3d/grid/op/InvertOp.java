@@ -16,7 +16,7 @@ package abfab3d.grid.op;
 
 // Internal Imports
 
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Operation2D;
 
@@ -41,7 +41,7 @@ public class InvertOp implements Operation2D {
      */
     public Grid2D execute(Grid2D src) {
 
-        AttributeChannel channel = src.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = src.getAttributeDesc().getDefaultChannel();
 
         int w = src.getWidth();
         int h = src.getHeight();

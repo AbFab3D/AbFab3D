@@ -11,8 +11,6 @@
  ****************************************************************************/
 package abfab3d.opencl;
 
-import com.jogamp.opencl.CLResource;
-
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -106,7 +104,7 @@ public class CLResourceManager implements Runnable {
         if (resource == null) return false;
 
         while(freeing) {
-            try { Thread.sleep(10); } catch(InterruptedException ie) {}
+            try { Thread.sleep(5); } catch(InterruptedException ie) {}
         }
 
         CacheEntry ce = cache.get(resource);

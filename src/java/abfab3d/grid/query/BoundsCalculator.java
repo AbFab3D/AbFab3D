@@ -31,7 +31,7 @@ public class BoundsCalculator {
         m_threshold = threshold;
     }
 
-    public Bounds execute(AttributeGrid grid,  AttributeChannel channel) {
+    public Bounds execute(AttributeGrid grid,  GridDataChannel channel) {
         double[] min = new double[3];
         double[] max = new double[3];
 
@@ -93,7 +93,7 @@ public class BoundsCalculator {
         return bounds;
     }
 
-    public Bounds execute(AttributeGrid grid,  AttributeChannel channel, int sign) {
+    public Bounds execute(AttributeGrid grid,  GridDataChannel channel, int sign) {
         double[] min = new double[3];
         double[] max = new double[3];
 

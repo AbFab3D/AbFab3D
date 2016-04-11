@@ -49,7 +49,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
     public Grid2DShort(int width, int height){
         super(width, height,1.);
         allocateData();
-        setAttributeDesc(AttributeDesc.getDefaultAttributeDesc(16));
+        setAttributeDesc(GridDataDesc.getDefaultAttributeDesc(16));
     }
 
     /**
@@ -62,7 +62,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
     public Grid2DShort(int width, int height, double pixel){
         super(width, height,pixel);
         allocateData();
-        setAttributeDesc(AttributeDesc.getDefaultAttributeDesc(16));
+        setAttributeDesc(GridDataDesc.getDefaultAttributeDesc(16));
     }
 
     /**
@@ -84,7 +84,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
     public Grid2DShort(Bounds bounds, double pixel) {
         super(bounds, pixel);
         allocateData();
-        setAttributeDesc(AttributeDesc.getDefaultAttributeDesc(16));
+        setAttributeDesc(GridDataDesc.getDefaultAttributeDesc(16));
     }
 
     /**
@@ -97,7 +97,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
      */
     public Grid2D createEmpty(int w, int h, double pixel) {
         Grid2D ret_val = new Grid2DShort(w,h,pixel);
-        ret_val.setAttributeDesc(AttributeDesc.getDefaultAttributeDesc(16));
+        ret_val.setAttributeDesc(GridDataDesc.getDefaultAttributeDesc(16));
         return ret_val;
     }
 
@@ -194,7 +194,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
         
         Grid2DShort grid = new Grid2DShort(w,h);
         grid.setGridBounds(new Bounds(0, w*pixelSize, 0, h*pixelSize, 0, pixelSize)); 
-        grid.setAttributeDesc( AttributeDesc.getDefaultAttributeDesc(16));
+        grid.setAttributeDesc( GridDataDesc.getDefaultAttributeDesc(16));
         short data[] = ImageUtil.getGray16Data(image);
         int h1 = h-1;
         // Need to convert from 0,0 upper left to 0,0 lower left
@@ -215,7 +215,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
         
         Grid2DShort grid = new Grid2DShort(w,h);
         grid.setGridBounds(new Bounds(0, w*pixelSize, 0, h*pixelSize, 0, pixelSize)); 
-        grid.setAttributeDesc( AttributeDesc.getDefaultAttributeDesc(16));
+        grid.setAttributeDesc( GridDataDesc.getDefaultAttributeDesc(16));
         short data[] = image.getData();
         int h1 = h-1;
         // Need to convert from 0,0 upper left to 0,0 lower left

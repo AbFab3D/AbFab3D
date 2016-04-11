@@ -29,10 +29,7 @@ import java.util.*;
  * @author Alan Hudson
  * @author Vladimir Bulatov
  */
-public class OverlapDetectorWrapper implements AttributeGridWrapper {
-    /** The wrapper grid */
-    private AttributeGrid grid;
-
+public class OverlapDetectorWrapper extends BaseAttributeWrapper implements AttributeGridWrapper {
     /** The set of materials found overlapping */
     private HashSet<Long> overlaps;
 
@@ -45,7 +42,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param grid The grid to wrap
      */
     public OverlapDetectorWrapper(AttributeGrid grid) {
-        this.grid = grid;
+        super(grid);
         overlaps = new HashSet<Long>();
 
         vd = grid.getVoxelData();
@@ -57,6 +54,8 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param wrap The wrapper to copy
      */
     public OverlapDetectorWrapper(OverlapDetectorWrapper wrap) {
+        super((AttributeGrid)wrap.getGrid());
+
         if (wrap == null) {
             setGrid(wrap);
 
@@ -171,10 +170,10 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      */
     public long getAttributeWorld(double x, double y, double z) {
-        return grid.getAttributeWorld(x, y, z);
+        return ((AttributeGrid)grid).getAttributeWorld(x, y, z);
     }
     public void setAttributeWorld(double x, double y, double z, long attribute) {
-        grid.setAttributeWorld(x, y, z, attribute);
+        ((AttributeGrid)grid).setAttributeWorld(x, y, z, attribute);
     }
 
     /**
@@ -185,7 +184,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param z The z grid coordinate
      */
     public long getAttribute(int x, int y, int z) {
-        return grid.getAttribute(x, y, z);
+        return ((AttributeGrid)grid).getAttribute(x, y, z);
     }
 
     /**
@@ -205,7 +204,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
             overlaps.add(new Long(vd.getMaterial()));
         }
 
-        grid.setDataWorld(x, y, z, state, material);
+        ((AttributeGrid)grid).setDataWorld(x, y, z, state, material);
     }
 
     /**
@@ -224,7 +223,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
             overlaps.add(new Long(vd.getMaterial()));
         }
 
-        grid.setData(x,y,z,state,material);
+        ((AttributeGrid)grid).setData(x,y,z,state,material);
     }
 
     /**
@@ -236,11 +235,11 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param material The materialID
      */
     public void setAttribute(int x, int y, int z, long material) {
-        if (grid.getAttribute(x, y, z) != material ) {
+        if (((AttributeGrid)grid).getAttribute(x, y, z) != material ) {
             overlaps.add(new Long(material));
         }
 
-        grid.setAttribute(x, y, z, material);
+        ((AttributeGrid)grid).setAttribute(x, y, z, material);
     }
 
     /**
@@ -352,7 +351,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttribute(long mat, ClassAttributeTraverser t) {
-        grid.findAttribute(mat,t);
+        ((AttributeGrid)grid).findAttribute(mat,t);
     }
 
     /**
@@ -391,7 +390,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t) {
-        grid.findAttribute(vc, t);
+        ((AttributeGrid)grid).findAttribute(vc, t);
     }
 
     /**
@@ -403,7 +402,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
-        grid.findAttribute(vc, mat, t);
+        ((AttributeGrid)grid).findAttribute(vc, mat, t);
     }
 
     /**
@@ -418,7 +417,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param ymax - maximal y - coordinate of voxels
      */
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t, int xmin, int xmax, int ymin, int ymax) {
-        grid.findAttribute(vc,t,xmin,xmax,ymin,ymax);
+        ((AttributeGrid)grid).findAttribute(vc,t,xmin,xmax,ymin,ymax);
     }
 
     /**
@@ -429,7 +428,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttributeInterruptible(long mat, ClassAttributeTraverser t) {
-        grid.findAttributeInterruptible(mat,t);
+        ((AttributeGrid)grid).findAttributeInterruptible(mat,t);
     }
 
     /**
@@ -451,7 +450,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttributeInterruptible(VoxelClasses vc, ClassAttributeTraverser t) {
-        grid.findAttributeInterruptible(vc, t);
+        ((AttributeGrid)grid).findAttributeInterruptible(vc, t);
     }
 
     /**
@@ -463,7 +462,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
-        grid.findAttributeInterruptible(vc, mat, t);
+        ((AttributeGrid)grid).findAttributeInterruptible(vc, mat, t);
     }
 
     /**
@@ -474,7 +473,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @return The number
      */
     public int findCount(long mat) {
-        return grid.findCount(mat);
+        return ((AttributeGrid)grid).findCount(mat);
     }
 
     /**
@@ -483,7 +482,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param mat The aterialID
      */
     public void removeAttribute(long mat) {
-        grid.removeAttribute(mat);
+        ((AttributeGrid)grid).removeAttribute(mat);
     }
 
     /**
@@ -493,7 +492,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param matID The new materialID
      */
     public void reassignAttribute(long[] materials, long matID) {
-        grid.reassignAttribute(materials, matID);
+        ((AttributeGrid)grid).reassignAttribute(materials, matID);
     }
 
     /**
@@ -594,23 +593,23 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
        @override 
     */
 
-    public void setAttributeDesc(AttributeDesc description){
-        grid.setAttributeDesc(description);
+    public void setDataDesc(GridDataDesc description){
+        ((AttributeGrid)grid).setDataDesc(description);
     }
 
     /**
        @return voxel attribute description assigned to the grid
        @override 
     */
-    public AttributeDesc getAttributeDesc(){
-        return grid.getAttributeDesc(); 
+    public GridDataDesc getDataDesc(){
+        return ((AttributeGrid)grid).getDataDesc();
     }
 
     /**
        copy data from fromGrid into this grid 
      */
     public void copyData(AttributeGrid fromGrid){
-        grid.copyData(fromGrid);
+        ((AttributeGrid)grid).copyData(fromGrid);
     }
 
 }

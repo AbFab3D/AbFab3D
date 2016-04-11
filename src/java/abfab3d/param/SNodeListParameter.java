@@ -87,6 +87,13 @@ public class SNodeListParameter extends BaseParameter {
     }
 
     /**
+     get value at specific index
+     */
+    public Parameterizable get(int index){
+        return (Parameterizable) ((List) value).get(index);
+    }
+
+    /**
        remove item with given index
      */
     public void remove(int index){

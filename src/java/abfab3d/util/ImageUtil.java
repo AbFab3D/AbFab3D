@@ -31,7 +31,7 @@ import static abfab3d.util.MathUtil.iround;
  * @author Vladimir Bulatov
  */
 public class ImageUtil {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     public static final int RESULT_OK = 1, RESULT_FAILURE = -1;
     public static int MAXC = 0xFF; //  maximal value of color component as int 
     public static final double CNORM = 255.; // maximal value of color component

@@ -16,25 +16,17 @@ package abfab3d.grid.op;
 
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.AttributeDesc;
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataDesc;
+import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.BaseTestAttributeGrid;
-import abfab3d.grid.Grid;
 
-import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.SVXWriter;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.PlainTextErrorReporter;
+
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Units.*;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
 
 // Internal Imports
 
@@ -78,8 +70,8 @@ public class TestDilationDistance extends BaseTestAttributeGrid {
       
         double s = gridWidth/2;
 
-        AttributeDesc attDesc = new AttributeDesc();
-        attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8,0));
+        GridDataDesc attDesc = new GridDataDesc();
+        attDesc.addChannel(new GridDataChannel(GridDataChannel.DENSITY, "dens", 8,0));
 
         double bounds[] = new double[]{-s,s, -s, s, -s,s };
 
@@ -91,7 +83,7 @@ public class TestDilationDistance extends BaseTestAttributeGrid {
         fillBox(grid, box,  subvoxelResolution);
         double vorig = getVolume(grid, subvoxelResolution);
         
-        grid.setAttributeDesc(attDesc);
+        grid.setDataDesc(attDesc);
         if(DEBUG) writer.write(grid, outDir + "/boxx_orig.svx");
         
         DilationDistance dd = new DilationDistance(distance,subvoxelResolution);
@@ -99,7 +91,7 @@ public class TestDilationDistance extends BaseTestAttributeGrid {
         AttributeGrid dilatedGridST = dd.execute(grid);
 
         if(DEBUG) {
-            dilatedGridST.setAttributeDesc(attDesc);        
+            dilatedGridST.setDataDesc(attDesc);
             writer.write(dilatedGridST, outDir + "/boxx_dilatedST.svx");
         }
 
@@ -110,7 +102,7 @@ public class TestDilationDistance extends BaseTestAttributeGrid {
         dd.setThreadCount(1);
         AttributeGrid dilatedGridMT = dd.execute(grid1);
         if(DEBUG) {
-            dilatedGridMT.setAttributeDesc(attDesc);        
+            dilatedGridMT.setDataDesc(attDesc);
             writer.write(dilatedGridMT, outDir + "/boxx_dilatedMT.svx");
         }
         double vst = getVolume(dilatedGridST, subvoxelResolution);

@@ -9,17 +9,18 @@ import abfab3d.util.Bounds;
  *
  * @author Alan Hudson
  */
-public class GridSourceWrapper implements Grid, SourceWrapper {
-    private Grid grid;
+public class GridSourceWrapper extends BaseWrapper implements SourceWrapper {
     private String source;
 
     public GridSourceWrapper(String source, Grid grid) {
+        super(grid);
+
         this.grid = grid;
         this.source = source;
     }
 
     public GridSourceWrapper(Grid grid) {
-        this.grid = grid;
+        super(grid);
     }
 
     @Override
@@ -183,12 +184,6 @@ public class GridSourceWrapper implements Grid, SourceWrapper {
     }
 
     public Object clone() {
-        try {
-            return super.clone();
-        } catch(CloneNotSupportedException cnse) {
-            cnse.printStackTrace();
-        }
-
-        return null;
+        return super.clone();
     }
 }

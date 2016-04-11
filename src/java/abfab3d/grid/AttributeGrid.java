@@ -180,7 +180,7 @@ public interface AttributeGrid extends Grid {
        assign to the grid a description of a voxel attributes
        @param description The attirbute description 
      */
-    public void setAttributeDesc(AttributeDesc description);
+    public void setDataDesc(GridDataDesc description);
 
     /**
        copy data from grid into this grid 
@@ -190,7 +190,9 @@ public interface AttributeGrid extends Grid {
     /**
        @return voxel attribute description assigned to the grid
     */
-    public AttributeDesc getAttributeDesc();
+    public GridDataDesc getDataDesc();
         
+    public GridDataChannel getDataChannel();
 
+    public GridDataChannel getDataChannel(int idx);
 }

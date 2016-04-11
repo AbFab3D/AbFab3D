@@ -63,7 +63,7 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
     protected double zorig = 0.;  
 
     // attribute descriptor used for this grid
-    protected AttributeDesc m_attributeDesc = AttributeDesc.getDefaultAttributeDesc(8);
+    protected GridDataDesc m_gridDataDesc = GridDataDesc.getDefaultAttributeDesc(8);
 
     /**
      * Constructor.
@@ -239,16 +239,16 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
      @param description The attirbute description
      @override
      */
-    public void setAttributeDesc(AttributeDesc description){
-        m_attributeDesc = description;
+    public void setAttributeDesc(GridDataDesc description){
+        m_gridDataDesc = description;
     }
 
     /**
      @return voxel attribute description assigned to the grid
      @override
      */
-    public AttributeDesc getAttributeDesc(){
-        return m_attributeDesc;
+    public GridDataDesc getAttributeDesc(){
+        return m_gridDataDesc;
     }
 
     /**

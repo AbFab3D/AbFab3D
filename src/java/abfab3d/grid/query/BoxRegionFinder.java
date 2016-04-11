@@ -17,7 +17,6 @@ import java.util.*;
 
 // Internal Imports
 import abfab3d.grid.*;
-import abfab3d.grid.util.GridVisited;
 
 /**
  * Finds box shaped regions in a grid.

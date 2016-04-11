@@ -12,14 +12,8 @@
 
 package abfab3d.grid.op;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors; 
-import java.util.concurrent.TimeUnit;
-
-import javax.vecmath.Point3d;
-
-import abfab3d.grid.AttributeDesc;
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataDesc;
+import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DInt;
 import abfab3d.grid.Grid2DShort;
@@ -27,22 +21,15 @@ import abfab3d.grid.Grid2DByte;
 import abfab3d.grid.Operation2D;
 import abfab3d.grid.util.GridUtil;
 
-import abfab3d.grid.util.ExecutionStoppedException;
-
-import abfab3d.util.AbFab3DGlobals;
-import abfab3d.util.PointSet;
-import abfab3d.util.PointSetArray;
 import abfab3d.util.MathUtil;
 import abfab3d.util.PointMap;
 import abfab3d.util.Bounds;
 
 
 import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
 import static abfab3d.util.Units.MM;
 
-import static abfab3d.grid.Grid.OUTSIDE;
 import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.round;
@@ -96,7 +83,7 @@ public class DistanceTransform2DOp implements Operation2D {
     // number of threads to use in MT processing 
     //int m_threadCount = 1;
 
-    AttributeChannel m_dataChannel;
+    GridDataChannel m_dataChannel;
 
     PointMap m_points;
     Grid2D m_indexGrid;
@@ -118,7 +105,7 @@ public class DistanceTransform2DOp implements Operation2D {
 
     }
 
-    public void setDataChannel(AttributeChannel dataChannel){
+    public void setDataChannel(GridDataChannel dataChannel){
         m_dataChannel = dataChannel;
     }
 
@@ -158,8 +145,8 @@ public class DistanceTransform2DOp implements Operation2D {
 
         m_indexGrid = new Grid2DInt(bounds, m_voxelSize);
         m_distanceGrid = new Grid2DShort(m_nx, m_ny, m_voxelSize);
-        AttributeChannel distChannel = new AttributeChannel(AttributeChannel.DISTANCE, "dist", 16, 0, -m_maxInDistance, m_maxOutDistance);
-        m_distanceGrid.setAttributeDesc(new AttributeDesc(distChannel));
+        GridDataChannel distChannel = new GridDataChannel(GridDataChannel.DISTANCE, "dist", 16, 0, -m_maxInDistance, m_maxOutDistance);
+        m_distanceGrid.setAttributeDesc(new GridDataDesc(distChannel));
 
         //GridUtil.fill(m_distanceGrid, (long)((m_maxOutDistance/m_voxelSize) * m_subvoxelResolution));
         GridUtil.fill(m_distanceGrid, (long)(m_layerThickness * m_subvoxelResolution));
@@ -211,7 +198,7 @@ public class DistanceTransform2DOp implements Operation2D {
     void initializeSurfaceLayer(Grid2D dataGrid){
         int nx = dataGrid.getWidth();
         int ny = dataGrid.getHeight();
-        AttributeChannel dataConverter = m_dataChannel;
+        GridDataChannel dataConverter = m_dataChannel;
         int nx1 = nx-1;
         int ny1 = ny-1;
         double vs = dataGrid.getVoxelSize();
@@ -309,7 +296,7 @@ public class DistanceTransform2DOp implements Operation2D {
         }
     }
 
-    Grid2D makeInteriorGrid(Grid2D grid, AttributeChannel dataConverter, double threshold, int interiorSign){
+    Grid2D makeInteriorGrid(Grid2D grid, GridDataChannel dataConverter, double threshold, int interiorSign){
 
         int nx = grid.getWidth();
         int ny = grid.getHeight();

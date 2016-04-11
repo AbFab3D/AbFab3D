@@ -16,14 +16,12 @@ package abfab3d.grid.query;
 
 // Internal Imports
 
-import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.AttributeGrid;
 //import abfab3d.io.input.*;
 import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.Bounds;
 
-import java.util.Arrays;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +42,7 @@ public class BoundsCalculatorMT {
         m_threshold = threshold;
     }
 
-    public Bounds execute(AttributeGrid grid,  AttributeChannel channel) {
+    public Bounds execute(AttributeGrid grid,  GridDataChannel channel) {
         double[] min = new double[3];
         double[] max = new double[3];
 
@@ -105,7 +103,7 @@ public class BoundsCalculatorMT {
         return bounds;
     }
 
-    public Bounds execute(AttributeGrid grid,  AttributeChannel channel, int sign) {
+    public Bounds execute(AttributeGrid grid,  GridDataChannel channel, int sign) {
         return null;
     }
 
@@ -131,11 +129,11 @@ public class BoundsCalculatorMT {
 
     class BoundsCalcRunner implements Runnable {
         private AttributeGrid m_grid;
-        private AttributeChannel m_channel;
+        private GridDataChannel m_channel;
         private double[] min;
         private double[] max;
 
-        public BoundsCalcRunner(AttributeGrid grid, AttributeChannel channel) {
+        public BoundsCalcRunner(AttributeGrid grid, GridDataChannel channel) {
             m_grid = grid;
             m_channel = channel;
             min = new double[3];
