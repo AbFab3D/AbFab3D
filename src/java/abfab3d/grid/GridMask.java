@@ -12,6 +12,9 @@
 package abfab3d.grid;
 
 
+import abfab3d.util.Bounds;
+
+
 import static abfab3d.util.Output.printf;
 
 /**
@@ -36,11 +39,22 @@ public class GridMask extends BaseAttributeGrid implements GridBit {
         this(1,1,1);
     }
 
+    public GridMask(Bounds bounds, double voxelSize, double sliceHeight) {
+        super( bounds, voxelSize, sliceHeight);
+        allocateData();
+    }
+
     public GridMask(int nx, int ny, int nz){
         super(nx, ny, nz,1., 1., null);
-        this.nx = nx;
-        this.ny = ny;
-        this.nz = nz;
+        allocateData();        
+    }
+
+    protected void allocateData(){
+        
+        this.nx = getWidth();
+        this.ny = getHeight();
+        this.nz = getDepth();
+
         this.lenz = ((nz+INTLEN-1)/INTLEN);
         this.lenxz = lenz * nx;
         
@@ -48,9 +62,9 @@ public class GridMask extends BaseAttributeGrid implements GridBit {
         
         // this is binary grid, make default attributeDesc
         m_gridDataDesc = GridDataDesc.getDefaultAttributeDesc(1);
-        
     }
-    
+
+
     public long get(int x, int y, int z){
 
         int zint = z/INTLEN;

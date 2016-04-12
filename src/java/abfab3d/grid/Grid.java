@@ -138,7 +138,7 @@ public interface Grid extends Cloneable {
      * @param z The z value in world coords
      * @param coords The ans is placed into this preallocated array(3).
      */
-    public void getGridCoords(double x, double y, double z, Tuple3i coords);
+    public void getGridCoords(double x, double y, double z, Tuple3d coords);
 
     /**
      * Get the world coordinates for a grid coordinate.

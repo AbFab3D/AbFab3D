@@ -420,7 +420,7 @@ public class ClosestPointIndexer {
         int nx = indexGrid.getWidth();
         int ny = indexGrid.getHeight();
         int nz = indexGrid.getDepth();
-        int neigCount = 9;
+        int neigCount = 1;
         // work array size 
         int nm = max(max(nx, ny),nz)*neigCount; 
         // work arrays
@@ -437,14 +437,21 @@ public class ClosestPointIndexer {
 
 
     /**
-       makes trasformation and does correct sorting of 1d arrays
+       find index of closes point for to each voxel in the index grid 
+       only stores indices if closes point is close than given maxDistance 
+       @param coordx  x-cordinates in grid units
+       @param coordy  y-cordinates in grid units
+       @param coordz  z-cordinates in grid units
+       @param maxDistance maximal distance to compute in grid units (voxels)
+       @param indexGrid on input contains indices of closes point in thin layer around points on output contains indices of closes point up to maxDistance
+       
      */
     public static void PI3_bounded(double coordx[], double coordy[], double coordz[], double maxDistance, AttributeGrid indexGrid){
 
         int nx = indexGrid.getWidth();
         int ny = indexGrid.getHeight();
         int nz = indexGrid.getDepth();
-        int neigCount = 9;
+        int neigCount = 1;
         // work array size 
         int nm = max(max(nx, ny),nz)*neigCount; 
         // work arrays
@@ -457,10 +464,11 @@ public class ClosestPointIndexer {
         DT3sweepY_bounded(0, nz, coordx, coordy, coordz, maxDistance, indexGrid, v, w, ipnt, value, gpnt);        
         DT3sweepZ_bounded(0, ny, coordx, coordy, coordz, maxDistance, indexGrid, v, w, ipnt, value, gpnt);        
 
-    } // PI3_sorted()
+    } // PI3_bounded()
 
     /**
        point indexer with several passes 
+       has smallre errors, but is 3x slower 
      */
     public static void PI3_multiPass(double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid, int iterationCount){
 
@@ -613,8 +621,6 @@ public class ClosestPointIndexer {
 
                 }
                 if(pcnt > 0){ 
-                    // TODO - remove sorting 
-                    //if(false)sortCoordinates(pcnt, ipnt, coordx);
                     PI1(nx,pcnt, ipnt, coordx, value, gpnt, v, w);
                     // write chain of indices back into 3D grid 
                     for(int ix = 0; ix < nx; ix++){                        
@@ -627,9 +633,12 @@ public class ClosestPointIndexer {
         return ecount;
     }
 
-    // 
-    // does sorting of data in each row before passing it to PI1()
-    //
+    /**
+     *  does 1D X-sweep for each x-row 
+     *  does sorting of 1D row 
+     *  only saves points with distance below maxDistance
+     *
+     */
     static int DT3sweepX_bounded(int zmin, int zmax, double coordx[], double coordy[], double coordz[], double maxDistance, AttributeGrid indexGrid, 
                                  int v[], double w[], int ipnt[], double value[], int gpnt[]){
         if(maxDistance <= 0.) {
@@ -753,6 +762,12 @@ public class ClosestPointIndexer {
         return 0;
     }
 
+    /**
+     *  does 1D Y-sweep for each x-row 
+     *  does sorting of 1D row 
+     *  only saves points with distance below maxDistance
+     *
+     */
     static int DT3sweepY_bounded(int zmin, int zmax, double coordx[], double coordy[], double coordz[], double maxDistance,
                                  AttributeGrid indexGrid, int v[], double w[], int ipnt[], double value[], int gpnt[]){
         if(maxDistance <= 0.) {
@@ -1132,12 +1147,20 @@ public class ClosestPointIndexer {
 
     /**
        
+       initializes thin layer of voxle around points
+       
+       @param indexGrid on output contains indices of closes point in thin layer around points 
+       @param pntx x-cordiates of points in grid units , pntx[0] is unused
+       @param pnty y-cordiates of points in grid units , pnty[0] is unused
+       @param pntz z-cordiates of points in grid units , pntz[0] is unused
+       @param layerThickness thicknes of thin layer in voxels units 
      */
-    public static void initFirstLayer(AttributeGrid indexGrid, double pntx[], double pnty[], double pntz[], double layerThickness, int subvoxelResolution){
+    public static void initFirstLayer(AttributeGrid indexGrid, double pntx[], double pnty[], double pntz[], double layerThickness){
 
         int neig[] = Neighborhood.makeBall(layerThickness+1);
         //printf("neig.length: %d\n", neig.length);
-        double tol = 1./subvoxelResolution;
+        int subvoxelResolution = 100;
+        double tol = 1./subvoxelResolution;  // tolerance to compare distances 
         int 
             nx = indexGrid.getWidth(),
             ny = indexGrid.getHeight(),
@@ -1148,7 +1171,7 @@ public class ClosestPointIndexer {
         int pcnt = pntx.length;
         Bounds bounds = indexGrid.getGridBounds();
         double vs = indexGrid.getVoxelSize();
-
+        // temp storage for distance values  
         ArrayAttributeGridShort distanceGrid = new ArrayAttributeGridShort(bounds, vs, vs);
         distanceGrid.fill((int)(subvoxelResolution*(layerThickness+0.5)));
 
@@ -1279,7 +1302,7 @@ public class ClosestPointIndexer {
     }
     /**
        calculates distance grid from given closest point grid and interior grid 
-       distanceGrid value are mapped and clamped to the interval [-maxInDistance, maxOutDistance]*(subvoxelResolution/voxelSize)
+       distanceGrid value are mapped and clamped to the interval [-maxInDistance, maxOutDistance]
        points are in given in world units
        
        @param indexGrid contains indices of closest point. index = 0 meand closesnt point is undefined
@@ -1516,7 +1539,7 @@ public class ClosestPointIndexer {
 
     /**
        calculates distance grid from given closest point grid and interior grid 
-       distanceGrid value are mapped and clamped to the interval [-maxInDistance, maxOutDistance]*(subvoxelResolution/voxelSize)
+       distanceGrid value are mapped and clamped to the interval [-maxInDistance, maxOutDistance]
        points are in given in world units
        
        @param indexGrid contains indices of closest point. index = 0 meand closesnt point is undefined
@@ -1566,6 +1589,11 @@ public class ClosestPointIndexer {
     }
 
 
+    /**
+       makes density grid from index grid and coordinates of points 
+
+       @param indexGrid contaisn indiecs of closest point 
+     */
     public static void makeDensityGrid(AttributeGrid indexGrid, 
                                        double pntx[], double pnty[], double pntz[], 
                                        AttributeGrid interiorGrid, 

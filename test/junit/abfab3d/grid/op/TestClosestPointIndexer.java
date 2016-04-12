@@ -184,7 +184,7 @@ public class TestClosestPointIndexer extends TestCase {
             ClosestPointIndexer.snapToVoxels(pntz);
         }
 
-        ClosestPointIndexer.initFirstLayer(indexGrid, pntx, pnty, pntz, firstLayerThickness, subvoxelResolution);
+        ClosestPointIndexer.initFirstLayer(indexGrid, pntx, pnty, pntz, firstLayerThickness);
         int usedCount = ClosestPointIndexer.removeUnusedPoints(indexGrid, pntx, pnty, pntz);
         printf("total points: %d,  used points: %d\n", pcount, usedCount);
 

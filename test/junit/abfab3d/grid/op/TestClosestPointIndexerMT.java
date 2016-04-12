@@ -117,8 +117,8 @@ public class TestClosestPointIndexerMT extends TestCase {
             ClosestPointIndexer.snapToVoxels(pntz);
         }
 
-        ClosestPointIndexer.initFirstLayer(indexGrid1, pntx, pnty, pntz, firstLayerThickness, subvoxelResolution);
-        ClosestPointIndexer.initFirstLayer(indexGrid2, pntx, pnty, pntz, firstLayerThickness, subvoxelResolution);
+        ClosestPointIndexer.initFirstLayer(indexGrid1, pntx, pnty, pntz, firstLayerThickness);
+        ClosestPointIndexer.initFirstLayer(indexGrid2, pntx, pnty, pntz, firstLayerThickness);
 
         for(int z = 0; z < indexGrid1.getDepth(); z++){
             renderDiff(indexGrid1, z, pntx, pnty, pntz, voxelSquareSize, fmt("/tmp/dist/dist00_%02d.png",z), true);
@@ -236,7 +236,7 @@ public class TestClosestPointIndexerMT extends TestCase {
             ClosestPointIndexer.snapToVoxels(pntz);
         }
 
-        ClosestPointIndexer.initFirstLayer(indexGrid, pntx, pnty, pntz, firstLayerThickness, subvoxelResolution);
+        ClosestPointIndexer.initFirstLayer(indexGrid, pntx, pnty, pntz, firstLayerThickness);
         int usedCount = ClosestPointIndexer.removeUnusedPoints(indexGrid, pntx, pnty, pntz);
         printf("grid: [%d x %d x %d] threads: %d points: %d\n", 
                indexGrid.getWidth(), indexGrid.getHeight(), indexGrid.getDepth(), threadCount, pcount);

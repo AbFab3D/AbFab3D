@@ -19,7 +19,6 @@ package abfab3d.grid;
 import abfab3d.util.Bounds;
 
 import javax.vecmath.Tuple3d;
-import javax.vecmath.Tuple3i;
 
 /**
  * Masks the usage of setData calls with an attribute to an underlying grid that may not
@@ -337,7 +336,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param z The z value in world coords
      * @param coords The ans is placed into this preallocated array(3).
      */
-    public void getGridCoords(double x, double y, double z, Tuple3i coords) {
+    public void getGridCoords(double x, double y, double z, Tuple3d coords) {
         grid.getGridCoords(x, y, z, coords);
     }
 

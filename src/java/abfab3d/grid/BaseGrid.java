@@ -17,7 +17,6 @@ package abfab3d.grid;
 import abfab3d.util.Bounds;
 
 import javax.vecmath.Tuple3d;
-import javax.vecmath.Tuple3i;
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -515,10 +514,10 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
      * @param z      The z value in world coords
      * @param coords The ans is placed into this preallocated array(3).
      */
-    public void getGridCoords(double x, double y, double z, Tuple3i coords) {
-        coords.x = (int) ((x - xorig) / pixelSize);
-        coords.y = (int) ((y - yorig) / sheight);
-        coords.z = (int) ((z - zorig) / pixelSize);
+    public void getGridCoords(double x, double y, double z, Tuple3d coords) {
+        coords.x = ((x - xorig) / pixelSize) - 0.5;
+        coords.y = ((y - yorig) / sheight)   - 0.5;
+        coords.z = ((z - zorig) / pixelSize) - 0.5;
     }
 
     /**
