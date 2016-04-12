@@ -16,6 +16,8 @@ package abfab3d.param;
 import java.util.ArrayList;
 import java.util.List;
 
+import static abfab3d.util.Output.printf;
+
 /**
  * A pointer to a list of nodes
  *
@@ -112,6 +114,8 @@ public class SNodeListParameter extends BaseParameter {
             list.add(val);
             value = list;
         }
+
+        changed = true;
     }
 
     /**
@@ -128,5 +132,40 @@ public class SNodeListParameter extends BaseParameter {
 
     public List getValue() {
         return (List) value;
+    }
+
+    /**
+     * Has the value changed since the last call.  This method will clear the changed state.
+     * @return
+     */
+    public boolean hasChanged() {
+        boolean ret_val = changed;
+        List list = (List) value;
+
+        int len = list.size();
+
+        for(int i=0; i < len; i++) {
+            Object p = list.get(i);
+
+            if (p instanceof Parameterizable) {
+                Parameter[] cp = ((Parameterizable)p).getParams();
+                int len2 = cp.length;
+                for(int j=0; j < len2; j++) {
+                    if (cp[j].hasChanged()) {
+                        ret_val = true;
+                    }
+                }
+            }
+            if (p instanceof Parameter) {
+                Parameter val = (Parameter) p;
+                if (val.hasChanged()) {
+                    ret_val = true;
+
+                    // Don't early out here so all changed fields are cleared at once
+                }
+            }
+        }
+        changed = false;
+        return ret_val;
     }
 }

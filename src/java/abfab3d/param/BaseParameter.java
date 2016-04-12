@@ -12,6 +12,8 @@
 
 package abfab3d.param;
 
+import static abfab3d.util.Output.printf;
+
 /**
  * A parameter to a datasource.
  *
@@ -37,7 +39,8 @@ public abstract class BaseParameter implements Parameter {
     
     /** The label */
     protected String label;
-    
+
+    protected boolean changed;
 
 	public BaseParameter(String name, String desc) {
 
@@ -138,6 +141,7 @@ public abstract class BaseParameter implements Parameter {
         validate(value);
 
         this.value = value;
+        changed = true;
     }
 
     public String getOnChange() {
@@ -176,4 +180,15 @@ public abstract class BaseParameter implements Parameter {
         if (value == null) return "null";
         return value.toString();
     }
+
+    /**
+     * Has the value changed since the last call.  This method will clear the changed state.
+     * @return
+     */
+    public boolean hasChanged() {
+        boolean ret_val = changed;
+        changed = false;
+        return ret_val;
+    }
+
 }

@@ -93,4 +93,11 @@ public interface Parameter extends Cloneable {
      * @return
      */
     public String getParamString();
+
+    /**
+     * Has the value changed since the last call.  This method will clear the changed state.
+     * @return
+     */
+    public boolean hasChanged();
+
 }

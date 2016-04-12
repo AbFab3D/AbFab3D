@@ -97,6 +97,7 @@ public class IntParameter extends NumberParameter {
         validate(val);
 
         this.value = val;
+        changed = true;
 
     }
 
