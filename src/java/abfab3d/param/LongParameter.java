@@ -90,6 +90,7 @@ public class LongParameter extends NumberParameter {
         validate(val);
 
         this.value = val;
+        changed = true;
 
     }
 

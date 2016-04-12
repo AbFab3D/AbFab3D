@@ -76,6 +76,8 @@ public class UserDefinedParameter extends BaseParameter {
 
         LinkedHashMap lhm = new LinkedHashMap(value);
         this.value = lhm;
+
+        changed = true;
     }
     
     @Override

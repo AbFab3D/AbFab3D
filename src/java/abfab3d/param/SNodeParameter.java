@@ -13,6 +13,8 @@ package abfab3d.param;
 
 // External Imports
 
+import static abfab3d.util.Output.printf;
+
 /**
  * A pointer to another node
  *
@@ -67,5 +69,31 @@ public class SNodeParameter extends BaseParameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
+    }
+
+    /**
+     * Has the value changed since the last call.  This method will clear the changed state.
+     * @return
+     */
+    public boolean hasChanged() {
+        boolean ret_val = changed;
+        if (value instanceof Parameterizable) {
+            Parameter[] cp = ((Parameterizable)value).getParams();
+            int len2 = cp.length;
+            for(int j=0; j < len2; j++) {
+                if (cp[j].hasChanged()) {
+                    ret_val = true;
+                }
+            }
+        }
+
+        if (value instanceof Parameter) {
+            Parameter val = (Parameter) value;
+            if (val.hasChanged()) {
+                ret_val = true;
+            }
+        }
+        changed = false;
+        return ret_val;
     }
 }
