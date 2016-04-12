@@ -161,7 +161,7 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
     }
     
     public String toString(){
-        return  fmt("AttributeChannel(%s;%s; bitCount:%d; offset:%d; valueo:%7.4f; value1:%7.4f; B2D:%11.9f)", getType(),  getName(), getBitCount(), m_shift, m_value0, m_value1, m_B2D);
+        return  fmt("GridDataChannel(%s;%s; bitCount:%d; offset:%d; value0:%7.4f; value1:%7.4f; B2D:%12.5e)", getType(),  getName(), getBitCount(), m_shift, m_value0, m_value1, m_B2D);
     }
 
     public double getValue0(){

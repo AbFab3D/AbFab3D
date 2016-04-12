@@ -10,7 +10,14 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid.util;
+package abfab3d.grid;
+
+import java.io.IOException;
+import java.io.File;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+
 
 import abfab3d.param.Parameter;
 import abfab3d.param.BaseParameterizable;
@@ -18,6 +25,14 @@ import abfab3d.param.IntParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.StringParameter;
 
+import abfab3d.util.ColorMapper;
+import abfab3d.util.ColorMapperDensity;
+import abfab3d.util.ColorMapperDistance;
+
+import static abfab3d.util.MathUtil.lerp2;
+import static abfab3d.util.MathUtil.clamp;
+import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.printf;
 
 /**
    class to write grid into bunch of individual image files 
@@ -26,29 +41,120 @@ import abfab3d.param.StringParameter;
 public class GridDataWriter extends BaseParameterizable {
     
     public static final int 
-        TYPE_DENSITY = 1, 
-        TYPE_DISTANCE = 2;
+        TYPE_DENSITY = 0, 
+        TYPE_DISTANCE = 1;
        
     protected IntParameter mp_type = new IntParameter("type", TYPE_DISTANCE);
+    protected IntParameter mp_slicesStep = new IntParameter("slicesStep", 1);
     protected IntParameter mp_magnification = new IntParameter("magnification", 1);
     protected DoubleParameter mp_distanceStep = new DoubleParameter("distanceStep",0.001);
     protected DoubleParameter mp_densityStep = new DoubleParameter("densityStep",0.5);
-    protected StringParameter mp_pathFormat = new StringParameter("pathFormat","/tmp/slice%03d.png");
+    //protected StringParameter mp_pathFormat = new StringParameter("pathFormat","/tmp/slice%03d.png");
     
+    static final int DENSITY_COLOR_1 = 0xFFFFFFFF;
+    static final int DENSITY_COLOR_0 = 0xFF000000;
+    static final int DISTANCE_COLOR_0 = 0xFF000000;
+    
+    static final int DIST_INT_COLOR_0  = 0xFF00FF00;
+    static final int DIST_INT_COLOR_1  = 0xFFDDFFDD;
+    static final int DIST_EXT_COLOR_0  = 0xFF0000FF;
+    static final int DIST_EXT_COLOR_1  = 0xFFDDDDFF;
+
     Parameter m_params[] = new Parameter[]{
         mp_type,
         mp_distanceStep,
         mp_densityStep,
         mp_magnification,
-        mp_pathFormat,
-        
-        
+        mp_slicesStep,               
     };
 
     public GridDataWriter(){
         super.addParams(m_params);
     }
 
-    
+    public void writeSlices(AttributeGrid grid, GridDataChannel dataChannel, String pathFormat) {
+
+        int magnification = mp_magnification.getValue();
+
+        int imgx = grid.getWidth()*magnification;
+        int imgy = grid.getHeight()*magnification;
+        int nz = grid.getDepth();
+        ColorMapper colorMapper = null;
+        //double dataStep = 1.;
+        switch(mp_type.getValue()){
+        default:
+        case TYPE_DENSITY:
+            colorMapper = new  ColorMapperDensity(DENSITY_COLOR_0, DENSITY_COLOR_1, mp_densityStep.getValue());
+            break;
+        case TYPE_DISTANCE:
+            colorMapper = new  ColorMapperDistance(DIST_INT_COLOR_0, DIST_INT_COLOR_1, DIST_EXT_COLOR_0, DIST_EXT_COLOR_1, mp_distanceStep.getValue());
+            break;
+
+        }
+
+        BufferedImage image =  new BufferedImage(imgx, imgy, BufferedImage.TYPE_INT_ARGB);
+        int slicesStep = mp_slicesStep.getValue();
+
+        for(int z = 0; z < nz; z += slicesStep){
+            
+            makeSlice(grid, mp_magnification.getValue(), z, dataChannel, colorMapper, image);
+            String path = fmt(pathFormat, z);
+            printf("writing slice %d inot file: %s\n", z, path);
+            try {
+                ImageIO.write(image, "png", new File(path));        
+            } catch(IOException e){
+                throw new RuntimeException(fmt("failed to write \"%s\"",path));
+            }            
+        }
+
+    }
+
+
+    public static void makeSlice(AttributeGrid grid, int magnification, int iz, GridDataChannel dataChannel, ColorMapper colorMapper, BufferedImage image) {
+
+        int gnx = grid.getWidth();
+        int gny = grid.getHeight();
+        int inx = gnx*magnification;
+        int iny = gny*magnification;
+        int nz = grid.getDepth();
+
+        DataBufferInt db = (DataBufferInt)image.getRaster().getDataBuffer();
+
+        int[] sliceData = db.getData();
+
+        double pix = 1./magnification;
+
+        for(int iy = 0; iy < iny; iy++){
+
+            double y = (iy+0.5)*pix - 0.5;
+
+            for(int ix = 0; ix < inx; ix++){
+
+                double x = (ix+0.5)*pix-0.5;
+                int gx = (int)Math.floor(x);
+                int gy = (int)Math.floor(y);
+                double dx = x - gx;
+                double dy = y - gy;
+                //if(ix < magnification/2 && iy < magnification/2)
+                //    printf("[%2d %2d](%4.2f %4.2f) ", gx, gy, dx, dy);
+                int gx1 = clamp(gx + 1,0, gnx-1);
+                int gy1 = clamp(gy + 1,0, gny-1);
+                gx = clamp(gx,0, gnx-1);
+                gy = clamp(gy,0, gny-1);
+                long a00 = grid.getAttribute(gx,gy, iz);
+                long a10 = grid.getAttribute(gx1,gy, iz);
+                long a01 = grid.getAttribute(gx,gy1, iz);
+                long a11 = grid.getAttribute(gx1,gy1, iz);
+
+                double v00 = dataChannel.getValue(a00);
+                double v10 = dataChannel.getValue(a10);
+                double v01 = dataChannel.getValue(a01);
+                double v11 = dataChannel.getValue(a11);
+
+                double v = lerp2(v00, v10, v11, v01,dx, dy);
+                sliceData[ix + (iny-1-iy)*inx] = colorMapper.getColor(v);
+            }
+        }
+    }
     
 }

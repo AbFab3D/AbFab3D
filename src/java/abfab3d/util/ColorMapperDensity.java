@@ -24,6 +24,7 @@ public class ColorMapperDensity implements ColorMapper {
     int m_color1;
     double m_stripeWidth;
     
+    
     public ColorMapperDensity(int color0, int color1, double stripeWidth){
 
         m_color0 = color0;
