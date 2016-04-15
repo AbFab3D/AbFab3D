@@ -1277,14 +1277,16 @@ public class ClosestPointIndexer {
 
 
     /**
-       converts input PontSet into 3 arrays and calculated distances 
+     * calculated distance grid from given set of indices and pont coordinates 
+     *  accept points as PointSet 
+     * 
      */
     public static void makeDistanceGrid(AttributeGrid indexGrid, 
                                         PointSet pnts,
                                         AttributeGrid interiorGrid, 
                                         AttributeGrid distanceGrid,
-                                        double maxInDistance,
-                                        double maxOutDistance
+                                        double minDistance,
+                                        double maxDistance
                                         ){
         int npnt = pnts.size();
         double px[] = new double[npnt];
@@ -1297,93 +1299,70 @@ public class ClosestPointIndexer {
             py[i] = pnt.y;
             pz[i] = pnt.z;
         }
-        makeDistanceGrid(indexGrid, px, py, pz, interiorGrid, distanceGrid, maxInDistance, maxOutDistance);
+        makeDistanceGrid(indexGrid, px, py, pz, interiorGrid, distanceGrid, minDistance, maxDistance);
 
     }
+
+    
     /**
        calculates distance grid from given closest point grid and interior grid 
        distanceGrid value are mapped and clamped to the interval [-maxInDistance, maxOutDistance]
        points are in given in world units
+       makes calculations in slices 
+       
+       @param indexGrid contains indices of closest point. index = 0 meand closesnt point is undefined
+       @param pnts  pnts[0] x-coordinates, pnts[1] y-coordinates, 
+       @param interiorGrid grid of voxles whcuh are in the shape interior 
+       
+     */
+    public static void makeDistanceGrid(AttributeGrid indexGrid, 
+                                        double pnts[][],
+                                        AttributeGrid interiorGrid, 
+                                        AttributeGrid distanceGrid,
+                                        double minDistance,
+                                        double maxDistance
+                                        ){
+        makeDistanceGrid(indexGrid, pnts[0], pnts[1], pnts[2], interiorGrid, distanceGrid, minDistance, maxDistance);        
+    }
+
+    /**
+       calculates distance grid from given closest point grid and interior grid 
+       distanceGrid value are mapped and clamped to the interval [-maxInDistance, maxOutDistance]
+       points are in given in world units
+       makes calculations in slices 
        
        @param indexGrid contains indices of closest point. index = 0 meand closesnt point is undefined
        @param pntx x-coordinates of points in world units
        @param pnty y-coordinates of points in world units
        @param pnty z-coordinates of points in world units
        @param interiorGrid grid of voxles whcuh are in the shape interior 
-     */
-    public static void makeDistanceGrid_v0(AttributeGrid indexGrid, 
-                                        double pntx[], double pnty[], double pntz[], 
-                                        AttributeGrid interiorGrid, 
-                                        AttributeGrid distanceGrid,
-                                        double maxInDistance,
-                                        double maxOutDistance
-                                        ){
-        
-        int 
-            nx = indexGrid.getWidth(),
-            ny = indexGrid.getHeight(),
-            nz = indexGrid.getDepth();
-        GridDataChannel dataChannel = distanceGrid.getDataDesc().getChannel(0);
-
-        long inAtt = dataChannel.makeAtt(-maxInDistance);
-        long outAtt = dataChannel.makeAtt(maxOutDistance);
-
-        double coord[] = new double[3];
-        for(int y = 0; y < ny; y++){
-            for(int x = 0; x < nx; x++){
-                for(int z = 0; z < nz; z++){
-                    int ind = (int)indexGrid.getAttribute(x,y,z);
-                    if(ind > 0) {
-                        // point has closest point 
-                        indexGrid.getWorldCoords(x, y, z, coord);
-                        double dist = distance(coord[0],coord[1],coord[2], pntx[ind],pnty[ind],pntz[ind]);
-                        //xbprintf("%d\n", dist);
-                        if(interiorGrid != null && interiorGrid.getAttribute(x,y,z) != 0)
-                            dist = -dist;
-                        distanceGrid.setAttribute(x,y,z,dataChannel.makeAtt(dist));
-                    }  else {
-                        // point is undefined 
-                        if(interiorGrid != null && interiorGrid.getAttribute(x,y,z) != 0){
-                            // interior 
-                            distanceGrid.setAttribute(x,y,z,inAtt);
-                        } else {
-                            // exterior 
-                            distanceGrid.setAttribute(x,y,z,outAtt);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-
-    /**
-       make calculations in slices 
+       
      */
     public static void makeDistanceGrid(AttributeGrid indexGrid, 
                                         double pntx[], double pnty[], double pntz[], 
                                         AttributeGrid interiorGrid, 
                                         AttributeGrid distanceGrid,
-                                        double maxInDistance,
-                                        double maxOutDistance
+                                        double minDistance,
+                                        double maxDistance
                                         ){
         
         int 
             ny = indexGrid.getHeight(),
             nz = indexGrid.getDepth();
-        printf("makeDistanceGrid() slices \n");
+        if(DEBUG)printf("makeDistanceGrid() slices \n");
         Bounds bounds = indexGrid.getGridBounds();
         long att[] = new long[nz];
         boolean interior[] = new boolean[nz];
 
         for(int y = 0; y < ny; y++)
             makeDistanceGridSlice(y, y+1, bounds, att, interior,
-                                  indexGrid, pntx,pnty, pntz, interiorGrid, distanceGrid,maxInDistance,maxOutDistance);
+                                  indexGrid, pntx,pnty, pntz, interiorGrid, distanceGrid,minDistance,maxDistance);
     }
 
     /**
        make all in one piece
      */
+    /*
     public static void makeDistanceGrid_v1(AttributeGrid indexGrid, 
                                         double pntx[], double pnty[], double pntz[], 
                                         AttributeGrid interiorGrid, 
@@ -1455,7 +1434,7 @@ public class ClosestPointIndexer {
             }
         }
     }
-
+    */
     /**
        calculate y-slice of distance between yStard and yEnd 
        
@@ -1469,8 +1448,8 @@ public class ClosestPointIndexer {
                                              double pntx[], double pnty[], double pntz[], 
                                              AttributeGrid interiorGrid, 
                                              AttributeGrid distanceGrid,
-                                             double maxInDistance,
-                                             double maxOutDistance
+                                             double minDistance,
+                                             double maxDistance
                                              ){
         
         int 
@@ -1484,11 +1463,11 @@ public class ClosestPointIndexer {
         double ymin = bounds.ymin+vs2;
         double zmin = bounds.zmin+vs2;
 
-        long inAtt = distanceDataChannel.makeAtt(-maxInDistance);
-        long outAtt = distanceDataChannel.makeAtt(maxOutDistance);
+        long inAtt = distanceDataChannel.makeAtt(minDistance);
+        long outAtt = distanceDataChannel.makeAtt(maxDistance);
 
-        double maxInDistance2 = maxInDistance*maxInDistance;
-        double maxOutDistance2 = maxOutDistance*maxOutDistance;
+        //double maxInDistance2 = maxInDistance*maxInDistance;
+        //double maxOutDistance2 = maxOutDistance*maxOutDistance;
 
         //long att[] = new long[nz];
         //boolean interior[] = new boolean[nz];

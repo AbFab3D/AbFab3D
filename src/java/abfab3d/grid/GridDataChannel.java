@@ -35,6 +35,12 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
     public static final String DISTANCE = "DISTANCE";
     public static final String DATA_FLOAT = "DATA_FLOAT";
 
+    public static final int TYPE_DENSITY = 0;
+    public static final int TYPE_DISTANCE = 1;
+    public static final int TYPE_COLOR = 2;
+    public static final int TYPE_DENSITY_COLOR = 3;
+    public static final int TYPE_DISTANCE_COLOR = 4;
+    public static final int TYPE_FLOAT = 5;
     
     
     // name of the channel 

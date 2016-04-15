@@ -15,6 +15,7 @@ package abfab3d.grid;
 // External Imports
 
 import abfab3d.util.Bounds;
+import java.util.Arrays;
 
 /**
  * A grid backed by arrays.
@@ -217,6 +218,15 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
         if(fromGrid instanceof ArrayAttributeGridInt){
             System.arraycopy(((ArrayAttributeGridInt)fromGrid).data,0, data, 0, data.length);
         }
+    }
+
+    /**
+       fill the grid with the specified value 
+     */
+    public void fill(long value){
+
+        Arrays.fill(data, (int)value);
+
     }
     
 }

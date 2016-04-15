@@ -53,6 +53,35 @@ public class ClosestPointIndexerMT {
 
     static final boolean DEBUG_TIMING = false;
     static final boolean DEBUG = false;
+    static final double DEF_LAYER_THICKNESS = 1.8;
+
+    
+    /**
+       calculates closest Point Index for each cell of the index grid 
+       the indexGrid should be initialized with indices of point in close proximity to the center of grid voxels 
+       
+     *  @param coord  3 arrays of physical coordinates of points. coord[0] x-coordinates, coord[1] y-coordinates, coord[2] z-coordinates, 
+     *  element with index 0 of each array is ignored 
+     *  @param maxDistance max distance to calculate (in physical units) 
+     *  @param firstLayerThickiness thickness of first layer in grid units (good values are in range (1,4)) 
+     *  @param indexGrid - on input has indices of closest points in thin layer around the point cloud 
+     *                   - on output has indices of closest point for each grid point 
+     *                   valid indices start from 1, index value 0 means "undefined" 
+     * @param threadCount count of thread to be used for calculation 
+     */
+    public static void getClosestPoints(double coord[][], double maxDistance, double firstLayerThickness, AttributeGrid indexGrid, int threadCount){
+        
+        double vs = indexGrid.getVoxelSize();
+        double pntx[] = coord[0];
+        double pnty[] = coord[1];
+        double pntz[] = coord[2];
+
+        ClosestPointIndexer.getPointsInGridUnits(indexGrid, pntx, pnty, pntz);
+        ClosestPointIndexer.initFirstLayer(indexGrid, pntx,pnty,pntz, firstLayerThickness);
+        ClosestPointIndexerMT.PI3_MT(pntx,pnty,pntz, maxDistance/vs, indexGrid, threadCount);
+        ClosestPointIndexer.getPointsInWorldUnits(indexGrid, coord[0],coord[1],coord[2]);
+        
+    }
 
 
     /**
@@ -70,6 +99,10 @@ public class ClosestPointIndexerMT {
     public static void PI3_MT(double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid, int threadCount){
         PI3_MT(coordx, coordy, coordz, 0., indexGrid, threadCount);        
     }
+
+    
+
+
     /**
        calculates closest Point Indexer for each cell of the index grid 
        the indexGrid should be initialized with indices of point in close proximity to the center of grid voxels 

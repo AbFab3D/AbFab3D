@@ -40,6 +40,8 @@ import static abfab3d.util.Output.printf;
  */
 public class GridDataWriter extends BaseParameterizable {
     
+    static final boolean DEBUG = false;
+
     public static final int 
         TYPE_DENSITY = 0, 
         TYPE_DISTANCE = 1;
@@ -99,7 +101,7 @@ public class GridDataWriter extends BaseParameterizable {
             
             makeSlice(grid, mp_magnification.getValue(), z, dataChannel, colorMapper, image);
             String path = fmt(pathFormat, z);
-            printf("writing slice %d inot file: %s\n", z, path);
+            if(DEBUG)printf("writing slice %d inot file: %s\n", z, path);
             try {
                 ImageIO.write(image, "png", new File(path));        
             } catch(IOException e){
