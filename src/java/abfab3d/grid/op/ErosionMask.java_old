@@ -1,0 +1,163 @@
+/*****************************************************************************
+ *                        Shapeways, Inc Copyright (c) 2012
+ *                               Java Source
+ *
+ * This source is licensed under the GNU LGPL v2.1
+ * Please read http://www.gnu.org/copyleft/lgpl.html for more information
+ *
+ * This software comes with the standard NO WARRANTY disclaimer for any
+ * purpose. Use it at your own risk. If there's a problem you get to fix it.
+ *
+ ****************************************************************************/
+
+package abfab3d.grid.op;
+
+import java.util.HashMap; 
+import java.util.Iterator;
+
+import abfab3d.grid.*;
+
+import static java.lang.System.currentTimeMillis;
+import static abfab3d.util.Output.printf;
+import static abfab3d.grid.Grid.OUTSIDE;
+import static abfab3d.grid.Grid.INTERIOR;
+
+/**
+ * Erodes the grid one layer per iteration. Repeats given numbers of iterations.
+ * 
+ * Erosion is done via removing voxels, which have empty 6-neighbor
+ * 
+ *  next iteration runs over newly removed voxels only. This speeds up the process a lot. 
+ * 
+ *  surface voxels are stored in a mask (GridBitIntervals)
+ * 
+ *  works with very large grids 
+ * 
+ * @author Vladimir Bulatov
+ */
+public class ErosionMask implements Operation, AttributeOperation {
+
+    public static int sm_debug = 0;
+	
+    // number of iterations
+    private int m_iterCount;
+
+    AttributeGrid m_grid; // grid we are working on 
+
+    GridBitIntervals m_surfaceMask; // mask of current surface voxels
+
+    public ErosionMask(int iterCount) {
+        this.m_iterCount = iterCount;
+    }
+
+    /**
+     * Execute an operation on a grid. 
+     *
+     * @param grid The grid to use for grid A.
+     * @return original grid modified
+     */
+    public Grid execute(Grid grid) {
+        
+        if(grid instanceof AttributeGrid){
+            return execute((AttributeGrid)grid);
+        }
+        printf("ErosionMask.execute(Grid) not implemented!\n");
+        
+        return grid;
+        
+    }
+
+
+    public AttributeGrid execute(AttributeGrid grid) {
+
+        printf("ErosionMask.execute()\n");
+
+        m_grid = grid;
+
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+
+        m_surfaceMask = new GridBitIntervals(nx, ny, nz);
+        
+        for(int i = 0; i < m_iterCount; i++){
+            makeOneIteration();
+        }
+
+        m_grid = null;
+        m_surfaceMask = null;
+
+        return grid;
+    }
+
+    /**
+       removes one layer of surface voxels 
+     */
+    public void makeOneIteration() {
+        
+        // TODO surface_only voxels traversal is not implemented 
+        // scan only voxels presented in m_surfaceMask from previous iteration 
+        // see implemntation in DilationMask 
+        //
+        // SurfaceVoxelsCollector stores surface voxels in m_surfaceMask
+        m_grid.findInterruptible(Grid.VoxelClasses.INTERIOR, new SurfaceVoxelsCollector(m_grid, m_surfaceMask));
+        
+        //}
+
+        //
+        // set all surface voxels as OUTSIDE
+        // 
+        m_surfaceMask.findInterruptible(Grid.VoxelClasses.INTERIOR, new VoxelStateSetter(m_grid, Grid.OUTSIDE));
+
+        m_surfaceMask.clear();
+
+    }
+
+    /**
+       collect all surface voxels in a mask 
+     */
+    static class SurfaceVoxelsCollector implements ClassTraverser {
+
+        GridBitIntervals surfaceMask;
+        AttributeGrid grid;
+
+        SurfaceVoxelsCollector(AttributeGrid grid, GridBitIntervals surfaceMask){
+
+            this.grid = grid;
+            this.surfaceMask = surfaceMask;
+
+        }
+
+        public void found(int x, int y, int z, byte _state){
+
+            processGridVoxel(grid, surfaceMask, x,y,z);
+            
+        }
+
+        public boolean foundInterruptible(int x, int y, int z, byte _state){
+
+            processGridVoxel(grid, surfaceMask, x,y,z);
+            return true;
+        }
+        
+        /**
+           checks 6 neighbours of this interior voxel and if any of neightbours is empty, 
+           adds this voxel to surfaceMask
+        */ 
+        static void processGridVoxel(AttributeGrid grid, GridBitIntervals surfaceMask, int x,int y,int z){
+            
+            if(grid.getState(x+1,y,z) == OUTSIDE || 
+               grid.getState(x-1,y,z) == OUTSIDE || 
+               grid.getState(x,y+1,z) == OUTSIDE || 
+               grid.getState(x,y-1,z) == OUTSIDE || 
+               grid.getState(x,y,z+1) == OUTSIDE || 
+               grid.getState(x,y,z-1) == OUTSIDE 
+               ){                
+                surfaceMask.set(x,y,z,1);                
+            }
+        }        
+    }
+
+}
+
+
