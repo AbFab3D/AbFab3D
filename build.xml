@@ -89,6 +89,9 @@
         <compilejava package="abfab3d/util"
             jars="xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar"
         />
+        <compilejava package="abfab3d/symmetry"
+                     jars=""
+                />
         <compilejava package="abfab3d/opencl"
                      jars="jocl.jar commons-io-2.4.jar"
                 />
@@ -103,7 +106,7 @@
         />
         <compilejava package="abfab3d/param"
                      jars=""
-                />
+                />        
         <compilejava package="abfab3d/param/editor"
                      jars=""
                 />
@@ -685,6 +688,7 @@
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/input" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/transform" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/util" jars="**/*.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/symmetry" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/random" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geomutil" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geom" jars="**/*.jar" />
