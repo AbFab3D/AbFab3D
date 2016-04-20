@@ -13,6 +13,14 @@
 package abfab3d.symmetry;
 
 import javax.vecmath.Vector3d;
+import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.ArrayAttributeGridInt;
+import abfab3d.grid.GridDataWriter;
+import abfab3d.grid.op.GridMaker;
+
+import abfab3d.util.Bounds;
+import abfab3d.util.DataSource;
+
 
 import abfab3d.util.Vec;
 import static abfab3d.util.Output.printf;
@@ -132,11 +140,31 @@ public class DevTestSymmetryGroup {
             printf("(%7.3f, %7.3f, %7.3f) -> (%7.3f,%7.3f,%7.3f)\n", x,y,z,pnt.v[0],pnt.v[1],pnt.v[2]);
         }
     }
-    
+
+    DataSource makeSphere(double r){
+        return new abfab3d.datasources.Sphere(r);
+    }
+
+    public void devTestGridRendering(){
+        double vs = 1.;
+        double s = 500*vs;
+
+        AttributeGrid grid = new ArrayAttributeGridInt(new Bounds(-s,s,-s,s,0, vs), vs,vs);
+        GridMaker gmaker = new GridMaker();
+        gmaker.setSource(makeSphere(0.3*s));
+        long t0 = time();
+        gmaker.makeGrid(grid);
+        printf("grid ready: %d ms\n", (time() - t0));
+        GridDataWriter writer = new GridDataWriter();
+        writer.set("type",GridDataWriter.TYPE_DENSITY);
+        writer.writeSlices(grid, grid.getDataChannel(), "/tmp/slices/s%03d.png");
+        //writer.printSlices(grid, "%6x ");
+    }
 
     public static void main(String arg[]){
-        new DevTestSymmetryGroup().devTestPlanes();
+        //new DevTestSymmetryGroup().devTestPlanes();
         //new DevTestSymmetryGroup().devTestSphere();
+        new DevTestSymmetryGroup().devTestGridRendering();
     }
 
 }

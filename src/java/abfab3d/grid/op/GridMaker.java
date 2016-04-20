@@ -27,6 +27,7 @@ import abfab3d.transforms.Identity;
 
 import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 
 /**
    class accept Grid , VecTransform, DataSource and AttributeMaker and fills voxel attributes of the grid. 
@@ -210,7 +211,7 @@ public class GridMaker implements Operation, AttributeOperation {
     }
 
     public Grid execute(Grid grid) {
-        makeGrid(grid);
+        makeGrid((AttributeGrid)grid);
         return grid;
     }
     
@@ -222,7 +223,9 @@ public class GridMaker implements Operation, AttributeOperation {
     /**
        perform the calculation of Grid voxel attributes 
      */
-    public void makeGrid(Grid grid){
+    public void makeGrid(AttributeGrid grid){
+        if(m_dataSource == null) 
+            throw new RuntimeException(fmt("DataSource is not set"));
 
         if (!boundsSet) {
             double[] bounds = new double[6];
@@ -237,7 +240,7 @@ public class GridMaker implements Operation, AttributeOperation {
         }
 
         
-        m_grid = (AttributeGrid)grid;
+        m_grid = grid;
          
         m_nx = grid.getWidth();
         m_ny = grid.getHeight();
@@ -259,7 +262,7 @@ public class GridMaker implements Operation, AttributeOperation {
         makeTransform();
         if(m_transform == null)
             m_transform = new Identity();
-
+       
         if(m_transform instanceof Initializable){
             ((Initializable)m_transform).initialize();
         }
@@ -433,8 +436,7 @@ public class GridMaker implements Operation, AttributeOperation {
                             continue;
 
                         long vd = m_attributeMaker.makeAttribute(dataValue);
-                        if(vd != 0)
-                            m_grid.setData(ix, iy, iz, Grid.INSIDE, vd);
+                        m_grid.setAttribute(ix, iy, iz, vd);
                     }
                 }
             }              

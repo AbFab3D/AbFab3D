@@ -13,7 +13,7 @@
 package abfab3d.mesh;
 
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.Grid;
+import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.io.output.IsosurfaceMaker;
@@ -224,7 +224,7 @@ public class TestMeshDecimatorMT extends TestCase {
         long t0 = time();
 
         //Grid grid = new ArrayAttributeGridByte(nx,nx,nx,voxelSize, voxelSize);
-        Grid grid = new GridShortIntervals(nx, nx, nx, voxelSize, voxelSize);
+        AttributeGrid grid = new GridShortIntervals(nx, nx, nx, voxelSize, voxelSize);
 
         GridMaker gridMaker = new GridMaker();
 
@@ -308,7 +308,7 @@ public class TestMeshDecimatorMT extends TestCase {
         double gridBounds[] = new double[]{0, nx * voxelSize, 0, ny * voxelSize, 0, nz * voxelSize};
         double sphereSize = (gridBounds[1] - gridBounds[0]) / 1.5;
 
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
         //Grid grid = new GridShortIntervals(nx, ny, nz, voxelSize,voxelSize);
         grid.setGridBounds(gridBounds);
 

@@ -251,7 +251,7 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
         exerciseGridRunnable(grid,runners,idx,(long)(voxels * density));
     }
 
-    private void fillGridDensity(Grid grid, double density) {
+    private void fillGridDensity(AttributeGrid grid, double density) {
         double voxelSize = grid.getVoxelSize();
         int maxAttributeValue = 127;
 
