@@ -46,6 +46,8 @@ public class SymmetryUtil {
         pnt.v[2] -= z;
     }
     static final void addSet(Vec pnt, double x, double y, double z){
+        pnt.v[0] += x;
+        pnt.v[1] += y;
         pnt.v[2] += z;
     }
     static final void mulSet(Vec pnt, double f){
@@ -145,7 +147,7 @@ public class SymmetryUtil {
                 if(d > 0) {
                     foundOutside = true;
                     transforms[i].transform(pnt);
-                    printf("pnt: (%7.5f,%7.5f,%7.5f)\n",pnt.v[0],pnt.v[1],pnt.v[2]);
+                    //printf("i:%d (%7.5f,%7.5f,%7.5f)\n",i, pnt.v[0],pnt.v[1],pnt.v[2]);
                     break; // out of planes cycle                     
                 }                           
             }
@@ -159,6 +161,5 @@ public class SymmetryUtil {
         // we are here if we have reached maxIterations; 
 
         return ResultCodes.RESULT_OUTSIDE;
-    }
-  
+    }  
 }

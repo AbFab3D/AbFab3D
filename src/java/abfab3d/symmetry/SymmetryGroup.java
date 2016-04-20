@@ -53,13 +53,20 @@ public class SymmetryGroup {
     int m_type = TYPE_REFLECTIONS;
     
     SPlane m_splanes[];
+    PairingTransform m_transforms[];
     
-    int m_maxIterations = 100;
+    int m_maxIterations = 20;
     
     public SymmetryGroup(SPlane splanes[]){
         m_type = TYPE_REFLECTIONS;
         m_splanes = new SPlane[splanes.length];
         System.arraycopy(splanes, 0, m_splanes, 0, splanes.length);
+        
+    }
+    public SymmetryGroup(SPlane planes[], ETransform transforms[]){
+        m_type = TYPE_EUCLIDEAN;
+        m_splanes = planes;
+        m_transforms = transforms;
         
     }
    
@@ -78,7 +85,7 @@ public class SymmetryGroup {
         default:
         case TYPE_REFLECTIONS:
             //return toFundamentalDomain(pnt, m_splanes, m_maxIterations);
-            return toFundamentalDomain(pnt, m_splanes, m_splanes, m_maxIterations);
+            return toFundamentalDomain(pnt, m_splanes, m_transforms, m_maxIterations);
             
         }
     }

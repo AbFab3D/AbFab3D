@@ -19,6 +19,7 @@ import static abfab3d.symmetry.SymmetryUtil.len2;
 import static abfab3d.symmetry.SymmetryUtil.subSet;
 import static abfab3d.symmetry.SymmetryUtil.mulSet;
 import static abfab3d.symmetry.SymmetryUtil.addSet;
+import static abfab3d.util.Output.printf;
  
 /**
  * class to represent sphere
@@ -70,15 +71,18 @@ public class Sphere extends SPlane {
         
         //v = v - s.center;
         subSet(pnt, cx, cy, cz);
-        
+        //printf("shifted pnt %7.3f %7.3f %7.3f\n", pnt.v[0],pnt.v[1],pnt.v[2]);
         double len2 = len2(pnt);        
         double factor = r2/len2;
+        //printf("len2: %7.3f factor: %7.3f\n", len2, factor);
         //v *= factor;
         mulSet(pnt, factor);
+        //printf("scaled pnt %7.3f %7.3f %7.3f\n", pnt.v[0],pnt.v[1],pnt.v[2]);
         double scaling = factor;
         pnt.mulScale(scaling);
         //v += s.center;
         addSet(pnt, cx, cy, cz);
+        //printf("final pnt %7.3f %7.3f %7.3f\n", pnt.v[0],pnt.v[1],pnt.v[2]);
         
     }
 } // class Sphere

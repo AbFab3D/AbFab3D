@@ -47,6 +47,30 @@ public class DevTestSymmetryGroup {
         
     }
 
+    static SymmetryGroup getCubeE(){
+        
+        Plane sides[] = new Plane[] { 
+            new Plane(new Vector3d(-1,0,0), 1), 
+            new Plane(new Vector3d(1,0,0), 1),  
+            new Plane(new Vector3d(0,1,0), 1),  
+            new Plane(new Vector3d(0,-1,0), 1),  
+            new Plane(new Vector3d(0,0,1), 1),  
+            new Plane(new Vector3d(0,0,-1), 1),  
+        };
+
+        return new SymmetryGroup(sides, 
+                                 new ETransform[]{
+                                     new ETransform(sides[0]),
+                                     new ETransform(sides[1]),
+                                     new ETransform(sides[2]),
+                                     new ETransform(sides[3]),
+                                     new ETransform(sides[4]),
+                                     new ETransform(sides[5])
+                                 }
+                                 );
+        
+    }
+
     static SymmetryGroup getSphere(){
         
         return new SymmetryGroup(
@@ -75,15 +99,15 @@ public class DevTestSymmetryGroup {
     public void devTestPlanes(){
 
         //SymmetryGroup group = getTwoPlanes(1., 2.);
-        //SymmetryGroup group = getCube();
+        SymmetryGroup group = getCubeE();
         //SymmetryGroup group = getSphere();
-        SymmetryGroup group = getLens();
+        //SymmetryGroup group = getLens();
         Vec pnt = new Vec(3);
-        //for(int i = 0; i < 100; i++){
-        for(int i = 0; i < 1; i++){
-            double x = 0.15;//0.2;//0.1*i;
-            double y = 0;
-            double z = 0;
+        for(int i = 0; i < 100; i++){
+        //for(int i = 0; i < 1; i++){
+            double x = 0.1*i;
+            double y = x;
+            double z = y;
             pnt.v[0] = x;
             pnt.v[1] = y;
             pnt.v[2] = z;
@@ -92,10 +116,27 @@ public class DevTestSymmetryGroup {
         }
     }
 
+    public void devTestSphere(){
+
+        Sphere s = new Sphere(new Vector3d(-0.8,0,0),1);
+        Vec pnt = new Vec(3);
+        //for(int i = 1; i <= 100; i++){
+        for(int i = 0; i < 1; i++){
+            double x = 0.1*i;
+            double y = 0;
+            double z = 0;
+            pnt.v[0] = x;
+            pnt.v[1] = y;
+            pnt.v[2] = z;
+            s.transform(pnt);
+            printf("(%7.3f, %7.3f, %7.3f) -> (%7.3f,%7.3f,%7.3f)\n", x,y,z,pnt.v[0],pnt.v[1],pnt.v[2]);
+        }
+    }
     
 
     public static void main(String arg[]){
         new DevTestSymmetryGroup().devTestPlanes();
+        //new DevTestSymmetryGroup().devTestSphere();
     }
 
 }
