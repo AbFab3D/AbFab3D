@@ -49,7 +49,7 @@ public class ETransform implements PairingTransform {
 
     public ETransform(Plane plane){
         
-        m_matrix = getReflection(plane.getNormal(), plane.getDistance());
+        m_matrix = getReflectionMatrix(plane.getNormal(), plane.getDistance());
         init();
     }
 
@@ -85,7 +85,7 @@ public class ETransform implements PairingTransform {
        return matrix of given translation 
 
      */
-    public static Matrix4d getTranslation(double tx, double ty, double tz){
+    public static Matrix4d getTranslationMatrix(double tx, double ty, double tz){
 
         Matrix4d m = new Matrix4d();
         m.m00 = 1;
@@ -101,12 +101,12 @@ public class ETransform implements PairingTransform {
     }
 
     /**
-       return tranform matrix of reflection in the given plane
+       return transform matrix of reflection in the given plane
        @param p plane equation (represent plane via equation dot(p,v) = 0
        plane should be normalized ( p.x*p.x + p.y*p.y + p.z*p.z == 1) 
        
     */
-    public static Matrix4d getReflection(Vector4d p){
+    public static Matrix4d getReflectionMatrix(Vector4d p){
         
         Matrix4d m = new Matrix4d();
 
@@ -136,9 +136,9 @@ public class ETransform implements PairingTransform {
         return m;
     }
 
-    public static Matrix4d getReflection(Vector3d normal, double distance){
+    public static Matrix4d getReflectionMatrix(Vector3d normal, double distance){
 
-        return getReflection(new Vector4d(normal.x,normal.y,normal.z,-distance));
+        return getReflectionMatrix(new Vector4d(normal.x,normal.y,normal.z,-distance));
         
     }
 

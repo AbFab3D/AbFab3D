@@ -21,6 +21,9 @@ import abfab3d.grid.op.GridMaker;
 import abfab3d.util.Bounds;
 import abfab3d.util.DataSource;
 
+import abfab3d.transforms.SymmetryTransform;
+import abfab3d.datasources.Union;
+
 
 import abfab3d.util.Vec;
 import static abfab3d.util.Output.printf;
@@ -142,7 +145,13 @@ public class DevTestSymmetryGroup {
     }
 
     DataSource makeSphere(double r){
-        return new abfab3d.datasources.Sphere(r);
+
+        Union ds = new Union(new abfab3d.datasources.Sphere(new Vector3d(-r/2,-r/6,0),r/2),
+                             new abfab3d.datasources.Sphere(new Vector3d(r/2,0,0),r/2),
+                             new abfab3d.datasources.Sphere(new Vector3d(r*(2/3.),r*5./6,0),r/3)
+                            );
+        ds.setTransform(new SymmetryTransform(new Symmetries.FriezeII(2*r)));
+        return ds;
     }
 
     public void devTestGridRendering(){

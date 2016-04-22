@@ -70,7 +70,7 @@ public class SymmetryGroup {
         
     }
    
-    public SPlane[] getSPlanes(){
+    public SPlane[] getFundamentalDomain(){
         return m_splanes;
     }
 
@@ -84,7 +84,8 @@ public class SymmetryGroup {
         switch(m_type){
         default:
         case TYPE_REFLECTIONS:
-            //return toFundamentalDomain(pnt, m_splanes, m_maxIterations);
+            return toFundamentalDomain(pnt, m_splanes, m_maxIterations);
+        case TYPE_EUCLIDEAN:
             return toFundamentalDomain(pnt, m_splanes, m_transforms, m_maxIterations);
             
         }
