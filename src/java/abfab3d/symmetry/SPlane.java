@@ -21,9 +21,18 @@ import abfab3d.util.Vec;
 */
 public abstract class SPlane implements PairingTransform, FDPlane {
     
-    // return signed distance to that objetc        
+    /**
+     * return signed distance to that object
+     * exterior points have positive distance, interior points have negative distance
+     * @param pnt coordinates of point 
+     */ 
     public abstract double distance(Vec pnt);
-    // reflect the point
+    
+    /**
+     *  reflect the point in this splane 
+     *  
+     * @param pnt coordinates of point 
+     */
     public abstract void transform(Vec pnt);
     // public abstract double getCosAngle(SPlane sp);
 
