@@ -59,7 +59,7 @@ public class SymmetryUtil {
     /**
        angle is defined as angle between external normals 
      */
-    public static double getCosAngle(Sphere s1, Sphere s2){
+    public static double getCosAngle(ESphere s1, ESphere s2){
 
         double r1 = s1.getRadius();
         double r2 = s2.getRadius();
@@ -78,7 +78,7 @@ public class SymmetryUtil {
     /**
        angle is defined as angle between external normals 
      */
-    public static double getCosAngle(Plane p1, Plane p2){
+    public static double getCosAngle(EPlane p1, EPlane p2){
 
         Vector3d n1 = p1.getNormal();
         Vector3d n2 = p2.getNormal();
@@ -89,12 +89,12 @@ public class SymmetryUtil {
     /**
        angle is defined as angle between external normals 
      */
-    public static double getCosAngle(Sphere s1, Plane p2){
+    public static double getCosAngle(ESphere s1, EPlane p2){
 
         Vector3d c1 = s1.getCenter();
         double r1 = s1.getRadius();
         Vector3d n2 = p2.getNormal();
-        double d2 = p2.getDistance();
+        double d2 = p2.getDist();
         return  -(c1.dot(n2) - d2)/r1;
 
     }
@@ -139,25 +139,25 @@ public class SymmetryUtil {
         int iter = maxIterations;
         while(iter-- > 0){
 
-            boolean foundOutside = false; 
+            boolean planeFound = false; 
 
             for(int i =0; i < planeCount; i++){
                 double d = planes[i].distance(pnt);
                 
                 if(d > 0) {
-                    foundOutside = true;
+                    planeFound = true;
                     transforms[i].transform(pnt);
                     //printf("i:%d (%7.5f,%7.5f,%7.5f)\n",i, pnt.v[0],pnt.v[1],pnt.v[2]);
                     break; // out of planes cycle                     
                 }                           
             }
             
-            if(!foundOutside){
+            if(!planeFound){
                 // we are in FD
                 return ResultCodes.RESULT_OK;
             }
         }        
-
+        
         // we are here if we have reached maxIterations; 
 
         return ResultCodes.RESULT_OUTSIDE;

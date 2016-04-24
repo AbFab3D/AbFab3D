@@ -32,6 +32,9 @@ public class EPlane extends SPlane {
     public double dist;
     // normal to the plane normalized to 1 
     public double nx, ny, nz;
+    public EPlane(double nx,double ny,double nz,double distance){
+        this(new Vector3d(nx, ny, nz), distance);
+    }
     public EPlane(Vector3d normal, double distance){
         
         double len = normal.length();

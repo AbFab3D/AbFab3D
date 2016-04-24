@@ -22,6 +22,7 @@ import static abfab3d.symmetry.SymmetryUtil.subSet;
 import static abfab3d.symmetry.SymmetryUtil.mulSet;
 import static abfab3d.symmetry.SymmetryUtil.addSet;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
  
 /**
  * class to represent 3d euclidean transforms which can be represented as 4d matrix 
@@ -33,11 +34,11 @@ public class ETransform implements PairingTransform {
     
     // matrix of transform
     protected Matrix4d m_matrix;
-    //matrix of oiverted transform 
+    //matrix of iverse transform 
     protected Matrix4d m_imatrix;
     
     /**
-     *  constructor to use matrix as the source 
+     *  general matrix transform 
      *
      */
     public ETransform(Matrix4d matrix){
@@ -47,9 +48,14 @@ public class ETransform implements PairingTransform {
         
     }
 
-    public ETransform(Plane plane){
+    /**
+     *  constructror creates reflection in the given plane 
+     *
+     *  @param plane used for reflection 
+     */
+    public ETransform(EPlane plane){
         
-        m_matrix = getReflectionMatrix(plane.getNormal(), plane.getDistance());
+        m_matrix = getReflectionMatrix(plane.getNormal(), plane.getDist());
         init();
     }
 
@@ -57,6 +63,8 @@ public class ETransform implements PairingTransform {
         m_imatrix = new Matrix4d();
         m_imatrix.set(m_matrix);
         m_imatrix.invert();
+        //printf(" matrix:\n%s\n", formatMatrix(m_matrix));
+        //printf("imatrix:\n%s\n", formatMatrix(m_imatrix));
     }
     
     
@@ -140,6 +148,16 @@ public class ETransform implements PairingTransform {
 
         return getReflectionMatrix(new Vector4d(normal.x,normal.y,normal.z,-distance));
         
+
+    }
+        
+    static String formatMatrix(Matrix4d m){
+        return fmt("[%8.5f %8.5f %8.5f %8.5f]\n[%7.5f %7.5f %7.5f %7.5f]\n[%7.5f %7.5f %7.5f %7.5f]\n[%7.5f %7.5f %7.5f %7.5f]\n", 
+                   m.m00,m.m01,m.m02,m.m03,
+                   m.m10,m.m11,m.m12,m.m13,
+                   m.m20,m.m21,m.m22,m.m23,
+                   m.m30,m.m31,m.m32,m.m33
+                   );
     }
 
 } // class ETransform
