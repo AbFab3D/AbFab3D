@@ -22,12 +22,13 @@ import static abfab3d.symmetry.SymmetryUtil.addSet;
 import static abfab3d.util.Output.printf;
  
 /**
- * class to represent sphere
+ * class to represent fundamental domain side which is euclidean sphere
+ *  
  *
  *
  * @author Vladimir Bulatov
  */
-public class Sphere extends SPlane {
+public class ESphere extends SPlane {
     
     // radius of sphere 
     public double r; 
@@ -37,7 +38,7 @@ public class Sphere extends SPlane {
     // positive radius gives negative distances inside of sphere 
     // negative radius gives positive distances inside of sphere 
     // 
-    public Sphere(Vector3d center, double radius){
+    public ESphere(Vector3d center, double radius){
         
         r = radius;
         r2 = r*r;

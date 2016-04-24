@@ -21,17 +21,18 @@ import static abfab3d.symmetry.SymmetryUtil.subSet;
 
 /**
  *
- * class to represent half space plane with external normal and distance along normal to origin 
+ * class to represent half space bounded by euclidean plane
+ * plane is defined via external normal and distance to origin
  *
  *  @author Vladimir Bulatov
  * 
  */
-public class Plane extends SPlane {
+public class EPlane extends SPlane {
     
     public double dist;
     // normal to the plane normalized to 1 
     public double nx, ny, nz;
-    public Plane(Vector3d normal, double distance){
+    public EPlane(Vector3d normal, double distance){
         
         double len = normal.length();
         nx = normal.x / len;
@@ -40,12 +41,17 @@ public class Plane extends SPlane {
         dist = distance; 
     }
         
+    /**
+       @return normal parameter of plane 
+     */
     public Vector3d getNormal(){
         return new Vector3d(nx, ny, nz);
     }
     
-    
-    public double getDistance(){
+    /**
+       @return distance parameter of plane 
+     */
+    public double getDist(){
         return dist;
     }
     

@@ -34,9 +34,6 @@ public abstract class SPlane implements PairingTransform, FDPlane {
      * @param pnt coordinates of point 
      */
     public abstract void transform(Vec pnt);
-    // public abstract double getCosAngle(SPlane sp);
-
-
 
 } // class SPlane 
 
