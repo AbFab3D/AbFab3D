@@ -74,6 +74,24 @@ public class GridDataWriter extends BaseParameterizable {
         super.addParams(m_params);
     }
 
+    public void printSlices(AttributeGrid grid, String format){
+        
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        for(int z = 0; z < nz; z++){
+            printf("z: %d\n",z);
+            for(int y = 0; y < ny; y++){
+                for(int x = 0; x < nx; x++){
+                    long a = grid.getAttribute(x,y,z);
+                    printf(format, a);
+                }
+                printf("\n");
+            }            
+            printf("\n");
+        } 
+    }
+
     public void writeSlices(AttributeGrid grid, GridDataChannel dataChannel, String pathFormat) {
 
         int magnification = mp_magnification.getValue();
@@ -110,7 +128,7 @@ public class GridDataWriter extends BaseParameterizable {
         }
 
     }
-
+    
 
     public static void makeSlice(AttributeGrid grid, int magnification, int iz, GridDataChannel dataChannel, ColorMapper colorMapper, BufferedImage image) {
 

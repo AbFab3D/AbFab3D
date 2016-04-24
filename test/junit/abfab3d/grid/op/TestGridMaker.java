@@ -35,7 +35,8 @@ import junit.framework.TestSuite;
 
 
 // Internal Imports
-import abfab3d.grid.Grid;
+//import abfab3d.grid.Grid;
+import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.GridShortIntervals;
 
@@ -158,7 +159,7 @@ public class TestGridMaker extends TestCase {
             long t0 = time();
             //Grid grid = new BlockBasedGridByte(nx, ny, nz, voxelSize, voxelSize, 5);
             //Grid grid = new GridShortIntervals(nx, ny, nz, voxelSize, voxelSize);
-            Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);            
+            AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);            
             printf("gm.makeGrid() threads: %d\n", tcount);
             gm.makeGrid(grid); 
             printf("gm.makeGrid() done %d ms\n", (time() - t0));
@@ -272,7 +273,7 @@ public class TestGridMaker extends TestCase {
         gm.setSource(clip);
 
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -334,7 +335,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(compTrans);
         gm.setSource(image);
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -422,7 +423,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(compTrans);
         gm.setSource(inter);
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -484,7 +485,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(compTrans);
         gm.setSource(image);
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -571,7 +572,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(compTrans);
         gm.setSource(image);
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -650,7 +651,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(compTrans);
         gm.setSource(union);
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -712,7 +713,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(compTrans);
         gm.setSource(image);
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -793,7 +794,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(compTrans);
         gm.setSource(image);
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -855,7 +856,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(compTrans);
         gm.setSource(image);
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -916,7 +917,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(compTrans);
         gm.setSource(image);
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -965,7 +966,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(ripples);
         gm.setSource(textBand);        
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
         printf("gm.makeGrid() done\n");
@@ -1011,7 +1012,7 @@ public class TestGridMaker extends TestCase {
         gm.setBounds(bounds);
         gm.setSource(block);        
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -1127,7 +1128,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(ringWrap);
         gm.setSource(ringMinusText);        
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -1207,7 +1208,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(compTrans);
         gm.setSource(image);
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -1270,7 +1271,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(compTrans);
         gm.setSource(image);
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -1320,7 +1321,7 @@ public class TestGridMaker extends TestCase {
         gm.setTransform(rw);
         gm.setSource(box);
         
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
@@ -1376,7 +1377,7 @@ public class TestGridMaker extends TestCase {
                 gm.setThreadCount(4);
                 gm.setSource(image);
 
-                Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+                AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
                 printf("gm.makeGrid()\n");
                 gm.makeGrid(grid);               
                 printf("gm.makeGrid() done\n");
@@ -2188,7 +2189,7 @@ public class TestGridMaker extends TestCase {
     /**
        
      */
-    void writeIsosurface(Grid grid, double bounds[], double voxelSize, int smoothSteps, String fpath){
+    void writeIsosurface(AttributeGrid grid, double bounds[], double voxelSize, int smoothSteps, String fpath){
 
         printf("writeIsosurface(%s)\n",fpath);
 
@@ -2217,7 +2218,7 @@ public class TestGridMaker extends TestCase {
        generates isosurface at half resolution 
        neigboursCount can be 0, 6, 18, 26
      */
-    void writeIsosurface2(Grid grid, double bounds[], double voxelSize, int resamplingFactor, String fpath){
+    void writeIsosurface2(AttributeGrid grid, double bounds[], double voxelSize, int resamplingFactor, String fpath){
 
         printf("writeIsosurface2(%s)\n",fpath);
 
