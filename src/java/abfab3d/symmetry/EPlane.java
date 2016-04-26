@@ -13,6 +13,7 @@
 package abfab3d.symmetry;
 
 import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4d;
 
 import abfab3d.util.Vec;
 
@@ -34,6 +35,13 @@ public class EPlane extends SPlane {
     public double nx, ny, nz;
     public EPlane(double nx,double ny,double nz,double distance){
         this(new Vector3d(nx, ny, nz), distance);
+    }
+
+    /**
+       EPlane constructed from Vectro4d 
+     */
+    public EPlane(Vector4d plane){
+        this(new Vector3d(plane.x, plane.y, plane.z), -plane.w);
     }
     public EPlane(Vector3d normal, double distance){
         

@@ -342,7 +342,7 @@ public class Symmetries {
         }
 
         public SymmetryGroup getSymmetryGroup(){
-            if(true) throw new RuntimeException("WallpaperO not implemented");
+            //if(true) throw new RuntimeException("WallpaperO not implemented");
             double w = m_width.getValue();
             double h = m_height.getValue();
             double s = m_skew.getValue();

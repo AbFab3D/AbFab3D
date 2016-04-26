@@ -159,7 +159,6 @@ public class SymmetryUtil {
         }        
         
         // we are here if we have reached maxIterations; 
-
         return ResultCodes.RESULT_OUTSIDE;
     }  
 }

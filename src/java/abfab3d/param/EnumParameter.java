@@ -13,6 +13,8 @@ package abfab3d.param;
 
 // External Imports
 
+import static abfab3d.util.Output.fmt;
+
 /**
  * A enum parameter.
  *
@@ -72,6 +74,13 @@ public class EnumParameter extends BaseParameter {
 
     public String[] getValues() {
         return m_values;
+    }
+
+    public void setSelectedIndex(int index) {
+        if(index < 0 || index >= m_values.length)
+            throw new RuntimeException(fmt("invalid index value: %d", index));
+        m_index = index;
+        value = m_values[index];
     }
 
     public int getIndex() {

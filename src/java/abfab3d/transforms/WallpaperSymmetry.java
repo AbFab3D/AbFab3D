@@ -22,15 +22,20 @@ import javax.vecmath.AxisAngle4d;
 
 import abfab3d.util.Vec;
 import abfab3d.util.Initializable;
-import abfab3d.util.Symmetry;
-import abfab3d.util.ReflectionGroup;
+
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.EnumParameter;
+import abfab3d.param.IntParameter;
+import abfab3d.param.Parameter;
+
+
+import abfab3d.symmetry.SymmetryGroup;
+import abfab3d.symmetry.WallpaperSymmetries;
 import abfab3d.util.VecTransform;
 
 import net.jafama.FastMath;
 
 import static abfab3d.util.Output.printf;
-import static abfab3d.util.Symmetry.getReflection;
-import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 
 /**
@@ -71,8 +76,44 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 
    <embed src="doc-files/wallpaper_groups.svg" type="image/svg+xml"/> 
 */
-public class WallpaperSymmetry  extends BaseTransform implements VecTransform, Initializable  {
+public class WallpaperSymmetry  extends BaseTransform implements Initializable {
     
+
+
+    protected DoubleParameter  mp_domainWidth = new DoubleParameter("domainWidth","width of fundamental domain",0.01);
+    protected DoubleParameter  mp_domainHeight = new DoubleParameter("domainHeight","height of fundamental domain",0.01);
+    protected DoubleParameter  mp_domainSkew = new DoubleParameter("domainSkew","skew of fundamental domain for symmetry O",0.0);
+    protected IntParameter  mp_maxCount = new IntParameter("maxCount","max count of iteratioins to get to fundamental domain",100);
+    protected EnumParameter  mp_symmetryType = new EnumParameter("symmetryType","type of walpaper symetry",SymmetryNames, SymmetryNames[WP_S2222]);
+
+    Parameter aparam[] = new Parameter[]{
+        mp_domainWidth,
+        mp_domainHeight,
+        mp_domainSkew,
+        mp_maxCount, 
+        mp_symmetryType,       
+    };
+
+    static final public String SymmetryNames[] = new String[]{
+        "O",    //WM_O  = 0,    // O
+        "XX",   //WP_XX = 1,   // xx
+        "SX",   // WP_SX = 2,   // *x
+        "SS",   //WP_SS = 3,   // **
+        "632",  //WP_632 = 4,   // 632
+        "S632", //WP_S632 = 5,   // *632
+        "333",  //WP_333 = 6,   // 333
+        "S333", //WP_S333 = 7,   // *333
+        "3S3",  //WP_3S3 = 8,   // 3*3
+        "442",  //WP_442 = 9,   // 442
+        "S442", //WP_S442 = 10,   // *442
+        "4S2",  //WP_4S2 = 11,   // 4*2
+        "2222", //WP_2222 = 12,   // 2222
+        "22x",  //WP_22X = 13,   // 22x
+        "22S",  //WP_22S = 14,   // 22*
+        "S2222",//WP_S2222 = 15,   // *2222
+        "2S22", //WP_2S22 = 16;   // 2*22                
+    };
+
     public static final int     // orbifold notation
         WP_O  = 0,    // O
         WP_XX = 1,   // xx
@@ -92,18 +133,18 @@ public class WallpaperSymmetry  extends BaseTransform implements VecTransform, I
         WP_S2222 = 15,   // *2222
         WP_2S22 = 16;   // 2*22        
     
+
+
     // maximal number of iterations to get to FD 
-    protected int m_maxCount = 100; 
+    //protected int m_maxCount = 100; 
     // width of fundamental domain in meters
-    protected double m_domainWidth = 0.01; 
+    //protected double m_domainWidth = 0.01; 
     // height of fundamental domain in meters (if used) 
-    protected double m_domainHeight = 0.01;
-    protected double m_domainSkew = 0.;
-    
-    protected int m_symmetryType; // one of WP_ constants                 
-    
+    //protected double m_domainHeight = 0.01;
+    //protected double m_domainSkew = 0.;    
+    //protected int m_symmetryType; // one of WP_ constants                     
     // symmetry to be used 
-    protected Symmetry m_sym;
+    protected SymmetryGroup m_group;
 
     /**
        default constructor with default symmetry type WallpaperSymmetry.WP_S2222;
@@ -137,9 +178,22 @@ public class WallpaperSymmetry  extends BaseTransform implements VecTransform, I
        </ul>
      */
     public WallpaperSymmetry(int symmetryType){
+        super.addParams(aparam);
         setSymmetryType(symmetryType);
     }
+
     
+    /**
+       constructor with given symmetry type and size of fundamental domain 
+       @param symmetryType possible values see above
+       @param width width of fundamental domain 
+     */
+    public WallpaperSymmetry(int symmetryType, double width){
+        super.addParams(aparam);
+        setSymmetryType(symmetryType);
+        setDomainWidth(width);
+    }
+
     /**
        constructor with given symmetry type and size of fundamental domain 
        @param symmetryType possible values see above
@@ -147,37 +201,52 @@ public class WallpaperSymmetry  extends BaseTransform implements VecTransform, I
        @param height height of fundamental domain 
      */
     public WallpaperSymmetry(int symmetryType, double width, double height){
+        super.addParams(aparam);
         setSymmetryType(symmetryType);
         setDomainWidth(width);
         setDomainHeight(height);
     }
 
-    /*
-    public WallpaperSymmetry(String symmetryName, double width, double height){
-        setSymmetryType(getSymmetryType(symmetryName));
+    /**
+       constructor with given symmetry type and size of fundamental domain 
+       @param symmetryType possible values see above
+       @param width width of fundamental domain 
+       @param height height of fundamental domain 
+       @param skew in relative units (used only for symmetry type WP_O)
+     */
+    public WallpaperSymmetry(int symmetryType, double width, double height, double skew){
+        super.addParams(aparam);
+        setSymmetryType(symmetryType);
         setDomainWidth(width);
         setDomainHeight(height);
+        setDomainSkew(skew);
+
     }
-    */
+
+
     /**
        @noRefGuide
      */
     public void setSymmetryType(int symmetryType){
-        m_symmetryType = symmetryType;
+        mp_symmetryType.setSelectedIndex(symmetryType);
+    }
+
+    public void setSymmetryType(String symmetryTypeName){
+        mp_symmetryType.setValue(symmetryTypeName);
     }
 
     /**
        @param width width of fundamental domain. 
      */
     public void setDomainWidth(double width){
-        m_domainWidth = width;
+        mp_domainWidth.setValue(width);
     }
 
     /**
        @param height height of fundamental domain (if used). 
      */
     public void setDomainHeight(double height){
-        m_domainHeight = height;
+        mp_domainHeight.setValue(height);
     }
     /**
        @param maxCont maximal count of tranformations to use to generate patterns
@@ -187,24 +256,24 @@ public class WallpaperSymmetry  extends BaseTransform implements VecTransform, I
      */
     public void setMaxCount(int maxCount){
 
-        m_maxCount = maxCount;
+        mp_maxCount.setValue(maxCount);
 
     }
 
     /**
        
-       @param skew skew parameter of fundamental domain (if used) 
+       @param skew skew parameter of fundamental domain for symmetry O
      */
     public void setDomainSkew(double skew){
-        m_domainSkew = skew;
+        mp_domainSkew.setValue(skew);
     }
 
     /**
      @noRefGuide
      */
-    public static int getSymmetryType(String symmetryName){
-        //TODO 
-        return 0;
+    public int getSymmetryType(String symmetryName){
+        mp_symmetryType.setValue(symmetryName);
+        return mp_symmetryType.getIndex();
     }
     
     /**
@@ -212,29 +281,37 @@ public class WallpaperSymmetry  extends BaseTransform implements VecTransform, I
      */
     public int initialize(){
         
-        switch(m_symmetryType){
+        int symmetryType = mp_symmetryType.getIndex();
+        double domainWidth = mp_domainWidth.getValue();
+        double domainHeight = mp_domainHeight.getValue();
+        double domainSkew = mp_domainSkew.getValue();
+        int maxCount = mp_maxCount.getValue();
+
+        switch(symmetryType){
         default: 
-        case WP_O:    m_sym = Symmetry.getO(m_domainWidth,m_domainHeight, m_domainSkew); break;
+        case WP_O:    m_group = WallpaperSymmetries.getO(domainWidth,domainHeight, domainSkew); break;
 
-        case WP_3S3:  m_sym = Symmetry.get3S3(m_domainWidth); break;
-        case WP_4S2:  m_sym = Symmetry.get4S2(m_domainWidth); break;
-        case WP_S442:  m_sym = Symmetry.getS442(m_domainWidth); break;
-        case WP_442:   m_sym = Symmetry.get442(m_domainWidth); break;
-        case WP_S632:  m_sym = Symmetry.getS632(m_domainWidth); break;
-        case WP_632:   m_sym = Symmetry.get632(m_domainWidth); break;
-        case WP_S333:  m_sym = Symmetry.getS333(m_domainWidth); break;
-        case WP_333:   m_sym = Symmetry.get333(m_domainWidth); break;
+        case WP_3S3:  m_group = WallpaperSymmetries.get3S3(domainWidth); break;
+        case WP_4S2:  m_group = WallpaperSymmetries.get4S2(domainWidth); break;
+        case WP_S442:  m_group = WallpaperSymmetries.getS442(domainWidth); break;
+        case WP_442:   m_group = WallpaperSymmetries.get442(domainWidth); break;
+        case WP_S632:  m_group = WallpaperSymmetries.getS632(domainWidth); break;
+        case WP_632:   m_group = WallpaperSymmetries.get632(domainWidth); break;
+        case WP_S333:  m_group = WallpaperSymmetries.getS333(domainWidth); break;
+        case WP_333:   m_group = WallpaperSymmetries.get333(domainWidth); break;
 
-        case WP_S2222: m_sym = Symmetry.getS2222(m_domainWidth,m_domainHeight); break;
-        case WP_2222:  m_sym = Symmetry.get2222(m_domainWidth,m_domainHeight); break;
-        case WP_2S22:  m_sym = Symmetry.get2S22(m_domainWidth,m_domainHeight); break;
-        case WP_22S:   m_sym = Symmetry.get22S(m_domainWidth,m_domainHeight); break;
-        case WP_SS:    m_sym = Symmetry.getSS(m_domainWidth,m_domainHeight); break;
-        case WP_SX:    m_sym = Symmetry.getSX(m_domainWidth,m_domainHeight); break;
-        case WP_22X:   m_sym = Symmetry.get22X(m_domainWidth,m_domainHeight); break;
-        case WP_XX:    m_sym = Symmetry.getXX(m_domainWidth,m_domainHeight); break;
+        case WP_S2222: m_group = WallpaperSymmetries.getS2222(domainWidth,domainHeight); break;
+        case WP_2222:  m_group = WallpaperSymmetries.get2222(domainWidth,domainHeight); break;
+        case WP_2S22:  m_group = WallpaperSymmetries.get2S22(domainWidth,domainHeight); break;
+        case WP_22S:   m_group = WallpaperSymmetries.get22S(domainWidth,domainHeight); break;
+        case WP_SS:    m_group = WallpaperSymmetries.getSS(domainWidth,domainHeight); break;
+        case WP_SX:    m_group = WallpaperSymmetries.getSX(domainWidth,domainHeight); break;
+        case WP_22X:   m_group = WallpaperSymmetries.get22X(domainWidth,domainHeight); break;
+        case WP_XX:    m_group = WallpaperSymmetries.getXX(domainWidth,domainHeight); break;
 
         }
+
+        m_group.setMaxIterations(maxCount);
 
 
         return RESULT_OK;
@@ -264,18 +341,10 @@ public class WallpaperSymmetry  extends BaseTransform implements VecTransform, I
      @noRefGuide
      */
     public int inverse_transform(Vec in, Vec out) {
+
         out.set(in);
-        // TODO garbage generation 
-        Vector4d vin = new Vector4d(in.v[0],in.v[1],in.v[2],1);
-        
-        int res = toFundamentalDomain(vin, m_sym, m_maxCount);
-        
-        // save result 
-        out.v[0] = vin.x;
-        out.v[1] = vin.y;
-        out.v[2] = vin.z;
-        
-        return res;
+
+        return m_group.toFD(out);        
         
     }
 } // class WallpaperSymmetry

@@ -12,7 +12,15 @@
 package abfab3d.transforms;
 
 import abfab3d.util.Initializable;
-import abfab3d.util.Symmetry;
+
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.EnumParameter;
+import abfab3d.param.IntParameter;
+import abfab3d.param.Parameter;
+
+
+import abfab3d.symmetry.SymmetryGroup;
+import abfab3d.symmetry.FriezeSymmetries;
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 
@@ -28,10 +36,34 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
  Note: This node is not implemented in ShapeJS 2.0 yet.
 
  */
-public class FriezeSymmetry extends BaseTransform implements VecTransform, Initializable {
+public class FriezeSymmetry extends BaseTransform implements Initializable {
+
+    protected DoubleParameter  mp_domainWidth = new DoubleParameter("domainWidth","width of fundamental domain",0.01);
+    protected DoubleParameter  mp_domainHeight = new DoubleParameter("domainHeight","height of fundamental domain",0.01);
+    protected DoubleParameter  mp_domainSkew = new DoubleParameter("domainSkew","skew of fundamental domain for symmetry O",0.0);
+    protected IntParameter  mp_maxCount = new IntParameter("maxCount","max count of iteratioins to get to fundamental domain",100);
+    protected EnumParameter  mp_symmetryType = new EnumParameter("symmetryType","type of walpaper symetry",SymmetryNames, SymmetryNames[FRIEZE_II]);
+
+    Parameter aparam[] = new Parameter[]{
+        mp_domainWidth,
+        mp_domainHeight,
+        mp_domainSkew,
+        mp_maxCount, 
+        mp_symmetryType,       
+    };
+
+    static final public String SymmetryNames[] = new String[]{
+        "II",
+        "IX",
+        "IS",
+        "SII",
+        "22I",
+        "2SI",
+        "S22I",
+    };
 
     public static final int     // orbifold notation
-            FRIEZE_II = 0,   // oo oo
+        FRIEZE_II = 0,   // oo oo
             FRIEZE_IX = 1,   // oo X
             FRIEZE_IS = 2,   // oo *
             FRIEZE_SII = 3,  // * oo oo
@@ -39,24 +71,23 @@ public class FriezeSymmetry extends BaseTransform implements VecTransform, Initi
             FRIEZE_2SI = 5,  // 2 * oo
             FRIEZE_S22I = 6; // * 2 2 oo
 
-
-    public int m_maxCount = 100; // maximal number of iterations to gett to FD 
-    public double m_domainWidth = 0.01; // width of fundamental domain in meters
-    public int m_friezeType;
+    //public int m_maxCount = 100; // maximal number of iterations to gett to FD 
+    //public double m_domainWidth = 0.01; // width of fundamental domain in meters
+    //public int m_friezeType;
 
     // symmettry group to use 
-    Symmetry m_sym;
+    SymmetryGroup m_group;
 
     /**
      @noRefGuide
      */
     public FriezeSymmetry() {
-
+        super.addParams(aparam);
     }
 
     /**
      Frieze Symmetry wih specified type and domain width
-     @param type the symetry type<br/>
+     @param symmetryType the symetry type<br/>
      Possible values are
      <ul>
      <li>FriezeSymetry.FRIEZE_II</li>
@@ -69,39 +100,35 @@ public class FriezeSymmetry extends BaseTransform implements VecTransform, Initi
      </ul>
      @param domainWidth width of the fundamental domain
      */
-    public FriezeSymmetry(int type, double domainWidth) {
-        m_friezeType = type;
-        m_domainWidth = domainWidth;
+    public FriezeSymmetry(int symmetryType, double domainWidth) {
+        super.addParams(aparam);
+        mp_symmetryType.setSelectedIndex(symmetryType);
+        mp_domainWidth.setValue(domainWidth);
     }
 
     /**
      * Set the frieze type
-     * @param friezeType
+     * @param friezeType type of symmetry 
      */
-    public void setFriezeType(int friezeType) {
-        m_friezeType = friezeType;
+    public void setSymmetryType(int symmetryType) {
+        mp_symmetryType.setSelectedIndex(symmetryType);
+    }
+
+    public void setSymmetryType(String symmetryTypeName){
+        mp_symmetryType.setValue(symmetryTypeName);
     }
 
     /**
-     * Get the frieze type
-     * @return
+       @param width width of fundamental domain. 
      */
-    public int getFriezeType() {
-        return m_friezeType;
+    public void setDomainWidth(double width){
+        mp_domainWidth.setValue(width);
     }
 
-    /**
-     * Get the domain width
-     */
-    public double getDomainWidth() {
-        return m_domainWidth;
-    }
+    public void setMaxCount(int maxCount){
 
-    /**
-     * Set the domain width
-     */
-    public void setDomainWidth(double width) {
-        m_domainWidth = width;
+        mp_maxCount.setValue(maxCount);
+
     }
 
     /**
@@ -109,30 +136,36 @@ public class FriezeSymmetry extends BaseTransform implements VecTransform, Initi
      */
     public int initialize() {
 
-        switch (m_friezeType) {
+        int symmetryType = mp_symmetryType.getIndex();
+        double domainWidth = mp_domainWidth.getValue();
+        int maxCount = mp_maxCount.getValue();
+
+        switch (symmetryType) {
             default:
             case FRIEZE_II:
-                m_sym = Symmetry.getII(m_domainWidth);
+                m_group = FriezeSymmetries.getII(domainWidth);
                 break;
             case FRIEZE_S22I:
-                m_sym = Symmetry.getS22I(m_domainWidth);
+                m_group = FriezeSymmetries.getS22I(domainWidth);
                 break;
             case FRIEZE_IS:
-                m_sym = Symmetry.getIS(m_domainWidth);
+                m_group = FriezeSymmetries.getIS(domainWidth);
                 break;
             case FRIEZE_SII:
-                m_sym = Symmetry.getSII(m_domainWidth);
+                m_group = FriezeSymmetries.getSII(domainWidth);
                 break;
             case FRIEZE_2SI:
-                m_sym = Symmetry.get2SI(m_domainWidth);
+                m_group = FriezeSymmetries.get2SI(domainWidth);
                 break;
             case FRIEZE_22I:
-                m_sym = Symmetry.get22I(m_domainWidth);
+                m_group = FriezeSymmetries.get22I(domainWidth);
                 break;
             case FRIEZE_IX:
-                m_sym = Symmetry.getIX(m_domainWidth);
+                m_group = FriezeSymmetries.getIX(domainWidth);
                 break;
         }
+
+        m_group.setMaxIterations(maxCount);
 
         return RESULT_OK;
 
@@ -162,18 +195,8 @@ public class FriezeSymmetry extends BaseTransform implements VecTransform, Initi
      @noRefGuide
      */
     public int inverse_transform(Vec in, Vec out) {
+        
         out.set(in);
-        // TODO - garbage generation 
-        Vector4d vin = new Vector4d(in.v[0], in.v[1], in.v[2], 1);
-
-        toFundamentalDomain(vin, m_sym, m_maxCount);
-
-        // save result 
-        out.v[0] = vin.x;
-        out.v[1] = vin.y;
-        out.v[2] = vin.z;
-
-        return RESULT_OK;
-
+        return m_group.toFD(out);        
     }
 } // class FriezeSymmetry

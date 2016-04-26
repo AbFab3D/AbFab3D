@@ -13,6 +13,8 @@
 package abfab3d.symmetry;
 
 import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4d;
+import javax.vecmath.Matrix4d;
 
 
 import static abfab3d.util.Output.printf;
@@ -63,6 +65,18 @@ public class SymmetryGroup {
         System.arraycopy(splanes, 0, m_splanes, 0, splanes.length);
         
     }
+    public SymmetryGroup(Vector4d planes[], Matrix4d transforms[]){
+        m_type = TYPE_EUCLIDEAN;
+        
+        m_splanes = new SPlane[planes.length];
+        m_transforms = new ETransform[planes.length];
+        for(int i = 0; i < planes.length; i++){
+            m_splanes[i] = new EPlane(planes[i]);
+            m_transforms[i] = new ETransform(transforms[i]);
+        }
+        
+    }
+
     public SymmetryGroup(SPlane planes[], ETransform transforms[]){
         m_type = TYPE_EUCLIDEAN;
         m_splanes = planes;
@@ -81,6 +95,7 @@ public class SymmetryGroup {
     }
 
     public int toFD(Vec pnt){
+
         switch(m_type){
         default:
         case TYPE_REFLECTIONS:
