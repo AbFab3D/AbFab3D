@@ -50,8 +50,7 @@ public class SymmetryGroup {
     public static final int TYPE_REFLECTIONS = 0;
     public static final int TYPE_EUCLIDEAN = 1;
     public static final int TYPE_INVERSIVE = 2;
-    
-    
+        
     int m_type = TYPE_REFLECTIONS;
     
     SPlane m_splanes[];
@@ -83,7 +82,11 @@ public class SymmetryGroup {
         m_transforms = transforms;
         
     }
-   
+
+    public int getType(){
+        return m_type;
+    }
+
     public SPlane[] getFundamentalDomain(){
         return m_splanes;
     }
@@ -91,6 +94,11 @@ public class SymmetryGroup {
     public void setMaxIterations(int value){
 
         m_maxIterations = value;
+        
+    }
+    public int getMaxIterations(){
+
+        return m_maxIterations;
         
     }
 

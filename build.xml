@@ -341,6 +341,7 @@
             manifest="abfab3d_core.mf"
             includes="
                 abfab3d/math/*
+                abfab3d/symmetry/*
                 abfab3d/transforms/*
                 abfab3d/datasources/*
                 abfab3d/geom/*

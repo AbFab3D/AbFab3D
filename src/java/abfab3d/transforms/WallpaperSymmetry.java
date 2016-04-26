@@ -26,6 +26,7 @@ import abfab3d.util.Initializable;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.EnumParameter;
 import abfab3d.param.IntParameter;
+import abfab3d.param.ObjectParameter;
 import abfab3d.param.Parameter;
 
 
@@ -79,12 +80,14 @@ import static abfab3d.util.Output.printf;
 public class WallpaperSymmetry  extends BaseTransform implements Initializable {
     
 
+    static final Object UNDEFINED = null;
 
     protected DoubleParameter  mp_domainWidth = new DoubleParameter("domainWidth","width of fundamental domain",0.01);
     protected DoubleParameter  mp_domainHeight = new DoubleParameter("domainHeight","height of fundamental domain",0.01);
     protected DoubleParameter  mp_domainSkew = new DoubleParameter("domainSkew","skew of fundamental domain for symmetry O",0.0);
     protected IntParameter  mp_maxCount = new IntParameter("maxCount","max count of iteratioins to get to fundamental domain",100);
-    protected EnumParameter  mp_symmetryType = new EnumParameter("symmetryType","type of walpaper symetry",SymmetryNames, SymmetryNames[WP_S2222]);
+    protected EnumParameter  mp_symmetryType = new EnumParameter("symmetryType","type of wallpaper symmetry",SymmetryNames, SymmetryNames[WP_S2222]);
+    protected ObjectParameter  mp_symmetryGroup = new ObjectParameter("symmetryGroup","symmetry group to use",UNDEFINED);
 
     Parameter aparam[] = new Parameter[]{
         mp_domainWidth,
@@ -92,6 +95,7 @@ public class WallpaperSymmetry  extends BaseTransform implements Initializable {
         mp_domainSkew,
         mp_maxCount, 
         mp_symmetryType,       
+        mp_symmetryGroup,
     };
 
     static final public String SymmetryNames[] = new String[]{
@@ -281,12 +285,21 @@ public class WallpaperSymmetry  extends BaseTransform implements Initializable {
      */
     public int initialize(){
         
+        int maxCount = mp_maxCount.getValue();
         int symmetryType = mp_symmetryType.getIndex();
         double domainWidth = mp_domainWidth.getValue();
         double domainHeight = mp_domainHeight.getValue();
         double domainSkew = mp_domainSkew.getValue();
-        int maxCount = mp_maxCount.getValue();
 
+        m_group = (SymmetryGroup)mp_symmetryGroup.getValue();
+        if(m_group != UNDEFINED) {
+            // group is already defined explicitly 
+            m_group.setMaxIterations(maxCount);
+            return RESULT_OK;
+        }
+
+
+                
         switch(symmetryType){
         default: 
         case WP_O:    m_group = WallpaperSymmetries.getO(domainWidth,domainHeight, domainSkew); break;
@@ -311,6 +324,8 @@ public class WallpaperSymmetry  extends BaseTransform implements Initializable {
 
         }
 
+        // we do this to provide universal way to access m_group via get("symmetryGroup");
+        mp_symmetryGroup.setValue(m_group);
         m_group.setMaxIterations(maxCount);
 
 

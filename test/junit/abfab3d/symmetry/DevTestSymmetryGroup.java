@@ -20,9 +20,18 @@ import abfab3d.grid.op.GridMaker;
 
 import abfab3d.util.Bounds;
 import abfab3d.util.DataSource;
+import abfab3d.util.VecTransform;
 
+import abfab3d.transforms.FriezeSymmetry;
+import abfab3d.transforms.WallpaperSymmetry;
 import abfab3d.transforms.SymmetryTransform;
+import abfab3d.transforms.Rotation;
+import abfab3d.transforms.BaseTransform;
+
+import abfab3d.datasources.TransformableDataSource;
 import abfab3d.datasources.Union;
+import abfab3d.datasources.Sphere;
+import abfab3d.datasources.Box;
 
 
 import abfab3d.util.Vec;
@@ -36,8 +45,8 @@ public class DevTestSymmetryGroup {
         
         return new SymmetryGroup(
                              new SPlane[] { 
-                                 new Plane(new Vector3d(-1,0,0), -x1), // right of  plane 1
-                                 new Plane(new Vector3d(1,0,0), x2),   // left of plane 2
+                                 new EPlane(new Vector3d(-1,0,0), -x1), // right of  plane 1
+                                 new EPlane(new Vector3d(1,0,0), x2),   // left of plane 2
                              }
                              );
         
@@ -47,12 +56,12 @@ public class DevTestSymmetryGroup {
         
         return new SymmetryGroup(
                              new SPlane[] { 
-                                 new Plane(new Vector3d(-1,0,0), 1), 
-                                 new Plane(new Vector3d(1,0,0), 1),  
-                                 new Plane(new Vector3d(0,1,0), 1),  
-                                 new Plane(new Vector3d(0,-1,0), 1),  
-                                 new Plane(new Vector3d(0,0,1), 1),  
-                                 new Plane(new Vector3d(0,0,-1), 1),  
+                                 new EPlane(new Vector3d(-1,0,0), 1), 
+                                 new EPlane(new Vector3d(1,0,0), 1),  
+                                 new EPlane(new Vector3d(0,1,0), 1),  
+                                 new EPlane(new Vector3d(0,-1,0), 1),  
+                                 new EPlane(new Vector3d(0,0,1), 1),  
+                                 new EPlane(new Vector3d(0,0,-1), 1),  
                              }
                              );
         
@@ -60,13 +69,13 @@ public class DevTestSymmetryGroup {
 
     static SymmetryGroup getCubeE(){
         
-        Plane sides[] = new Plane[] { 
-            new Plane(new Vector3d(-1,0,0), 1), 
-            new Plane(new Vector3d(1,0,0), 1),  
-            new Plane(new Vector3d(0,1,0), 1),  
-            new Plane(new Vector3d(0,-1,0), 1),  
-            new Plane(new Vector3d(0,0,1), 1),  
-            new Plane(new Vector3d(0,0,-1), 1),  
+        EPlane sides[] = new EPlane[] { 
+            new EPlane(new Vector3d(-1,0,0), 1), 
+            new EPlane(new Vector3d(1,0,0), 1),  
+            new EPlane(new Vector3d(0,1,0), 1),  
+            new EPlane(new Vector3d(0,-1,0), 1),  
+            new EPlane(new Vector3d(0,0,1), 1),  
+            new EPlane(new Vector3d(0,0,-1), 1),  
         };
 
         return new SymmetryGroup(sides, 
@@ -86,7 +95,7 @@ public class DevTestSymmetryGroup {
         
         return new SymmetryGroup(
                              new SPlane[] { 
-                                 new Sphere(new Vector3d(0,0,0),1), 
+                                 new ESphere(new Vector3d(0,0,0),1), 
                              }
                              );
         
@@ -100,8 +109,8 @@ public class DevTestSymmetryGroup {
         printf("lens: x: %7.5f C:%7.5f R:%7.5f\n",x,C,R);
         return new SymmetryGroup(
                              new SPlane[] { 
-                                 new Sphere(new Vector3d(C,0,0),R), 
-                                 new Sphere(new Vector3d(-C,0,0),R), 
+                                 new ESphere(new Vector3d(C,0,0),R), 
+                                 new ESphere(new Vector3d(-C,0,0),R), 
                              }
                              );
         
@@ -129,7 +138,7 @@ public class DevTestSymmetryGroup {
 
     public void devTestSphere(){
 
-        Sphere s = new Sphere(new Vector3d(-0.8,0,0),1);
+        ESphere s = new ESphere(new Vector3d(-0.8,0,0),1);
         Vec pnt = new Vec(3);
         //for(int i = 1; i <= 100; i++){
         for(int i = 0; i < 1; i++){
@@ -144,30 +153,75 @@ public class DevTestSymmetryGroup {
         }
     }
 
-    DataSource makeSphere(double r){
+    TransformableDataSource makeShape(double width){
 
-        Union ds = new Union(new abfab3d.datasources.Sphere(new Vector3d(-r/2,-r/6,0),r/2),
-                             new abfab3d.datasources.Sphere(new Vector3d(r/2,0,0),r/2),
-                             new abfab3d.datasources.Sphere(new Vector3d(r*(2/3.),r*5./6,0),r/3)
-                            );
-        ds.setTransform(new SymmetryTransform(new Symmetries.FriezeII(2*r)));
+        Box box = new Box(width, 0.1*width,0.1*width);
+        box.setTransform(new Rotation(0,0,1,Math.PI/6));
+        Union ds = new Union(box,
+                             new Sphere(new Vector3d(width*0.3, 0,0),0.2*width)
+                             );
+        return ds;
+    }
+
+    TransformableDataSource makeShape2(double width){
+        double s = 0.0;
+        Box box = new Box(0, width*0.5, 0, width*0.9, 0.1*width,0.1*width);
+        Box box2 = new Box(width*0.3, width*0.25, 0,0.2*width, 0.4*width, 0.1*width);
+
+        Union ds = new Union(box, box2);
         return ds;
     }
 
     public void devTestGridRendering(){
         double vs = 1.;
         double s = 500*vs;
-
+        double fdwidth = 0.2*s;
         AttributeGrid grid = new ArrayAttributeGridInt(new Bounds(-s,s,-s,s,0, vs), vs,vs);
         GridMaker gmaker = new GridMaker();
-        gmaker.setSource(makeSphere(0.3*s));
-        long t0 = time();
-        gmaker.makeGrid(grid);
-        printf("grid ready: %d ms\n", (time() - t0));
+        BaseTransform trans[] = new BaseTransform[]{
+            
+            new FriezeSymmetry(FriezeSymmetry.FRIEZE_II,fdwidth),
+            new FriezeSymmetry(FriezeSymmetry.FRIEZE_IX,fdwidth),
+            new FriezeSymmetry(FriezeSymmetry.FRIEZE_IS,fdwidth),
+            new FriezeSymmetry(FriezeSymmetry.FRIEZE_SII,fdwidth),
+            new FriezeSymmetry(FriezeSymmetry.FRIEZE_22I,fdwidth),
+            new FriezeSymmetry(FriezeSymmetry.FRIEZE_2SI,fdwidth),
+            new FriezeSymmetry(FriezeSymmetry.FRIEZE_S22I,fdwidth),
+            
+            new WallpaperSymmetry(WallpaperSymmetry.WP_O,fdwidth,1.1*fdwidth,0.1),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_XX,fdwidth,1.1*fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_SX,fdwidth,1.1*fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_SS,fdwidth,1.1*fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_632,fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_S632,fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_333,fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_S333,fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_3S3,fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_442,fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_S442,fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_4S2,fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_2222,fdwidth,1.1*fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_22X,fdwidth,1.1*fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_22S,fdwidth,1.1*fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_S2222,fdwidth,1.1*fdwidth),
+            new WallpaperSymmetry(WallpaperSymmetry.WP_2S22,fdwidth,1.1*fdwidth),        
+        };
+
         GridDataWriter writer = new GridDataWriter();
         writer.set("type",GridDataWriter.TYPE_DENSITY);
-        writer.writeSlices(grid, grid.getDataChannel(), "/tmp/slices/s%03d.png");
-        //writer.printSlices(grid, "%6x ");
+        
+        for(int i = 0; i < trans.length; i++){
+            
+            TransformableDataSource ds = makeShape2(fdwidth);        
+            ds.setTransform(trans[i]);
+            gmaker.setSource(ds);
+            long t0 = time();
+            gmaker.makeGrid(grid);
+            printf("grid ready: %d ms\n", (time() - t0));
+            String symName = trans[i].getClass().getSimpleName() + "." + (String)trans[i].getParam("symmetryType").getValue();
+            writer.writeSlices(grid, grid.getDataChannel(), fmt("/tmp/slices/%s.png",symName));
+            
+        }        
     }
 
     public static void main(String arg[]){
