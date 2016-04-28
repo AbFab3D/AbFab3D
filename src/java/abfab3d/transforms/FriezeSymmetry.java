@@ -17,6 +17,7 @@ import abfab3d.param.DoubleParameter;
 import abfab3d.param.EnumParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.Parameter;
+import abfab3d.param.ObjectParameter;
 
 
 import abfab3d.symmetry.SymmetryGroup;
@@ -43,6 +44,7 @@ public class FriezeSymmetry extends BaseTransform implements Initializable {
     protected DoubleParameter  mp_domainSkew = new DoubleParameter("domainSkew","skew of fundamental domain for symmetry O",0.0);
     protected IntParameter  mp_maxCount = new IntParameter("maxCount","max count of iteratioins to get to fundamental domain",100);
     protected EnumParameter  mp_symmetryType = new EnumParameter("symmetryType","type of walpaper symetry",SymmetryNames, SymmetryNames[FRIEZE_II]);
+    protected ObjectParameter  mp_symmetryGroup = new ObjectParameter("symmetryGroup","symmetry group to use",null);
 
     Parameter aparam[] = new Parameter[]{
         mp_domainWidth,
@@ -50,6 +52,7 @@ public class FriezeSymmetry extends BaseTransform implements Initializable {
         mp_domainSkew,
         mp_maxCount, 
         mp_symmetryType,       
+        mp_symmetryGroup,
     };
 
     static final public String SymmetryNames[] = new String[]{
@@ -165,6 +168,8 @@ public class FriezeSymmetry extends BaseTransform implements Initializable {
                 break;
         }
 
+        // we do this to provide universal way to access m_group via get("symmetryGroup");
+        mp_symmetryGroup.setValue(m_group);
         m_group.setMaxIterations(maxCount);
 
         return RESULT_OK;

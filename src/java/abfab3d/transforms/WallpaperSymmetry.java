@@ -291,12 +291,12 @@ public class WallpaperSymmetry  extends BaseTransform implements Initializable {
         double domainHeight = mp_domainHeight.getValue();
         double domainSkew = mp_domainSkew.getValue();
 
-        m_group = (SymmetryGroup)mp_symmetryGroup.getValue();
-        if(m_group != UNDEFINED) {
-            // group is already defined explicitly 
-            m_group.setMaxIterations(maxCount);
-            return RESULT_OK;
-        }
+        //m_group = (SymmetryGroup)mp_symmetryGroup.getValue();
+        //if(m_group != UNDEFINED) {
+        //    // group is already defined explicitly 
+        //    m_group.setMaxIterations(maxCount);
+        //    return RESULT_OK;
+        //}
 
 
                 
