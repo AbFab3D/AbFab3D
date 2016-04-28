@@ -55,6 +55,8 @@ public class SymmetryGroup {
     
     SPlane m_splanes[];
     PairingTransform m_transforms[];
+    ETransform m_etransforms[];    // euclidean transforms 
+    //ITransform m_itransforms[]; // inversive transforms
     
     int m_maxIterations = 20;
     
@@ -68,11 +70,13 @@ public class SymmetryGroup {
         m_type = TYPE_EUCLIDEAN;
         
         m_splanes = new SPlane[planes.length];
-        m_transforms = new ETransform[planes.length];
+        m_etransforms = new ETransform[planes.length];
         for(int i = 0; i < planes.length; i++){
             m_splanes[i] = new EPlane(planes[i]);
-            m_transforms[i] = new ETransform(transforms[i]);
+            m_etransforms[i] = new ETransform(transforms[i]);
         }
+        // general transform are ETransform
+        m_transforms = m_transforms;
         
     }
 
@@ -80,6 +84,7 @@ public class SymmetryGroup {
         m_type = TYPE_EUCLIDEAN;
         m_splanes = planes;
         m_transforms = transforms;
+        m_etransforms = transforms;
         
     }
 
@@ -89,6 +94,10 @@ public class SymmetryGroup {
 
     public SPlane[] getFundamentalDomain(){
         return m_splanes;
+    }
+
+    public ETransform[] getETransforms(){
+        return m_etransforms;
     }
 
     public void setMaxIterations(int value){

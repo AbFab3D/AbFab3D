@@ -42,10 +42,24 @@ public class ETransform implements PairingTransform {
      *
      */
     public ETransform(Matrix4d matrix){
-        m_matrix = new Matrix4d();
-        m_matrix.set(matrix);
+        m_matrix = new Matrix4d(matrix);
+        //m_matrix.set(matrix);
         init();
         
+    }
+
+    /**
+       @return matrix of this transform
+     */
+    public Matrix4d getMatrix(){
+        return m_matrix;
+    }
+
+    /**
+       @return inverse matrix of this transform
+     */
+    public Matrix4d getInverseMatrix(){
+        return m_imatrix;
     }
 
     /**
