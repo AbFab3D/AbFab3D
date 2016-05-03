@@ -39,7 +39,11 @@ import static abfab3d.util.Units.MM;
 import static abfab3d.util.Output.printf;
 
 /**
-   transform point into fundamental domain of periodic latice 
+   periodic tiling of space with copies of interor of a single tile - fundamental domain. 
+   works by transforming arbitrary point in space into the fundamental domain. 
+
+   
+
 */
 public class PeriodicWrap extends BaseTransform implements Initializable {
     
@@ -65,14 +69,25 @@ public class PeriodicWrap extends BaseTransform implements Initializable {
     };
     
     /**
-       one dimensional lattice 
+       periodic tiling with single basis vector
+       fundamental domain is infinite slabs orthogonal to the vector a1
+       @param a1 single basis vector
+       <embed src="doc-files/PeriodicWrap_1D.svg" type="image/svg+xml"/>
+
      */
     public PeriodicWrap(Vector3d a1){
         initParams();
         mp_a1.setValue(a1);
     }
     /**
-       two dimensional lattice 
+       two-periodic tiling wih two basis vectors
+       fundamental domain is infinite prism orthogonal to the plane span by vectors a1 and a2
+       @param a1 period vector
+       <embed src="doc-files/PeriodicWrap_2D.svg" type="image/svg+xml"/>
+       
+       @param a1 first basis vector
+       @param a2 second basis vector
+       
      */
     public PeriodicWrap(Vector3d a1,Vector3d a2){
         initParams();
@@ -81,7 +96,12 @@ public class PeriodicWrap extends BaseTransform implements Initializable {
     }
 
     /**
-       three dimensional lattice 
+       three dimensional tiling formed by three basis vectors 
+
+       @param a1 first basis vector
+       @param a2 second basis vector
+       @param a3 third basis vector
+       
      */
     public PeriodicWrap(Vector3d a1,Vector3d a2,Vector3d a3){
         initParams();
@@ -94,32 +114,59 @@ public class PeriodicWrap extends BaseTransform implements Initializable {
         mp_origin.setValue(val.clone());
     }
 
+    /**
+     @noRefGuide
+     */
     public void initParams(){
         super.addParams(m_aparam);
     }
 
 
+    /**
+     @noRefGuide
+     */
     public Vector3d getOrigin(){
         return m_origin;
     }
+    /**
+     @noRefGuide
+     */
     public Vector3d getA1(){
         return m_a1;
     }
+    /**
+     @noRefGuide
+     */
     public Vector3d getA2(){
         return m_a2;
     }
+    /**
+     @noRefGuide
+     */
     public Vector3d getA3(){
         return m_a3;
     }
+    /**
+     @noRefGuide
+     */
     public Vector3d getD1(){
         return m_d1;
     }
+    /**
+     @noRefGuide
+     */
     public Vector3d getD2(){
         return m_d2;
     }
+    /**
+     @noRefGuide
+     */
     public Vector3d getD3(){
         return m_d3;
     }    
+    /**
+     @noRefGuide
+     */
     public int getCount(){
         return m_count;
     }
