@@ -39,10 +39,18 @@ import static abfab3d.util.Units.MM;
 import static abfab3d.util.Output.printf;
 
 /**
-   periodic tiling of space with copies of interor of a single tile - fundamental domain. 
-   works by transforming arbitrary point in space into the fundamental domain. 
-
-   
+   Periodic tiling of space with copies of interor of a single tile - fundamental domain. 
+   The fundamental domain is build on basis vectors. The location of fundamnetal domain is controlled by its origin. 
+   Depending on count of basis vectors the fundamental domain is 
+   <ul>
+   <li> Infinite slab orthogonal to single basis vector</li>
+   <embed src="doc-files/PeriodicWrap_1D.svg" type="image/svg+xml"/>
+   <li> Infinite prizm with parallelogram base build on two basis vectors</li>
+   <embed src="doc-files/PeriodicWrap_2D.svg" type="image/svg+xml"/>
+   <li> Parallelepiped build on three basis vectors    </li>
+   <embed src="doc-files/PeriodicWrap_3D_fd.svg" type="image/svg+xml"/>
+   <ul>
+   The transformation works by mapping any point in space into corresponding point in the fundamental domain.    
 
 */
 public class PeriodicWrap extends BaseTransform implements Initializable {
@@ -56,7 +64,7 @@ public class PeriodicWrap extends BaseTransform implements Initializable {
     // arbitratry non parallel vector 
     private final static Vector3d vrnd = new Vector3d(0.12345,0.23456,0.34567);
     
-    protected Vector3dParameter  mp_origin = new Vector3dParameter("origin","origin of the lattice",new Vector3d(0,0,0));
+    protected Vector3dParameter  mp_origin = new Vector3dParameter("origin","origin of the tiling",new Vector3d(0,0,0));
     protected Vector3dParameter  mp_a1 = new Vector3dParameter("a1","first basis vector",new Vector3d(10*MM,0,0));
     protected Vector3dParameter  mp_a2 = new Vector3dParameter("a2","second basis vector",null);
     protected Vector3dParameter  mp_a3 = new Vector3dParameter("a3","third basis vector",null);
@@ -69,10 +77,9 @@ public class PeriodicWrap extends BaseTransform implements Initializable {
     };
     
     /**
-       periodic tiling with single basis vector
-       fundamental domain is infinite slabs orthogonal to the vector a1
+       periodic tiling with single basis vector.
+       Fundamental domain is infinite slabs orthogonal to the basis vector 
        @param a1 single basis vector
-       <embed src="doc-files/PeriodicWrap_1D.svg" type="image/svg+xml"/>
 
      */
     public PeriodicWrap(Vector3d a1){
@@ -80,11 +87,9 @@ public class PeriodicWrap extends BaseTransform implements Initializable {
         mp_a1.setValue(a1);
     }
     /**
-       two-periodic tiling wih two basis vectors
-       fundamental domain is infinite prism orthogonal to the plane span by vectors a1 and a2
-       @param a1 period vector
-       <embed src="doc-files/PeriodicWrap_2D.svg" type="image/svg+xml"/>
-       
+       Two-periodic tiling formed by two basis vectors.
+       Fundamental domain is infinite prism orthogonal to the plane span by vectors a1 and a2. Base of prism is paralelogram build on basis vectors. 
+              
        @param a1 first basis vector
        @param a2 second basis vector
        
@@ -96,8 +101,9 @@ public class PeriodicWrap extends BaseTransform implements Initializable {
     }
 
     /**
-       three dimensional tiling formed by three basis vectors 
-
+       Three-periodic tiling formed by three basis vectors 
+       Fundamental domain is parallelepiped build on tree basis vectors a1, a2, a3
+       
        @param a1 first basis vector
        @param a2 second basis vector
        @param a3 third basis vector
@@ -110,6 +116,9 @@ public class PeriodicWrap extends BaseTransform implements Initializable {
         mp_a3.setValue(a3);
     }
 
+    /**
+       Set origin of the tiling. It is the point in the vertex of the fundamental domain. 
+     */
     public void setOrigin(Vector3d val) {
         mp_origin.setValue(val.clone());
     }
