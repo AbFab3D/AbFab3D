@@ -525,6 +525,7 @@ public class Image3D extends TransformableDataSource {
     }
 
     public void setImage(Object val) {
+        printf("Image3D setImage:  %s  class: %s\n",val.toString(),val.getClass());
         mp_image.setValue(val);
     }
 
@@ -661,7 +662,15 @@ public class Image3D extends TransformableDataSource {
             }
         }
     }
-    
+
+    /**
+     * Get a label for the OpenCL buffer, account for all params which change the buffer value
+     * @return
+     */
+    public String getBufferLabel() {
+        return BaseParameterizable.getParamString(getClass().getSimpleName(), imageParams);
+    }
+
     /**
      * @noRefGuide
      */

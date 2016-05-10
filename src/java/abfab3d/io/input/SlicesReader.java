@@ -33,6 +33,7 @@ import abfab3d.util.ImageUtil;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.time;
 
 /**
  * Slces Reader.
@@ -43,7 +44,8 @@ import static abfab3d.util.Output.fmt;
  */
 public class SlicesReader {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
+    private static final boolean DEBUG_TIMING = true;
 
     static final int ORIENTATION_X = 1, ORIENTATION_Y = 2, ORIENTATION_Z= 3;
 
@@ -131,7 +133,8 @@ public class SlicesReader {
                           int firstFile, int firstSlice,
                           int count, int orientation) throws IOException {
 
-        printf("Reading slices: %d\n",count);
+        long t0 = time();
+        if (DEBUG) printf("Reading slices: %d\n",count);
         for(int i=0; i < count; i++) {
             String fname = Output.fmt(fileTemplate, i+firstFile);
             if(DEBUG) printf("reading: %s\n", fname);
@@ -141,12 +144,13 @@ public class SlicesReader {
                 printf("Cannot find slice file: %s\n",fname);
             }
 
-            printf("zip: %s entry: %s",zip,entry);
+            if (DEBUG) printf("zip: %s entry: %s",zip,entry);
             System.out.flush();
             InputStream is = zip.getInputStream(entry);
             readSlice(is, grid, i + firstSlice, orientation);
         }
 
+        printf("readSlice %d ms\n",(time() - t0));
         return 0;
     }
 

@@ -70,6 +70,14 @@ public interface AttributeGrid extends Grid {
     public void setAttribute(int x, int y, int z, long attribute);
 
     /**
+     * Set a row of attribute values
+     * @param x
+     * @param y
+     * @param attribute
+     */
+    public void setAttributes(int x, int y, long[] attribute);
+
+    /**
      * Set the attribute value of a voxel.  Leaves the state unchanged.
      *
      * @param x The x world coordinate

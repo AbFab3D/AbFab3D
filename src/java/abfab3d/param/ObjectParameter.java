@@ -60,6 +60,10 @@ public class ObjectParameter extends BaseParameter {
 
         if (value == null) return "null";
 
+        if (value instanceof String) {
+            return (String) value;
+        }
+
         //return value.toString();
         return value.getClass().getSimpleName() + "@" + Integer.toHexString(value.hashCode());
     }

@@ -178,6 +178,11 @@ public abstract class BaseParameter implements Parameter {
 
     public String getParamString() {
         if (value == null) return "null";
+
+        if (value instanceof String) {
+            return (String) value;
+        }
+
         return value.toString();
     }
 

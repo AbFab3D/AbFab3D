@@ -100,6 +100,37 @@ public class GridShortIntervals extends GridBitIntervals {
         set(x, y, z, ioFunc.updateAttribute(curCode,attribute));
     }
 
+    public void setAttributes(int x, int y, long[] attribute) {
+        int nz = attribute.length;
+        int ind = x + m_nx * y;
+
+        if (x < 0 || x >= m_nx || y < 0 || y >= m_ny) {//ind < 0){
+            throw new IllegalArgumentException(fmt("x: %d, y: %d, ind: %d\n", x, y, ind));
+        }
+
+        for (int z = nz - 1; z >= 0; z--) {
+            // Copy from get method
+            RowOfInt interval = m_data[ind];
+            long curCode;
+
+            if (interval == null)
+                curCode = 0;
+            else
+                curCode = interval.get(z);
+
+            long curAtt = ioFunc.getAttribute(curCode);
+            long newAtt = attribute[z];
+            if (curAtt == newAtt)
+                continue;
+
+            // copy from set method
+            if (interval == null) {
+                m_data[ind] = interval = new ShortIntervals();//newInterval();
+            }
+            interval.set(z, ioFunc.updateAttribute(curCode, newAtt));
+        }
+    }
+
     public long getAttribute(int x, int y, int z) {
         return ioFunc.getAttribute(get(x,y,z));
     }
@@ -137,7 +168,7 @@ public class GridShortIntervals extends GridBitIntervals {
         if (x < 0 || x >= m_nx || y < 0 || y >= m_ny) {//ind < 0){
             throw new IllegalArgumentException(fmt("x: %d, y: %d, ind: %d\n", x, y, ind));
         }
-        RowOfInt interval = m_data[x + m_nx * y];
+        RowOfInt interval = m_data[ind];
         if (interval == null)
             return 0;
         else

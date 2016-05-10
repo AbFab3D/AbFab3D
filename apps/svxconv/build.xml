@@ -125,9 +125,9 @@
             <jvmarg line="${jvmrunargs}"/>
             <arg value="-input" />
 <!--            <arg value="/tmp/voxelsize/original-3000075_v0.stl" /> -->
-            <arg value="ShoeDryer.svx" />
+            <arg value="original-4680953_v0.stl" />
             <arg value="-output" />
-            <arg value="shoe.x3db" />
+            <arg value="droid1.svx" />
 <!--
             <arg value="-input" />
             <arg value="cf6_1024.svx" />
@@ -140,6 +140,42 @@
             <arg value="-meshSmoothingWidth" />
             <arg value="0.5" />
 -->
+            <arg value="-maxTriangles" />
+            <arg value="50000000" />
+
+            <arg value="-meshMaxPartsCount" />
+            <arg value="1" />
+            <classpath>
+                <pathelement path="${classes.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+                <pathelement path="${app.common.dir}/classes"/>
+                <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+            </classpath>
+        </java>
+    </target>
+
+    <target name="run2" depends="compile" description="Run the application">
+        <java classname="svxconv.SVXConv" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <arg value="-input" />
+            <!--            <arg value="/tmp/voxelsize/original-3000075_v0.stl" /> -->
+            <arg value="droid1.svx" />
+            <arg value="-output" />
+            <arg value="droid2.stl" />
+            <!--
+                        <arg value="-input" />
+                        <arg value="cf6_1024.svx" />
+                        <arg value="-output" />
+                        <arg value="v6_1024_ef0.85_sw_0.4.x3db" />
+            -->
+            <!--
+                        <arg value="-meshErrorFactor" />
+                        <arg value="0.1" />
+                        <arg value="-meshSmoothingWidth" />
+                        <arg value="0.5" />
+            -->
             <arg value="-maxTriangles" />
             <arg value="50000000" />
 

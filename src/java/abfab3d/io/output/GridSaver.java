@@ -778,8 +778,6 @@ public class GridSaver {
         int face_count = 0;
         int cnt = 0;
 
-        printf("here1");
-        // TODO: this is single threaded and very slow for large numbers of shells.  Sadly ShellFinder is not thread safe
         for (int i = 0; i < shells.length; i++) {
             AreaCalculator ac = new AreaCalculator();
             shellFinder.getShell(mesh, shells[i].startFace, ac);
