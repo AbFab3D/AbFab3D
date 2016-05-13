@@ -4,15 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/src/AbFab3D Lib.iml" filepath="$PROJECT_DIR$/src/AbFab3D Lib.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/common/src/AppCommon.iml" filepath="$PROJECT_DIR$/apps/common/src/AppCommon.iml" />
-      <module fileurl="file://$PROJECT_DIR$/apps/dla/src/Dla.iml" filepath="$PROJECT_DIR$/apps/dla/src/Dla.iml" />
-      <module fileurl="file://$PROJECT_DIR$/apps/imagepopper/src/Imagepopper.iml" filepath="$PROJECT_DIR$/apps/imagepopper/src/Imagepopper.iml" />
-      <module fileurl="file://$PROJECT_DIR$/src/build/Manual.iml" filepath="$PROJECT_DIR$/src/build/Manual.iml" />
-      <module fileurl="file://$PROJECT_DIR$/apps/rectsidedpopper/src/RectSidedPopper.iml" filepath="$PROJECT_DIR$/apps/rectsidedpopper/src/RectSidedPopper.iml" />
-      <module fileurl="file://$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" filepath="$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" />
-      <module fileurl="file://$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" filepath="$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" />
-      <module fileurl="file://$PROJECT_DIR$/apps/cloth/src/cloth.iml" filepath="$PROJECT_DIR$/apps/cloth/src/cloth.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/svxconv/src/svxconv.iml" filepath="$PROJECT_DIR$/apps/svxconv/src/svxconv.iml" />
-      <module fileurl="file://$PROJECT_DIR$/apps/volumesculptor/src/volumesculptor.iml" filepath="$PROJECT_DIR$/apps/volumesculptor/src/volumesculptor.iml" />
     </modules>
   </component>
 </project>

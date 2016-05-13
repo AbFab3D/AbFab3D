@@ -1196,7 +1196,7 @@ public class TestGridMaker extends TestCase {
         //fs.setFriezeType(FriezeSymmetry.FRIEZE_SII);
         //fs.setFriezeType(FriezeSymmetry.FRIEZE_2SI);
         //fs.setFriezeType(FriezeSymmetry.FRIEZE_22I);
-        fs.setFriezeType(FriezeSymmetry.FRIEZE_IX);
+        fs.setSymmetryType(FriezeSymmetry.FRIEZE_IX);
 
         compTrans.add(rot);
         compTrans.add(fs);
