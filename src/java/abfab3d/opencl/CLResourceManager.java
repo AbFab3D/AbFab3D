@@ -13,6 +13,7 @@ package abfab3d.opencl;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static abfab3d.util.Output.printf;
 
@@ -49,7 +50,7 @@ public class CLResourceManager implements Runnable {
 
         // My expectation is the number of threads will be low(ie # GPUs) so a ConcurrentLinkedHashMap is not needed.
         cache = Collections.synchronizedMap(new LinkedHashMap<Resource, CacheEntry>());
-        scheduler = Executors.newScheduledThreadPool(1);
+        scheduler = Executors.newScheduledThreadPool(1, new NamedThreadFactory("CLResourceManager"));
 
         scheduler.scheduleAtFixedRate(this, timeout, timeout, TimeUnit.MILLISECONDS);
 
@@ -296,5 +297,22 @@ public class CLResourceManager implements Runnable {
             return Long.compare(ce1.lastAccess,ce2.lastAccess);
         }
     }
+
+    public class NamedThreadFactory implements ThreadFactory {
+
+        private static final String THREAD_NAME_PATTERN = "%s-%d";
+        private final AtomicInteger counter = new AtomicInteger();
+        private String namePrefix;
+
+        public NamedThreadFactory(final String namePrefix) {
+            this.namePrefix = namePrefix;
+        }
+
+        public Thread newThread(Runnable r) {
+            final String threadName = String.format(THREAD_NAME_PATTERN, namePrefix, counter.incrementAndGet());
+            return new Thread(r, threadName);
+        }
+    }
+
 }
 
