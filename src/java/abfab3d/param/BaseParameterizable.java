@@ -123,7 +123,8 @@ public class BaseParameterizable implements Parameterizable, SNode {
             Parameter p = aparam[i];
             sb.append(p.getName());
             sb.append("=\"");
-            sb.append(p.getParamString());
+            String ps = p.getParamString();
+            sb.append(ps);
             sb.append("\";");
         }
         return sb.toString();

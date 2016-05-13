@@ -504,12 +504,26 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
        deprecated method 
      */
     public void setDataWorld(double x, double y, double z, byte state, long attribute) {
-        setData((int)((x-xorig) / pixelSize), 
-                (int)((y-yorig) / sheight),
-                (int)((z-zorig) / pixelSize),
+        setData((int) ((x - xorig) / pixelSize),
+                (int) ((y - yorig) / sheight),
+                (int) ((z - zorig) / pixelSize),
                 state,
                 attribute);
         
+    }
+
+    /**
+     * Unoptimized implementation of column setting
+     * @param x
+     * @param y
+     * @param attribute
+     */
+    public void setAttributes(int x, int y, long[] attribute) {
+        int nz = attribute.length;
+
+        for(int z=0; z < nz; z++) {
+            setAttribute(x,y,z,attribute[z]);
+        }
     }
 
     /**

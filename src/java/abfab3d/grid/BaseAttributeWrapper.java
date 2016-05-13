@@ -200,6 +200,20 @@ public abstract class BaseAttributeWrapper extends BaseWrapper implements Attrib
     }
 
     /**
+     * Set the attribute value of a voxel.  Leaves the state unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param attribute The attribute
+     */
+    public void setAttributes(int x, int y, long[] attribute) {
+        int nz = attribute.length;
+        for(int z=0; z < nz; z++) {
+            ((AttributeGrid)grid).setAttribute(x, y, z, attribute[z]);
+        }
+    }
+
+    /**
      * Set the material value of a voxel.  Leaves the state unchanged.
      *
      * @param x The x world coordinate

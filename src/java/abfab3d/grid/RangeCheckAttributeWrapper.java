@@ -170,7 +170,7 @@ public class RangeCheckAttributeWrapper extends RangeCheckWrapper implements Att
     public byte getState(int x, int y, int z) {
         verifyRange(x, y, z);
 
-        return grid.getState(x,y,z);
+        return grid.getState(x, y, z);
     }
 
     /**
@@ -200,7 +200,7 @@ public class RangeCheckAttributeWrapper extends RangeCheckWrapper implements Att
      * @return The voxel material
      */
     public long getAttribute(int x, int y, int z) {
-        verifyRange(x,y,z);
+        verifyRange(x, y, z);
 
         return ((AttributeGrid)grid).getAttribute(x, y, z);
     }
@@ -250,6 +250,21 @@ public class RangeCheckAttributeWrapper extends RangeCheckWrapper implements Att
         }
   */
         ((AttributeGrid)grid).setData(x, y, z, state, material);
+    }
+
+    /**
+     * Set the attribute value of a voxel.  Leaves the state unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param attribute The attribute
+     */
+    public void setAttributes(int x, int y, long[] attribute) {
+        int nz = attribute.length;
+        for(int z=0; z < nz; z++) {
+            verifyRange(x,y,z);
+            ((AttributeGrid)grid).setAttribute(x, y, z, attribute[z]);
+        }
     }
 
     /**

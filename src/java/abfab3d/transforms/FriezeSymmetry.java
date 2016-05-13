@@ -111,7 +111,7 @@ public class FriezeSymmetry extends BaseTransform implements Initializable {
 
     /**
      * Set the frieze type
-     * @param friezeType type of symmetry 
+     * @param symmetryType type of symmetry
      */
     public void setSymmetryType(int symmetryType) {
         mp_symmetryType.setSelectedIndex(symmetryType);

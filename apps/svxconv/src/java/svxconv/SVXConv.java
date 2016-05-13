@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.time;
 import static abfab3d.util.Units.MM;
 
 /**
@@ -211,16 +212,18 @@ public class SVXConv {
                 throw new IllegalArgumentException("Grid z size <= 0" + nz);
             }
 
+            long t0 = time();
             grid = makeEmptyGrid(new int[] {nx,ny,nz},voxelSize);
 
             grid.setGridBounds(bounds);
 
             WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
-            rasterizer.setMaxAttributeValue(subvoxelResolution);
+            //rasterizer.setMaxAttributeValue(subvoxelResolution);
 
             tp.getTriangles(rasterizer);
 
             rasterizer.getRaster(grid);
+            printf("Rasterize time: %d ms\n",(time() - t0));
         }
 
         // Write output to a file
