@@ -53,7 +53,11 @@ public class GridLoader {
     protected AttributeGrid m_densityGridTemplate = new ArrayAttributeGridByte(1,1,1, 10*MM, 10*MM);
     protected AttributeGrid m_distanceGridTemplate = new ArrayAttributeGridShort(1,1,1, 10*MM, 10*MM);
 
-    public static final int RASTERIZER_WAVELET = 1, RASTERIZER_DISTANCE = 2, RASTERIZER_DISTANCE2 = 3, RASTERIZER_ZBUFFER = 4;
+    public static final int 
+        RASTERIZER_WAVELET = 1,   // makes antialised density and makes distance from density 
+        RASTERIZER_DISTANCE = 2,  // exact distances in thin shell only
+        RASTERIZER_DISTANCE2 = 3, // exact distance in thin shell and fast sweeping to the whole grid 
+        RASTERIZER_ZBUFFER = 4;   // non-antialised density rasterizer
 
     protected int m_densityAlgorithm = RASTERIZER_WAVELET;
     protected int m_distanceAlgorithm = RASTERIZER_DISTANCE;
@@ -129,7 +133,6 @@ public class GridLoader {
     public void setDistanceAlgorithm(int algorithm){
         switch(algorithm){
         default: throw new IllegalArgumentException(fmt("unknown Density Rasterization Algorithm: %d",algorithm));
-        case RASTERIZER_ZBUFFER:
         case RASTERIZER_WAVELET:
         case RASTERIZER_DISTANCE:
         case RASTERIZER_DISTANCE2:
@@ -187,7 +190,7 @@ public class GridLoader {
         
         switch(m_densityAlgorithm){
         default: 
-            throw new IllegalArgumentException(fmt("unknown Distance Rasterization Algorithm: %d",m_distanceAlgorithm));
+            throw new IllegalArgumentException(fmt("unsupported Distance Rasterization Algorithm: %d",m_distanceAlgorithm));
             
         case RASTERIZER_WAVELET:
             {

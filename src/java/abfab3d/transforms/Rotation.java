@@ -102,8 +102,6 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
      */
     public void setRotation(Vector3d axis, double angle){
         
-        //m_axis = new Vector3d(axis); 
-        //m_angle = angle;
         axis.normalize();
         mp_center.setValue(new Vector3d(0,0,0));
         mp_rotation.setValue(new AxisAngle4d(axis,angle));

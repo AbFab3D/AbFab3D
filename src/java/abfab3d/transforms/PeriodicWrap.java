@@ -40,7 +40,7 @@ import static abfab3d.util.Output.printf;
 
 /**
    Periodic tiling of space with copies of interor of a single tile - fundamental domain. 
-   The fundamental domain is build on basis vectors. The location of fundamnetal domain is controlled by its origin. 
+   The fundamental domain is build on basis vectors. The location of fundamental domain is controlled by its origin. 
    Depending on count of basis vectors the fundamental domain is 
    <ul>
    <li> Infinite slab orthogonal to single basis vector</li>

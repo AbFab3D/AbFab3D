@@ -43,7 +43,7 @@ import static abfab3d.util.MathUtil.step10;
 /**
    creates antialiased rasterization using distance to point set calculations
    
-   1) eech triangle is rasterized on regular grid and we obtain PointSet of point on the mesh
+   1) each triangle is rasterized on regular grid and we obtain PointSet of point on the mesh
    2) thin shell is build around PointSet with exact distances calculated at grid points in the shell 
    3) shell points are sweeped to the whole grid using ClosestPointIndexer 
 
