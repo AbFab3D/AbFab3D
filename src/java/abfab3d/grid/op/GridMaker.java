@@ -256,6 +256,7 @@ public class GridMaker implements Operation, AttributeOperation {
                 m_attributeMaker = attDesc.getAttributeMaker();
             }
         }
+        if(DEBUG)printf("GridMaker using attributeMaker: %s\n",m_attributeMaker);
         
         long t0 = time();
 

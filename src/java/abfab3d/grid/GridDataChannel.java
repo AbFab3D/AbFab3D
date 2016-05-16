@@ -26,27 +26,45 @@ import static abfab3d.util.MathUtil.clamp;
  * @author Vladimir Bulatov
  */
 public class GridDataChannel implements LongConverter { // , ValueMaker {
-    
-    // standard chnnel types
+
+    static final boolean DEBUG = false;
+    int debugCount = 10000;
+    // standard channel types
+    public static final String UNKNOWN = "UNKNOWN";
     public static final String DENSITY = "DENSITY";
-    public static final String COLOR = "COLOR";
-    public static final String DENSITY_COLOR = "DENSITY_COLOR";
-    public static final String MATERIAL = "MATERIAL";
     public static final String DISTANCE = "DISTANCE";
+    public static final String COLOR = "COLOR";
+    public static final String MATERIAL = "MATERIAL";
+    public static final String DENSITY_COLOR = "DENSITY_COLOR";
+    public static final String DISTANCE_COLOR = "DISTANCE_COLOR";
     public static final String DATA_FLOAT = "DATA_FLOAT";
 
-    public static final int TYPE_DENSITY = 0;
-    public static final int TYPE_DISTANCE = 1;
-    public static final int TYPE_COLOR = 2;
-    public static final int TYPE_DENSITY_COLOR = 3;
-    public static final int TYPE_DISTANCE_COLOR = 4;
-    public static final int TYPE_FLOAT = 5;
+    static String sm_stypes[] = new String[]{
+        UNKNOWN,
+        DENSITY,
+        DISTANCE,
+        COLOR, 
+        MATERIAL, 
+        DENSITY_COLOR,
+        DISTANCE_COLOR,
+        DATA_FLOAT
+    };
+    public static final int TYPE_UNKNOWN = 0;
+    public static final int TYPE_DENSITY = 1;
+    public static final int TYPE_DISTANCE = 2;
+    public static final int TYPE_COLOR = 3;
+    public static final int TYPE_MATERIAL = 4;
+    public static final int TYPE_DENSITY_COLOR = 5;
+    public static final int TYPE_DISTANCE_COLOR = 6;
+    public static final int TYPE_FLOAT = 7;
     
     
     // name of the channel 
     String m_name;
     // type of the channel 
-    String m_type;
+    String m_stype;
+    // integer type of the channel 
+    int m_itype; 
      // shift to move bits toward origin 
      int m_shift;
     int m_bits;
@@ -77,11 +95,12 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
        this is unsigned variant of AttributeChannel 
        
      */
-    public GridDataChannel(String type, String name, int bits, int shift, double value0, double value1){
+    public GridDataChannel(String stype, String name, int bits, int shift, double value0, double value1){
         if (bits >= 64) {
             throw new IllegalArgumentException("Class doesn't work for >= 64 bits");
         }
-        m_type = type;
+        m_itype = makeIType(stype);
+        m_stype = stype;
         m_name = name;
         m_shift = shift;
         m_bits = bits;
@@ -117,9 +136,10 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
        it is legacy variant to work with code which stores distance data as signed short 
        @param physicalUnit conversion factor from int to physical units 
      */
-    public GridDataChannel(String type, String name, double physicalUnit, double minValue, double maxValue){
+    public GridDataChannel(String stype, String name, double physicalUnit, double minValue, double maxValue){
 
-        m_type = type;
+        m_itype = makeIType(stype);
+        m_stype = stype;
         m_name = name;
         m_shift = 0;
         m_mask = 0xFFFF;
@@ -155,12 +175,19 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
          m_shift = shift;
      }
 
-     /**
-        type of the channel. Return one of the standard types 
-      */
-     public String getType(){
-         return m_type;
-     }
+    /**
+       @return type of the channel as string. 
+    */
+    public String getType(){
+         return m_stype;
+    }
+    
+    /**
+       return channel type as int 
+     */
+    public int getIType(){
+        return m_itype;
+    }
 
     public String getName(){
         return m_name;
@@ -216,8 +243,13 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
        convert double value into attribute bits
     */
     public long makeAtt(double value){
-        value = (clamp(value, m_minValue, m_maxValue)-m_value0)*m_D2B;
-        return (((long)(value + 0.5))& m_mask) << m_shift;
+        double cvalue = clamp(value, m_minValue, m_maxValue);
+        double nvalue = (cvalue - m_value0)*m_D2B;
+        if(DEBUG) {
+            if(debugCount-- > 0)printf("makeAtt(%7.5f, cval: %7.5f, nval: %7.5f\n",value, cvalue, nvalue);
+        }
+            
+        return (((long)(nvalue + 0.5))& m_mask) << m_shift;
     }
 
     // interface to get signed or unsigned bits from attribute
@@ -248,4 +280,19 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
     public double getValue(int x, int y, int z) {
         return getValue(m_grid.getAttribute(x,y,z));
     }
+
+    
+    /**
+       convert names channel type into integer 
+     */
+    static int makeIType(String stype){
+
+        for(int i = 0; i < sm_stypes.length; i++){
+            if(stype.equalsIgnoreCase(sm_stypes[i])){
+                return i;
+            }
+        }
+        return TYPE_UNKNOWN;
+    }
+
 }

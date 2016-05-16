@@ -13,6 +13,10 @@ package abfab3d.io.output;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
+import abfab3d.grid.GridDataChannel;
+import abfab3d.grid.DensityMaker;
+import abfab3d.grid.DensityMakerFromDensityChannel;
+import abfab3d.grid.DensityMakerFromDistanceChannel;
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.mesh.*;
 import abfab3d.util.Units;
@@ -35,6 +39,7 @@ import static java.lang.System.currentTimeMillis;
  * Common code for saving grids.
  *
  * @author Alan Hudson
+ * @author Vladimir Bulatov
  */
 public class GridSaver {
 
@@ -58,6 +63,8 @@ public class GridSaver {
     int m_maxDecimationCount = 10;
     int m_svr = 255;
 
+    double m_isosurfaceValue;
+
 
     public static final int TYPE_UNDEFINED = -1;
     public static final int TYPE_UNKNOWN = 0;
@@ -68,8 +75,18 @@ public class GridSaver {
 
     int m_savingType = TYPE_UNDEFINED;
 
+    /**
+       
+     */
     public GridSaver() {
 
+    }
+
+    /**
+       set value of isosurface 
+     */
+    public void setSurfaceLevel(double value) {
+        m_isosurfaceValue = value;
     }
 
     public void setMaxTrianglesCount(int value) {
@@ -232,6 +249,9 @@ public class GridSaver {
 */
     }
 
+    /**
+       makes decimated mesh as isosurface
+     */
     public WingedEdgeTriangleMesh getMesh(AttributeGrid grid) {
 
         double voxelSize = grid.getVoxelSize();
@@ -239,15 +259,14 @@ public class GridSaver {
         if (DEBUG) printf("getMesh.  error factor: %f\n", m_meshErrorFactor);
         double maxDecimationError = m_meshErrorFactor * voxelSize * voxelSize;
 
-        // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
         meshmaker.setThreadCount(m_maxThreads);
         meshmaker.setSmoothingWidth(m_meshSmoothingWidth);
         meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(m_maxDecimationCount);
-        meshmaker.setMaxAttributeValue(m_svr);
+        meshmaker.setMaxDecimationCount(m_maxDecimationCount);               
+        meshmaker.setDensityMaker(getDensityMaker(grid, m_isosurfaceValue));
         meshmaker.setMaxTriangles(m_maxTrianglesCount);
-
+        if(false)printSlice(grid);
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
         meshmaker.makeMesh(grid, its);
 
@@ -262,10 +281,44 @@ public class GridSaver {
             if (DEBUG)
                 printf("maxShells: %d minVol: %4.2f shells removed: %d\n", m_maxShellsCount, m_minShellVolume, regions_removed);
         }
-
         return mesh;
     }
+    
+    /**
+       debug output 
+     */
+    void printSlice(AttributeGrid grid){
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        int z = nz/2;
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                long a = grid.getAttribute(x,y,z);
+                printf("%2x ", a);
+            }            
+            printf("\n");
+        }
+    }
 
+
+    /**
+       makes density maker to convert distance grid into density grid 
+       
+     */
+    DensityMaker getDensityMaker(AttributeGrid grid, double surfaceValue){
+        
+        GridDataChannel dataChannel = grid.getDataChannel();
+        switch(dataChannel.getIType()){
+        default: throw new RuntimeException(fmt("unsupported grid data channel type: %s (%d)", dataChannel.getType(),dataChannel.getIType()));
+            
+        case GridDataChannel.TYPE_DISTANCE:
+            return new DensityMakerFromDistanceChannel(dataChannel, surfaceValue, grid.getVoxelSize());
+        case GridDataChannel.TYPE_DENSITY:
+            return new DensityMakerFromDensityChannel(dataChannel);            
+        }
+        
+    }
 
     /**
      * Write a grid using the IsoSurfaceMaker to the specified file

@@ -1148,12 +1148,17 @@ public class IsosurfaceMaker {
         public void setGridMaxAttributeValue(int value){
 
             m_densityMaker = new DensityMakerSubvoxel(value);
-
-            //gridMaxAttributeValue = value;
-            //dGridMaxAttributeValue = value;
             
         }
 
+        /**
+           
+           set DensityMaker which convertes from attribute value into density 
+           density makes is supposed to return 
+            0 - outside, 
+            1 - inside
+            0.5 on surface 
+         */
         public void setDensityMaker(DensityMaker densityMaker){
 
             m_densityMaker = densityMaker;
@@ -1404,28 +1409,6 @@ public class IsosurfaceMaker {
                 
                 return 1-2*m_densityMaker.makeDensity(agrid.getAttribute(gx,gy,gz));
 
-                /*
-                switch(gridMaxAttributeValue){
-                case 0: 
-                    {
-                        byte state = grid.getState(gx,gy,gz);
-                        if(state == Grid.OUTSIDE)
-                            return 1.; // outside 
-                        else 
-                            return -1.; // inside
-                    }
-                default: 
-                    {
-                        long att = (agrid.getAttribute(gx,gy,gz));
-                        
-                        // normalize output to interval (-1, 1) 
-                        // -1 - inside 
-                        // 1 - outside
-                        return 1 - (att << 1)/dGridMaxAttributeValue;
-                    }
-                    
-                } 
-                */
             }
         }
     } // class BlockSmoothingSlices

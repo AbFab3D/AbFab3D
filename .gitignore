@@ -15,3 +15,4 @@ apps/*/src/java/*/ui
 /test/junit/abfab3d/mesh/#TestMeshDecimator.java#
 *.db
 apps/gpu/models/launch_vase_dec.stl
+refguide

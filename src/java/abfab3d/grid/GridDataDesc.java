@@ -17,12 +17,17 @@ import java.util.Vector;
 
 import abfab3d.util.Vec;
 
+import static abfab3d.util.Output.printf;
+
 /**
  * A description of a grid attribute
  *
  * @author Vladimir Bulatov
  */
 public class GridDataDesc {
+
+    static final boolean DEBUG = false;
+    static int debugCount = 10000;
 
     AttributeMaker m_attributeMaker; 
 
@@ -90,9 +95,8 @@ public class GridDataDesc {
     public AttributeMaker getAttributeMaker(){
 
         if(m_attributeMaker == null) {
-            // TODO make real attribute maker 
-            // this is temp hack !!!
-            m_attributeMaker = new AttributeMakerDensity(255);
+            //m_attributeMaker = new AttributeMakerDensity(255);
+            m_attributeMaker = new DefaultAttributeMaker(this);
         }
         //m_attributeMaker = new DefaultAttributeMaker(this);
 
@@ -111,25 +115,42 @@ public class GridDataDesc {
         return sb.toString();
     }
 
+
+    /**
+       convert multi component data into grid attribute 
+     */
     public static class DefaultAttributeMaker implements AttributeMaker {
-        int resolution[];
-        public DefaultAttributeMaker(GridDataDesc attDesc){
-            resolution = new int[attDesc.size()];
-            for(int i = 0; i < resolution.length;i++){
-                //TODO 
+
+        GridDataChannel channels[];
+        
+        public DefaultAttributeMaker(GridDataDesc dataDesc){
+            channels = new GridDataChannel[dataDesc.size()];
+            for(int i = 0; i < channels.length; i++){
+                channels[i] = dataDesc.getChannel(i);
             }
         }
         
-        public long makeAttribute(Vec v){
-            //TODO 
-            return 0;
+        public long makeAttribute(Vec vec){
+
+            long att = 0;
+            for(int i = 0; i < channels.length; i++){
+                long catt = channels[i].makeAtt(vec.v[i]);
+                if(false){
+                    if(debugCount-- >0) printf(" catt: %2x ", catt);
+                }
+                att |= catt;
+            }
+            if(DEBUG){
+                if(debugCount-- >0) printf("att: %2x \n", att);
+            }
+            return att;
         }        
     }
 
     public GridDataChannel getDensityChannel() {
         for(int i = 0; i < m_channels.size(); i++){
             GridDataChannel ac = m_channels.get(i);
-            if(GridDataChannel.DENSITY.equals(ac.m_type))
+            if(GridDataChannel.TYPE_DENSITY == ac.getIType())
                 return ac;
         }
         return null;
