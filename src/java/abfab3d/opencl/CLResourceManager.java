@@ -13,6 +13,7 @@ package abfab3d.opencl;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static abfab3d.util.Output.printf;
 
@@ -23,7 +24,7 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public class CLResourceManager implements Runnable {
-    private static final boolean DEBUG=false;
+    private static final boolean DEBUG = false;
     /** How long before we clean out a resource */
     private static final int DEFAULT_TIMEOUT_MS = 60 * 1000;
     private int timeout;
@@ -49,7 +50,7 @@ public class CLResourceManager implements Runnable {
 
         // My expectation is the number of threads will be low(ie # GPUs) so a ConcurrentLinkedHashMap is not needed.
         cache = Collections.synchronizedMap(new LinkedHashMap<Resource, CacheEntry>());
-        scheduler = Executors.newScheduledThreadPool(1);
+        scheduler = Executors.newScheduledThreadPool(1, new NamedThreadFactory("CLResourceManager"));
 
         scheduler.scheduleAtFixedRate(this, timeout, timeout, TimeUnit.MILLISECONDS);
 
@@ -246,12 +247,12 @@ public class CLResourceManager implements Runnable {
      */
     @Override
     public void run() {
+        freeing = true;
         Iterator<Map.Entry<Resource,CacheEntry>> itr = cache.entrySet().iterator();
 
         long time = System.currentTimeMillis();
 
         if (DEBUG) printf("CLRM Clearing old entries.  size: %d\n",cache.size());
-        freeing = true;
         try {
             while (itr.hasNext()) {
                 Map.Entry<Resource, CacheEntry> me = itr.next();
@@ -261,16 +262,32 @@ public class CLResourceManager implements Runnable {
                     if (DEBUG) printf("CLRM Removing old: %s\n", ce.resource);
                     release(ce.resource);
                 } else {
+                    if (DEBUG) printf("\n");
                     break;
                 }
             }
         } finally {
             freeing = false;
         }
+
+        if (DEBUG) printf("CLResourceManager Exited Run.\n");
     }
 
     public void shutdown() {
+        if (DEBUG) printf("CLResourceManager Shutting down.  this: %s \n",this);
+
+        while (freeing) {
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException ie) {
+            }
+        }
+
         if (scheduler != null) scheduler.shutdownNow();
+        cache.clear();
+        cache = null;
+        scheduler = null;
+        if (DEBUG) printf("CLResourceManager Shut down.\n");
     }
 
     static class CacheEntry implements Comparator {
@@ -296,5 +313,22 @@ public class CLResourceManager implements Runnable {
             return Long.compare(ce1.lastAccess,ce2.lastAccess);
         }
     }
+
+    public class NamedThreadFactory implements ThreadFactory {
+
+        private static final String THREAD_NAME_PATTERN = "%s-%d";
+        private final AtomicInteger counter = new AtomicInteger();
+        private String namePrefix;
+
+        public NamedThreadFactory(final String namePrefix) {
+            this.namePrefix = namePrefix;
+        }
+
+        public Thread newThread(Runnable r) {
+            final String threadName = String.format(THREAD_NAME_PATTERN, namePrefix, counter.incrementAndGet());
+            return new Thread(r, threadName);
+        }
+    }
+
 }
 
