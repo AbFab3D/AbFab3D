@@ -24,7 +24,7 @@ import abfab3d.grid.DensityMakerSubvoxel;
 
 import abfab3d.util.TriangleCollector;
 
-import static java.lang.Math.abs;
+//import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
 import static abfab3d.util.Output.printf;
 
@@ -46,6 +46,7 @@ public class IsosurfaceMaker {
 
 
     public static final int CUBES = 0; 
+    public static final int CUBES_V2 = 2; 
     public static final int TETRAHEDRA = 1; 
     
     public static final int INTERPOLATION_LINEAR = 0;
@@ -60,6 +61,23 @@ public class IsosurfaceMaker {
     protected double m_isoValue = 0.; // value of isosurface 
     protected double m_bounds[] = new double[]{-1, 1, -1, 1, -1, 1}; // bounds of the area 
     int m_nx=10, m_ny=10, m_nz=10;
+
+    // working array 
+    private Vector3d m_triangles[] = new Vector3d[15]; // max number of triagles is 5  
+    private Cell m_cell = new Cell();
+
+
+    public IsosurfaceMaker(){
+        
+        for(int i = 0; i < m_triangles.length; i++){
+            // this is needed for tetrahedra only 
+            m_triangles[i] = new Vector3d();
+        }
+    }
+
+
+    // memory for 2 sequential slices (to be reused) 
+    protected SliceData m_slice0, m_slice1;
 
     /**
        set bounds of area where isosurface is made
@@ -130,24 +148,33 @@ public class IsosurfaceMaker {
             ymax = m_bounds[3],
             zmin = m_bounds[4],
             zmax = m_bounds[5];
+        final int nx = m_nx;
+        final int nx1 = nx-1;
+        final int ny = m_ny;
+        final int ny1 = ny-1;
+        final int nz = m_nz;
+        final int nz1 = nz-1;
 
-        int nx1 = m_nx-1;
-        int ny1 = m_ny-1;
-        int nz1 = m_nz-1;
-
-        double dx = (xmax - xmin)/nx1;
-        double dy = (ymax - ymin)/ny1;
-        double dz = (zmax - zmin)/nz1;
+        final double dx = (xmax - xmin)/nx1;
+        final double dy = (ymax - ymin)/ny1;
+        final double dz = (zmax - zmin)/nz1;
         
-        //printf("x0: %12.10f %12.10f %12.10f\n",xmin,ymin, zmin);
-        //printf("dx: %12.10f %12.10f %12.10f \n", dx, dy, dz);
-        //printf("bounds: %12.10f %12.10f %12.10f %12.10f %12.10f %12.10f \n", m_bounds[0],m_bounds[1],m_bounds[2],m_bounds[3],m_bounds[4],m_bounds[5]);
+        if(m_slice0 == null) m_slice0 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);
+        else  m_slice0.setParams(m_nx, m_ny, xmin, xmax, ymin, ymax);
+        if(m_slice1 == null)  m_slice1 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);            
+        else m_slice1.setParams(m_nx, m_ny, xmin, xmax, ymin, ymax);        
+        
+        SliceData slice0 = m_slice0;
+        SliceData slice1 = m_slice1;
 
-        SliceData slice0 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);
-        SliceData slice1 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);
+        Cell cell = m_cell;
+        Vector3d cpnt[] = cell.p; // coordinates of corners of the cube 
+        double cval[] = cell.val; // values in the corners 
+        Vector3d cedges[] = cell.e; // 
+        Vector3d triangles[] = m_triangles;
 
-        Vector3d triangles[] = new Vector3d[15]; // max number of triagles is 5         
-        Cell cell = new Cell();
+        final double isoValue = m_isoValue;
+        final int algorithm = m_algorithm;
 
         slice0.setZ(zmin);
         scalculator.getSlice(slice0); 
@@ -158,7 +185,9 @@ public class IsosurfaceMaker {
 
             slice1.setZ(z1);
             scalculator.getSlice(slice1); 
-            
+            double data0[] = slice0.data;
+            double data1[] = slice1.data;
+
             for(int iy = 0; iy < ny1; iy++) {
 
                 double y = ymin + dy*iy;
@@ -170,33 +199,37 @@ public class IsosurfaceMaker {
                     int ix1 = ix+1;
                     double x = xmin + dx*ix;
                     double x1 = x+dx;
+                    
+                    cpnt[0].set(x, y, z );
+                    cpnt[1].set(x1,y, z );
+                    cpnt[2].set(x1,y, z1);
+                    cpnt[3].set(x, y, z1);
+                    cpnt[4].set(x, y1,z );
+                    cpnt[5].set(x1,y1,z );
+                    cpnt[6].set(x1,y1,z1);
+                    cpnt[7].set(x, y1,z1);
 
-                    cell.p[0].set(x, y, z );
-                    cell.p[1].set(x1,y, z );
-                    cell.p[2].set(x1,y, z1);
-                    cell.p[3].set(x, y, z1);
-                    cell.p[4].set(x, y1,z );
-                    cell.p[5].set(x1,y1,z );
-                    cell.p[6].set(x1,y1,z1);
-                    cell.p[7].set(x, y1,z1);
+                    int base = ix  + iy * nx; // offset of point (x,y)
+                    int base1 = base + nx;     // offset of point (x, y+1)
 
-                    int base = ix  + iy * m_nx; // offset of point (x,y)
-                    int base1 = base + m_nx;     // offset of point (x, y+1)
+                    cval[0] = data0[base] - isoValue;
+                    cval[1] = data0[base + 1] - isoValue;
+                    cval[2] = data1[base + 1] - isoValue;
+                    cval[3] = data1[base] - isoValue;
+                    cval[4] = data0[base1] - isoValue;
+                    cval[5] = data0[base1 + 1] - isoValue;
+                    cval[6] = data1[base1 + 1] - isoValue;
+                    cval[7] = data1[base1] - isoValue;
 
-                    cell.val[0] = slice0.data[base] - m_isoValue;
-                    cell.val[1] = slice0.data[base + 1] - m_isoValue;
-                    cell.val[2] = slice1.data[base + 1] - m_isoValue;
-                    cell.val[3] = slice1.data[base] - m_isoValue;
-                    cell.val[4] = slice0.data[base1] - m_isoValue;
-                    cell.val[5] = slice0.data[base1 + 1] - m_isoValue;
-                    cell.val[6] = slice1.data[base1 + 1] - m_isoValue;
-                    cell.val[7] = slice1.data[base1] - m_isoValue;
-                    shiftFromZero(cell.val);
-
-                    switch(m_algorithm){
+                    shiftFromZero(cval);
+                    
+                    switch(algorithm){
                     default:
                     case CUBES:
                         polygonizeCube(cell, triangles, tcollector);
+                        break;
+                    case CUBES_V2:
+                        polygonizeCube_v2(cval, cpnt, cedges, triangles, tcollector);
                         break;
                     case TETRAHEDRA:
                         polygonizeCube_tetra(cell, 0., triangles, tcollector);
@@ -216,8 +249,13 @@ public class IsosurfaceMaker {
     
     static final double ISOEPS = 1.e-2;
 
+    static final double abs(double v) {
+        return ( v >=0.)? v: -v;
+    }
+        
     /**
-       shifts values close to zero to EPS distance above zero 
+       shifts values close to zero to ISOEPS distance above zero 
+       this is to prevent triangles to have vertivces exactly in the cube corners 
      */
     public static void shiftFromZero(double v[]){
 
@@ -227,82 +265,10 @@ public class IsosurfaceMaker {
             }
         }        
     }
-
-    /*
-      // this version generates some garbage 
-    */
-    /*
-    public static void polygonizeCube_g(Cell g, Vector3d triangles[], TriangleCollector ggen){
-
-        int cubeindex = 0;
-        double iso = 0.0;
-
-        if (g.val[0] < 0) cubeindex |= 1;
-        if (g.val[1] < 0) cubeindex |= 2;
-        if (g.val[2] < 0) cubeindex |= 4;
-        if (g.val[3] < 0) cubeindex |= 8;
-        if (g.val[4] < 0) cubeindex |= 16;
-        if (g.val[5] < 0) cubeindex |= 32;
-        if (g.val[6] < 0) cubeindex |= 64;
-        if (g.val[7] < 0) cubeindex |= 128;
-
-        // Cube is entirely in/out of the surface 
-        if (edgeTable[cubeindex] == 0)
-            return;
-
-        // Find the vertices where the surface intersects the cube
-        if ((edgeTable[cubeindex] & 1)  != 0)
-            g.e[0] = vertexInterp(iso,g.p[0],g.p[1],g.val[0],g.val[1]);
-
-        if ((edgeTable[cubeindex] & 2) != 0)
-            g.e[1] = vertexInterp(iso,g.p[1],g.p[2],g.val[1],g.val[2]);
-
-        if ((edgeTable[cubeindex] & 4) != 0)
-            g.e[2] = vertexInterp(iso,g.p[2],g.p[3],g.val[2],g.val[3]);
-
-        if ((edgeTable[cubeindex] & 8) != 0)
-            g.e[3] = vertexInterp(iso,g.p[3],g.p[0],g.val[3],g.val[0]);
-
-        if ((edgeTable[cubeindex] & 16) != 0)
-            g.e[4] = vertexInterp(iso,g.p[4],g.p[5],g.val[4],g.val[5]);
-
-        if ((edgeTable[cubeindex] & 32) != 0)
-            g.e[5] = vertexInterp(iso,g.p[5],g.p[6],g.val[5],g.val[6]);
-
-        if ((edgeTable[cubeindex] & 64) != 0)
-            g.e[6] = vertexInterp(iso,g.p[6],g.p[7],g.val[6],g.val[7]);
-
-        if ((edgeTable[cubeindex] & 128) != 0)
-            g.e[7] = vertexInterp(iso,g.p[7],g.p[4],g.val[7],g.val[4]);
-
-        if ((edgeTable[cubeindex] & 256) != 0)
-            g.e[8] = vertexInterp(iso,g.p[0],g.p[4],g.val[0],g.val[4]);
-        
-        if ((edgeTable[cubeindex] & 512) != 0)
-            g.e[9] = vertexInterp(iso,g.p[1],g.p[5],g.val[1],g.val[5]);
-
-        if ((edgeTable[cubeindex] & 1024) != 0)
-            g.e[10] = vertexInterp(iso,g.p[2],g.p[6],g.val[2],g.val[6]);
-
-        if ((edgeTable[cubeindex] & 2048) != 0)
-            g.e[11] = vertexInterp(iso,g.p[3],g.p[7],g.val[3],g.val[7]);
-        
-        // Create the triangles 
-        int ntriang = 0;
-        for (int i=0; i < triTable[cubeindex].length; i+=3) {
-            
-            triangles[i]   = g.e[triTable[cubeindex][i  ]];
-            triangles[i+1] = g.e[triTable[cubeindex][i+1]];
-            triangles[i+2] = g.e[triTable[cubeindex][i+2]];
-            ntriang++;
-        }
-
-        addTri(ggen, triangles, ntriang);        
-        
-    }
-    */
-
+    
+    //
     // this version produces no garbage 
+    //
     public void polygonizeCube(Cell g, Vector3d triangles[], TriangleCollector ggen){
 
         int cubeindex = 0;
@@ -365,6 +331,75 @@ public class IsosurfaceMaker {
             triangles[i]   = g.e[triTable[cubeindex][i  ]];
             triangles[i+1] = g.e[triTable[cubeindex][i+1]];
             triangles[i+2] = g.e[triTable[cubeindex][i+2]];
+            ntriang++;
+        }
+
+        addTri(ggen, triangles, ntriang);
+
+    }
+
+    protected final void polygonizeCube_v2(double val[], Vector3d p[], Vector3d e[], Vector3d triangles[], TriangleCollector ggen){
+
+        int cubeindex = 0;
+        double iso = 0.0;
+
+        if (val[0] < 0) cubeindex |= 1;
+        if (val[1] < 0) cubeindex |= 2;
+        if (val[2] < 0) cubeindex |= 4;
+        if (val[3] < 0) cubeindex |= 8;
+        if (val[4] < 0) cubeindex |= 16;
+        if (val[5] < 0) cubeindex |= 32;
+        if (val[6] < 0) cubeindex |= 64;
+        if (val[7] < 0) cubeindex |= 128;
+
+        /* Cube is entirely in/out of the surface */
+        if (edgeTable[cubeindex] == 0)
+            return;
+
+        /* Find the vertices where the surface intersects the cube */
+        if ((edgeTable[cubeindex] & 1)  != 0)
+            vertexInterp(p[0],p[1],val[0],val[1],e[0]);
+
+        if ((edgeTable[cubeindex] & 2) != 0)
+            vertexInterp(p[1],p[2],val[1],val[2],e[1]);
+
+        if ((edgeTable[cubeindex] & 4) != 0)
+            vertexInterp(p[2],p[3],val[2],val[3],e[2]);
+
+        if ((edgeTable[cubeindex] & 8) != 0)
+            vertexInterp(p[3],p[0],val[3],val[0],e[3]);
+
+        if ((edgeTable[cubeindex] & 16) != 0)
+            vertexInterp(p[4],p[5],val[4],val[5],e[4]);
+
+        if ((edgeTable[cubeindex] & 32) != 0)
+            vertexInterp(p[5],p[6],val[5],val[6],e[5]);
+
+        if ((edgeTable[cubeindex] & 64) != 0)
+            vertexInterp(p[6],p[7],val[6],val[7],e[6]);
+
+        if ((edgeTable[cubeindex] & 128) != 0)
+            vertexInterp(p[7],p[4],val[7],val[4],e[7]);
+
+        if ((edgeTable[cubeindex] & 256) != 0)
+            vertexInterp(p[0],p[4],val[0],val[4],e[8]);
+
+        if ((edgeTable[cubeindex] & 512) != 0)
+            vertexInterp(p[1],p[5],val[1],val[5],e[9]);
+
+        if ((edgeTable[cubeindex] & 1024) != 0)
+            vertexInterp(p[2],p[6],val[2],val[6],e[10]);
+
+        if ((edgeTable[cubeindex] & 2048) != 0)
+            vertexInterp(p[3],p[7],val[3],val[7],e[11]);
+
+        /* Create the triangles */
+        int ntriang = 0;
+        for (int i=0; i < triTable[cubeindex].length; i+=3) {
+
+            triangles[i]   = e[triTable[cubeindex][i  ]];
+            triangles[i+1] = e[triTable[cubeindex][i+1]];
+            triangles[i+2] = e[triTable[cubeindex][i+2]];
             ntriang++;
         }
 
@@ -598,33 +633,10 @@ public class IsosurfaceMaker {
 
     /*
       Linearly interpolate the position where an isosurface cuts
-      the edge between two vertices, each with their own scalar value
-    */
-    public static Vector3d _vertexInterp(double isolevel,Vector3d p1,Vector3d p2, double valp1, double valp2){    
-        
-        if (abs(isolevel-valp1) < EPS)
-            return(p1);
-        if (abs(isolevel-valp2) < EPS)
-            return(p2);
-        if (abs(valp1-valp2) < EPS)
-            return(p1);
-        
-        double mu = (isolevel - valp1) / (valp2 - valp1);
-        
-        double x = p1.x + mu * (p2.x - p1.x);
-        double y = p1.y + mu * (p2.y - p1.y);
-        double z = p1.z + mu * (p2.z - p1.z);
-
-        return new Vector3d(x,y,z);
-                                    
-    }
-
-    /*
-      Linearly interpolate the position where an isosurface cuts
       an edge between two vertices, each with their own scalar value
       generates no garbage 
     */
-    public void vertexInterp(double isolevel,Vector3d p1,Vector3d p2, double valp1, double valp2, Vector3d dest){
+    protected final void vertexInterp(double isolevel,Vector3d p1,Vector3d p2, double valp1, double valp2, Vector3d dest){
 
         if (abs(isolevel-valp1) < EPS){
             dest.set(p1);
@@ -649,17 +661,55 @@ public class IsosurfaceMaker {
 
     }
 
+    protected final void vertexInterp(Vector3d p1,Vector3d p2, double valp1, double valp2, Vector3d dest){
+
+        if (abs(valp1) < EPS){
+            dest.set(p1);
+            return;
+        }
+        if (abs(valp2) < EPS){
+            dest.set(p2);
+            return;
+        }
+        if (abs(valp1-valp2) < EPS){
+            dest.set(p1);
+            return;
+        }
+
+        double mu = getLerpCoeff(valp1, valp2); 
+
+        double x = lerp(p1.x,p2.x, mu); 
+        double y = lerp(p1.y,p2.y, mu); 
+        double z = lerp(p1.z,p2.z, mu); 
+        
+        dest.set(x,y,z);
+
+    }
+
     static final double lerp(double x1, double x2, double t){
         return x1 + t * (x2-x1);
     }
 
 
-    public final double getLerpCoeff(double v1, double v2, double isolevel){
+    protected final double getLerpCoeff(double v1, double v2, double isolevel){
 
         switch(m_interpolationAlgorithm){
         default:
         case INTERPOLATION_LINEAR:
             return (isolevel - v1) / (v2 - v1);
+
+        case INTERPOLATION_INDICATOR_FUNCTION:
+            return coeff_indicator(0.5*( 1- v1), 0.5*(1-v2));
+        }
+    }
+
+    // coeff for zero isolevel 
+    protected final double getLerpCoeff(double v1, double v2){
+
+        switch(m_interpolationAlgorithm){
+        default:
+        case INTERPOLATION_LINEAR:
+            return ( -v1) / (v2 - v1);
 
         case INTERPOLATION_INDICATOR_FUNCTION:
             return coeff_indicator(0.5*( 1- v1), 0.5*(1-v2));
@@ -794,6 +844,19 @@ public class IsosurfaceMaker {
 
             data = new double[nx * ny];
             
+        }
+
+        void setParams(int nx, int ny, double xmin, double xmax, double ymin, double ymax){
+            if(nx*nx > data.length) {
+                // reallocate data 
+                data = new double[nx*ny];
+            }
+            this.nx = nx;
+            this.ny = ny;
+            this.xmin = xmin;
+            this.ymin = ymin;
+            this.xmax = xmax;
+            this.ymax = ymax;
         }
 
         void setZ(double z){
@@ -1170,6 +1233,9 @@ public class IsosurfaceMaker {
            block bounds are inclusive 
            if kernel is null - no convolution is performed 
          */
+        public void initBlock(int xmin, int xmax, int ymin, int ymax, int zmin, int zmax){ 
+            initBlock(xmin, xmax, ymin, ymax, zmin, zmax, null);
+        }
         public void initBlock(int xmin, int xmax, int ymin, int ymax, int zmin, int zmax, double kernel[]){ 
             
             //printf("initBloc(%d %d %d %d %d %d)\n",xmin, xmax, ymin, ymax, zmin, zmax);
@@ -1212,7 +1278,7 @@ public class IsosurfaceMaker {
                     int zoffset  = xoffset + x*bsizez;
 
                     for(int z = 0; z < bsizez; z++){
-                        // TODO et data for z row in one call 
+                        // TODO get data for z row in one call 
                         double v = getGridData(x0, y0, z + bzmin);
                         if(v > 0.)
                             hasPlus = true;
