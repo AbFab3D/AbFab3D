@@ -189,6 +189,14 @@ public class Bounds implements Cloneable {
     }
 
     /**
+     * Returns the minimum width, height or depth
+     * @return
+     */
+    public double getSizeMin() {
+        return Math.min(Math.min(getSizeX(),getSizeY()),getSizeZ());
+    }
+
+    /**
      * Returns the maximum width, height or depth
      * @return
      */
