@@ -131,6 +131,15 @@ public class Box extends TransformableDataSource {
     }
 
     /**
+     * Box with given center, size and rounding
+     * @param center
+     * @param size
+     */
+    public Box(Vector3d center, Vector3d size) {
+        this(center.x,center.y,center.z,size.x,size.y,size.z);
+    }
+
+    /**
      * Box with given center and size
      *
      * @param cx  x coordinate of center
