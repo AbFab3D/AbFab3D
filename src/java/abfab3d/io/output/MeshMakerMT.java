@@ -374,7 +374,7 @@ public class MeshMakerMT {
      * generates set of blocks of approximately blockSize, which tile the (NX x NY x NZ) grid
      * if tiles
      */
-    GridBlockSet makeBlocks(int nx, int ny, int nz, int blockSize) {
+    public static GridBlockSet makeBlocks(int nx, int ny, int nz, int blockSize) {
 
         int blocksX = (nx + blockSize - 1) / blockSize;
         int blocksY = (ny + blockSize - 1) / blockSize;
@@ -384,7 +384,7 @@ public class MeshMakerMT {
         int by = ny / blocksY;
         int bz = nz / blocksZ;
 
-        // reminders. We add 1 to size of first rx blocks in eac directions 
+        // reminders. We add 1 to size of first rx blocks in each directions 
         int rx = nx % blocksX;
         int ry = ny % blocksY;
         int rz = nz % blocksZ;
@@ -424,7 +424,7 @@ public class MeshMakerMT {
     /**
        
      */
-    GridBlockSet makeBlocksOctree(int nx, int ny, int nz, int blockSize) {
+    public static GridBlockSet makeBlocksOctree(int nx, int ny, int nz, int blockSize) {
         
         printf("makeBlocksOctree(%d %d %d %d)\n", nx, ny, nz, blockSize);
         GridBlockSet blocks = new GridBlockSet();
@@ -683,7 +683,7 @@ public class MeshMakerMT {
      * collection of grid blocks
      *
      */
-    class GridBlockSet {
+    public static class GridBlockSet {
 
         Vector<GridBlock> gridBlocks;
         AtomicInteger currentBlock = new AtomicInteger(0);
@@ -712,8 +712,9 @@ public class MeshMakerMT {
                 GridBlock block = gridBlocks.get(next);
                 if(block.level != currentLevel){
                     int currentCount = faceCounts[currentLevel].get();
-                    if(true)
-                        printf("fcount[%d]:%d (%d)\n", currentLevel, currentCount, m_maxTriangles);
+                    //if(true) printf("fcount[%d]:%d (%d)\n", currentLevel, currentCount, m_maxTriangles);
+                    /*
+                      TODO this is wrong place to increase  m_maxDecimationError
                     if(currentCount > (int)(m_maxTriangles)){
                         if(true){
                             printf("   face count: %d exceeded max count: %d\n",currentCount,m_maxTriangles);
@@ -724,6 +725,7 @@ public class MeshMakerMT {
                             printf("   new decimation error: %9.2e\n", m_maxDecimationError);
                         }
                     }
+                    */
                     currentLevel = block.level;
                 }
                 return block;
@@ -768,7 +770,7 @@ public class MeshMakerMT {
 
     } // class GridBlockSet
 
-    class GridBlockComparator implements Comparator<GridBlock>{
+    public static class GridBlockComparator implements Comparator<GridBlock>{
         public int compare(GridBlock b1, GridBlock b2) {
             return b2.level - b1.level;            
         }
@@ -888,14 +890,6 @@ public class MeshMakerMT {
                         blockBounds[0] / MM, blockBounds[1] / MM, blockBounds[2] / MM, blockBounds[3] / MM, blockBounds[4] / MM, blockBounds[5] / MM);
             }
 
-            if (imaker == null)
-                imaker = new IsosurfaceMaker();
-
-            imaker.setIsovalue(0.);
-            imaker.setBounds(blockBounds);
-            imaker.setGridSize(block.xmax - block.xmin + 1, block.ymax - block.ymin + 1, block.zmax - block.zmin + 1);
-            imaker.setInterpolationAlgorithm(m_interpolationAlgorithm);
-
             if (its == null) {
                 its = new IndexedTriangleSetBuilder();
             } else {
@@ -910,10 +904,18 @@ public class MeshMakerMT {
 
             slicer.initBlock(block.xmin, block.xmax, block.ymin, block.ymax, block.zmin, block.zmax, smoothKernel);
             if (!slicer.containsIsosurface()) {
-                if (DEBUG) System.out.println("Nothing here");
+                //if (DEBUG) System.out.println("Nothing here");
                 block.informParent(blocks);
                 return;
             }
+
+            if (imaker == null)
+                imaker = new IsosurfaceMaker();
+
+            imaker.setIsovalue(0.);
+            imaker.setBounds(blockBounds);
+            imaker.setGridSize(block.xmax - block.xmin + 1, block.ymax - block.ymin + 1, block.zmax - block.zmin + 1);
+            imaker.setInterpolationAlgorithm(m_interpolationAlgorithm);
             imaker.makeIsosurface(slicer, its);
 
 

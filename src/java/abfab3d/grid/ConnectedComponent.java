@@ -29,10 +29,16 @@ import static abfab3d.util.Output.printf;
 */
 public class ConnectedComponent implements Comparable, Region {
 
-    public static final int ALG_SCANLINE_STACK = 1, ALG_SCANLINE_QUEUE = 0, ALG_FLOODFILL_QUEUE = 2, ALG_FLOODFILL_RECURSIVE = -1 ;
+    public static final int 
+        ALG_SCANLINE_STACK = 1, 
+        ALG_SCANLINE_STACK_Y = 1, 
+        ALG_SCANLINE_STACK_Z = 2,
+        ALG_SCANLINE_QUEUE = 3, 
+        ALG_FLOODFILL_QUEUE = 4,  
+        ALG_FLOODFILL_RECURSIVE = -1 ; // doesn't work 
 
-    public static final int DEFAULT_ALGORITHM = ALG_SCANLINE_STACK;
-
+    public static final int DEFAULT_ALGORITHM = ALG_SCANLINE_STACK_Y;
+    
 
     protected ArrayInt m_component = null; // array of coordinates of found voxels
     AttributeTester materialTester; // tests if voxel belong to the material 
@@ -93,8 +99,11 @@ public class ConnectedComponent implements Comparable, Region {
             m_component = new ArrayInt(30);
         switch(algorithm){
         default:
-        case ALG_SCANLINE_STACK:
-            fillScanLineStack(new int[]{x,y,z});
+        case ALG_SCANLINE_STACK_Y:
+            fillScanLineStackY(new int[]{x,y,z});
+            break;
+        case ALG_SCANLINE_STACK_Z:
+            fillScanLineStackZ(new int[]{x,y,z});
             break;
         case ALG_SCANLINE_QUEUE:
             fillScanLineQueue(new int[]{x,y,z});
@@ -266,7 +275,7 @@ public class ConnectedComponent implements Comparable, Region {
     /**
        fills region using analog of scan line algorithm
     */
-    boolean fillScanLineStack(int start[]) {
+    boolean fillScanLineStackY(int start[]) {
 
 
         StackInt3 stack = new StackInt3(100);
@@ -367,7 +376,122 @@ public class ConnectedComponent implements Comparable, Region {
         //stack.printStat();
 
         return true;
-    } // fillScanLine
+    } // fillScanLineStackY
+
+
+    /**
+       fills region using analog of scan line algorithm
+       scanning is going along z 
+    */
+    boolean fillScanLineStackZ(int start[]) {
+
+
+        StackInt3 stack = new StackInt3(100);
+
+        int pnt[] = new int[3]; // point to pop from stack
+
+        boolean spanxLeft, spanxRight,spanyLeft, spanyRight;
+        int x = start[0], y = start[1], z = start[2];
+        final boolean saveCoord = (m_component != null);
+
+
+        stack.push(x, y, z);
+
+        final int 
+            nx1 = this.nx1,
+            ny1 = this.ny1,
+            nz1 = this.nz1;
+
+
+        while(stack.pop(pnt)) {
+
+            x = pnt[0];
+            y = pnt[1];
+            z = pnt[2];
+
+            if(mask.get(x,y,z) != 0){
+                // this line was already visited
+                continue;
+            }
+            // scanline variable 
+            int zz = z;
+
+            // go down in y as far as possible
+            while(zz >= 0 && compareAttribute(grid,x,y,zz)) {
+                zz--;
+            }
+            zz++; // increment back
+
+            spanxLeft = spanxRight = spanyLeft = spanyRight = false;
+
+            while((zz <= nz1) && compareAttribute(grid,x,y,zz) ){
+                // fill one scan line
+                // mark voxel visited
+                mask.set(x,y,zz,1);
+                if(saveCoord) m_component.add(x,y,zz);
+                updateBounds(x,y,zz);
+                m_volume++;
+
+                // check x-direction
+                if(!spanxLeft && (x > 0) &&  (mask.get(x-1, y, zz)==0) && compareAttribute(grid,x-1,y,zz)){
+                    // start of potential new span
+                    if(!stack.push(x - 1, y, zz)) return false;
+                    spanxLeft = true;
+
+                } else if(spanxLeft && (x > 0) && ((mask.get(x-1, y, zz) != 0) || !compareAttribute(grid,x-1,y,zz))){
+                    // end of potential new span
+                    spanxLeft = false;
+
+                }
+
+                if(!spanxRight && x < nx1 &&  (mask.get(x+1, y, zz)==0)  && compareAttribute(grid,x+1,y,zz)) {
+
+                    // start of potential new span
+                    if(!stack.push(x + 1, y, zz)) return false; // stack overflow
+                    spanxRight = true;
+
+                } else if(spanxRight && x < nx1 && ((mask.get(x+1, y, zz)!= 0) || !compareAttribute(grid,x+1,y,zz))) {
+                    // end of potential new span
+
+                    spanxRight = false;
+
+                }
+
+                // check y direction
+                if(!spanyLeft && (y > 0) &&  (mask.get(x, y-1, zz)==0) && compareAttribute(grid,x,y-1,zz)){
+                    // start of potential new span
+                    if(!stack.push(x, y-1, zz)) return false;
+                    spanyLeft = true;
+
+                } else if(spanyLeft && (y > 0) && ((mask.get(x, y-1, zz)!= 0) || !compareAttribute(grid,x,y-1,zz))){
+                    // end of potential new span
+
+                    spanyLeft = false;
+
+                }
+
+                if(!spanyRight && y < ny1 &&  (mask.get(x, y+1, zz)==0)  && compareAttribute(grid,x,y+1,zz)) {
+                    // start of potential new span
+
+                    if(!stack.push(x, y+1, zz)) return false; // stack overflow
+                    spanyRight = true;
+
+                } else if(spanyRight && y < ny1 && ((mask.get(x, y+1, zz)!= 0) || !compareAttribute(grid,x,y+1,zz))) {
+
+                    // end of potential new span
+                    spanyRight = false;
+
+                }
+                zz++;
+            }
+            //printf("[%2d,%2d,%2d]\n ", x,y1,z);
+
+        }
+
+        //stack.printStat();
+
+        return true;
+    } // fillScanLineStackZ
 
     /**
        similar to recursive fill, but uses no system stack

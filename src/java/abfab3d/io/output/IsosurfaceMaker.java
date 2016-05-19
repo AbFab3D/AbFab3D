@@ -65,6 +65,8 @@ public class IsosurfaceMaker {
     // working array 
     private Vector3d m_triangles[] = new Vector3d[15]; // max number of triagles is 5  
     private Cell m_cell = new Cell();
+    // memory for 2 sequential slices (to be reused) 
+    protected SliceData m_slice0, m_slice1;
 
 
     public IsosurfaceMaker(){
@@ -74,10 +76,6 @@ public class IsosurfaceMaker {
             m_triangles[i] = new Vector3d();
         }
     }
-
-
-    // memory for 2 sequential slices (to be reused) 
-    protected SliceData m_slice0, m_slice1;
 
     /**
        set bounds of area where isosurface is made
@@ -159,10 +157,14 @@ public class IsosurfaceMaker {
         final double dy = (ymax - ymin)/ny1;
         final double dz = (zmax - zmin)/nz1;
         
-        if(m_slice0 == null) m_slice0 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);
-        else  m_slice0.setParams(m_nx, m_ny, xmin, xmax, ymin, ymax);
-        if(m_slice1 == null)  m_slice1 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);            
-        else m_slice1.setParams(m_nx, m_ny, xmin, xmax, ymin, ymax);        
+        //if(true){
+        if(m_slice0 == null) {
+            m_slice0 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);
+            m_slice1 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);            
+        } else {
+            m_slice0.setParams(m_nx, m_ny, xmin, xmax, ymin, ymax);
+            m_slice1.setParams(m_nx, m_ny, xmin, xmax, ymin, ymax);        
+        }
         
         SliceData slice0 = m_slice0;
         SliceData slice1 = m_slice1;
@@ -209,7 +211,7 @@ public class IsosurfaceMaker {
                     cpnt[6].set(x1,y1,z1);
                     cpnt[7].set(x, y1,z1);
 
-                    int base = ix  + iy * nx; // offset of point (x,y)
+                    int base = ix  + iy * nx;  // offset of point (x,y)
                     int base1 = base + nx;     // offset of point (x, y+1)
 
                     cval[0] = data0[base] - isoValue;
@@ -841,15 +843,19 @@ public class IsosurfaceMaker {
             this.ymin = ymin;
             this.xmax = xmax;
             this.ymax = ymax;
-
-            data = new double[nx * ny];
+            
+            data = new double[(nx+1)*(ny+1)];
+            if(false)printf("slice data alloc (%d %d) thread:%s\n", nx, ny, Thread.currentThread().getName());
             
         }
 
         void setParams(int nx, int ny, double xmin, double xmax, double ymin, double ymax){
+
             if(nx*nx > data.length) {
+                if(false)printf("slice data realloc (%d %d) thread:%s\n", nx, ny, Thread.currentThread().getName());
                 // reallocate data 
-                data = new double[nx*ny];
+                // allocate a lttle bit more 
+                data = new double[(nx+1)*(ny+1)];
             }
             this.nx = nx;
             this.ny = ny;
@@ -892,20 +898,19 @@ public class IsosurfaceMaker {
             double dy = (sliceData.ymax - ymin)/(ny-1);
             double z = sliceData.z;
             double data[] = sliceData.data;
-
             for(int iy = 0; iy < ny; iy++){
-
+                    
                 double y = ymin + iy * dy;
-
+                
                 int offset = iy*nx;
-
+                
                 for(int ix = 0; ix < nx; ix++){
-
+                    
                     double x = xmin + ix * dx;
                     data[offset + ix] = fdata.getData(x,y,z);
                 }
             }
-            
+                        
         }
     } // class SliceFunction 
 
@@ -1242,7 +1247,7 @@ public class IsosurfaceMaker {
             
             int kernelSize = 0; 
             if(kernel != null){
-                kernelSize = kernel.length/2;
+                kernelSize = (kernel.length+1)/2;
             }
 
             bxmin = xmin - kernelSize;
@@ -1427,6 +1432,7 @@ public class IsosurfaceMaker {
             int gz = round((z - gzmin)/gdz);
             
             double data[] = sliceData.data;
+            //try {
            
             for(int iy = 0; iy < ny; iy++){
 
@@ -1442,7 +1448,12 @@ public class IsosurfaceMaker {
                     int gx = round((x - gxmin)/gdx);
                     data[offset + ix] = getBlockData(gx,gy,gz);
                 }
-            }            
+            }           
+
+            //} catch(Exception e){
+            //    printf("problem: %d x %d data: %d thread:%s\n", nx, ny, data.length, Thread.currentThread().getName());
+            //} 
+ 
         }
 
         /**
