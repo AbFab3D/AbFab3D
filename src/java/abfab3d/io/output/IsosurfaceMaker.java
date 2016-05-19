@@ -157,8 +157,8 @@ public class IsosurfaceMaker {
         final double dy = (ymax - ymin)/ny1;
         final double dz = (zmax - zmin)/nz1;
         
-        //if(true){
-        if(m_slice0 == null) {
+        if(true){
+            //if(m_slice0 == null) {
             m_slice0 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);
             m_slice1 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);            
         } else {
