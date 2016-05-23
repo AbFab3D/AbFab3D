@@ -11,6 +11,10 @@
  ****************************************************************************/
 package abfab3d.opencl;
 
+import com.jogamp.opencl.CLContext;
+import com.jogamp.opencl.CLObject;
+import com.jogamp.opencl.CLResource;
+
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,9 +39,10 @@ public class CLResourceManager implements Runnable {
     private Map<Resource, CacheEntry> cache;
     private volatile boolean freeing;
     private ScheduledExecutorService scheduler;
+    private long contextID;  // The context string of this instance
 
     /** Single managers per context */
-    private static ConcurrentHashMap<String,CLResourceManager> managers = new ConcurrentHashMap<String, CLResourceManager>();
+    private static ConcurrentHashMap<Long,CLResourceManager> managers = new ConcurrentHashMap<Long, CLResourceManager>();
 
     private CLResourceManager(long capacity) {
         this(capacity, DEFAULT_TIMEOUT_MS);
@@ -49,37 +54,45 @@ public class CLResourceManager implements Runnable {
         freeing = false;
 
         // My expectation is the number of threads will be low(ie # GPUs) so a ConcurrentLinkedHashMap is not needed.
-        cache = Collections.synchronizedMap(new LinkedHashMap<Resource, CacheEntry>());
+        //cache = Collections.synchronizedMap(new LinkedHashMap<Resource, CacheEntry>());
+        cache = new ConcurrentHashMap<Resource, CacheEntry>();
+
         scheduler = Executors.newScheduledThreadPool(1, new NamedThreadFactory("CLResourceManager"));
 
         scheduler.scheduleAtFixedRate(this, timeout, timeout, TimeUnit.MILLISECONDS);
 
     }
 
-    public static CLResourceManager getInstance(String context, long capacity) {
-        CLResourceManager rm = managers.get(context);
+    public static CLResourceManager getInstance(long contextID, long capacity) {
+        CLResourceManager rm = managers.get(contextID);
 
         if (rm != null) {
             return rm;
         }
 
         rm = new CLResourceManager(capacity);
-        managers.put(context,rm);
+        rm.setContextID(contextID);
+        managers.put(contextID,rm);
 
         return rm;
     }
 
-    public static CLResourceManager getInstance(String context, long capacity, int timeout) {
-        CLResourceManager rm = managers.get(context);
+    public static CLResourceManager getInstance(long contextID, long capacity, int timeout) {
+        CLResourceManager rm = managers.get(contextID);
 
         if (rm != null) {
             return rm;
         }
 
         rm = new CLResourceManager(capacity,timeout);
-        managers.put(context,rm);
+        rm.setContextID(contextID);
+        managers.put(contextID,rm);
 
         return rm;
+    }
+
+    protected void setContextID(long id) {
+        contextID = id;
     }
 
     /**
@@ -87,8 +100,9 @@ public class CLResourceManager implements Runnable {
      */
     public void add(Resource resource, long size) {
         if (resource == null) throw new IllegalArgumentException("Cannot add a null resource\n");
+        if (resource.isReleased()) throw new IllegalArgumentException("Cannot add a released resource");
 
-        if (DEBUG) printf("CLRM add: %s size: %d  entries: %d\n",resource,size,cache.size());
+        if (DEBUG) printf("CLRM add: %s underlying: %s size: %d  entries: %d\n",resource,((OpenCLResource)resource).getResource(),size,cache.size());
         insureCapacity(size);
 
         cache.put(resource, new CacheEntry(resource,size));
@@ -102,19 +116,26 @@ public class CLResourceManager implements Runnable {
      */
     public boolean isResident(Resource resource) {
 
+        if (DEBUG) printf("CLRM isResident: %s underlying: %s\n",resource,((OpenCLResource)resource).getResource());
         if (resource == null) return false;
-
-        while(freeing) {
-            try { Thread.sleep(5); } catch(InterruptedException ie) {}
-        }
 
         CacheEntry ce = cache.get(resource);
         if (ce == null) return false;
 
-        // sanity check make sure jocl doesn think its release
+        // sanity check make sure opencl doesnt think its released
         if (resource instanceof OpenCLResource) {
             OpenCLResource oclr = (OpenCLResource) resource;
             if (oclr.getResource().isReleased()) return false;
+
+            CLObject clobj = (CLObject) oclr.getResource();
+            CLContext context = clobj.getContext();
+
+            // Check to make sure this resource belongs to this GPU
+            if (context.getID() != contextID) {
+                if (DEBUG) printf("CLRM resource not on this context");
+                return false;
+            }
+
 
         }
         ce.lastAccess = System.currentTimeMillis();
@@ -126,9 +147,11 @@ public class CLResourceManager implements Runnable {
      * Remove a resource from management and release its GPU resources.
      */
     public void release(Resource resource) {
+        waitForNotFreeing();
+
         freeing = true;
 
-        if (DEBUG) printf("CLRM release: %s\n",resource);
+        if (DEBUG) printf("CLRM release: %s  underlying: %s\n",resource,((OpenCLResource)resource).getResource());
         try {
             CacheEntry ce = cache.remove(resource);
             if (ce == null) {
@@ -163,9 +186,10 @@ public class CLResourceManager implements Runnable {
      * @param bytes
      */
     private void freeMemory(long bytes) {
+        waitForNotFreeing();
+
         freeing = true;
 
-        // TODO: This should take one pass and get rid of timeout resources and if not nuke oldest
         try {
             long freeMemory = maxBytes - currBytes;
             Iterator<Map.Entry<Resource,CacheEntry>> itr = cache.entrySet().iterator();
@@ -243,10 +267,25 @@ public class CLResourceManager implements Runnable {
     }
 
     /**
+     * Wait for non freeing state
+     */
+    private void waitForNotFreeing() {
+        while (freeing) {
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException ie) {
+            }
+        }
+    }
+
+    /**
      * Clear out old entries
      */
     @Override
     public void run() {
+
+        waitForNotFreeing();
+
         freeing = true;
         Iterator<Map.Entry<Resource,CacheEntry>> itr = cache.entrySet().iterator();
 
@@ -257,10 +296,14 @@ public class CLResourceManager implements Runnable {
             while (itr.hasNext()) {
                 Map.Entry<Resource, CacheEntry> me = itr.next();
                 CacheEntry ce = me.getValue();
-                if (DEBUG) printf("CLRM checking: %s lastAccess: %d old: %b",ce.resource,ce.lastAccess,(time > ce.lastAccess + timeout));
+                if (DEBUG) printf("CLRM checking: %s lastAccess: %d old: %b\n",ce.resource,ce.lastAccess,(time > ce.lastAccess + timeout));
                 if (time > ce.lastAccess + timeout) {
                     if (DEBUG) printf("CLRM Removing old: %s\n", ce.resource);
-                    release(ce.resource);
+
+                    itr.remove();
+                    ce.resource.release();
+                    currBytes -= ce.size;
+                    ce.resource = null;
                 } else {
                     if (DEBUG) printf("\n");
                     break;
@@ -270,18 +313,13 @@ public class CLResourceManager implements Runnable {
             freeing = false;
         }
 
-        if (DEBUG) printf("CLResourceManager Exited Run.\n");
+        if (DEBUG) printf("CLRM Clearing Exited Run.\n");
     }
 
     public void shutdown() {
         if (DEBUG) printf("CLResourceManager Shutting down.  this: %s \n",this);
 
-        while (freeing) {
-            try {
-                Thread.sleep(5);
-            } catch (InterruptedException ie) {
-            }
-        }
+        waitForNotFreeing();
 
         if (scheduler != null) scheduler.shutdownNow();
         cache.clear();

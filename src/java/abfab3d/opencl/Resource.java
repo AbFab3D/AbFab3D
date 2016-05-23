@@ -18,4 +18,5 @@ package abfab3d.opencl;
  */
 public interface Resource {
     public void release();
+    public boolean isReleased();
 }

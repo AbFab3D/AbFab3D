@@ -260,7 +260,7 @@ public class ScrollTextField extends TextField {
         
         m_currentIncrement = delta;
         int digits = (int)Math.max(0.,-Math.floor(Math.log10(m_currentIncrement)));
-        printf("digits: %d\n", digits);
+        //printf("digits: %d\n", digits);
 
         m_currentFormat = "%" + (digits+2) + "." + digits+"f";
         
