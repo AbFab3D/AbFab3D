@@ -44,6 +44,10 @@ public class OpenCLResource implements Resource {
         return resource;
     }
 
+    public boolean isReleased() {
+        if (resource == null) return true;
+        return resource.isReleased();
+    }
     public String toString() {
         if (name != null) {
             return super.toString() + " name: " + name;
