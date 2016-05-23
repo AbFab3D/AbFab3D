@@ -26,7 +26,7 @@ import static abfab3d.util.Output.printf;
 public class CLResourceManager implements Runnable {
     private static final boolean DEBUG = false;
     /** How long before we clean out a resource */
-    private static final int DEFAULT_TIMEOUT_MS = 60 * 1000;
+    private static final int DEFAULT_TIMEOUT_MS = 180 * 1000;
     private int timeout;
 
     private long maxBytes;
