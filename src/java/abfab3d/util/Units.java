@@ -31,5 +31,6 @@ public class Units{
     static public final double PT = IN/72; // points -> meters
     static public final double TORADIANS = Math.PI/180; // degree to radians
     static public final double TODEGREE = 180/Math.PI; // degree to radians    
+    static public final double NS2MS = 1.e-6; // conversion from nano to milliseconds
 
 }
