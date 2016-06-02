@@ -30,7 +30,7 @@ import static abfab3d.util.Output.printf;
 public class CLResourceManager implements Runnable {
     private static final boolean DEBUG = false;
     /** How long before we clean out a resource */
-    private static final int DEFAULT_TIMEOUT_MS = 60 * 1000;
+    private static final int DEFAULT_TIMEOUT_MS = 360 * 1000;
     private int timeout;
 
     private long maxBytes;
@@ -40,6 +40,7 @@ public class CLResourceManager implements Runnable {
     private volatile boolean freeing;
     private ScheduledExecutorService scheduler;
     private long contextID;  // The context string of this instance
+    private boolean shutdown;  // Has this manager been shutdown
 
     /** Single managers per context */
     private static ConcurrentHashMap<Long,CLResourceManager> managers = new ConcurrentHashMap<Long, CLResourceManager>();
@@ -64,23 +65,13 @@ public class CLResourceManager implements Runnable {
     }
 
     public static CLResourceManager getInstance(long contextID, long capacity) {
-        CLResourceManager rm = managers.get(contextID);
-
-        if (rm != null) {
-            return rm;
-        }
-
-        rm = new CLResourceManager(capacity);
-        rm.setContextID(contextID);
-        managers.put(contextID,rm);
-
-        return rm;
+        return getInstance(contextID,capacity,DEFAULT_TIMEOUT_MS);
     }
 
     public static CLResourceManager getInstance(long contextID, long capacity, int timeout) {
         CLResourceManager rm = managers.get(contextID);
 
-        if (rm != null) {
+        if (rm != null && !rm.isShutdown()) {
             return rm;
         }
 
@@ -99,6 +90,7 @@ public class CLResourceManager implements Runnable {
      * Add a resource for management.  This will remove other buffers if necessary.
      */
     public void add(Resource resource, long size) {
+        if (shutdown) throw new IllegalArgumentException("Manager already shutdown: contextID: " + contextID + " this:" + this);
         if (resource == null) throw new IllegalArgumentException("Cannot add a null resource\n");
         if (resource.isReleased()) throw new IllegalArgumentException("Cannot add a released resource");
 
@@ -317,15 +309,21 @@ public class CLResourceManager implements Runnable {
     }
 
     public void shutdown() {
+        if (shutdown) throw new IllegalArgumentException("Manager already shutdown: contextID: " + contextID + " this:" + this);
+        shutdown = true;
         if (DEBUG) printf("CLResourceManager Shutting down.  this: %s \n",this);
 
         waitForNotFreeing();
 
         if (scheduler != null) scheduler.shutdownNow();
-        cache.clear();
+        if (cache != null) cache.clear();
         cache = null;
         scheduler = null;
         if (DEBUG) printf("CLResourceManager Shut down.\n");
+    }
+
+    protected boolean isShutdown() {
+        return shutdown;
     }
 
     static class CacheEntry implements Comparator {
