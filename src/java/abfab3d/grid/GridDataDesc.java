@@ -135,13 +135,13 @@ public class GridDataDesc {
             long att = 0;
             for(int i = 0; i < channels.length; i++){
                 long catt = channels[i].makeAtt(vec.v[i]);
-                if(false){
-                    if(debugCount-- >0) printf(" catt: %2x ", catt);
+                if(DEBUG){
+                    if(debugCount-- >0) printf(".%8x", catt);
                 }
                 att |= catt;
             }
             if(DEBUG){
-                if(debugCount-- >0) printf("att: %2x \n", att);
+                if(debugCount-- >0) printf(".->att:%8x\n", att);
             }
             return att;
         }        
@@ -171,13 +171,31 @@ public class GridDataDesc {
 
     /**
        creates AttributeDesc with color+density channel 
+       this is wrong way to use channels, it is actually composite channel 
      */
-    public static GridDataDesc getDensityColor(){
+    public static GridDataDesc getDensDensityColor(){
+        return getDensBGRcomposite();
+    }
+
+    public static GridDataDesc getDensBGRcomposite(){
 
         return new GridDataDesc(new GridDataChannel(GridDataChannel.DENSITY_COLOR, "density_color", 32, 0, 0., 1.));
 
     }
+
+    /**
+       creates data description for multichannel grid with density and color 
+     */
+    public static GridDataDesc getDensBGR(){
+
+        int bitCount = 8;
+        GridDataDesc at = new GridDataDesc();
+        at.addChannel(new GridDataChannel(GridDataChannel.DENSITY,     "0_density", bitCount,  0,  0., 1.));
+        at.addChannel(new GridDataChannel(GridDataChannel.COLOR_RED,   "1_red",     bitCount,  24, 0., 1.));
+        at.addChannel(new GridDataChannel(GridDataChannel.COLOR_GREEN, "2_green",   bitCount,  16, 0., 1.));
+        at.addChannel(new GridDataChannel(GridDataChannel.COLOR_BLUE,  "3_blue",    bitCount,   8, 0., 1.));
+        
+        return at;
+
+    }
 }
-
-
-

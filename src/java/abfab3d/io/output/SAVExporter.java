@@ -495,8 +495,8 @@ public class SAVExporter {
 
         }
 
-//System.out.println("indices: " + java.util.Arrays.toString(indices));
-//System.out.println("coords: " + java.util.Arrays.toString(coords));
+        //System.out.println("indices: " + java.util.Arrays.toString(indices));
+        //System.out.println("coords: " + java.util.Arrays.toString(coords));
 
         stream.startNode("Shape", defName);
 

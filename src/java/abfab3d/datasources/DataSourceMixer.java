@@ -21,6 +21,7 @@ import abfab3d.util.Vec;
 
 import java.util.List;
 
+import static abfab3d.util.Output.printf;
 
 /**
 
@@ -32,12 +33,15 @@ import java.util.List;
 
 public class DataSourceMixer extends TransformableDataSource {
 
+    static final boolean DEBUG = true;
+
     // plain array of sources 
     protected DataSource m_sources[];
     // count of sources 
     protected int m_count;
     // dimension of each data source 
     protected int m_channelsCounts[];
+    protected int m_maxChannelsCount = 1;
 
     SNodeListParameter mp_sources = new SNodeListParameter("sources");
 
@@ -115,7 +119,7 @@ public class DataSourceMixer extends TransformableDataSource {
 
         List sources = mp_sources.getValue();
         m_count = sources.size();
-
+        
         m_channelsCounts = new int[m_count];
 
         int ccount = 0;
@@ -128,6 +132,11 @@ public class DataSourceMixer extends TransformableDataSource {
             // calculate total sources count which is sum of cahnnel counts of each source 
             m_channelsCounts[i] = ds.getChannelsCount();
             ccount += m_channelsCounts[i];
+            if(DEBUG){
+                printf("m_channelsCounts[%d]: %d\n",i, m_channelsCounts[i]);
+            }
+            if(m_channelsCounts[i] > m_maxChannelsCount)
+                m_maxChannelsCount = m_channelsCounts[i];
         }
 
         // total data dimension of this object 
@@ -138,6 +147,12 @@ public class DataSourceMixer extends TransformableDataSource {
 
         for (int i = 0; i < m_count; i++) {
             m_sources[i] = (DataSource) sources.get(i);
+        }
+        if(DEBUG){
+            printf("DataSourceMixer m_count: %d, m_channelsCount: %d m_maxChannelsCount:%d\n", m_count, m_channelsCount, m_maxChannelsCount);
+            for(int i = 0; i < m_count; i++){
+                printf("source %d, dim: %d: %s\n", i, m_channelsCounts[i],m_sources[i]); 
+            }
         }
         return RESULT_OK;
     }
@@ -151,10 +166,15 @@ public class DataSourceMixer extends TransformableDataSource {
         super.transform(pnt);
 
         // TODO - reduce garbage collection 
-        Vec sourceData = new Vec(m_count);
-
+        Vec sourceData = new Vec(m_maxChannelsCount);
+        Vec sourcePnt = new Vec(pnt);
+        //if(DEBUG && debugCount-- > 0) {
+        //    printf("%s m_count\n", this, m_count)
+        //}
+            
         for (int i = 0, channel = 0; i < m_count; i++) {
-            m_sources[i].getDataValue(pnt, sourceData);
+            sourcePnt.set(pnt);
+            m_sources[i].getDataValue(sourcePnt, sourceData);
             int cc = m_channelsCounts[i];
             switch (cc) {
                 case 1: // one dimensional source

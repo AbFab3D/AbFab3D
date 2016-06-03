@@ -53,6 +53,10 @@ public class SlicesWriter {
 
     static final boolean DEBUG = false;
     static int debugCount = 100;
+    public static final int 
+        AXIS_X=0,
+        AXIS_Y=1,
+        AXIS_Z=2;
 
     static final int COLOR_WHITE = makeColor(0xFF);
     static final int COLOR_BLACK = makeColor(0);
@@ -165,18 +169,36 @@ public class SlicesWriter {
     }
 
     /**
-       writes single pixel slices into a bunch of files 
+
      */
-    public void writeSlices(AttributeGrid grid, String fileTemplate, int firstSlice, int firstFile, int sliceCount) throws IOException {        
+    public void writeSlices(AttributeGrid grid, 
+                            String fileTemplate, 
+                            int firstSlice, 
+                            int firstFile, 
+                            int sliceCount) throws IOException {        
         writeSlices(grid, fileTemplate, firstSlice, firstFile, sliceCount, 1,8, new DefaultLongConverter());
     }
 
     /**
-       orientation - axis orthogonal to the slices 
+       Writes series of slices from grid into a image file 
+
+       @param grid to write from slices from 
+       @param fileTemplate C style template used to make path for individual files (for example "/tmp/slice%03d.png")
+       @param firstSlice  index of fist slice 
+       @param fisrtFile   index of fist file (file numbers can be different from slices numbers)
+       @param sliceCount hoew many slices to write        
+       @param orientation - axis orthogonal to the slices (AXIS_X, AXIS_Y, AXIS_Z)
+       @param bitCount - cont of bits to be used for each pixel 
+       @param voxelDataConverter - converter to convert from gird attribute into pixel value       
      */
-    public void writeSlices(AttributeGrid grid, String fileTemplate, 
-                            int firstSlice, int firstFile, int sliceCount, int orientation, 
-                            int voxelBitCount, LongConverter voxelDataConverter) throws IOException {
+    public void writeSlices(AttributeGrid grid, 
+                            String fileTemplate, 
+                            int firstSlice, 
+                            int firstFile, 
+                            int sliceCount, 
+                            int orientation, 
+                            int voxelBitCount, 
+                            LongConverter voxelDataConverter) throws IOException {
         
         if(DEBUG) printf("SlicesWriter.writeSlices(%s)\n",fileTemplate);
         int imgSize[] = getSliceSize(grid, orientation);

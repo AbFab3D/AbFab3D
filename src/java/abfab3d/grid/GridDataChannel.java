@@ -34,6 +34,9 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
     public static final String DENSITY = "DENSITY";
     public static final String DISTANCE = "DISTANCE";
     public static final String COLOR = "COLOR";
+    public static final String COLOR_RED = "RED";
+    public static final String COLOR_GREEN = "GREEN";
+    public static final String COLOR_BLUE = "BLUE";
     public static final String MATERIAL = "MATERIAL";
     public static final String DENSITY_COLOR = "DENSITY_COLOR";
     public static final String DISTANCE_COLOR = "DISTANCE_COLOR";
@@ -44,21 +47,26 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
         DENSITY,
         DISTANCE,
         COLOR, 
+        COLOR_RED, 
+        COLOR_GREEN, 
+        COLOR_BLUE, 
         MATERIAL, 
         DENSITY_COLOR,
         DISTANCE_COLOR,
-        DATA_FLOAT
+        DATA_FLOAT,
     };
     public static final int TYPE_UNKNOWN = 0;
     public static final int TYPE_DENSITY = 1;
     public static final int TYPE_DISTANCE = 2;
     public static final int TYPE_COLOR = 3;
-    public static final int TYPE_MATERIAL = 4;
-    public static final int TYPE_DENSITY_COLOR = 5;
-    public static final int TYPE_DISTANCE_COLOR = 6;
-    public static final int TYPE_FLOAT = 7;
-    
-    
+    public static final int TYPE_COLOR_RED = 4;
+    public static final int TYPE_COLOR_GREEN = 5;
+    public static final int TYPE_COLOR_BLUE = 6;
+    public static final int TYPE_MATERIAL = 7;
+    public static final int TYPE_DENSITY_COLOR = 8;
+    public static final int TYPE_DISTANCE_COLOR = 9;
+    public static final int TYPE_FLOAT = 10;
+        
     // name of the channel 
     String m_name;
     // type of the channel 

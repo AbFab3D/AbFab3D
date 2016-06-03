@@ -17,6 +17,8 @@ import javax.vecmath.Vector2d;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.util.TriangleRenderer; 
 import abfab3d.util.MathUtil;
+import abfab3d.util.LongConverter;
+import abfab3d.util.Bounds;
 
 import static java.lang.Math.sqrt;
 import static abfab3d.util.Output.printf;
@@ -24,7 +26,9 @@ import static abfab3d.util.Output.fmt;
 
 
 /**
-   class responsible for rendering triangles coored by 3D grid data into 2D texture 
+   class responsible for rendering triangles colored by data from 3D grid into 2D texture 
+   original triangles are 3D 
+   they are packed individiually onto 2D plane and rendered on 2D plane
 
    @author Vladimir Bulatov
  */
@@ -46,23 +50,26 @@ public class TextureRenderer {
     
     TriangleInterpolator m_triInterpolator = new TriangleInterpolator();
     TriangleRenderer m_triRenderer = new TriangleRenderer();
-    TexturePixelRenderer m_pixelRenderer = new TexturePixelRenderer();
+    TexturePixelRenderer m_pixelRenderer;
+    LongConverter m_colorMaker;
 
     /**
        @param dataGrid - grid which contains source data for rendering 
-       @param textureGrid - grid where the texure is being rendered. The texture is stored at single y-slice in the texture grid
+       @param colorMaker - converter from dataGrid attribute into RGB value
+       @param textureGrid - grid where the texure is being rendered. The 2D texture is stored at single y-slice in the texture grid
        
      */    
-    public TextureRenderer(AttributeGrid dataGrid, AttributeGrid textureGrid){
+    public TextureRenderer(AttributeGrid dataGrid, LongConverter colorMaker, AttributeGrid textureGrid){
+
         m_dataGrid = dataGrid;
         m_nx = m_dataGrid.getWidth();
         m_ny = m_dataGrid.getHeight();
         m_nz = m_dataGrid.getDepth();
-
+        m_colorMaker = colorMaker;
         m_textureGrid = textureGrid;
         m_nu = m_textureGrid.getWidth();
         m_nv = m_textureGrid.getDepth();
-
+        m_pixelRenderer = new TexturePixelRenderer();
     }
 
     /**
@@ -98,7 +105,7 @@ public class TextureRenderer {
     /**
        renders three dimensional source triangle into two dimensional textured triangle. 
        the same as renderTriangle() 
-       with additional exentsion of 2D trinagle by given extendWidth. 
+       with additional exentsion of 2D triangle by given extendWidth. 
        this is to make 2D triangle a little bigger to cover boundary effects on the edges of triagle 
        @param tri[3][3] 3D triangle coords
        @param texTri[3][2] 2D triangle coords
@@ -200,13 +207,26 @@ public class TextureRenderer {
         
     }
 
-
+    /**
+       renders individual pixels of texture 
+     */
     class TexturePixelRenderer implements TriangleRenderer.PixelRenderer {
 
         double pnt[]= new double[3];
         double color[][] = new double[8][3];
         double icolor[] = new double[3];
         double colorChannel[] = new double[8];
+        double m_scaleFactor = 1;
+        double m_xmin, m_ymin, m_zmin;
+
+        TexturePixelRenderer(){
+
+            m_scaleFactor = 1./m_dataGrid.getVoxelSize();
+            Bounds bounds = m_dataGrid.getGridBounds();
+            m_xmin = bounds.xmin;
+            m_ymin = bounds.ymin;
+            m_zmin = bounds.zmin;
+        }
 
         /**
            @override            
@@ -221,8 +241,11 @@ public class TextureRenderer {
             // read voxel from dataGrid 
 
             // do half voxel shift to the center of voxels 
-            double x = pnt[0]-0.5, y = pnt[1]-0.5, z = pnt[2]-0.5;           
-            //double x = u/4., y = 25, z = v/4.;
+            double 
+                x = m_scaleFactor*(pnt[0]-m_xmin)-0.5, 
+                y = m_scaleFactor*(pnt[1]-m_ymin)-0.5, 
+                z = m_scaleFactor*(pnt[2]-m_zmin)-0.5;           
+
             int 
                 ix = (int)(x),
                 iy = (int)(y),
@@ -232,7 +255,7 @@ public class TextureRenderer {
                 dy = y - iy,
                 dz = z - iz;
 
-            
+            //printf("%3d,%3d,%3d\n", iz, iy, iz);
             getPointColor(ix,   iy,   iz,color[0]);
             getPointColor(ix+1, iy,   iz,color[1]);
             getPointColor(ix,   iy+1, iz,color[2]);
@@ -253,7 +276,9 @@ public class TextureRenderer {
             m_textureGrid.setAttribute(u, 0, v, makeAtt(icolor));   
         }
 
-        long makeAtt(double c[]){         
+        // TODO - shall go to output data channel ? 
+        long makeAtt(double c[]){   
+            
             return (((int)(c[0]*255))& 0xFF) | ((((int)(c[1]*255))&0xFF)<<8) | ((((int)(c[2]*255))&0xFF)<<16);
         }
 
@@ -266,15 +291,15 @@ public class TextureRenderer {
             if(x >= m_nx) x = x % m_nx;
             if(y >= m_ny) y = y % m_ny;
             if(z >= m_nz) z = z % m_ny;
-            getColor(m_dataGrid.getAttribute(x,y,z), color); 
-
+            getColorComponents(m_colorMaker.get(m_dataGrid.getAttribute(x,y,z)), color); 
+            
         }
         
-        void getColor(long att, double color[]){
+        void getColorComponents(long c, double color[]){
 
-            color[0] = (att & 0xFF)/255.;
-            color[1] = ((att >> 8) & 0xFF)/255.;
-            color[2] = ((att >> 16) & 0xFF)/255.;
+            color[0] = ((c      ) & 0xFF)/255.;
+            color[1] = ((c >>  8) & 0xFF)/255.;
+            color[2] = ((c >> 16) & 0xFF)/255.;
 
         }
 
@@ -317,5 +342,7 @@ public class TextureRenderer {
             x1 *(y1 * (z1 * c[0] + z  * c[4]) +  y*(z1 * c[2] + z * c[6])) +   
                x  *(y1 * (z1 * c[1] + z  * c[5]) +  y*(z1 * c[3] + z * c[7]));
         }
-    }
-}
+
+    } //   class TexturePixelRenderer 
+
+}//    class TextureRenderer 

@@ -11,28 +11,68 @@
 
 package abfab3d.io.output;
 
+import javax.vecmath.Vector2d;
+
+import org.web3d.vrml.sav.BinaryContentHandler;
+
+import org.web3d.vrml.export.PlainTextErrorReporter;
+import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
+import org.web3d.vrml.export.X3DBinarySerializer;
+import org.web3d.vrml.export.X3DClassicRetainedExporter;
+import org.web3d.vrml.export.X3DXMLRetainedExporter;
+
+import org.web3d.util.ErrorReporter;
+
+
 import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.GridDataDesc;
 import abfab3d.grid.Grid;
 import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.DensityMaker;
+import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.DensityMakerFromDensityChannel;
 import abfab3d.grid.DensityMakerFromDistanceChannel;
+
 import abfab3d.grid.util.ExecutionStoppedException;
-import abfab3d.mesh.*;
+
+import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.mesh.IndexedTriangleSetBuilder;
+import abfab3d.mesh.ShellFinder;
+import abfab3d.mesh.LaplasianSmooth;
+import abfab3d.mesh.AreaCalculator;
+import abfab3d.mesh.MeshDecimator;
+
+import abfab3d.util.FileUtil;
+import abfab3d.util.Bounds;
 import abfab3d.util.Units;
-import org.web3d.vrml.sav.BinaryContentHandler;
+import abfab3d.util.LongConverter;
+import abfab3d.util.DefaultLongConverter;
+
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.FileOutputStream;
+import java.io.File;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.*;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import abfab3d.util.TriangleProducer;
 
 import static abfab3d.util.MathUtil.extendBounds;
+import static abfab3d.util.Units.MM;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
-import static java.lang.System.currentTimeMillis;
+import static abfab3d.util.Output.time;
 
 
 /**
@@ -64,15 +104,26 @@ public class GridSaver {
     int m_svr = 255;
 
     double m_isosurfaceValue;
+    boolean m_writeTexturedMesh = false;
+    int m_decimalDigits = -1; // numer of decimal digits to use for ascii output 
+    double m_texturePixelSize = 0.5;
 
+    public static final String EXT_X3DB = ".x3db";// binary
+    public static final String EXT_X3DV = ".x3dv";  // classic
+    public static final String EXT_X3D = ".x3d"; // XML
+    public static final String EXT_STL = ".stl"; // STL
+    public static final String EXT_SVX = ".svx"; // SVX
 
     public static final int TYPE_UNDEFINED = -1;
     public static final int TYPE_UNKNOWN = 0;
     public static final int TYPE_STL = 1;
     public static final int TYPE_X3D = 2;
     public static final int TYPE_X3DB = 3;
-    public static final int TYPE_SVX = 4;
+    public static final int TYPE_X3DV = 4;
+    public static final int TYPE_SVX = 5;
 
+
+    float m_avatarSize[] = new float[]{0.01f, 1.6f, 0.75f};// size of avatar for x3d output 
     int m_savingType = TYPE_UNDEFINED;
 
     /**
@@ -87,6 +138,21 @@ public class GridSaver {
      */
     public void setSurfaceLevel(double value) {
         m_isosurfaceValue = value;
+    }
+
+    /**
+       sets size of texture pixels relative to grid voxel size
+       default value 0.5 
+     */
+    public void setTexturePixelSize(double value) {
+        m_texturePixelSize = value;
+    }
+
+    /**
+       force writer to save textured mesh (if supported by format (X3D, X3DB or X3DV)
+     */
+    public void setWriteTexturedMesh(boolean value){
+        m_writeTexturedMesh = value;
     }
 
     public void setMaxTrianglesCount(int value) {
@@ -120,43 +186,40 @@ public class GridSaver {
     static int getOutputType(String fname) {
 
         fname = fname.toLowerCase();
-
-        if (fname.endsWith(".stl")) return TYPE_STL;
-        if (fname.endsWith(".svx")) return TYPE_SVX;
-        if (fname.endsWith(".x3d")) return TYPE_X3D;
-        if (fname.endsWith(".x3db")) return TYPE_X3DB;
+        
+        if (fname.endsWith(EXT_STL)) return TYPE_STL;
+        if (fname.endsWith(EXT_SVX)) return TYPE_SVX;
+        if (fname.endsWith(EXT_X3D)) return TYPE_X3D;
+        if (fname.endsWith(EXT_X3DV)) return TYPE_X3DV;
+        if (fname.endsWith(EXT_X3DB)) return TYPE_X3DB;
         return TYPE_UNKNOWN;
     }
 
+
+    /**
+       writes grid to the given file in various formats
+     */
     public void write(AttributeGrid grid, String outFile) throws IOException {
 
         // Write output to a file
         int type = getOutputType(outFile);
         switch (type) {
-            default:
-                throw new RuntimeException(fmt("unknow output file type: '%s'", outFile));
-            case TYPE_STL: {
-                WingedEdgeTriangleMesh mesh = getMesh(grid);
-                STLWriter stl = new STLWriter(outFile);
-                mesh.getTriangles(stl);
-                stl.close();
-            }
+        default:
+            throw new RuntimeException(fmt("unknow output file type: '%s'", outFile));
+        case TYPE_STL: 
+        case TYPE_X3D:
+        case TYPE_X3DV:
+        case TYPE_X3DB: 
+            writeAsMesh(grid, outFile);
             break;
-            case TYPE_X3D:
-            case TYPE_X3DB: {
-                WingedEdgeTriangleMesh mesh = getMesh(grid);
-                writeMesh(mesh, outFile);
-            }
-            break;
-            case TYPE_SVX: {
-                SVXWriter writer = new SVXWriter();
-                writer.write(grid, outFile);
-            }
-            break;
+        case TYPE_SVX: 
+            SVXWriter writer = new SVXWriter();
+            writer.write(grid, outFile);
         }
     }
 
     public WingedEdgeTriangleMesh writeAsMesh(AttributeGrid grid, String outFile) throws IOException {
+
         WingedEdgeTriangleMesh mesh = null;
 
         // Write output to a file
@@ -172,10 +235,15 @@ public class GridSaver {
             }
             break;
             case TYPE_X3D:
-            case TYPE_X3DB: {
-                mesh = getMesh(grid);
-                writeMesh(mesh, outFile);
-            }
+            case TYPE_X3DV:
+            case TYPE_X3DB: 
+                {
+                    mesh = getMesh(grid);
+                    if(m_writeTexturedMesh)
+                        writeTexturedMesh(mesh, grid, makeDefaultColorMaker(grid),outFile);
+                    else 
+                        writeMesh(mesh, outFile);
+                }
             break;
         }
 
@@ -249,6 +317,182 @@ public class GridSaver {
 */
     }
 
+
+    public void writeAsTexturedMesh(AttributeGrid grid, LongConverter colorMaker, String outFile) throws IOException{
+        WingedEdgeTriangleMesh mesh = getMesh(grid);
+        writeTexturedMesh(mesh, grid, colorMaker, outFile);
+    }
+
+    public void writeTexturedMesh(WingedEdgeTriangleMesh mesh, AttributeGrid grid, LongConverter colorMaker, String outFile) throws IOException{
+
+        printf("writeAsMeshWithTexture()\n");
+        
+        double vs = grid.getVoxelSize();
+        // extension of textured triangles 
+        double triExtWidth = 1.5; 
+        double triGap = 3.;
+
+        String baseDir = FileUtil.getFileDir(outFile);
+        String fileName = FileUtil.getFileName(outFile);        
+        String texFileName = fileName + ".png";
+        String texFilePath = baseDir + "/" + texFileName;
+        if(DEBUG){
+            printf("baseDir:%s\n",baseDir);
+            printf("fileName:%s\n",fileName);
+            printf("texFileName:%s\n",texFileName);
+            printf("texFilePath:%s\n",texFilePath);
+        }
+        // TriangleProducer mesh = getMesh(grid);
+               
+        TrianglePacker tp = new TrianglePacker();
+        tp.setGap(triGap);
+        tp.setTexturePixelSize(vs*m_texturePixelSize);
+
+        mesh.getTriangles(tp);
+   
+        int rc = tp.getTriCount();
+        printf("tripacker count: %d\n", tp.getTriCount());        
+        tp.packTriangles();
+        
+        Vector2d area = tp.getPackedSize();
+
+        printf("packedSize: [%7.2f x %7.2f] \n", area.x, area.y); 
+               
+        int imgWidth = (int)(area.x+2*triGap);
+        int imgHeight = (int)(area.y+2*triGap);
+                
+        Bounds texBounds = new Bounds(0, imgWidth, 0, 1, 0, imgHeight);
+        AttributeGrid texGrid = new ArrayAttributeGridInt(texBounds, 1., 1.);
+        texGrid.setGridBounds(texBounds);
+        texGrid.setDataDesc(new GridDataDesc(new GridDataChannel(GridDataChannel.COLOR, "color", 24, 0)));
+        
+        tp.renderTexturedTriangles(grid, colorMaker, texGrid, triExtWidth);
+
+        SlicesWriter sw = new SlicesWriter();
+        sw.writeSlices(texGrid, texFilePath, 0, 0, 1, SlicesWriter.AXIS_Y, 24, new DefaultLongConverter());
+
+        double coord[] = tp.getCoord();
+        int coordIndex[] = tp.getCoordIndex();
+        double texCoord[] = tp.getTexCoord();
+        int texCoordIndex[] = tp.getTexCoordIndex();
+        for(int k = 0; k < texCoord.length; k += 2){
+            texCoord[k] /= imgWidth;
+            texCoord[k+1] = (imgHeight - texCoord[k+1])/imgHeight;
+        }
+        
+        writeTexturedX3D(coord, coordIndex, texCoord, texCoordIndex, outFile, texFileName);
+        
+    }  //writeTexturedMesh()
+
+
+    /**
+       writes textured triangles into a X3D file
+     */
+    public void writeTexturedX3D(double coord[], int coordIndex[], double texCoord[], int texCoordIndex[], String fileName, String texFileName) throws IOException {
+        
+        float fcoord[] = getFloatArray(coord);
+        float ftexCoord[] = getFloatArray(texCoord);
+        texCoordIndex = insertMinusOne(texCoordIndex);
+        coordIndex = insertMinusOne(coordIndex);
+
+        FileOutputStream fos = null;
+        
+        BinaryContentHandler writer = null;
+        fos = new FileOutputStream(fileName);
+
+        ErrorReporter console = new PlainTextErrorReporter();
+        int outType = getOutputType(fileName);
+        switch(outType){
+        case TYPE_X3DB:
+            writer = new X3DBinaryRetainedDirectExporter(fos,3, 0, console,X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);
+            break;
+        case TYPE_X3DV:
+            if (m_decimalDigits > -1) writer = new X3DClassicRetainedExporter(fos, 3, 0, console, m_decimalDigits);
+            else                      writer = new X3DClassicRetainedExporter(fos, 3, 0, console);            
+            break;
+        case TYPE_X3D:
+            if (m_decimalDigits > -1) writer = new X3DXMLRetainedExporter(fos, 3, 0, console, m_decimalDigits);
+            else                writer = new X3DXMLRetainedExporter(fos, 3, 0, console);
+            break;
+        default: 
+            throw new IllegalArgumentException("Unhandled file format: '" + fileName + "'");
+        }
+        
+        writer.startDocument("", "", "utf8", "#X3D", "V3.0", "");
+        writer.profileDecl("Immersive");
+        writer.startNode("NavigationInfo", null);
+        writer.startField("avatarSize");
+        writer.fieldValue(m_avatarSize, 3);
+        writer.endNode(); // NavigationInfo
+        // 
+
+        writer.startNode("Shape", null);
+
+        writer.startField("geometry");
+        writer.startNode("IndexedFaceSet", null);
+        writer.startField("coordIndex");        
+        writer.fieldValue(coordIndex, coordIndex.length);
+        writer.startField("texCoordIndex");        
+        writer.fieldValue(texCoordIndex, texCoordIndex.length);
+
+        writer.startField("coord");
+        writer.startNode("Coordinate", null);
+        writer.startField("point");
+        writer.fieldValue(fcoord, fcoord.length);
+        writer.endNode();   // Coord
+
+        writer.startField("texCoord");
+        writer.startNode("TextureCoordinate", null);
+        writer.startField("point");
+        writer.fieldValue(ftexCoord, ftexCoord.length);
+        writer.endNode();   // TextureCoord
+
+        writer.endNode();   // IndexedFaceSet
+
+        writer.startField("appearance");
+        writer.startNode("Appearance", null);
+        writer.startField("texture");
+        writer.startNode("ImageTexture", null);
+        writer.startField("url");
+        writer.fieldValue(new String[]{texFileName}, 1);
+        
+        writer.endNode();   //ImageTexture
+        
+        writer.endNode();   // Apperance
+        
+        writer.endNode();   // Shape
+        
+        writer.endDocument();
+        /*
+        PrintStream out = new PrintStream(new File(outFile));
+
+        out.printf("		coord Coordinate{\n"+
+               "			point[\n");
+        for(int k = 0; k < coord.length; k += 3){
+            out.printf("\t\t\t%7.5f %7.5f %7.5f\n",coord[k],coord[k+1],coord[k+2]);
+        }        
+        out.printf("			]\n"+
+               "		}\n"+
+               "		coordIndex[\n");
+        for(int k = 0; k < coordIndex.length; k += 3){
+            out.printf("\t\t\t%d %d %d -1\n",coordIndex[k],coordIndex[k+1],coordIndex[k+2]);
+        }                
+        out.printf("		]\n");
+        out.printf("		texCoord TextureCoordinate {\n"+
+               "			point [\n");
+        for(int k = 0; k < texCoord.length; k += 2){
+            out.printf("\t\t\t%7.5f %7.5f\n",texCoord[k], texCoord[k+1]);
+        }
+        out.printf("			]\n"+
+               "		}\n"+
+               "		texCoordIndex[\n");
+        for(int k = 0; k < texCoordIndex.length; k += 3){
+            out.printf("\t\t\t%d %d %d -1\n",texCoordIndex[k],texCoordIndex[k+1],texCoordIndex[k+2]);
+        }                        
+         out.printf("		]\n");        
+        */
+    } // writeTexturedX3D
+
     /**
        makes decimated mesh as isosurface
      */
@@ -320,64 +564,6 @@ public class GridSaver {
         
     }
 
-    /**
-     * Write a grid using the IsoSurfaceMaker to the specified file
-     *
-     * @param grid
-     * @param smoothSteps
-     * @param maxCollapseError
-     * @throws IOException
-     */
-    /*
-    public static void _writeIsosurfaceMaker(String filename, Grid grid, int smoothSteps, double maxCollapseError) throws IOException {
-
-        int nx = grid.getWidth();
-        int ny = grid.getHeight();
-        int nz = grid.getDepth();
-        double vs = grid.getVoxelSize();
-
-
-        double gbounds[] = new double[]{-nx*vs/2,nx*vs/2,-ny*vs/2,ny*vs/2,-nz*vs/2,nz*vs/2};
-        double ibounds[] = extendBounds(gbounds, -vs/2);
-
-        String encoding = filename.substring(filename.lastIndexOf(".")+1);
-
-        IsosurfaceMaker im = new IsosurfaceMaker();
-        im.setIsovalue(0.);
-        im.setBounds(ibounds);
-        im.setGridSize(nx, ny, nz);
-
-        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
-
-        im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
-        int[] faces = its.getFaces();
-        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
-
-        double centerWeight = 1.0; // any non negative value is OK
-
-        LaplasianSmooth ls = new LaplasianSmooth();
-        ls.setCenterWeight(centerWeight);
-        long t0 = currentTimeMillis();
-        printf("smoothMesh(%d)\n", smoothSteps);
-        t0 = currentTimeMillis();
-        ls.processMesh(mesh, smoothSteps);
-        printf("mesh smoothed in %d ms\n",(currentTimeMillis() - t0));
-
-        int fcount = faces.length;
-
-        if (maxCollapseError > 0) {
-            mesh = decimateMesh(mesh, maxCollapseError);
-        }
-
-        if (encoding.equals("stl")) {
-            MeshExporter.writeMeshSTL(mesh, fmt(filename, fcount));
-        } else if (encoding.startsWith("x3d")) {
-            MeshExporter.writeMesh(mesh, fmt(filename, fcount));
-        } else {
-            throw new IllegalArgumentException("Unsupported file format: " + encoding);
-        }
-    }
-    */
 
     /**
      * Write a grid using the IsoSurfaceMaker to the specified file
@@ -414,11 +600,11 @@ public class GridSaver {
 
         ls.setCenterWeight(centerWeight);
 
-        long t0 = currentTimeMillis();
+        long t0 = time();
         printf("smoothMesh(%d)\n", smoothSteps);
-        t0 = currentTimeMillis();
+        t0 = time();
         ls.processMesh(mesh, smoothSteps);
-        printf("mesh smoohed in %d ms\n", (currentTimeMillis() - t0));
+        printf("mesh smoohed in %d ms\n", (time() - t0));
 
         int fcount = faces.length;
 
@@ -440,191 +626,14 @@ public class GridSaver {
     }
 
     /**
-     * Write a grid using the IsoSurfaceMaker to the specified file
-     *
-     * @param grid
-     * @param smoothSteps
-     * @param maxCollapseError
-     * @throws IOException
-     */
-    /*
-    public static void writeIsosurfaceMaker(Grid grid, BinaryContentHandler writer, Map<String,Object> params, int smoothSteps, double maxCollapseError) throws IOException {
-        int nx = grid.getWidth();
-        int ny = grid.getHeight();
-        int nz = grid.getDepth();
-        double vs = grid.getVoxelSize();
-
-
-        double gbounds[] = new double[]{-nx*vs/2,nx*vs/2,-ny*vs/2,ny*vs/2,-nz*vs/2,nz*vs/2};
-        double ibounds[] = extendBounds(gbounds, -vs/2);
-
-        IsosurfaceMaker im = new IsosurfaceMaker();
-        im.setIsovalue(0.);
-        im.setBounds(ibounds);
-        im.setGridSize(nx, ny, nz);
-
-        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
-
-        im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
-        int[] faces = its.getFaces();
-        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
-
-        double centerWeight = 1.0; // any non negative value is OK
-
-        LaplasianSmooth ls = new LaplasianSmooth();
-
-        ls.setCenterWeight(centerWeight);
-
-        long t0 = currentTimeMillis();
-        printf("smoothMesh(%d)\n", smoothSteps);
-        t0 = currentTimeMillis();
-        ls.processMesh(mesh, smoothSteps);
-        printf("mesh smoothed in %d ms\n",(currentTimeMillis() - t0));
-
-        int fcount = faces.length;
-
-        if (maxCollapseError > 0) {
-            mesh = decimateMesh(mesh, maxCollapseError);
-        }
-
-        float[] pos = new float[] {0,0,(float) getViewDistance(grid)};
-
-        MeshExporter.writeMesh(mesh, writer, params, pos);
-    }
-    */
-    /**
-     * Write a grid using the IsoSurfaceMaker to the specified file
-     *
-     * @param grid
-     * @param smoothSteps
-     * @throws IOException
-     */
-    /*
-    public static WingedEdgeTriangleMesh createIsosurface(Grid grid, int smoothSteps) throws IOException {
-        int nx = grid.getWidth();
-        int ny = grid.getHeight();
-        int nz = grid.getDepth();
-        double vs = grid.getVoxelSize();
-
-
-        double gbounds[] = new double[]{-nx*vs/2,nx*vs/2,-ny*vs/2,ny*vs/2,-nz*vs/2,nz*vs/2};
-        double ibounds[] = extendBounds(gbounds, -vs/2);
-
-        IsosurfaceMaker im = new IsosurfaceMaker();
-        im.setIsovalue(0.);
-        im.setBounds(ibounds);
-        im.setGridSize(nx, ny, nz);
-
-        printf("makeIsosurface()\n");
-        long t0 = currentTimeMillis();
-
-        //IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
-        //printf("using OLD IndexedTriangleSetBuilder\n");
-        int estimatedFaceCount = (nx*ny + ny*nz + nx*nz)*2*2;
-        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(estimatedFaceCount);
-
-
-        im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
-        printf("using NEW IsosurfaceMaker");
-
-        printf("makeIsosurface() done in %d ms\n", (currentTimeMillis() - t0));
-        //return null;
-
-        if (Thread.currentThread().isInterrupted()) {
-            throw new ExecutionStoppedException();
-        }
-
-        t0 = currentTimeMillis();
-        printf("making WingedEdgeTriangleMesh\n");
-        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
-        printf("making WingedEdgeTriangleMesh done: %d\n", (currentTimeMillis()-t0));
-
-        if (Thread.currentThread().isInterrupted()) {
-            throw new ExecutionStoppedException();
-        }
-
-        double centerWeight = 1.0; // any non negative value is OK
-
-        LaplasianSmooth ls = new LaplasianSmooth();
-
-        ls.setCenterWeight(centerWeight);
-        t0 = currentTimeMillis();
-        printf("smoothMesh(%d)\n",smoothSteps);
-        t0 = currentTimeMillis();
-        ls.processMesh(mesh, smoothSteps);
-        printf("mesh smoothed in %d ms\n",(currentTimeMillis() - t0));
-
-        return mesh;
-
-    }
-    */
-    /**
-     * Write a grid using the IsoSurfaceMaker to the specified file
-     *
-     * @param grid
-     * @param smoothSteps
-     * @param maxCollapseError
-     * @throws IOException
-     */
-    /*
-    public static void writeIsosurfaceMaker(Grid grid, BinaryContentHandler writer, Map<String,Object> params,
-                                            int smoothSteps, double maxCollapseError, boolean meshOnly) throws IOException {
-        int nx = grid.getWidth();
-        int ny = grid.getHeight();
-        int nz = grid.getDepth();
-        double vs = grid.getVoxelSize();
-
-
-        double gbounds[] = new double[]{-nx*vs/2,nx*vs/2,-ny*vs/2,ny*vs/2,-nz*vs/2,nz*vs/2};
-        double ibounds[] = extendBounds(gbounds, -vs/2);
-
-        IsosurfaceMaker im = new IsosurfaceMaker();
-        im.setIsovalue(0.);
-        im.setBounds(ibounds);
-        im.setGridSize(nx, ny, nz);
-
-        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
-        im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
-        int[] faces = its.getFaces();
-        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
-
-        double centerWeight = 1.0; // any non negative value is OK
-
-        LaplasianSmooth ls = new LaplasianSmooth();
-
-        ls.setCenterWeight(centerWeight);
-
-        long t0 = currentTimeMillis();
-        printf("smoothMesh(%d)\n", smoothSteps);
-        t0 = currentTimeMillis();
-        ls.processMesh(mesh, smoothSteps);
-        printf("mesh processed: %d ms\n",(currentTimeMillis() - t0));
-
-        // We could release the grid at this point
-        int fcount = faces.length;
-
-        if (maxCollapseError > 0) {
-            mesh = decimateMesh(mesh, maxCollapseError);
-        }
-
-        writeMesh(mesh, getViewDistance(grid), writer, params, meshOnly);
-
-    }
-
-    */
-
-
-    /**
      * Write a grid mesh into output
      *
      * @throws IOException
      */
-    public static void writeMesh(WingedEdgeTriangleMesh mesh,
-                                 String filename
-    ) throws IOException {
-
+    public static void writeMesh(WingedEdgeTriangleMesh mesh,String filename) throws IOException {
+        
         MeshExporter.writeMesh(mesh, filename);
-
+        
         return;
     }
 
@@ -751,6 +760,7 @@ public class GridSaver {
         return extractShells(mesh, numShells, minVolume, shellFinder, shells);
     }
 
+    
     public static ShellResults extractShells(WingedEdgeTriangleMesh mesh, int numShells, double minVolume,
                                              ShellFinder shellFinder, ShellFinder.ShellInfo shells[]) {
 
@@ -761,6 +771,7 @@ public class GridSaver {
             return extractShellsST(mesh, numShells, minVolume, shellFinder, shells);
         }
     }
+
 
     public static ShellResults extractShellsMT(WingedEdgeTriangleMesh mesh, int numShells, double minVolume,
                                                ShellFinder shellFinder, ShellFinder.ShellInfo shells[]) {
@@ -822,6 +833,7 @@ public class GridSaver {
         return new ShellResults(mesh, shells.length - shell_cnt);
     }
 
+
     public static ShellResults extractShellsST(WingedEdgeTriangleMesh mesh, int numShells, double minVolume,
                                                ShellFinder shellFinder, ShellFinder.ShellInfo shells[]) {
         int regions_removed = 0;
@@ -867,6 +879,31 @@ public class GridSaver {
         return new ShellResults(mesh, shells.length - shell_cnt);
     }
 
+    /**
+       inserts -1 after each triple of indices 
+     */
+    public static int[] insertMinusOne(int ind[]){
+
+        int count = ind.length/3;
+        int ind4[] = new int[4*count];
+
+        for(int i = 0, j=0, k = 0; i < count; i++){
+            ind4[j++] = ind[k++];
+            ind4[j++] = ind[k++];
+            ind4[j++] = ind[k++];
+            ind4[j++] = -1;
+        }
+        return ind4;
+    }
+
+    public static float[] getFloatArray(double d[]){
+        float f[] = new float[d.length];
+        for(int i = 0; i < d.length; i++){
+            f[i] = (float)d[i];
+        }
+        return f;
+    }
+    
     public static WingedEdgeTriangleMesh decimateMesh(WingedEdgeTriangleMesh mesh, double maxCollapseError) {
 
         printf("GridSaver.decimateMesh()\n");
@@ -902,140 +939,70 @@ public class GridSaver {
     }
 
 
-    /**
-     * Write a grid mesh into output
-     *
-     * @throws IOException
-     */
-    /*
-    public static void writeMesh(WingedEdgeTriangleMesh mesh, 
-                                 double sizex, double sizey, double sizez, 
-                                 BinaryContentHandler writer, Map<String,Object> params,
-                                 double maxCollapseError, boolean meshOnly,
-                                 boolean writeLargestShellOnly) throws IOException {
+    public LongConverter makeDefaultColorMaker(AttributeGrid grid){
+        return new DefaultColorMaker();
+    }
 
-        // We could release the grid at this point
-        int fcount = mesh.getFaceCount();
+    // temporary hack to get make color from 
+    public static class DefaultColorMaker implements LongConverter {
 
-        if (maxCollapseError > 0) {
+        public long get(long value) {
+            // TODO - swaps colors
+            return ((value >> 8)& 0xFFFFFF);
 
-            MeshDecimator md = new MeshDecimator();
+        }
+    }
 
-            md.setMaxCollapseError(maxCollapseError);
-            long start_time = System.currentTimeMillis();
+    public static class ColorMakerIdentity implements LongConverter {
 
-            int target = mesh.getTriangleCount() / 2;
-            int current = fcount;
-            System.out.println("Original face count: " + fcount);
+        public long get(long value) {
+            return ((value)& 0xFFFFFF);
+        }
+    }
 
-            while(true) {
-                if (Thread.currentThread().isInterrupted()) {
-                    throw new ExecutionStoppedException();
-                }
-
-                target = mesh.getTriangleCount() / 2;
-                System.out.println("Target face count : " + target);
-                md.processMesh(mesh, target);
-
-                current = mesh.getFaceCount();
-                System.out.println("Current face count: " + current);
-                if (current >= target * 1.25) {
-                    // not worth continuing
-                    break;
-                }
-            }
-            
-            fcount = mesh.getFaceCount();            
-            System.out.println("Final face count: " + fcount);
-            
-            
-            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time)  + " ms");
-            
+    static class ShellExtracter implements Runnable {
+        private boolean terminate;
+        private WingedEdgeTriangleMesh mesh;
+        private double minVolume;
+        private BlockingQueue<ShellData> saved;
+        private int removed;
+        private ConcurrentLinkedQueue<ShellFinder.ShellInfo> shells;
+        
+        public ShellExtracter(WingedEdgeTriangleMesh mesh, double minVolume, BlockingQueue<ShellData> saved, ConcurrentLinkedQueue<ShellFinder.ShellInfo> shells) {
+            this.mesh = mesh;
+            this.minVolume = minVolume;
+            this.saved = saved;
+            this.shells = shells;
         }
         
-        if(writeLargestShellOnly) {
-            ShellFinder shellFinder = new ShellFinder();
-            long t0 = time();
-            ShellFinder.ShellInfo shells[] = shellFinder.findShells(mesh);
-
-            printf("shellsCount: %d\n",shells.length);
-
-            if(shells.length > 1){
+        public void run() {
+            while (!terminate) {
+                ShellFinder.ShellInfo shell = shells.poll();
+                if (shell == null) break;
                 
-                ShellFinder.ShellInfo maxShell = shells[0];
-
-                for(int i = 0; i < shells.length; i++){
-
-                    printf("shell: %d faces\n",shells[i].faceCount);
-                    if(shells[i].faceCount > maxShell.faceCount){
-                        maxShell = shells[i];
-                    }                        
+                
+                AreaCalculator ac = new AreaCalculator();
+                ShellFinder sf = new ShellFinder();
+                //            shellFinder.getShell(mesh, shells[i].startFace, ac);
+                sf.getShell(mesh, shell.startFace, ac);
+                mesh.getTriangles(ac);
+                double volume = ac.getVolume();
+                
+                //System.out.println("   vol: " + (volume / Units.CM3));
+                if (volume >= minVolume) {
+                    System.out.println("Keeping shell: " + volume / Units.CM3 + " cm^3");
+                    saved.add(new ShellData(shell, volume));
+                } else {
+                    //System.out.println("Removing shell.  vol: " + (volume / Units.CM3));
+                    removed++;
                 }
-                
-                printf("extracting largest shell: %d\n",maxShell.faceCount);               
-                IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(maxShell.faceCount);
-                shellFinder.getShell(mesh, maxShell.startFace, its);
-                mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
-            }
-            printf("shell extraction: %d ms\n", (time() - t0));
-        }
-
-        double max_axis = Math.max(gh * sh, gw * vs);
-        max_axis = Math.max(max_axis, gd * vs);
-
-        double z = 2 * max_axis / Math.tan(Math.PI / 4);
-        float[] pos = new float[] {0,0,(float) z};
-
-
-        MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly, null);
-
-        return;
-    }
-    */
-
-}
-
-class ShellExtracter implements Runnable {
-    private boolean terminate;
-    private WingedEdgeTriangleMesh mesh;
-    private double minVolume;
-    private BlockingQueue<ShellData> saved;
-    private int removed;
-    private ConcurrentLinkedQueue<ShellFinder.ShellInfo> shells;
-
-    public ShellExtracter(WingedEdgeTriangleMesh mesh, double minVolume, BlockingQueue<ShellData> saved, ConcurrentLinkedQueue<ShellFinder.ShellInfo> shells) {
-        this.mesh = mesh;
-        this.minVolume = minVolume;
-        this.saved = saved;
-        this.shells = shells;
-    }
-
-    public void run() {
-        while (!terminate) {
-            ShellFinder.ShellInfo shell = shells.poll();
-            if (shell == null) break;
-
-
-            AreaCalculator ac = new AreaCalculator();
-            ShellFinder sf = new ShellFinder();
-//            shellFinder.getShell(mesh, shells[i].startFace, ac);
-            sf.getShell(mesh, shell.startFace, ac);
-            mesh.getTriangles(ac);
-            double volume = ac.getVolume();
-
-            //System.out.println("   vol: " + (volume / Units.CM3));
-            if (volume >= minVolume) {
-                System.out.println("Keeping shell: " + volume / Units.CM3 + " cm^3");
-                saved.add(new ShellData(shell, volume));
-            } else {
-                //System.out.println("Removing shell.  vol: " + (volume / Units.CM3));
-                removed++;
             }
         }
-    }
-
-    public int getRemoved() {
-        return removed;
-    }
-}
+        
+        public int getRemoved() {
+            return removed;
+        }
+    }   // static class ShellExtracter 
+           
+} // class GridSaver
 

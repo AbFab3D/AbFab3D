@@ -13,7 +13,13 @@ package abfab3d.io.output;
 
 import abfab3d.util.TriangleMesh;
 import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.*;
+
+import org.web3d.vrml.export.PlainTextErrorReporter;
+import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
+import org.web3d.vrml.export.X3DBinarySerializer;
+import org.web3d.vrml.export.X3DClassicRetainedExporter;
+import org.web3d.vrml.export.X3DXMLRetainedExporter;
+
 import org.web3d.vrml.sav.BinaryContentHandler;
 
 import java.io.FileOutputStream;

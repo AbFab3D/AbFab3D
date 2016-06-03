@@ -49,6 +49,7 @@ import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.GridDataDesc;
 import abfab3d.grid.GridDataChannel;
 
+import abfab3d.util.LongConverter;
 import abfab3d.util.TriangleProducer;
 
 import abfab3d.geom.TriangulatedModels;
@@ -92,7 +93,7 @@ public class TestTextureRenderer extends TestCase {
     }
 
 
-    public void checkLinearTransform(){
+    public void devTestLinearTransform(){
         
         Random rnd = new Random(101);
 
@@ -135,7 +136,8 @@ public class TestTextureRenderer extends TestCase {
         // normally maxDist is below 1.e-14, but if 2D triangle is almost degenerate, there is larger error
     }
 
-    public void makeTextureRendering(){
+    
+    public void devTestTextureRendering(){
 
         double vs = 0.1*MM;
         int subvoxelResolution = 255;
@@ -182,7 +184,7 @@ public class TestTextureRenderer extends TestCase {
         dataGrid.setDataDesc(attDesc);
         new SVXWriter().write(dataGrid, "/tmp/slices/dataGrid.svx");
 
-        TextureRenderer renderer = new TextureRenderer(dataGrid, texGrid);
+        TextureRenderer renderer = new TextureRenderer(dataGrid, new ColorMaker(), texGrid);
 
         double dataTri[][] = new double[][]{{nx-1,1,1},{1,ny-1,1},{1,1,nz-1}};
         //double dataTri[][] = new double[][]{{1,ny/2,1},{nx-1,ny/2,1},{1, ny/2 ,nz-1}};    // XZ plane 
@@ -222,18 +224,19 @@ public class TestTextureRenderer extends TestCase {
     /**
        testing textured triangles output 
      */
-    public void makeTexturedMesh() throws IOException{
+    public void devTestTexturedMesh() throws IOException{
 
         printf("makeTexturedTetrahedron()\n");
         
         double vs = 0.1*MM;
-        
-        double triExtWidth = 1.5; // extension of textured triangles 
-        double s = 10*MM;
+        // extension of textured triangles 
+        //double triExtWidth = 1.5;
+        double triExtWidth = 3.5; 
+        double triGap = triExtWidth+1.;
+        double s = 50*MM;
         double bounds[] = new double[]{-s/2,s/2,-s/2,s/2,-s/2,s/2};
 
         double gs = s/vs; // size of grid 
-        double triGap = 2;
         double center = gs/2;
 
         String baseDir = "/tmp/tex/";
@@ -241,7 +244,7 @@ public class TestTextureRenderer extends TestCase {
         //TriangleProducer mesh = new ParametricSurfaceMaker(new ParametricSurfaces.Patch(new Vector3d(2,2,center),new Vector3d(gs-2,2,center),new Vector3d(gs-2,gs-2,center),new Vector3d(2,gs-2,center),3,3));
         //TriangleProducer mesh = new TriangulatedModels.TetrahedronInParallelepiped(2.,2.,2., gs-2, gs-2, gs-2,0);
         //TriangleProducer mesh = new TriangulatedModels.Parallelepiped(2.,2.,2., gs-2, 0.7*gs-2, 0.5*gs-2);
-        TriangleProducer mesh = new TriangulatedModels.Sphere(gs/2-2, new Vector3d(gs/2,gs/2,gs/2), 3);
+        TriangleProducer mesh = new TriangulatedModels.Sphere(gs/2-2, new Vector3d(gs/2,gs/2,gs/2), 5);
         //TriangleProducer mesh = new TriangulatedModels.Torus(gs/4, gs/2, 0.5);
         
         STLWriter writer = new STLWriter(baseDir + "mesh.stl");
@@ -255,7 +258,8 @@ public class TestTextureRenderer extends TestCase {
 
         //double vert[] = itsb.getVertices();
         
-        TrianglePacker tp = new TrianglePacker(triGap);
+        TrianglePacker tp = new TrianglePacker();
+        tp.setGap(triGap);
         mesh.getTriangles(tp);
    
         int rc = tp.getTriCount();
@@ -268,12 +272,12 @@ public class TestTextureRenderer extends TestCase {
                
         int imgWidth = (int)(area.x+2*triGap);
         int imgHeight = (int)(area.y+2*triGap);
-
+        
         BufferedImage outImage = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = outImage.createGraphics();
         graphics.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         graphics.setStroke(new BasicStroke(1.f, BasicStroke.CAP_ROUND,  BasicStroke.JOIN_ROUND));        
-        graphics.setColor(new Color(220,220,220));         
+        graphics.setColor(new Color(220,220,220)); // background color 
         graphics.fillRect(0,0, imgWidth, imgHeight);         
         
         tp.drawTriangles(graphics);
@@ -283,8 +287,7 @@ public class TestTextureRenderer extends TestCase {
         int ngx = (int)gs;        
         AttributeGrid colorGrid = makeColorGrid_2(bounds, vs);
 
-        GridDataDesc attDesc = new GridDataDesc();
-        attDesc.addChannel(new GridDataChannel(GridDataChannel.COLOR, "color", 24, 0));
+        GridDataDesc attDesc = new GridDataDesc(new GridDataChannel(GridDataChannel.COLOR, "color", 24, 0));
         colorGrid.setDataDesc(attDesc);
         new SVXWriter(2).write(colorGrid, baseDir + "colorGrid.svx");
 
@@ -293,7 +296,7 @@ public class TestTextureRenderer extends TestCase {
         texGrid.setGridBounds(texBounds);
         texGrid.setDataDesc(attDesc);
         
-        tp.renderTexturedTriangles(colorGrid, texGrid, triExtWidth);
+        tp.renderTexturedTriangles(colorGrid, new ColorMaker(),texGrid, triExtWidth);
 
         new SVXWriter().write(texGrid, "/tmp/tex/texGrid.svx");
 
@@ -327,7 +330,7 @@ public class TestTextureRenderer extends TestCase {
         }                        
         printf("		]\n");        
         
-    }  //makeTexturedMesh()
+    }  //devTestTexturedMesh()
 
 
     AttributeGrid makeColorGrid_1(double bounds[], double vs){
@@ -351,7 +354,7 @@ public class TestTextureRenderer extends TestCase {
         DataSourceMixer mux = new DataSourceMixer(sphere1, sphere2, sphere3);
         
         GridMaker gm = new GridMaker();  
-        gm.setThreadCount(1);
+        //gm.setThreadCount(4);
         gm.setMargin(0);
         gm.setSource(mux);
 
@@ -383,7 +386,7 @@ public class TestTextureRenderer extends TestCase {
         DataSourceMixer mux = new DataSourceMixer(sphere1, sphere2, gyroid);
         
         GridMaker gm = new GridMaker();  
-        gm.setThreadCount(1);
+        //gm.setThreadCount(8);
         gm.setMargin(0);
         gm.setSource(mux);
 
@@ -396,12 +399,17 @@ public class TestTextureRenderer extends TestCase {
         return dataGrid;
     }
 
+    static class ColorMaker implements LongConverter {
+        public final long get(long value){
+            return (value & 0xFFFFFF);
+        }
+    }
 
     public static void main(String[] args) throws IOException {
         //new TestSlicesWriter().multichannelTest();
-        //new TestTextureRenderer().checkLinearTransform();
-        //new TestTextureRenderer().checkTextureRendering();
-        new TestTextureRenderer().makeTexturedMesh();
-        //new TestTextureRenderer().testExtendedTriangle();
+        //new TestTextureRenderer().devTestLinearTransform();
+        //new TestTextureRenderer().devTesTextureRendering();
+        new TestTextureRenderer().devTestTexturedMesh();
+        //new TestTextureRenderer().devTestExtendedTriangle();
     }    
 }

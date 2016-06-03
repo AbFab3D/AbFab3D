@@ -1,3 +1,15 @@
+/*****************************************************************************
+ *                        Shapeways, Inc Copyright (c) 2011-2016
+ *                               Java Source
+ *
+ * This source is licensed under the GNU LGPL v2.1
+ * Please read http://www.gnu.org/copyleft/lgpl.html for more information
+ *
+ * This software comes with the standard NO WARRANTY disclaimer for any
+ * purpose. Use it at your own risk. If there's a problem you get to fix it.
+ *
+ ****************************************************************************/
+
 package abfab3d.io.output;
 
 import java.awt.Graphics2D;
@@ -11,6 +23,7 @@ import javax.vecmath.Vector2d;
 
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 
+import abfab3d.util.LongConverter;
 import abfab3d.util.TriangleCollector;
 import abfab3d.util.TriangleProducer;
 import abfab3d.util.RectPacking;
@@ -18,9 +31,12 @@ import abfab3d.util.RectPacking;
 import abfab3d.grid.AttributeGrid;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.time;
 
 /**
-   class responsible for packing and rendering textured traingles into 2D texure image 
+   class responsible for packing and rendering textured triangles into 2D texure image 
+
+   @author Vladimir Bulatov
  */
 public class TrianglePacker implements TriangleCollector, TriangleProducer {
 
@@ -31,7 +47,7 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
     // canonicaly oriented 2D triangles 
     Vector<CanonicalTri> m_ctri = new Vector<CanonicalTri>();
 
-    // texture coordinates of packed triangles in voxels units
+    // texture coordinates of packed triangles in pixel units
     double m_texCoord[];
     // indices of texture coord
     int m_texCoordIndex[];
@@ -47,9 +63,16 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
     double m_gap = 1.; 
     // rectangles packer 
     RectPacking m_packer; 
-
+    double m_pixelSize = 1;
     
-    public TrianglePacker(double gap){
+    public TrianglePacker(){
+    }
+
+    public void setTexturePixelSize(double pixelSize){
+        m_pixelSize = pixelSize;
+    }
+
+    public void setGap(double gap){
 
         m_gap = gap;
 
@@ -120,7 +143,7 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
        accept triangle from TriangleProducer 
      */
     public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2){
-
+        if(false)printf("addTri((%7.5f,%7.5f,%7.5f),(%7.5f,%7.5f,%7.5f),(%7.5f,%7.5f,%7.5f))\n",v0.x,v0.y,v0.z,v1.x,v1.y,v1.z,v2.x,v2.y,v2.z);
         double len01 = dist(v0, v1);
         double len12 = dist(v1, v2);
         double len20 = dist(v2, v0);
@@ -172,10 +195,10 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
         double triHeight = triArea2/triWidth;
         
         double v1x = triWidth;
-        double v2y = triHeight; // y- ccordinate of 2D triangle 2
+        double v2y = triHeight; // y- coordinate of 2D triangle 2
         double v2x = p1.dot(p2)/len01;
         
-        m_ctri.add(new CanonicalTri(v1x, v2x, v2y));
+        m_ctri.add(new CanonicalTri(v1x/m_pixelSize, v2x/m_pixelSize, v2y/m_pixelSize));
         
         //
         // all triangles are oriented canonically: v0,v1 is the longest side 
@@ -199,12 +222,13 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
         m_packer = new RectPacking();
         
         printf("RectPacking start\n");        
+        long t0 = time();
 
         for(int i = 0; i < rc; i++){
             getCanonicalTri(i,ct);
             // add triangle with a safety gap around it 
             m_packer.addRect(ct.v1x+2*m_gap, ct.v2y + 2*m_gap);
-            //printf("rect: %d [%7.2f; (%7.2f, %7.2f)]\n", i, rs.x, rs.y, rs.z);            
+            if(false)printf("tri: %d [%7.2f; (%7.2f, %7.2f)]\n", i, ct.v1x, ct.v2x, ct.v2y);
         }
         m_packer.pack();        
         if(DEBUG)printf("RectPacking done\n");
@@ -244,7 +268,7 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
             m_texCoordIndex[k] = k;
         }
 
-        if(DEBUG)printf("packTriangles() done\n");
+        if(DEBUG)printf("packTriangles() done %d ms\n", time()-t0);
     }
 
 
@@ -255,9 +279,9 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
        @param texGrid 2D grid (3D grid with single y-slice) to accept the texture 
        @param extendWidth width of extension of rendered triangles
      */
-    public void renderTexturedTriangles(AttributeGrid dataGrid, AttributeGrid texGrid, double extendWidth){
+    public void renderTexturedTriangles(AttributeGrid dataGrid, LongConverter colorMaker, AttributeGrid texGrid, double extendWidth){
         
-        TextureRenderer tr = new TextureRenderer(dataGrid, texGrid);
+        TextureRenderer tr = new TextureRenderer(dataGrid, colorMaker, texGrid);
 
         double tri[][] = new double[3][3];
         double tex[][] = new double[3][2];
@@ -298,29 +322,6 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
                 
         for(int k = 0; k < m_triCount; k++){
 
-            /*
-
-            getCanonicalTri(i,ct);
-            m_packer.getRectOrigin(i, origin);
-            origin.x += m_gap;
-            origin.y += m_gap;
-
-            //printf("rect: %2d (%7.2f, %7.2f):(%7.2f, %7.2f)\n", i, origin.x, origin.y, rs.x, rs.z);   
-            double v0x = origin.x;
-            double v0y = origin.y;
-            double v1x = ct.v1x + origin.x;
-            double v1y = origin.y;
-            double v2x = ct.v2x + origin.x;
-            double v2y = ct.v2y + origin.y;
-            
-            //printf("tri: %2d (%7.2f, %7.2f):(%7.2f, %7.2f); (%7.2f, %7.2f), \n", i, v0x, v0y, v1x, v1y, v2x, v2y);   
-
-            GeneralPath tri = new GeneralPath();
-            tri.moveTo(v0x, v0y);
-            tri.lineTo(v1x, v1y);
-            tri.lineTo(v2x, v2y);
-            tri.lineTo(v0x, v0y);
-            */
             int texindex = k*6;
             GeneralPath tri = new GeneralPath();
             tri.moveTo(m_texCoord[texindex],   m_texCoord[texindex+1]);

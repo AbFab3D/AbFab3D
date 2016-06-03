@@ -12,8 +12,14 @@
 
 package abfab3d.mesh;
 
-import abfab3d.util.*;
-//import abfab3d.util.DefaultHashFunction;
+import abfab3d.util.TriangleMesh;
+import abfab3d.util.StructMixedData;
+import abfab3d.util.StructMap;
+import abfab3d.util.EdgeCollapseParams;
+import abfab3d.util.EdgeCollapseResult;
+import abfab3d.util.TriangleCollector;
+import abfab3d.util.StructSet;
+import abfab3d.util.FaceFlipChecker;
 
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
