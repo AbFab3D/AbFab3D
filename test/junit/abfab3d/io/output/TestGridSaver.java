@@ -77,6 +77,7 @@ import abfab3d.datasources.Complement;
 import abfab3d.datasources.Mask;
 import abfab3d.datasources.Mul;
 import abfab3d.datasources.Constant;
+import abfab3d.datasources.Union;
 
 import abfab3d.transforms.Rotation;
 import abfab3d.transforms.PeriodicWrap;
@@ -232,6 +233,61 @@ public class TestGridSaver extends TestCase {
         
     }
 
+    /**
+       make models for test print
+     */
+    void devTestPrintModels() throws IOException{
+
+        printf("devTestPrintModels()\n");  
+        double voxelSize = 0.2*MM;
+        //double rin = 5.0*MM; double rout = 10.0*MM; // makes model 50mm tall 
+        double rin = 10*MM; double rout = 20.0*MM; // makes model 100mm tall 
+        double period = 5*MM; // period of stripes 
+        double lineWidth = 1*MM; // width of stripes 
+        double height = 2*rin + 4*rout;
+
+        int dotCount = 0; double texPixelSize = 0.2;
+        //int dotCount = 1; double texPixelSize = 0.5;
+        //int dotCount = 2; double texPixelSize = 1.;
+        //int dotCount = 3; double texPixelSize = 2.;
+        //int dotCount = 4; double texPixelSize = 3.;
+        
+        double triGap = 3;
+        double triExt = 1.5;
+        String baseDir = "/tmp/tex/print/";
+        String fname = fmt("printModel_%03d_mm_ps%3.1f.x3dv", (int)(height/MM), texPixelSize);
+
+        double wx = (rin + rout)+1*MM;
+        double wy = height/2+1*MM;
+
+
+        //double voxelSize = 2*wy/voxelCount;
+                
+        int threadsCount = 1;
+
+        Bounds bounds = new Bounds(-wx,wx,-wy,wy,-wx,wx, voxelSize);
+
+        GridMaker gm = new GridMaker();
+        DataSource ds = makeDoubleTorus(rin, rout, period, lineWidth, dotCount);
+
+        gm.setSource(ds); 
+
+        AttributeGrid grid = createDensBGRGrid(bounds);
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+
+        GridSaver gsaver = new GridSaver();         
+        gsaver.setWriteTexturedMesh(true);
+        gsaver.setTexTriGap(triGap);
+        gsaver.setTexTriExt(triExt);
+        gsaver.setTexPixelSize(texPixelSize);
+        String path = baseDir+fname;
+        gsaver.write(grid,path);  
+
+        printf("writing done\n");    
+        
+    }
+
     static void printRay(DataSource source, Vector3d v0, Vector3d v1, int count, double vs, AttributeMaker attMaker){
         if(source instanceof Initializable) ((Initializable)source).initialize();
         Vector3d v = new Vector3d();
@@ -269,6 +325,42 @@ public class TestGridSaver extends TestCase {
         DataSourceMixer csphere = new DataSourceMixer(sphere, colorizer);
         return csphere;
 
+    }
+
+    static DataSource makeDoubleTorus(double rin, double rout, double period, double lineWidth, int dotCount){
+
+        Torus t1 = new Torus(new Vector3d(0, rout,0),new Vector3d(0,0,1),rout, rin);
+        Torus t2 = new Torus(new Vector3d(0,-rout,0),new Vector3d(1,0,0),rout, rin);        
+        Union u12 = new Union(t1, t2);
+        //Union u12 = new Union();
+        for(int i = 0; i < dotCount; i++){
+            double rs = rin*0.3;
+            double Rs = rout - rin;
+            double a= i*Math.PI/2;
+            double sx = Rs*Math.cos(a);
+            double sy = rout + Rs*Math.sin(a);
+            u12.add(new Sphere(sx, sy, 0, rs));
+        }
+        u12.initialize();
+        Plane p1 = new Plane(new Vector3d(1,0,0),(period + lineWidth)/2 );
+        Plane p2 = new Plane(new Vector3d(-1,0,0),-(period - lineWidth)/2);
+        Intersection p12 = new Intersection(p1, p2);
+        p12.setTransform(new PeriodicWrap(new Vector3d(period,0,0)));
+
+        Plane p3 = new Plane(new Vector3d(0,1,0),(period + lineWidth)/2 );
+        Plane p4 = new Plane(new Vector3d(0,-1,0),-(period - lineWidth)/2);
+        Intersection p34 = new Intersection(p3, p4);
+        p34.setTransform(new PeriodicWrap(new Vector3d(0,period,0)));
+
+        DataSource blue = new Constant(1);
+        //DataSource background = new Constant(1,1,1);
+        
+        DataSourceMixer colorizer = new DataSourceMixer(p12, p34, blue);
+        
+        
+        DataSourceMixer cu12 = new DataSourceMixer(u12, colorizer);
+        return cu12;
+        
     }
 
     static DataSource makeStripedGyroid(double radius, double period){
@@ -334,7 +426,9 @@ public class TestGridSaver extends TestCase {
 
    
     public static void main(String[] args) throws IOException {
-        new TestGridSaver().devTestTexturedMesh();
+
+        new TestGridSaver().devTestPrintModels();
+        //new TestGridSaver().devTestTexturedMesh();
         //new TestGridSaver().devTestDistanceGrid();
         //new TestGridSaver().devGridDensBGR();
     }

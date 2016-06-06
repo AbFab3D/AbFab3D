@@ -106,7 +106,10 @@ public class GridSaver {
     double m_isosurfaceValue;
     boolean m_writeTexturedMesh = false;
     int m_decimalDigits = -1; // numer of decimal digits to use for ascii output 
-    double m_texturePixelSize = 0.5;
+    double m_texPixelSize = 0.5;
+    // extension of textured triangles 
+    double m_texTriExt = 1.5; 
+    double m_texTriGap = 3.;
 
     public static final String EXT_X3DB = ".x3db";// binary
     public static final String EXT_X3DV = ".x3dv";  // classic
@@ -144,9 +147,24 @@ public class GridSaver {
        sets size of texture pixels relative to grid voxel size
        default value 0.5 
      */
-    public void setTexturePixelSize(double value) {
-        m_texturePixelSize = value;
+    public void setTexPixelSize(double value) {
+        m_texPixelSize = value;
     }
+
+    /**
+       set textured triangles extension width (in texture pixels). Default value is 1.5
+     */
+    public void setTexTriExt(double value) {
+        m_texTriExt = value;
+    }
+
+    /**
+       set textured triangles gap width (in texture pixels). Default value is 3
+     */
+    public void setTexTriGap(double value) {
+        m_texTriGap = value;
+    }
+
 
     /**
        force writer to save textured mesh (if supported by format (X3D, X3DB or X3DV)
@@ -328,9 +346,6 @@ public class GridSaver {
         printf("writeAsMeshWithTexture()\n");
         
         double vs = grid.getVoxelSize();
-        // extension of textured triangles 
-        double triExtWidth = 1.5; 
-        double triGap = 3.;
 
         String baseDir = FileUtil.getFileDir(outFile);
         String fileName = FileUtil.getFileName(outFile);        
@@ -345,8 +360,8 @@ public class GridSaver {
         // TriangleProducer mesh = getMesh(grid);
                
         TrianglePacker tp = new TrianglePacker();
-        tp.setGap(triGap);
-        tp.setTexturePixelSize(vs*m_texturePixelSize);
+        tp.setGap(m_texTriGap);
+        tp.setTexturePixelSize(vs*m_texPixelSize);
 
         mesh.getTriangles(tp);
    
@@ -356,17 +371,17 @@ public class GridSaver {
         
         Vector2d area = tp.getPackedSize();
 
-        printf("packedSize: [%7.2f x %7.2f] \n", area.x, area.y); 
+        printf("texture packedSize: [%7.2f x %7.2f] \n", area.x, area.y); 
                
-        int imgWidth = (int)(area.x+2*triGap);
-        int imgHeight = (int)(area.y+2*triGap);
+        int imgWidth = (int)(area.x+2*m_texTriGap);
+        int imgHeight = (int)(area.y+2*m_texTriGap);
                 
         Bounds texBounds = new Bounds(0, imgWidth, 0, 1, 0, imgHeight);
         AttributeGrid texGrid = new ArrayAttributeGridInt(texBounds, 1., 1.);
         texGrid.setGridBounds(texBounds);
         texGrid.setDataDesc(new GridDataDesc(new GridDataChannel(GridDataChannel.COLOR, "color", 24, 0)));
         
-        tp.renderTexturedTriangles(grid, colorMaker, texGrid, triExtWidth);
+        tp.renderTexturedTriangles(grid, colorMaker, texGrid, m_texTriExt);
 
         SlicesWriter sw = new SlicesWriter();
         sw.writeSlices(texGrid, texFilePath, 0, 0, 1, SlicesWriter.AXIS_Y, 24, new DefaultLongConverter());

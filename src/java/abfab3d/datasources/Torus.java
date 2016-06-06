@@ -67,6 +67,7 @@ public class Torus extends TransformableDataSource {
     /**
        torus centered ar center with axis parallel to z-axis
        @param center - location of torus center
+       @param axis - direction of torus axis
        @param Rout - outer radius of torus
        @param Rin - inner radius of torus
 
