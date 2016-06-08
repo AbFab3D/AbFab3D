@@ -18,7 +18,7 @@ import javax.vecmath.Vector3d;
    interface accepts a collection of triangles with possible extra information (texture, color, etc)
    
  */
-public interface TriangleCollector2 extends  TriangleCollector{
+public interface TriangleCollector2 {
 
     /**
        add triangle 

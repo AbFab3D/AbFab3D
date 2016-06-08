@@ -16,10 +16,10 @@ package abfab3d.util;
    interface which generates a raw mesh of triangles
    
  */
-public interface TriangleProducer2 extends TriangleProducer {
+public interface TriangleProducer2 {
 
     /**
-       feeds all triangles into supplied TriangleCollector 
+       feeds all triangles into supplied TriangleCollector2 
 
        returns true if success, false if faiure        
      */

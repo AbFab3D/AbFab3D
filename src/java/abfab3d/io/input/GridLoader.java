@@ -18,6 +18,7 @@ import abfab3d.util.Bounds;
 import abfab3d.util.TriangleProducer;
 import abfab3d.util.TriangleProducer2;
 import abfab3d.util.TriangleCollector2;
+import abfab3d.util.TriangleProducer2Converter;
 
 import abfab3d.grid.op.DistanceTransformLayered;
 
@@ -438,30 +439,22 @@ public class GridLoader {
         @param triProducer produces texured triangles via TriangleColletor2 interface 
         @return grid which contains distance and color information to given limits 
      */
-    public AttributeGrid rasterizeTexturedTriangles(TriangleProducer2 triProducer){
+    public AttributeGrid rasterizeTexturedTriangles(TriangleProducer2 triProducer2){
  
-        if(DEBUG) printf("GridLoader.rasterizeTexturedTriangles(%s)\n", triProducer);
- 
-        Bounds bounds = getModelBounds(triProducer);
+        if(DEBUG) printf("GridLoader.rasterizeTexturedTriangles(%s)\n", triProducer2);
+        TriangleProducer tp = new TriangleProducer2Converter(triProducer2);
+        Bounds bounds = getModelBounds(tp);
         if(DEBUG) printf("model bounds: %s\n", bounds);
         AttributeGrid grid = createDistRGBGrid(bounds);
         if(DEBUG)printf("grid: [%d x %d x %d]\n", grid.getWidth(),grid.getHeight(),grid.getDepth());
         if(DEBUG)printf("voxelSize: %7.5f\n", grid.getVoxelSize());
-        /*
-        GridDataChannel channel = grid.getDataChannel();
-        printf("maxInDistance: %8.5f m_maxOutDistance: %8.5f\n", m_maxInDistance, m_maxOutDistance);
-        double dd = 0.1*MM;
-        for(double d = -m_maxInDistance-dd; d <= m_maxOutDistance+2*dd; d+= dd){            
-            long att = channel.makeAtt(d);
-            printf("d: %8.5f att: 0x%02x\n", d, att);
-        }
-        */
+ 
         DistanceRasterizer2 rasterizer = new DistanceRasterizer2(bounds, grid.getWidth(),grid.getHeight(),grid.getDepth());
         rasterizer.setShellHalfThickness(m_shellHalfThickness);
         rasterizer.setSurfaceVoxelSize(m_surfaceVoxelSize);
         rasterizer.setThreadCount(m_threadCount);
         
-        rasterizer.getDistances(triProducer, grid);
+        rasterizer.getDistances(tp, grid);
                 
         return grid;
         
