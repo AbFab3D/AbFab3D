@@ -375,7 +375,7 @@ public class TestGridLoader extends TestCase {
         loader.setMaxInDistance(1*MM);
         loader.setMaxOutDistance(1*MM);   
 
-        AttributeGrid grid = loader.rasterizeTexturedTriangles(new TexturedTorus(10*MM, 5*MM, 200, 200));
+        AttributeGrid grid = loader.rasterizeTexturedTriangles(new TexturedTorus(10*MM, 5*MM, 4, 4));
         GridSaver writer = new GridSaver();
         String outPath = "/tmp/tex/outGrid.svx";
         printf("writing: %s\n", outPath);
