@@ -253,11 +253,13 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
     public long makeAtt(double value){
         double cvalue = clamp(value, m_minValue, m_maxValue);
         double nvalue = (cvalue - m_value0)*m_D2B;
+        // do we need to have 0.5 shift ??? 
+        long att = (((long)(nvalue + 0.5))& m_mask) << m_shift;
         if(DEBUG) {
-            if(debugCount-- > 0)printf("makeAtt(%7.5f, cval: %7.5f, nval: %7.5f\n",value, cvalue, nvalue);
+            if(debugCount-- > 0)printf("makeAtt(v:%8.5f, cv:%8.5f, nv:%6.2f att:0x%02x\n",value, cvalue, nvalue, att);
         }
-            
-        return (((long)(nvalue + 0.5))& m_mask) << m_shift;
+
+        return att;
     }
 
     // interface to get signed or unsigned bits from attribute

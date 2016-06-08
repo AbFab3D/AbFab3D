@@ -27,8 +27,8 @@ import static abfab3d.util.Output.printf;
 
 /**
  * Creates a triangulated parametric surface 
-   by recursively splitting domain into triangles of smller size to make surface 
-   triangles to be small enough 
+   by recursively splitting domain into triangles of smaller size to make surface 
+   triangles to be small enough to be close to the surface within given tolerance 
  *
  * @author Vladimir Bulatov
  */

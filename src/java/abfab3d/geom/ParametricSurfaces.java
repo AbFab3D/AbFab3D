@@ -33,7 +33,7 @@ import static abfab3d.util.Output.printf;
 public class ParametricSurfaces { 
 
     /**
-       torus of given small and large radiuses, center, and axis
+       torus of given interior and exterior radiuses, center, and axis
      */
     public static class Torus implements ParametricSurface {
 
@@ -46,8 +46,8 @@ public class ParametricSurfaces {
             this.rout = rout;
         }
 
-        public Torus(double ri, double r0, Vector3d center, Vector3d axis){
-
+        public Torus(double rin, double rout, Vector3d center, Vector3d axis){
+            if(false) throw new RuntimeException("not implemented");
             this.center.set(center);
             this.axis.set(axis);
             //TODO - init rotation matrix 

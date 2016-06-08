@@ -15,13 +15,16 @@ package abfab3d.io.input;
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.util.Bounds;
-
+import abfab3d.util.TriangleProducer;
+import abfab3d.util.TriangleProducer2;
+import abfab3d.util.TriangleCollector2;
 
 import abfab3d.grid.op.DistanceTransformLayered;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.GridDataDesc;
+import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridShort;
 
@@ -38,20 +41,21 @@ import static abfab3d.util.MathUtil.getMaxValue;
  */
 public class GridLoader {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     static final boolean DEBUG_TIMING = false;
     
-
     protected double m_preferredVoxelSize = 0.2*MM;
 
     protected int m_densityBitCount = 8;
     protected int m_distanceBitCount = 16;
+    protected int m_colorBitCount = 5;
     protected double m_margins = 1*MM;
 
     protected long m_maxGridSize = 1000L*1000L*1000L;
 
     protected AttributeGrid m_densityGridTemplate = new ArrayAttributeGridByte(1,1,1, 10*MM, 10*MM);
     protected AttributeGrid m_distanceGridTemplate = new ArrayAttributeGridShort(1,1,1, 10*MM, 10*MM);
+    protected AttributeGrid m_distRGBGridTemplate = new ArrayAttributeGridInt(1,1,1, 10*MM, 10*MM);
 
     public static final int 
         RASTERIZER_WAVELET = 1,   // makes antialised density and makes distance from density 
@@ -66,8 +70,9 @@ public class GridLoader {
     protected double m_shellHalfThickness = 2;
     protected int m_threadCount = 1;
     protected int m_triangleCount;
+    // size of surface voxel (in grid voxel units)
     protected double m_surfaceVoxelSize = 1;
-
+    
     public GridLoader(){
         
     }
@@ -178,7 +183,7 @@ public class GridLoader {
         long t0 = time();
         Bounds bounds = getModelBounds(reader);
 
-        AreaCalculator ac = new AreaCalculator();  // TODO: should we make a combined bounds/area calculator?
+        AreaCalculator ac = new AreaCalculator(); 
         reader.getTriangles(ac);
         if(DEBUG_TIMING)printf("Area calc: %f %d\n",ac.getArea(),(time() - t0));
         
@@ -205,7 +210,7 @@ public class GridLoader {
                 double maxOutDist = m_maxOutDistance;
 
                 DistanceTransformLayered dt = new DistanceTransformLayered(svr, maxInDist, maxOutDist);
-                dt.setThreadCount(4);
+                dt.setThreadCount(m_threadCount);
                                 
                 AttributeGrid distanceGrid = dt.execute(densityGrid);
                 //TODO - move this into DistanceTransformLayered
@@ -325,11 +330,17 @@ public class GridLoader {
                 
     }
 
-    protected Bounds getModelBounds(MeshReader meshReader){
+
+    /**
+       calculates model bonds and select approproate voxel size 
+       voxel size is returned in bounds 
+       @return bounds and selected voxel size of the model 
+     */
+    protected Bounds getModelBounds(TriangleProducer triProducer){
 
         long t0 = time();
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
-        meshReader.getTriangles(bb);
+        triProducer.getTriangles(bb);
         m_triangleCount = bb.getTriangleCount();
 
         //if(DEBUG)printf("model read time time: %d ms\n", (time() - t0));
@@ -348,25 +359,14 @@ public class GridLoader {
             gridBounds.setVoxelSize(voxelSize);
             gridBounds.roundBounds();
         }
-        /*
-        while((long) ng[0] * ng[1]*ng[2] > m_maxGridSize) {                
-            //voxelSize = Math.pow(bounds.getVolume()/m_maxGridSize, 1./3);
-            voxelSize *= 1.01;
-            
-            gridBounds.setVoxelSize(voxelSize);
-            gridBounds.expand(m_marginsVoxels*voxelSize);
-            gridBounds.roundBounds();
-            // round up to the nearest voxel
-            ng = gridBounds.getGridSize();
-        } 
-        */
-        if(DEBUG)printf("actual voxelSize: %7.3fmm\n",voxelSize/MM);
+
+        if(false)printf("actual voxelSize: %7.3fmm\n",voxelSize/MM);
         int nx = gridBounds.getGridWidth();
         int ny = gridBounds.getGridHeight();
         int nz = gridBounds.getGridDepth();
 
-        if(DEBUG)printf("  grid size: [%d x %d x %d] = %d\n", nx, ny, nz, (long) nx*ny*nz);
-        if(DEBUG)printf("  grid bounds: [ %8.3f, %8.3f], [%8.3f, %8.3f], [%8.3f, %8.3f] mm; vs: %5.3f mm\n",
+        if(false)printf("  grid size: [%d x %d x %d] = %d\n", nx, ny, nz, (long) nx*ny*nz);
+        if(false)printf("  grid bounds: [ %8.3f, %8.3f], [%8.3f, %8.3f], [%8.3f, %8.3f] mm; vs: %5.3f mm\n",
                gridBounds.xmin/MM, gridBounds.xmax/MM, gridBounds.ymin/MM, gridBounds.ymax/MM, gridBounds.zmin/MM, gridBounds.zmax/MM, voxelSize/MM);
         
         if(nx < 2 || ny < 2 || nz < 2) throw new IllegalArgumentException(fmt("bad grid size (%d x %d x %d)\n", nx, ny, nz));
@@ -403,4 +403,67 @@ public class GridLoader {
 
     }
 
+    /**
+       creates distance RGB grod for given bounds and other class members data 
+     */
+    protected AttributeGrid createDistRGBGrid(Bounds bounds){
+
+        int nx = bounds.getGridWidth();
+        int ny = bounds.getGridHeight();
+        int nz = bounds.getGridDepth();
+        double voxelSize = bounds.getVoxelSize();
+
+        AttributeGrid grid = (AttributeGrid)m_distRGBGridTemplate.createEmpty(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+        int distBits = 8;
+        int colorBits = 8;
+        // distance channel value 0 corresponds to maxOutDIstance
+        // distance channel value FF corresponds to -maxInDIstance
+        // this makes interior of shapes have value FF which is convenient to be used as alpha channel in 32 bit png 
+        GridDataChannel dist = new GridDataChannel(GridDataChannel.DISTANCE,    "dist", distBits,         0, m_maxOutDistance, -m_maxInDistance);
+        GridDataChannel red = new GridDataChannel(GridDataChannel.COLOR_RED,    "red",  colorBits, distBits,               0.,1.);
+        GridDataChannel green = new GridDataChannel(GridDataChannel.COLOR_GREEN,"green",colorBits, distBits +   colorBits, 0.,1.);
+        GridDataChannel blue = new GridDataChannel(GridDataChannel.COLOR_BLUE,  "blue", colorBits, distBits + 2*colorBits, 0.,1.);
+
+        grid.setDataDesc(new GridDataDesc(dist, red, green, blue));
+        
+        return grid;
+
+    }
+
+
+
+    /**
+        creates grid from textured triangle mesh 
+        @param triProducer produces texured triangles via TriangleColletor2 interface 
+        @return grid which contains distance and color information to given limits 
+     */
+    public AttributeGrid rasterizeTexturedTriangles(TriangleProducer2 triProducer){
+ 
+        if(DEBUG) printf("GridLoader.rasterizeTexturedTriangles(%s)\n", triProducer);
+ 
+        Bounds bounds = getModelBounds(triProducer);
+        if(DEBUG) printf("model bounds: %s\n", bounds);
+        AttributeGrid grid = createDistRGBGrid(bounds);
+        if(DEBUG)printf("grid: [%d x %d x %d]\n", grid.getWidth(),grid.getHeight(),grid.getDepth());
+        if(DEBUG)printf("voxelSize: %7.5f\n", grid.getVoxelSize());
+        /*
+        GridDataChannel channel = grid.getDataChannel();
+        printf("maxInDistance: %8.5f m_maxOutDistance: %8.5f\n", m_maxInDistance, m_maxOutDistance);
+        double dd = 0.1*MM;
+        for(double d = -m_maxInDistance-dd; d <= m_maxOutDistance+2*dd; d+= dd){            
+            long att = channel.makeAtt(d);
+            printf("d: %8.5f att: 0x%02x\n", d, att);
+        }
+        */
+        DistanceRasterizer2 rasterizer = new DistanceRasterizer2(bounds, grid.getWidth(),grid.getHeight(),grid.getDepth());
+        rasterizer.setShellHalfThickness(m_shellHalfThickness);
+        rasterizer.setSurfaceVoxelSize(m_surfaceVoxelSize);
+        rasterizer.setThreadCount(m_threadCount);
+        
+        rasterizer.getDistances(triProducer, grid);
+                
+        return grid;
+        
+    }
 }

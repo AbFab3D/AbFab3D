@@ -12,23 +12,25 @@
 
 package abfab3d.io.input;
 
-// External Imports
-
-
-// external imports
+import javax.vecmath.Vector3d;
 
 import abfab3d.util.ColorMapper;
 import abfab3d.util.ColorMapperDistance;
 import abfab3d.util.ColorMapperDensity;
+
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 
-// Internal Imports
-        import abfab3d.grid.AttributeGrid;
-        import abfab3d.grid.GridDataDesc;
+import abfab3d.util.TriangleProducer2;
+import abfab3d.util.TriangleCollector2;
+import abfab3d.util.TriangleCollector;
+import abfab3d.util.Vec;
+
+import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.GridDataDesc;
 import abfab3d.grid.GridDataChannel;
 
 import abfab3d.distance.DistanceData;
@@ -36,8 +38,9 @@ import abfab3d.distance.DistanceDataSphere;
 
 import abfab3d.grid.util.GridUtil;
 
+import abfab3d.io.output.GridSaver;
 
-        import static java.lang.Math.max;
+import static java.lang.Math.max;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
@@ -45,7 +48,9 @@ import static abfab3d.util.Output.time;
 import static abfab3d.util.Units.CM3;
 import static abfab3d.util.Units.MM;
 import static abfab3d.util.MathUtil.clamp;
-        import static abfab3d.util.ImageUtil.lerpColors;
+import static abfab3d.util.ImageUtil.lerpColors;
+
+import static abfab3d.util.Output.printf;
 
 
 /**
@@ -359,15 +364,37 @@ public class TestGridLoader extends TestCase {
 
     }
 
+
+    /**
+       rasterizatoion of textured triangles 
+     */   
+    public void devTestRasterizeTexturedTriangles() throws Exception {
+
+        printf("devTestRasterizeTexturedTriangles()\n");        
+        GridLoader loader = new GridLoader();
+        loader.setMaxInDistance(1*MM);
+        loader.setMaxOutDistance(1*MM);   
+
+        AttributeGrid grid = loader.rasterizeTexturedTriangles(new TexturedTorus(10*MM, 5*MM, 200, 200));
+        GridSaver writer = new GridSaver();
+        String outPath = "/tmp/tex/outGrid.svx";
+        printf("writing: %s\n", outPath);
+        writer.write(grid, outPath);
+        printf("done\n");        
+        
+    }
+
+
     static int debugCount = 1000;
 
     public static void main(String[] args) throws Exception{
 
         for(int k = 0; k < 1; k++){
             //new TestGridLoader().devTestSTL_density();
-            new TestGridLoader().devTestSTL_distance();
+            //new TestGridLoader().devTestSTL_distance();
             //new TestGridLoader().testRasterizerDistancePrecision();
             //new TestGridLoader().testRasterizerDistance2Precision();
+            new TestGridLoader().devTestRasterizeTexturedTriangles();
         }
     }
 }
