@@ -13,7 +13,9 @@
 package abfab3d.io.input;
 
 import abfab3d.util.TriangleCollector;
+import abfab3d.util.TriangleCollector2;
 import abfab3d.util.TriangleProducer;
+import abfab3d.util.TriangleProducer2;
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 import abfab3d.util.Transformer;
@@ -43,12 +45,11 @@ import static java.lang.System.currentTimeMillis;
  *
  * @author Vladimir Bulatov
  */
-public class STLReader implements TriangleProducer, Transformer {
+public class STLReader implements TriangleProducer, TriangleProducer2, Transformer {
 
     static final boolean DEBUG = false;
 
     public double scale = 1. / 1000.; //to convert form STL standard millimeters into meters
-    private TriangleCollector out;
 
     /**
      * Transformation to apply to vertices, null for none
@@ -189,6 +190,28 @@ public class STLReader implements TriangleProducer, Transformer {
         }
     }
 
+    /**
+     * interface TriangleProducer
+     */
+    public boolean getTriangles2(TriangleCollector2 out) {
+        try {
+
+            if (m_is != null) {
+
+                readBinary(m_is,out);
+
+            } else {
+
+                readBinary(makeInputStream(m_path), out);
+            }
+
+            return true;
+
+        } catch (Exception e) {
+            throw new RuntimeException(fmt("Exception while reading STL file:%s\n", m_path), e);
+        }
+    }
+
     protected DataInputStream makeInputStream(String path) throws IOException{
         
         InputStream bis = null;
@@ -216,8 +239,6 @@ public class STLReader implements TriangleProducer, Transformer {
             printf("STLReader.read(%s, %s)\n", bis, out);
             t0 = currentTimeMillis();
         }
-
-        this.out = out;
 
         DataInputStream data = new DataInputStream(bis);
 
@@ -277,6 +298,65 @@ public class STLReader implements TriangleProducer, Transformer {
     /**
      * Read in a file and apply the specified transform.
      *
+     * @param bis File to read
+     * @param out  Destination
+     * @throws IOException
+     */
+    private void readBinary(InputStream bis, TriangleCollector2 out) throws IOException {
+        long t0;
+
+        if (DEBUG) {
+            printf("STLReader.read(%s, %s)\n", bis, out);
+            t0 = currentTimeMillis();
+        }
+
+        DataInputStream data = new DataInputStream(bis);
+
+        data.skip(80);
+
+        int fcount = readInt(data);
+        if (DEBUG)
+            printf("fcount: %d\n", fcount);
+        int faces = 0;
+
+        Vec
+                v0 = new Vec(3),
+                v1 = new Vec(3),
+                v2 = new Vec(3);
+
+        try {
+            while (true) {
+                // ignore normal
+                data.skip(3 * 4);
+                readVector3Df(data, v0);
+                readVector3Df(data, v1);
+                readVector3Df(data, v2);
+
+                if(transform != null){
+                    transform.transform(v0, v0);
+                    transform.transform(v1, v1);
+                    transform.transform(v2, v2);
+                }
+
+                out.addTri2(v0, v1, v2);
+
+                data.skip(2); // unsused stuff
+                faces++;
+            }
+        } catch (Exception e) {
+            data.close();
+
+            if (DEBUG)
+                printf("faces read: %d\n", faces);
+        }
+        if (DEBUG)
+            printf("STLReader.read() done in %d ms\n", (currentTimeMillis() - t0));
+
+    }
+
+    /**
+     * Read in a file and apply the specified transform.
+     *
      * @param path File to read
      * @param out  Destination
      * @throws IOException
@@ -289,7 +369,45 @@ public class STLReader implements TriangleProducer, Transformer {
             t0 = currentTimeMillis();
         }
 
-        this.out = out;
+        InputStream bis = null;
+
+        // TODO: how to add gzip support?
+        /*
+        if (path.lastIndexOf(".gz") > -1) {
+            bis = new GZIPInputStream(new FileInputStream(path), (1 << 14));
+        } else {
+            bis = new BufferedInputStream(new FileInputStream(path), (1 << 14));
+        }
+        */
+        STLFileReader reader = null;
+
+        try {
+            File f = new File(path);
+            reader = new STLFileReader(new URL(f.toURI().toString()), false);
+        } catch (InvalidFormatException ife) {
+            String msg = ife.getMessage();
+            System.out.println("Error: " + msg);
+
+            return;
+        }
+
+        generateTriangles(reader, transform, out);
+    }
+
+    /**
+     * Read in a file and apply the specified transform.
+     *
+     * @param path File to read
+     * @param out  Destination
+     * @throws IOException
+     */
+    private void readAscii(String path, TriangleCollector2 out) throws IOException {
+        long t0;
+
+        if (DEBUG) {
+            printf("STLReader.read(%s, %s)\n", path, out);
+            t0 = currentTimeMillis();
+        }
 
         InputStream bis = null;
 
@@ -388,6 +506,68 @@ public class STLReader implements TriangleProducer, Transformer {
                 }
 
                 out.addTri(dv0, dv1, dv2);
+            }
+        }
+    }
+
+    /**
+     * Generate the coordinate and normal information for the TriangleSet node
+     * based on that read from the STL file.
+     */
+    private void generateTriangles(STLFileReader rdr, VecTransform transform, TriangleCollector2 out)
+            throws IOException, VRMLException {
+
+        int num_objects = rdr.getNumOfObjects();
+        int[] num_tris = rdr.getNumOfFacets();
+        String[] obj_names = rdr.getObjectNames();
+        int max_tris = 0;
+
+        // Copy locally for speed and avoid any MT weirdness
+        double unit_scale = scale;
+
+        for (int j = 0; j < num_objects; j++) {
+            if (num_tris[j] > max_tris)
+                max_tris = num_tris[j];
+        }
+
+        if (max_tris == 0) {
+            return;
+        }
+
+        if (num_objects == 1) {
+            // Special case 1 object to read as many triangles as possible for binary miscounts
+            num_tris[0] = Integer.MAX_VALUE;
+        }
+
+        double[] in_normal = new double[3];
+        double[][] in_coords = new double[3][3];
+
+        Vec
+                v0 = new Vec(3),
+                v1 = new Vec(3),
+                v2 = new Vec(3);
+
+
+        for (int i = 0; i < num_objects; i++) {
+            if (num_tris[i] == 0)
+                continue;
+
+            for (int j = 0; j < num_tris[i]; j++) {
+                if (!rdr.getNextFacet(in_normal, in_coords)) {
+                    break;
+                }
+
+                v0.set(in_coords[0][0] * unit_scale, in_coords[0][1] * unit_scale, in_coords[0][2] * unit_scale);
+                v1.set(in_coords[1][0] * unit_scale, in_coords[1][1] * unit_scale, in_coords[1][2] * unit_scale);
+                v2.set(in_coords[2][0] * unit_scale, in_coords[2][1] * unit_scale, in_coords[2][2] * unit_scale);
+
+                if(transform != null){
+                    transform.transform(v0, v0);
+                    transform.transform(v1, v1);
+                    transform.transform(v2, v2);
+                }
+
+                out.addTri2(v0, v1, v2);
             }
         }
     }

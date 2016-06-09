@@ -78,7 +78,7 @@ public class X3DReader implements TriangleProducer, Transformer {
     }
 
     /**
-       reads XML file and passes troiangles to TriangleCollector
+       reads XML file and passes triangles to TriangleCollector
      */
     private void read(TriangleCollector out) throws IOException {
 
