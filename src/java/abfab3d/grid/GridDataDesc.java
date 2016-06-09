@@ -173,7 +173,7 @@ public class GridDataDesc {
        creates AttributeDesc with color+density channel 
        this is wrong way to use channels, it is actually composite channel 
      */
-    public static GridDataDesc getDensDensityColor(){
+    public static GridDataDesc getDensityColor(){
         return getDensBGRcomposite();
     }
 
