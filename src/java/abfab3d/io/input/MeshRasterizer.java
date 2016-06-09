@@ -32,13 +32,13 @@ import static abfab3d.util.Output.printf;
    
    it is supposed to be used as follows 
 
-   mr = new MeshRasterizer(bounds, nx, ny, nz);
+   rasterizer = new MeshRasterizer(bounds, nx, ny, nz);
    for(each triangle in collection){
-      mr.addTri();
+      rasterizer.addTri();
    }
 
    AttributeGrid grid = new AttributeGrid(...);
-   mr.getRaster(grid);    
+   rasterizer.getRaster(grid);    
 
    @author Vladimir Bulatov
  */

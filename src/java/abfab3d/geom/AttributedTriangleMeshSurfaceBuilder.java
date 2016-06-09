@@ -16,18 +16,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors; 
 import java.util.concurrent.TimeUnit;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.vecmath.Vector3d; 
 
 import java.util.concurrent.ExecutorService; 
 import java.util.concurrent.Executors; 
 import java.util.concurrent.TimeUnit;
 
+import abfab3d.util.Vec;
 import abfab3d.util.Bounds;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.PointSet;
-import abfab3d.util.PointSetArray;
+import abfab3d.util.TriangleCollector2;
+import abfab3d.util.AttributedPointSet;
+import abfab3d.util.AttributedPointSetArray;
 import abfab3d.util.TriangleRenderer;
 import abfab3d.util.PointToTriangleDistance;
 
@@ -45,13 +44,16 @@ import static abfab3d.util.MathUtil.clamp;
 
 
 /**
-   generated set of points on the surface of triangle mesh on a given grid 
-
+   generated set of points on the surface of attributed triangle mesh on a given grid 
+   
    Each triangle of the mesh is rasterized in the plane orthogonal to the best of 3 possible projections (USE_BEAST_AXIS = true)
+   each triangle has few attributes 
+   attributes are all components of traingle data after first 3 
+   attributes are interpolated inside of triangle and are stored in AttributedPointSet together x,y,z cordinates 
 
    @author Vladimir Bulatov
  */
-public class TriangleMeshSurfaceBuilder implements TriangleCollector {
+public class AttributedTriangleMeshSurfaceBuilder implements TriangleCollector2 {
 
     static final boolean DEBUG = true;    
     static final double TOL = 1.e-2;
@@ -63,7 +65,7 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
     protected TriangleRenderer m_triRenderer;
 
     // callback class for triangles ransterizer 
-    protected VoxelRenderer m_voxelRenderer;
+    protected AttributedPointRenderer m_voxelRenderer;
 
     // grid to world conversion params 
     protected double m_xmin, m_ymin, m_zmin, m_scale;
@@ -77,16 +79,24 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
     protected boolean m_useVertices = false;
     protected boolean m_sortPoints = false;
 
-    PointSet m_points;
-    
+    AttributedPointSet m_points;
+
+    int m_dataDimension=6; 
 
     /**
        @aram gridBounds 
      */
-    public TriangleMeshSurfaceBuilder(Bounds gridBounds){
+    public AttributedTriangleMeshSurfaceBuilder(Bounds gridBounds){
 
         m_bounds = gridBounds.clone();
 
+    }
+    
+    /**
+       set dimension of data (x,y,z and attributes) 
+     */
+    public void setDataDimension(int dimension){
+        m_dataDimension = dimension;
     }
 
     /**
@@ -150,27 +160,27 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
             // coordinates are in grid units 
             //
             int npnt = m_points.size();
-            Vector3d pnt = new Vector3d();
+            Vec pnt = new Vec(m_dataDimension);
             for(int i = 0; i < npnt; i++){
                 m_points.getPoint(i, pnt);
-                pntx[i] = pnt.x;
-                pnty[i] = pnt.y;
-                pntz[i] = pnt.z;
+                pntx[i] = pnt.v[0];
+                pnty[i] = pnt.v[1];
+                pntz[i] = pnt.v[2];
             }
         }
     }
 
 
-    static private void getPointsInGridUnitsSorted(double coordx[],double coordy[],double coordz[], PointSet pnts, int binCount){
+    private void getPointsInGridUnitsSorted(double coordx[],double coordy[],double coordz[], AttributedPointSet pnts, int binCount){
         long t0 = time();
-        Vector3d p = new Vector3d();
+        Vec p = new Vec(m_dataDimension);
         int pcount = pnts.size();        
         int binCounts[] = new int[binCount];
         int maxBin = binCount-1;
         // first point is not used 
         for(int i = 1; i < pcount;i++){
             pnts.getPoint(i, p);
-            int bin = clamp((int)p.y, 0, maxBin);
+            int bin = clamp((int)p.v[1], 0, maxBin);
             binCounts[bin]++;
         }
 
@@ -187,20 +197,20 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
         }
 
         pnts.getPoint(0, p);
-        coordx[0] = p.x;
-        coordy[0] = p.y;
-        coordz[0] = p.z;
+        coordx[0] = p.v[0];
+        coordy[0] = p.v[1];
+        coordz[0] = p.v[2];
 
         // first point is not used 
         for(int i = 1; i < pcount;i++){
 
             pnts.getPoint(i, p);
-            int bin = clamp((int)p.y, 0, maxBin);
+            int bin = clamp((int)p.v[1], 0, maxBin);
             int cindex = (binOffset[bin] + binCounts[bin] + 1);
             binCounts[bin]++;            
-            coordx[cindex] = p.x;
-            coordy[cindex] = p.y;
-            coordz[cindex] = p.z;            
+            coordx[cindex] = p.v[0];
+            coordy[cindex] = p.v[1];
+            coordz[cindex] = p.v[2];            
         }        
         printf("points sorting time: %d ms\n", time() - t0);
     }
@@ -217,7 +227,7 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
         m_nz = m_bounds.getGridDepth();
 
         m_triRenderer = new TriangleRenderer();
-        m_voxelRenderer = new VoxelRenderer();
+        m_voxelRenderer = new AttributedPointRenderer();
         m_xmin = m_bounds.xmin;
         m_ymin = m_bounds.ymin;
         m_zmin = m_bounds.zmin;
@@ -227,19 +237,10 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
             // unknow estimation  use surface of the bounding box
             m_estimatedPointCounts = (m_nx*m_ny + m_ny*m_nz + m_nz*m_nx)*2;
         }
-        m_points = new PointSetArray(m_estimatedPointCounts);
+        m_points = new AttributedPointSetArray(m_dataDimension, m_estimatedPointCounts);
 
         // add unused point to have index start from 1
-        m_points.addPoint(0, 0, 0);
-        if(false){
-            // axes of grid for visualization 
-            for(int i = 1; i <= m_nx; i++)
-                m_points.addPoint(i, 0, 0);
-            for(int i = 1; i <= m_ny; i++)
-                m_points.addPoint(0, i, 0);
-            for(int i = 1; i <= m_nz; i++)
-                m_points.addPoint(0, 0, i);
-        }
+        m_points.addPoint(new Vec(6));
 
         // successfull initialization 
         return true;
@@ -254,10 +255,10 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
         m_normal = new Vector3d();
     
     /**
-       method of interface TriangleCollector 
+       method of interface TriangleCollector2 
        
      */
-    public boolean addTri(Vector3d p0, Vector3d p1, Vector3d p2){
+    public boolean addTri2(Vec p0, Vec p1, Vec p2){
         if(m_useBestPlane) 
             return addTri_bestPlane(p0,p1,p2);
         else 
@@ -268,11 +269,11 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
        render triangle in the plane orthogonal to the longest normal projection 
        rendering generates points on intersection of triangle and voxel grid lines 
     */
-    protected boolean addTri_bestPlane(Vector3d p0, Vector3d p1, Vector3d p2){
+    protected boolean addTri_bestPlane(Vec p0, Vec p1, Vec p2){
         m_triCount++;
-        v0.set(p0);
-        v1.set(p1);
-        v2.set(p2);
+        p0.get(v0);
+        p1.get(v1);
+        p2.get(v2);
 
         toGrid(v0);
         toGrid(v1);
@@ -324,9 +325,9 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
         // this makes each vertex point added 6 times
         // and vertex points are probably unnecessary
         if(m_useVertices){
-            m_points.addPoint(v0.x, v0.y, v0.z);
-            m_points.addPoint(v1.x, v1.y, v1.z);
-            m_points.addPoint(v2.x, v2.y, v2.z);
+            m_points.addPoint(p0);
+            m_points.addPoint(p1);
+            m_points.addPoint(p2);
         }
         //TODO 
         // add triangle edges to deal with super thin triangles  (may be) 
@@ -338,12 +339,12 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
       render triangle in all 3 planes 
       
     */
-    protected boolean addTri_allPlanes(Vector3d p0, Vector3d p1, Vector3d p2){
+    protected boolean addTri_allPlanes(Vec p0, Vec p1, Vec p2){
 
         m_triCount++;
-        v0.set(p0);
-        v1.set(p1);
-        v2.set(p2);
+        p0.get(v0);
+        p1.get(v1);
+        p2.get(v2);
 
         toGrid(v0);
         toGrid(v1);
@@ -408,11 +409,17 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
         return (z*m_voxelSize + m_zmin);
     }
 
-        
-    class VoxelRenderer implements TriangleRenderer.PixelRenderer {
+    /**
+       renders actual point with imnterpolated attributes 
+     */
+    class AttributedPointRenderer implements TriangleRenderer.PixelRenderer {
 
         double m_ax, m_ay, m_az;
         int m_axis = 2;
+        Vec m_work = new Vec(m_dataDimension);
+        double m_u[] = new double[m_dataDimension];
+        double m_v[] = new double[m_dataDimension];
+        double m_w[] = new double[m_dataDimension];
 
         final void setAxis(int axis){
             m_axis = axis;
@@ -423,7 +430,7 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
             m_ay = ay;
             m_az = az;
         }
-
+        
         public void setPixel(int ix, int iy){
             
             double 
@@ -432,11 +439,21 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
                 z = m_ax*x + m_ay*y + m_az;
             
             switch(m_axis){
-            default: 
-            case 0: m_points.addPoint(z,x,y); break;
-            case 1: m_points.addPoint(y,z,x); break;
-            case 2: m_points.addPoint(x,y,z); break;                
+            case 0: m_work.set(z,x,y); break;
+            case 1: m_work.set(y,z,x); break;
+            case 2: m_work.set(x,y,z); break;                
             }
+            
+            switch(m_dataDimension){
+            case 3:
+                m_work.v[5] = m_u[2]*x + m_v[2]*y + m_w[2];
+            case 2:
+                m_work.v[4] = m_u[1]*x + m_v[1]*y + m_w[1];
+            case 1:
+                m_work.v[3] = m_u[0]*x + m_v[0]*y + m_w[0];
+            }
+            m_points.addPoint(m_work);
         }                   
-    } //  class VoxelRenderer 
-}
+    } //  class AttributedPointRenderer 
+
+} // class AttributedTriangleMeshSurfaceBuilder 
