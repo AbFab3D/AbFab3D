@@ -37,7 +37,6 @@ public class TestAttributedMeshReader extends TestCase {
 
         double voxelSize = 0.1*MM;
 
-        // This cube is really 10mm
         String filePath = "test/models/donut_textured.x3dv";
 
         AttributedMeshReader reader = new AttributedMeshReader(filePath);
@@ -62,6 +61,36 @@ public class TestAttributedMeshReader extends TestCase {
         assertTrue("BoundsZ",(Math.abs(boundsZ - expectedZ) < EPS));
     }
 
+    public void testX3DVNonAttributed() throws IOException {
+
+        double voxelSize = 0.1*MM;
+
+        // This cube is really 10mm
+        String filePath = "test/models/cube_1mm.x3dv";
+
+        AttributedMeshReader reader = new AttributedMeshReader(filePath);
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        reader.getTriangles2(bb);
+        double bounds[] = new double[6];
+        bb.getBounds(bounds);
+
+        double expectedX = 10 * MM;
+        double expectedY = 10 * MM;
+        double expectedZ = 10 * MM;
+
+        double EPS = 2*voxelSize;
+
+        double boundsX = (bounds[1] - bounds[0]);
+        double boundsY = (bounds[3] - bounds[2]);
+        double boundsZ = (bounds[5] - bounds[4]);
+        printf("Bounds: %4.2f %4.2f %4.2f mm",boundsX/MM,boundsY/MM,boundsZ/MM);
+        assertTrue("BoundsX",(Math.abs(boundsX - expectedX) < EPS));
+        assertTrue("BoundsY",(Math.abs(boundsY - expectedY) < EPS));
+        assertTrue("BoundsZ",(Math.abs(boundsZ - expectedZ) < EPS));
+
+        assertTrue("Data dimension should be 3",reader.getDataDimension() == 3);
+    }
+
     /**
      * We support a limited form of IndexedFaceSet, must be all triangles and contain texture coordinates.
      * @throws IOException
@@ -70,7 +99,6 @@ public class TestAttributedMeshReader extends TestCase {
 
         double voxelSize = 0.1*MM;
 
-        // This cube is really 10mm
         String filePath = "test/models/donut_textured_ifs.x3dv";
 
         AttributedMeshReader reader = new AttributedMeshReader(filePath);
@@ -99,7 +127,6 @@ public class TestAttributedMeshReader extends TestCase {
 
         double voxelSize = 0.1*MM;
 
-        // This cube is really 10mm
         String filePath = "test/models/square.x3dv";
 
         AttributedMeshReader reader = new AttributedMeshReader(filePath);
@@ -241,7 +268,6 @@ public class TestAttributedMeshReader extends TestCase {
 
         double voxelSize = 0.1*MM;
 
-        // This cube is really 10mm
         String filePath = "test/models/texture_transform.x3dv";
 
         AttributedMeshReader reader = new AttributedMeshReader(filePath);

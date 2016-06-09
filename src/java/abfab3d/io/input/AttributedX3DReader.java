@@ -112,8 +112,12 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
             CommonEncodable tcoordNode = (CommonEncodable) its.getValue("texCoord");
             float[] coord = (float[]) ((ArrayData)coordNode.getValue("point")).data;
             int[] coordIndex = (int[]) ((ArrayData)its.getValue("index")).data;
-            ArrayData tcoordData = ((ArrayData)tcoordNode.getValue("point"));
-            float[] tcoord = (float[]) ((ArrayData)tcoordNode.getValue("point")).data;
+            ArrayData tcoordData = null;
+            float[] tcoord = null;
+            if (tcoordNode != null) {
+                tcoordData = ((ArrayData) tcoordNode.getValue("point"));
+                tcoord = (float[]) ((ArrayData) tcoordNode.getValue("point")).data;
+            }
             int[] tcoordIndex = coordIndex;
             ArrayData tci = ((ArrayData)its.getValue("texCoordIndex"));
             if (tci != null) tcoordIndex = (int[]) tci.data;
@@ -148,7 +152,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
                     addTriangles6(coord, tcoord, tex, coordIndex, tcoordIndex, out);
                     break;
             }
-            addTexture(tex,texNode);
+            if (texNode != null) addTexture(tex,texNode);
 
             tex++;
         }
@@ -219,18 +223,18 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
 
         for(int i=0, idx = 0; i < len; i++ ) {
 
-            int off = coordIndex[idx] * 3;
+            int off = coordIndex[idx++] * 3;
             v0.v[0] = coord[off++];
             v0.v[1] = coord[off++];
             v0.v[2] = coord[off++];
 
-            off = coordIndex[idx] * 3;
+            off = coordIndex[idx++] * 3;
 
             v1.v[0] = coord[off++];
             v1.v[1] = coord[off++];
             v1.v[2] = coord[off++];
 
-            off = coordIndex[idx] * 3;
+            off = coordIndex[idx++] * 3;
 
             v2.v[0] = coord[off++];
             v2.v[1] = coord[off++];
