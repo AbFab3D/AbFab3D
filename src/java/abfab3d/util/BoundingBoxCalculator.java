@@ -23,7 +23,7 @@ import static abfab3d.util.Output.printf;
  *
  * @author Vladimir Bulatov
  */
-public class BoundingBoxCalculator implements TriangleCollector {
+public class BoundingBoxCalculator implements TriangleCollector, TriangleCollector2 {
 
     static boolean DEBUG = false;
     int debugCount = 100;
@@ -67,6 +67,32 @@ public class BoundingBoxCalculator implements TriangleCollector {
         if(v.y > bounds[3]) bounds[3] = v.y;
         if(v.z < bounds[4]) bounds[4] = v.z;
         if(v.z > bounds[5]) bounds[5] = v.z;
+
+    }
+
+    @Override
+    public boolean addTri2(Vec v0, Vec v1, Vec v2) {
+        if(DEBUG && debugCount-- > 0)
+            printf("bounds: %s, %s, %s, %s, %s, %s\n ", bounds[0],bounds[1],bounds[2],bounds[3],bounds[4],bounds[5]);
+
+        triCount++;
+        addVect(v0);
+        addVect(v1);
+        addVect(v2);
+
+        if(DEBUG && debugCount > 0)
+            printf(" -> bounds: %s, %s, %s, %s, %s, %s\n ", bounds[0],bounds[1],bounds[2],bounds[3],bounds[4],bounds[5]);
+        return true;
+    }
+
+    private void addVect(Vec v){
+
+        if(v.v[0] < bounds[0]) bounds[0] = v.v[0];
+        if(v.v[0] > bounds[1]) bounds[1] = v.v[0];
+        if(v.v[1] < bounds[2]) bounds[2] = v.v[1];
+        if(v.v[1] > bounds[3]) bounds[3] = v.v[1];
+        if(v.v[2] < bounds[4]) bounds[4] = v.v[2];
+        if(v.v[2] > bounds[5]) bounds[5] = v.v[2];
 
     }
 

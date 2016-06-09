@@ -87,7 +87,7 @@ public class TexturedTorus implements  TriangleProducer2{
         p.v[1] = y;
         p.v[2] = z;
         p.v[3] = tx;
-        p.v[4] = tx;
+        p.v[4] = ty;
         p.v[5] = tz;
         
     }
