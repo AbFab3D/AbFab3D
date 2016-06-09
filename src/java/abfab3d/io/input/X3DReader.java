@@ -48,8 +48,6 @@ public class X3DReader implements TriangleProducer, Transformer {
 
     static final boolean DEBUG = false;
 
-    private TriangleCollector out;
-
     /**
      * Transformation to apply to vertices, null for none
      */

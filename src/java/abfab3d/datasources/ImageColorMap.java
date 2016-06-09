@@ -423,7 +423,7 @@ public class ImageColorMap extends TransformableDataSource {
         double b = (dxdy * b11 + dx1dy * b01 + dxdy1 * b10 + dx1dy1 * b00) / 255.;
 
         dataValue.v[0] = r;
-        dataValue.v[1] = b;
+        dataValue.v[1] = g;
         dataValue.v[2] = b;
 
         return RESULT_OK;
