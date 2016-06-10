@@ -19,10 +19,15 @@ package abfab3d.util;
 public interface AttributedTriangleProducer {
 
     /**
-       feeds all triangles into supplied TriangleCollector2 
+       feeds all triangles into supplied AttributedTriangleCollector
 
-       returns true if success, false if faiure        
+       @return true if success, false if faiure        
      */
     public boolean getAttTriangles(AttributedTriangleCollector tc);
+
+    /**
+       @return dimension of data for each vertex 
+     */
+    public int getDataDimension();
     
 }

@@ -35,7 +35,6 @@ public class TriangleProducerConverter implements AttributedTriangleProducer, Tr
         this.tp = tp;
     }
 
-
     /**
        feeds all triangles into supplied TriangleCollector 
 
@@ -44,6 +43,12 @@ public class TriangleProducerConverter implements AttributedTriangleProducer, Tr
     public boolean getAttTriangles(AttributedTriangleCollector atc){
         this.atc = atc;
         return tp.getTriangles(this);
+    }
+    /**
+       @override
+    */
+    public int getDataDimension(){
+        return 3; 
     }
 
     Vec // work vectors

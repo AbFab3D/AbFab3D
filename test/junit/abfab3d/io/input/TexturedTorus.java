@@ -37,10 +37,13 @@ public class TexturedTorus implements  AttributedTriangleProducer{
         this.Rin = Rin;
         this.Rout = Rout;
         this.Nin = Nin;
-        this.Nout = Nout;
-        
+        this.Nout = Nout;        
     }
     
+    public int getDataDimension() {
+        return 5;
+    }
+
     
     /**
        TriangleProducer2 interface 
@@ -79,9 +82,10 @@ public class TexturedTorus implements  AttributedTriangleProducer{
         double r = Rout + Rin*cos(u);
         double x = r*cos(v);
         double y = r*sin(v);
+
         double tx = (x + (Rin+Rout))/(2*((Rin+Rout)));
         double ty = (y + (Rin+Rout))/(2*((Rin+Rout)));
-        double tz = 0; // all texture z are in single plane 
+        double tz = 0; // single texture case 
         
         p.v[0] = x;
         p.v[1] = y;

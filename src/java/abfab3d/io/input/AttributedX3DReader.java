@@ -53,7 +53,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
 
     private ImageColorMap[] textures;
     protected Bounds m_bounds = Bounds.INFINITE;
-    private int m_dataDimension;
+    private int m_dataDimension = 0;
 
     public AttributedX3DReader(String path) {
 
@@ -444,10 +444,11 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
     }
 
     /**
-     * Returns how many data channels this file contains.  Must be called after getTriangles2 call.
+     * Returns how many data channels this file contains.  Must be called after getAttTriangles call.
      */
     public int getDataDimension() {
+        if(m_dataDimension < 1)
+            throw new RuntimeException("data dimension is not kwnown yet");
         return m_dataDimension;
     }
 }
-

@@ -211,6 +211,12 @@ public class STLReader implements TriangleProducer, AttributedTriangleProducer, 
             throw new RuntimeException(fmt("Exception while reading STL file:%s\n", m_path), e);
         }
     }
+    /**
+       @override
+     */
+    public int getDataDimension() {
+        return 3;
+    }
 
     protected DataInputStream makeInputStream(String path) throws IOException{
         
