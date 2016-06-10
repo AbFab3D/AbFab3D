@@ -34,6 +34,7 @@ import java.io.InputStream;
 public class AttributedMeshReader implements TriangleProducer2, Transformer {
 
     public static final String
+        EXT_STL = "stl",
         EXT_X3DB = "x3db",
         EXT_X3D = "x3d",
         EXT_X3DV = "x3dv";
@@ -45,7 +46,8 @@ public class AttributedMeshReader implements TriangleProducer2, Transformer {
     private String m_baseURL;
     private VecTransform m_transform;
     private TriangleProducer2 m_producer;
-    private DataSource m_attributeData;
+    private DataSource m_attributeCalc;
+    private int m_dataDimension = -1;
 
 
     public AttributedMeshReader(String path) {
@@ -67,7 +69,9 @@ public class AttributedMeshReader implements TriangleProducer2, Transformer {
 
 
     public boolean getTriangles2(TriangleCollector2 out) {
-        
+
+        m_dataDimension = 3;
+
         if(m_producer == null){
             createReader();
         }
@@ -77,19 +81,29 @@ public class AttributedMeshReader implements TriangleProducer2, Transformer {
             
         }
         
-        return m_producer.getTriangles2(out);
-         
+        boolean ret_val = m_producer.getTriangles2(out);
+
+        if (m_producer instanceof AttributedX3DReader) {
+            m_dataDimension = ((AttributedX3DReader)m_producer).getDataDimension();
+        }
+        return ret_val;
     }
     
     protected void createReader() {
-        if(m_format.equalsIgnoreCase(EXT_X3DB) || m_format.equalsIgnoreCase(EXT_X3D) || m_format.equalsIgnoreCase(EXT_X3DV)) {
+        if(m_format.equalsIgnoreCase(EXT_STL)) {
+            if (m_is != null) {
+                m_producer = new STLReader(m_is);
+            } else {
+                m_producer = new STLReader(m_path);
+            }
+        } else if(m_format.equalsIgnoreCase(EXT_X3DB) || m_format.equalsIgnoreCase(EXT_X3D) || m_format.equalsIgnoreCase(EXT_X3DV)) {
 
             if (m_is != null) {
                 m_producer = new AttributedX3DReader(m_is,m_baseURL);
-                m_attributeData = ((AttributedX3DReader) m_producer).getAttributeData();
+                m_attributeCalc = ((AttributedX3DReader) m_producer).getAttributeCalculator();
             } else {
                 m_producer = new AttributedX3DReader(m_path);
-                m_attributeData = ((AttributedX3DReader) m_producer).getAttributeData();
+                m_attributeCalc = ((AttributedX3DReader) m_producer).getAttributeCalculator();
             }
         }
     }
@@ -99,9 +113,20 @@ public class AttributedMeshReader implements TriangleProducer2, Transformer {
     }
 
     /**
-     *  Calculate attribute properties at (u,v, tz) point.   Think about reusing ImageColorMap.
+     * Get the attribute calculator.  Must be called after getTriangles2 call.
      * @return
      */
-    public DataSource getAttributeData() { return m_attributeData; }
-    
+    public DataSource getAttributeCalculator() {
+        if (m_dataDimension == -1) throw new IllegalStateException("Must call getTriangles2 first");
+        return m_attributeCalc;
+    }
+
+    /**
+     * Returns how many data channels this file contains.  Must be called after getTriangles2 call.
+     */
+    public int getDataDimension() {
+        if (m_dataDimension == -1) throw new IllegalStateException("Must call getTriangles2 first");
+
+        return m_dataDimension;
+    }
 }

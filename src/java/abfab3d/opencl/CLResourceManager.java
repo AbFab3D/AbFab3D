@@ -58,10 +58,12 @@ public class CLResourceManager implements Runnable {
         //cache = Collections.synchronizedMap(new LinkedHashMap<Resource, CacheEntry>());
         cache = new ConcurrentHashMap<Resource, CacheEntry>();
 
+        /*
+        //  Commented out, use explicit cleanupOldEntries method when its safe
         scheduler = Executors.newScheduledThreadPool(1, new NamedThreadFactory("CLResourceManager"));
 
         scheduler.scheduleAtFixedRate(this, timeout, timeout, TimeUnit.MILLISECONDS);
-
+        */
     }
 
     public static CLResourceManager getInstance(long contextID, long capacity) {
@@ -275,7 +277,10 @@ public class CLResourceManager implements Runnable {
      */
     @Override
     public void run() {
+        cleanOldEntries();
+    }
 
+    public void cleanOldEntries() {
         waitForNotFreeing();
 
         freeing = true;
@@ -307,7 +312,6 @@ public class CLResourceManager implements Runnable {
 
         if (DEBUG) printf("CLRM Clearing Exited Run.\n");
     }
-
     public void shutdown() {
         if (shutdown) throw new IllegalArgumentException("Manager already shutdown: contextID: " + contextID + " this:" + this);
         shutdown = true;

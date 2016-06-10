@@ -17,7 +17,10 @@ import abfab3d.util.*;
 import org.apache.commons.io.FilenameUtils;
 import xj3d.filter.node.ArrayData;
 import xj3d.filter.node.CommonEncodable;
+import xj3d.filter.node.TextureTransformMatrix;
 
+import javax.vecmath.Matrix4f;
+import javax.vecmath.Point3f;
 import javax.vecmath.Vector3d;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -50,6 +53,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
 
     private ImageColorMap[] textures;
     protected Bounds m_bounds = Bounds.INFINITE;
+    private int m_dataDimension;
 
     public AttributedX3DReader(String path) {
 
@@ -91,6 +95,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
         int tex = 0;
 
         textures = new ImageColorMap[shapes.size()];
+        m_dataDimension = calcDataDimension(shapes);
 
         while(itr.hasNext()) {
 
@@ -107,16 +112,90 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
             CommonEncodable tcoordNode = (CommonEncodable) its.getValue("texCoord");
             float[] coord = (float[]) ((ArrayData)coordNode.getValue("point")).data;
             int[] coordIndex = (int[]) ((ArrayData)its.getValue("index")).data;
-            float[] tcoord = (float[]) ((ArrayData)tcoordNode.getValue("point")).data;
+            ArrayData tcoordData = null;
+            float[] tcoord = null;
+            if (tcoordNode != null) {
+                tcoordData = ((ArrayData) tcoordNode.getValue("point"));
+                tcoord = (float[]) ((ArrayData) tcoordNode.getValue("point")).data;
+            }
+            int[] tcoordIndex = coordIndex;
+            ArrayData tci = ((ArrayData)its.getValue("texCoordIndex"));
+            if (tci != null) tcoordIndex = (int[]) tci.data;
 
-            addTriangles(coord, tcoord,tex,coordIndex, out);
-            addTexture(tex,texNode,transNode);
+            if (transNode != null) {
+                Matrix4f tmat = getMatrix(transNode);
+                Point3f pnt = new Point3f();
+
+                int num_coord = tcoordData.num;
+                int num_point = num_coord / 2;
+                float[] point_xfrm = new float[num_coord];
+                int idx = 0;
+                for (int j = 0; j < num_point; j++) {
+                    pnt.x = tcoord[idx];
+                    pnt.y = tcoord[idx + 1];
+                    tmat.transform(pnt);
+                    point_xfrm[idx] = pnt.x;
+                    point_xfrm[idx + 1] = pnt.y;
+                    idx += 2;
+                }
+                tcoord = point_xfrm;
+            }
+
+            switch(m_dataDimension) {
+                case 3:
+                    addTriangles3(coord, coordIndex, out);
+                    break;
+                case 5:
+                    addTriangles5(coord, tcoord, coordIndex, tcoordIndex, out);
+                    break;
+                case 6:
+                    addTriangles6(coord, tcoord, tex, coordIndex, tcoordIndex, out);
+                    break;
+            }
+            if (texNode != null) addTexture(tex,texNode);
+
             tex++;
         }
         
     }
 
-    private void addTexture(int idx, CommonEncodable tex, CommonEncodable trans) {
+    /**
+     * Calculate the dimension of vectors.
+     * 3,5,6 vec size based on source material
+     *    3 - no color info(x,y,z)
+     *    5 - single texture(x,y,z,u,v)
+     *    6 - multi texture(x,y,z,u,v,texIndex)
+     *    n - multi attributes(x,y,z,a1,a2,a3...an)
+     * @param shapes
+     * @return
+     */
+    private int calcDataDimension(List<CommonEncodable> shapes) {
+        Iterator<CommonEncodable> itr = shapes.iterator();
+        int tex = 0;
+
+        while(itr.hasNext()) {
+
+            CommonEncodable shape = itr.next();
+            CommonEncodable appNode = (CommonEncodable) shape.getValue("appearance");
+            CommonEncodable texNode = null;
+
+            if (appNode != null) {
+                texNode = (CommonEncodable) appNode.getValue("texture");
+                if (texNode != null) tex++;
+            }
+        }
+
+        switch(tex) {
+            case 0:
+                return 3;
+            case 1:
+                return 5;
+            default:
+                return 6;
+        }
+    }
+
+    private void addTexture(int idx, CommonEncodable tex) {
         String[] url = (String[]) ((ArrayData)tex.getValue("url")).data;
         Boolean repeatX = (Boolean) tex.getValue("repeatX");
         Boolean repeatY = (Boolean) tex.getValue("repeatY");
@@ -130,9 +209,47 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
     }
 
     /**
-       send triangles stored as indices to TriangleCollector
+     * Send triangles stored as indices to TriangleCollector
      */
-    private void addTriangles(float coord[],float tcoord[],int tex, int coordIndex[], TriangleCollector2 out){
+    private void addTriangles3(float coord[],int coordIndex[], TriangleCollector2 out){
+        if(DEBUG)printf("%s.addTriangles(coord:%d, coordIndex:%d)\n", this,coord.length, coordIndex.length );
+        // count of triangles
+        int len = coordIndex.length / 3;
+
+        Vec
+                v0 = new Vec(3),
+                v1 = new Vec(3),
+                v2 = new Vec(3);
+
+        for(int i=0, idx = 0; i < len; i++ ) {
+
+            int off = coordIndex[idx++] * 3;
+            v0.v[0] = coord[off++];
+            v0.v[1] = coord[off++];
+            v0.v[2] = coord[off++];
+
+            off = coordIndex[idx++] * 3;
+
+            v1.v[0] = coord[off++];
+            v1.v[1] = coord[off++];
+            v1.v[2] = coord[off++];
+
+            off = coordIndex[idx++] * 3;
+
+            v2.v[0] = coord[off++];
+            v2.v[1] = coord[off++];
+            v2.v[2] = coord[off++];
+
+            makeTransform(v0, v1, v2);
+            out.addTri2(v0, v1, v2);
+        }
+
+    }
+
+    /**
+     * Send triangles stored as indices to TriangleCollector
+     */
+    private void addTriangles6(float coord[],float tcoord[],int tex, int coordIndex[], int[] tcoordIndex, TriangleCollector2 out){
         if(DEBUG)printf("%s.addTriangles(coord:%d, coordIndex:%d)\n", this,coord.length, coordIndex.length );
         // count of triangles 
         int len = coordIndex.length / 3;
@@ -145,7 +262,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
         for(int i=0, idx = 0; i < len; i++ ) {
             
             int off = coordIndex[idx] * 3;
-            int toff = coordIndex[idx++] * 2;
+            int toff = tcoordIndex[idx++] * 2;
             v0.v[0] = coord[off++];
             v0.v[1] = coord[off++];
             v0.v[2] = coord[off++];
@@ -155,7 +272,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
             v0.v[5] = tex;
 
             off = coordIndex[idx] * 3;
-            toff = coordIndex[idx++] * 2;
+            toff = tcoordIndex[idx++] * 2;
 
             v1.v[0] = coord[off++];
             v1.v[1] = coord[off++];
@@ -166,7 +283,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
             v1.v[5] = tex;
 
             off = coordIndex[idx] * 3;
-            toff = coordIndex[idx++] * 2;
+            toff = tcoordIndex[idx++] * 2;
 
             v2.v[0] = coord[off++];
             v2.v[1] = coord[off++];
@@ -182,36 +299,49 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
     }
 
     /**
-     send tiangles stored as indices to TriangleCollector
+     * Send triangles stored as indices to TriangleCollector
      */
-    private void addTriangles(float coord[],int coordIndex[], TriangleCollector2 out){
+    private void addTriangles5(float coord[],float tcoord[], int coordIndex[], int[] tcoordIndex, TriangleCollector2 out){
         if(DEBUG)printf("%s.addTriangles(coord:%d, coordIndex:%d)\n", this,coord.length, coordIndex.length );
         // count of triangles
         int len = coordIndex.length / 3;
 
         Vec
-                v0 = new Vec(6),
-                v1 = new Vec(6),
-                v2 = new Vec(6);
+                v0 = new Vec(5),
+                v1 = new Vec(5),
+                v2 = new Vec(5);
 
         for(int i=0, idx = 0; i < len; i++ ) {
 
-            int off = coordIndex[idx++] * 3;
-
+            int off = coordIndex[idx] * 3;
+            int toff = tcoordIndex[idx++] * 2;
             v0.v[0] = coord[off++];
             v0.v[1] = coord[off++];
             v0.v[2] = coord[off++];
 
-            off = coordIndex[idx++] * 3;
+            v0.v[3] = tcoord[toff++];
+            v0.v[4] = tcoord[toff++];
+
+            off = coordIndex[idx] * 3;
+            toff = tcoordIndex[idx++] * 2;
 
             v1.v[0] = coord[off++];
             v1.v[1] = coord[off++];
             v1.v[2] = coord[off++];
 
-            off = coordIndex[idx++] * 3;
+            v1.v[3] = tcoord[toff++];
+            v1.v[4] = tcoord[toff++];
+
+            off = coordIndex[idx] * 3;
+            toff = tcoordIndex[idx++] * 2;
+
             v2.v[0] = coord[off++];
             v2.v[1] = coord[off++];
             v2.v[2] = coord[off++];
+
+            v2.v[3] = tcoord[toff++];
+            v2.v[4] = tcoord[toff++];
+
             makeTransform(v0, v1, v2);
             out.addTri2(v0, v1, v2);
         }
@@ -244,15 +374,16 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
     }
 
     /**
-     *  Calculate attribute properties at (u,v, tz) point.   Think about reusing ImageColorMap.
+     *  Calculate attribute properties at (u,v, tz) point.
      * @return
      */
-    public DataSource getAttributeData() {
-        return this; }
+    public DataSource getAttributeCalculator() {
+        return this;
+    }
 
 
     /**
-     * Given u,v,tz return color
+     * Returns u,v or u,v,texIndex
      *
      * @param pnt Point where the data is calculated
      * @param dataValue - storage for returned calculated data
@@ -264,11 +395,12 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
 
         icm.getDataValue(pnt,dataValue);
 
-        return RESULT_OK;        }
+        return RESULT_OK;
+    }
 
     @Override
     public int getChannelsCount() {
-        return 3;
+        return m_dataDimension - 3;
     }
 
     @Override
@@ -282,6 +414,40 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
      */
     public void setBounds(Bounds bounds) {
         this.m_bounds = bounds.clone();
+    }
+
+    /**
+     * Return the transform matrix
+     *
+     * @return the transform matrix
+     */
+    private Matrix4f getMatrix(CommonEncodable transform) {
+        TextureTransformMatrix matrixSource = new TextureTransformMatrix();
+        ArrayData translation_data = (ArrayData) transform.getValue("translation");
+        if (translation_data != null) {
+            matrixSource.setTranslation((float[]) translation_data.data);
+        }
+        Float rotation_data = (Float) transform.getValue("rotation");
+        if (rotation_data != null) {
+            matrixSource.setRotation(rotation_data);
+        }
+        ArrayData scale_data = (ArrayData) transform.getValue("scale");
+        if (scale_data != null) {
+            matrixSource.setScale((float[]) scale_data.data);
+        }
+
+        ArrayData center_data = (ArrayData) transform.getValue("center");
+        if (center_data != null) {
+            matrixSource.setCenter((float[]) center_data.data);
+        }
+        return (matrixSource.getMatrix());
+    }
+
+    /**
+     * Returns how many data channels this file contains.  Must be called after getTriangles2 call.
+     */
+    public int getDataDimension() {
+        return m_dataDimension;
     }
 }
 
