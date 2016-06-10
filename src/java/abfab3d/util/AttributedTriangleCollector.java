@@ -18,7 +18,7 @@ import javax.vecmath.Vector3d;
    interface accepts a collection of triangles with possible extra information (texture, color, etc)
    
  */
-public interface TriangleCollector2 {
+public interface AttributedTriangleCollector {
 
     /**
        add triangle 
@@ -26,6 +26,6 @@ public interface TriangleCollector2 {
 
        returns true if success, false if faiure        
      */
-    public boolean addTri2(Vec v0,Vec v1,Vec v2);
+    public boolean addAttTri(Vec v0,Vec v1,Vec v2);
     
 }

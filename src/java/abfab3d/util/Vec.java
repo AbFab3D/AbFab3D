@@ -35,19 +35,35 @@ public class Vec {
     private double scaleFactor = 1;   // accumulated scale factor of all applied transform 
 
     public Vec(int size){
-        v = new double[size];
+        this.v = new double[size];
+    }
+
+    public Vec(double x, double y){
+        this.v = new double[]{x,y};        
     }
 
     public Vec(double x, double y, double z){
-        v = new double[]{x,y,z};        
+        this.v = new double[]{x,y,z};        
+    }
+
+    public Vec(double x, double y, double z, double u){
+        this.v = new double[]{x,y,z, u};        
+    }
+
+    public Vec(double x, double y, double z, double u, double v){
+        this.v = new double[]{x,y,z, u, v};        
+    }
+
+    public Vec(double x, double y, double z, double u, double v, double w){
+        this.v = new double[]{x,y,z, u, v, w};        
     }
 
     public Vec(Tuple3d p){
-        v = new double[]{p.x,p.y,p.z};        
+        this.v = new double[]{p.x,p.y,p.z};        
     }
 
     public Vec(Vec in){
-        v = new double[in.v.length];
+        this.v = new double[in.v.length];
         set(in);
     }
     
@@ -119,6 +135,15 @@ public class Vec {
         return v[0]*a.x +  v[1]*a.y+  v[2]*a.z;
     }
 
+    /**
+       makes liner interpolation between u, and v using param t and places result in res
+     */
+    public static void lerp(Vec u, Vec w, double t, Vec res){
+
+        MathUtil.lerp(u.v, w.v, t, res.v);
+
+    }
+
     // multiply vector to given matrix from the left 
     public void mulSetLeft(Matrix3d m){
 
@@ -129,5 +154,8 @@ public class Vec {
         v[1] = y;
         v[2] = z;
     }
+
+    
+
 
 }

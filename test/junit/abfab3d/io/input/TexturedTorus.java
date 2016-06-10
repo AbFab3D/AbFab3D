@@ -12,8 +12,8 @@
 
 package abfab3d.io.input;
 
-import abfab3d.util.TriangleProducer2;
-import abfab3d.util.TriangleCollector2;
+import abfab3d.util.AttributedTriangleProducer;
+import abfab3d.util.AttributedTriangleCollector;
 import abfab3d.util.TriangleCollector;
 import abfab3d.util.Vec;
 
@@ -28,7 +28,7 @@ import static java.lang.Math.cos;
    torus is orthogonal to z axis and centered at origin 
    texture coordinates are (x,y) cordinates scaled into (0,1) interval
  */
-public class TexturedTorus implements  TriangleProducer2{
+public class TexturedTorus implements  AttributedTriangleProducer{
     
     double Rin, Rout;
     int Nin, Nout;
@@ -45,7 +45,7 @@ public class TexturedTorus implements  TriangleProducer2{
     /**
        TriangleProducer2 interface 
     */
-    public boolean getTriangles2(TriangleCollector2 tc){
+    public boolean getAttTriangles(AttributedTriangleCollector tc){
         Vec 
             p00 = new Vec(6),
             p10 = new Vec(6),
@@ -64,8 +64,8 @@ public class TexturedTorus implements  TriangleProducer2{
                 getPoint(u0,v1,p01);
                 getPoint(u1,v0,p10);
                 getPoint(u1,v1,p11);
-                tc.addTri2(p00, p01, p11);
-                tc.addTri2(p00, p11, p10);
+                tc.addAttTri(p00, p01, p11);
+                tc.addAttTri(p00, p11, p10);
             }
         }
         return true;

@@ -13,9 +13,9 @@
 package abfab3d.io.input;
 
 import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleCollector2;
+import abfab3d.util.AttributedTriangleCollector;
 import abfab3d.util.TriangleProducer;
-import abfab3d.util.TriangleProducer2;
+import abfab3d.util.AttributedTriangleProducer;
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 import abfab3d.util.Transformer;
@@ -45,7 +45,7 @@ import static java.lang.System.currentTimeMillis;
  *
  * @author Vladimir Bulatov
  */
-public class STLReader implements TriangleProducer, TriangleProducer2, Transformer {
+public class STLReader implements TriangleProducer, AttributedTriangleProducer, Transformer {
 
     static final boolean DEBUG = false;
 
@@ -193,7 +193,7 @@ public class STLReader implements TriangleProducer, TriangleProducer2, Transform
     /**
      * interface TriangleProducer
      */
-    public boolean getTriangles2(TriangleCollector2 out) {
+    public boolean getAttTriangles(AttributedTriangleCollector out) {
         try {
 
             if (m_is != null) {
@@ -302,7 +302,7 @@ public class STLReader implements TriangleProducer, TriangleProducer2, Transform
      * @param out  Destination
      * @throws IOException
      */
-    private void readBinary(InputStream bis, TriangleCollector2 out) throws IOException {
+    private void readBinary(InputStream bis, AttributedTriangleCollector out) throws IOException {
         long t0;
 
         if (DEBUG) {
@@ -338,7 +338,7 @@ public class STLReader implements TriangleProducer, TriangleProducer2, Transform
                     transform.transform(v2, v2);
                 }
 
-                out.addTri2(v0, v1, v2);
+                out.addAttTri(v0, v1, v2);
 
                 data.skip(2); // unsused stuff
                 faces++;
@@ -401,7 +401,7 @@ public class STLReader implements TriangleProducer, TriangleProducer2, Transform
      * @param out  Destination
      * @throws IOException
      */
-    private void readAscii(String path, TriangleCollector2 out) throws IOException {
+    private void readAscii(String path, AttributedTriangleCollector out) throws IOException {
         long t0;
 
         if (DEBUG) {
@@ -514,7 +514,7 @@ public class STLReader implements TriangleProducer, TriangleProducer2, Transform
      * Generate the coordinate and normal information for the TriangleSet node
      * based on that read from the STL file.
      */
-    private void generateTriangles(STLFileReader rdr, VecTransform transform, TriangleCollector2 out)
+    private void generateTriangles(STLFileReader rdr, VecTransform transform, AttributedTriangleCollector out)
             throws IOException, VRMLException {
 
         int num_objects = rdr.getNumOfObjects();
@@ -567,7 +567,7 @@ public class STLReader implements TriangleProducer, TriangleProducer2, Transform
                     transform.transform(v2, v2);
                 }
 
-                out.addTri2(v0, v1, v2);
+                out.addAttTri(v0, v1, v2);
             }
         }
     }

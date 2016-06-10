@@ -23,7 +23,7 @@ import static abfab3d.util.Output.printf;
  *
  * @author Vladimir Bulatov
  */
-public class BoundingBoxCalculator implements TriangleCollector, TriangleCollector2 {
+public class BoundingBoxCalculator implements TriangleCollector, AttributedTriangleCollector {
 
     static boolean DEBUG = false;
     int debugCount = 100;
@@ -71,7 +71,7 @@ public class BoundingBoxCalculator implements TriangleCollector, TriangleCollect
     }
 
     @Override
-    public boolean addTri2(Vec v0, Vec v1, Vec v2) {
+    public boolean addAttTri(Vec v0, Vec v1, Vec v2) {
         if(DEBUG && debugCount-- > 0)
             printf("bounds: %s, %s, %s, %s, %s, %s\n ", bounds[0],bounds[1],bounds[2],bounds[3],bounds[4],bounds[5]);
 

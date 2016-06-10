@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import abfab3d.util.Vec;
 import abfab3d.util.Bounds;
-import abfab3d.util.TriangleCollector2;
+import abfab3d.util.AttributedTriangleCollector;
 import abfab3d.util.AttributedPointSet;
 import abfab3d.util.AttributedPointSetArray;
 import abfab3d.util.TriangleRenderer;
@@ -63,7 +63,7 @@ import static abfab3d.util.MathUtil.clamp;
 
    @author Vladimir Bulatov
  */
-public class AttributedTriangleMeshSurfaceBuilder implements TriangleCollector2 {
+public class AttributedTriangleMeshSurfaceBuilder implements AttributedTriangleCollector {
 
     final int MAX_DIMENSION = 6;  // max dimension of data (to pre-allocate arrays) 
     static final boolean DEBUG = false;    
@@ -281,7 +281,7 @@ x       this method MUST be called before starting adding triangles
        method of interface TriangleCollector2 
        
      */
-    public boolean addTri2(Vec p0, Vec p1, Vec p2){
+    public boolean addAttTri(Vec p0, Vec p1, Vec p2){
         if(m_useBestPlane) {
             throw new RuntimeException("not implemented");
             //return addTri_bestPlane(p0,p1,p2);

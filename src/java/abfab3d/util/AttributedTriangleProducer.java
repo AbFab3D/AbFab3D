@@ -13,16 +13,16 @@
 package abfab3d.util;
 
 /**
-   interface which generates a raw mesh of triangles
+   interface which generates a raw mesh of triangles with attributes 
    
  */
-public interface TriangleProducer2 {
+public interface AttributedTriangleProducer {
 
     /**
        feeds all triangles into supplied TriangleCollector2 
 
        returns true if success, false if faiure        
      */
-    public boolean getTriangles2(TriangleCollector2 tc);
+    public boolean getAttTriangles(AttributedTriangleCollector tc);
     
 }

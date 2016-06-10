@@ -28,7 +28,7 @@ import abfab3d.grid.op.ClosestPointIndexer;
 import abfab3d.util.Bounds;
 import abfab3d.util.PointMap;
 import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducerConverter2;
+import abfab3d.util.TriangleProducerConverter;
 import abfab3d.util.Vec;
 
 import abfab3d.io.output.STLWriter;
@@ -87,7 +87,7 @@ public class TestAttributedTriangleMeshSurfaceBuilder extends TestCase {
         dts.initialize();
         
         for(int i = 0; i < tris.length; i+= 3){
-            dts.addTri2(new Vec(tris[i]),new Vec(tris[i+1]),new Vec(tris[i+2]));            
+            dts.addAttTri(new Vec(tris[i]),new Vec(tris[i+1]),new Vec(tris[i+2]));            
         }
 
         int pcount = dts.getPointCount();
@@ -106,6 +106,52 @@ public class TestAttributedTriangleMeshSurfaceBuilder extends TestCase {
             double vs2 = vs/2; // half voxel 
             for(int i = 0; i < pcount; i++){
                 printf("(%7.2f, %7.2f, %7.2f) mm \n", pnt[0][i]/MM, pnt[1][i]/MM, pnt[2][i]/MM);            
+                octa.setCenter(pnt[0][i],pnt[1][i],pnt[2][i]);
+                octa.getTriangles(stl);            
+            }
+        }
+
+        stl.close();
+       
+    }
+
+    void devTestOneColorTriangle()throws Exception{
+        
+        if(DEBUG) printf("makeTestOneTriangle()\n");
+        double xmin = 0*MM, xmax = 10*MM, ymin = 0*MM, ymax = 10*MM, zmin = 0*MM, zmax = 10*MM;
+        double vs = 2*MM;
+
+        Bounds bounds = new Bounds(xmin,xmax,ymin,ymax,zmin,zmax, vs);
+        int dataDimension = 6;
+        double x0 = 4.5*MM;
+        Vec tris[] = new Vec[]{
+            new Vec(0*MM, 5*MM, 0*MM, 0, 5, 0), new Vec(0*MM, 5*MM, 10*MM, 0, 5, 10), new Vec(10*MM, 5*MM, 10*MM, 10, 10, 10),
+        };
+
+        AttributedTriangleMeshSurfaceBuilder dts = new AttributedTriangleMeshSurfaceBuilder(bounds);
+        dts.setDataDimension(dataDimension);
+        dts.initialize();
+        
+        for(int i = 0; i < tris.length; i+= 3){
+            dts.addAttTri(tris[i],tris[i+1],tris[i+2]);
+        }
+
+        int pcount = dts.getPointCount();
+        printf("pcount: %d\n", pcount);
+        double pnt[][] = new double[dataDimension][pcount];
+        dts.getPoints(pnt);
+        
+        STLWriter stl = new STLWriter("/tmp/testTri.stl");  
+        //for(int i = 0; i < tris.length; i+= 3){                        
+        //    stl.addTri(tris[i],tris[i+1],tris[i+2]);
+        //}
+        
+        if(true){
+            Octahedron octa = new Octahedron(0.2*vs);
+            double vs2 = vs/2; // half voxel 
+            for(int i = 0; i < pcount; i++){
+                printf("coord:(%5.2f,%5.2f,%5.2f)mm att:(%5.2f,%5.2f,%5.2f) \n", 
+                       pnt[0][i]/MM, pnt[1][i]/MM, pnt[2][i]/MM, pnt[3][i], pnt[4][i], pnt[5][i]);            
                 octa.setCenter(pnt[0][i],pnt[1][i],pnt[2][i]);
                 octa.getTriangles(stl);            
             }
@@ -139,8 +185,8 @@ public class TestAttributedTriangleMeshSurfaceBuilder extends TestCase {
         // 10 -> 8M triangles
         TriangulatedModels.Sphere sphere = new TriangulatedModels.Sphere(radius, new Vector3d(cx, cy, cz ), 5);
         long t0 = time();
-        TriangleProducerConverter2 tp2 = new TriangleProducerConverter2(sphere);
-        tp2.getTriangles2(dts);
+        TriangleProducerConverter tp2 = new TriangleProducerConverter(sphere);
+        tp2.getAttTriangles(dts);
         printf("TriangleMeshSurfaceBuilder time: %d ms\n",(time()-t0));
         int triCount = dts.getTriCount();
         printf("triCount: %d\n", triCount);        
@@ -216,8 +262,9 @@ public class TestAttributedTriangleMeshSurfaceBuilder extends TestCase {
     public static void main(String arg[]) throws Exception {
         
         for(int i = 0; i < 1; i++){
+            new TestAttributedTriangleMeshSurfaceBuilder().devTestOneColorTriangle();
             //new TestAttributedTriangleMeshSurfaceBuilder().devTestOneTriangle();
-            new TestAttributedTriangleMeshSurfaceBuilder().devTestSphere();
+            //new TestAttributedTriangleMeshSurfaceBuilder().devTestSphere();
             //new TestTriangleMeshSurfaceBuilder().testSpherePrecision();
         }
     }

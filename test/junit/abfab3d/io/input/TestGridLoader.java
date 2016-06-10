@@ -24,8 +24,8 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 
-import abfab3d.util.TriangleProducer2;
-import abfab3d.util.TriangleCollector2;
+import abfab3d.util.AttributedTriangleProducer;
+import abfab3d.util.AttributedTriangleCollector;
 import abfab3d.util.TriangleCollector;
 import abfab3d.util.Vec;
 
@@ -374,8 +374,8 @@ public class TestGridLoader extends TestCase {
         GridLoader loader = new GridLoader();
         loader.setMaxInDistance(1*MM);
         loader.setMaxOutDistance(1*MM);   
-
-        AttributeGrid grid = loader.rasterizeTexturedTriangles(new TexturedTorus(10*MM, 5*MM, 4, 4));
+        
+        AttributeGrid grid = loader.rasterizeAttributedTriangles(new TexturedTorus(10*MM, 5*MM, 4, 4), new GradientColorizer(new Vector3d(10*MM,0,0)));
         GridSaver writer = new GridSaver();
         String outPath = "/tmp/tex/outGrid.svx";
         printf("writing: %s\n", outPath);
@@ -385,6 +385,24 @@ public class TestGridLoader extends TestCase {
     }
 
 
+    public void devTestGradientColorizer(){
+        GradientColorizer gc = new GradientColorizer(new Vector3d(10*MM,0,0));
+        int n = 40;
+        Vec v0 = new Vec(0.,0.,0.);
+        Vec v1 = new Vec(20*MM,0.,0.);
+        Vec v = new Vec(3);
+        Vec c = new Vec(3);
+        
+        double delta = 2./n;
+        for(int k = 0; k <= n; k++){
+            
+            Vec.lerp(v0, v1, delta*k, v);
+            gc.getDataValue(v, c);
+            printf("(%7.5f %7.5f)->(%5.2f,%5.2f,%5.2f)\n", v.v[0],v.v[1],c.v[0],c.v[1],c.v[2]);
+
+        }
+    }
+    
     static int debugCount = 1000;
 
     public static void main(String[] args) throws Exception{
@@ -394,7 +412,8 @@ public class TestGridLoader extends TestCase {
             //new TestGridLoader().devTestSTL_distance();
             //new TestGridLoader().testRasterizerDistancePrecision();
             //new TestGridLoader().testRasterizerDistance2Precision();
-            new TestGridLoader().devTestRasterizeTexturedTriangles();
+            //new TestGridLoader().devTestRasterizeTexturedTriangles();
+            new TestGridLoader().devTestGradientColorizer();
         }
     }
 }

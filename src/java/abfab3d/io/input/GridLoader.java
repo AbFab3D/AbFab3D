@@ -16,9 +16,10 @@ import abfab3d.mesh.AreaCalculator;
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.util.Bounds;
 import abfab3d.util.TriangleProducer;
-import abfab3d.util.TriangleProducer2;
-import abfab3d.util.TriangleCollector2;
-import abfab3d.util.TriangleProducer2Converter;
+import abfab3d.util.AttributedTriangleProducer;
+import abfab3d.util.AttributedTriangleCollector;
+import abfab3d.util.AttributedTriangleProducerConverter;
+import abfab3d.util.DataSource;
 
 import abfab3d.grid.op.DistanceTransformLayered;
 
@@ -68,6 +69,8 @@ public class GridLoader {
     protected int m_distanceAlgorithm = RASTERIZER_DISTANCE;
     protected double m_maxOutDistance = 2*MM;
     protected double m_maxInDistance = 2*MM;
+    // data dimension to use for mesh (default - 3 coordinates only ) 
+    protected int m_dataDimension = 3; 
     protected double m_shellHalfThickness = 2;
     protected int m_threadCount = 1;
     protected int m_triangleCount;
@@ -437,24 +440,25 @@ public class GridLoader {
     /**
         creates grid from textured triangle mesh 
         @param triProducer produces texured triangles via TriangleColletor2 interface 
+        @param attributeColorizer
         @return grid which contains distance and color information to given limits 
      */
-    public AttributeGrid rasterizeTexturedTriangles(TriangleProducer2 triProducer2){
- 
-        if(DEBUG) printf("GridLoader.rasterizeTexturedTriangles(%s)\n", triProducer2);
-        TriangleProducer tp = new TriangleProducer2Converter(triProducer2);
+    public AttributeGrid rasterizeAttributedTriangles(AttributedTriangleProducer attTriProducer, DataSource attributeColorizer){
+        
+        if(DEBUG) printf("GridLoader.rasterizeTexturedTriangles(%s)\n", attTriProducer);
+        TriangleProducer tp = new AttributedTriangleProducerConverter(attTriProducer);
         Bounds bounds = getModelBounds(tp);
         if(DEBUG) printf("model bounds: %s\n", bounds);
         AttributeGrid grid = createDistRGBGrid(bounds);
         if(DEBUG)printf("grid: [%d x %d x %d]\n", grid.getWidth(),grid.getHeight(),grid.getDepth());
-        if(DEBUG)printf("voxelSize: %7.5f\n", grid.getVoxelSize());
- 
-        DistanceRasterizer2 rasterizer = new DistanceRasterizer2(bounds, grid.getWidth(),grid.getHeight(),grid.getDepth());
+        if(DEBUG)printf("voxelSize: %7.5f\n", grid.getVoxelSize()); 
+        AttributedDistanceRasterizer rasterizer = new AttributedDistanceRasterizer(bounds, grid.getWidth(),grid.getHeight(),grid.getDepth());
+        rasterizer.setDataDimension(m_dataDimension);
         rasterizer.setShellHalfThickness(m_shellHalfThickness);
         rasterizer.setSurfaceVoxelSize(m_surfaceVoxelSize);
         rasterizer.setThreadCount(m_threadCount);
         
-        rasterizer.getDistances(tp, grid);
+        rasterizer.getDistances(attTriProducer, grid);
                 
         return grid;
         

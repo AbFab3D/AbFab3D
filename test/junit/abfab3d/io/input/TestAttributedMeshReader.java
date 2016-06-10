@@ -15,7 +15,7 @@ package abfab3d.io.input;
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.util.DataSource;
 import abfab3d.util.TriangleProducer;
-import abfab3d.util.TriangleProducer2Converter;
+import abfab3d.util.AttributedTriangleProducerConverter;
 import abfab3d.util.Vec;
 import junit.framework.TestCase;
 
@@ -42,7 +42,7 @@ public class TestAttributedMeshReader extends TestCase {
         AttributedMeshReader reader = new AttributedMeshReader(filePath);
         //TriangleProducer tp = new TriangleProducer2Converter(reader);
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
-        reader.getTriangles2(bb);
+        reader.getAttTriangles(bb);
         double bounds[] = bb.getRoundedBounds(voxelSize);
 
         //size: 0.030008 0.050003998 0.03
@@ -70,7 +70,7 @@ public class TestAttributedMeshReader extends TestCase {
 
         AttributedMeshReader reader = new AttributedMeshReader(filePath);
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
-        reader.getTriangles2(bb);
+        reader.getAttTriangles(bb);
         double bounds[] = new double[6];
         bb.getBounds(bounds);
 
@@ -104,7 +104,7 @@ public class TestAttributedMeshReader extends TestCase {
         AttributedMeshReader reader = new AttributedMeshReader(filePath);
         //TriangleProducer tp = new TriangleProducer2Converter(reader);
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
-        reader.getTriangles2(bb);
+        reader.getAttTriangles(bb);
         double bounds[] = bb.getRoundedBounds(voxelSize);
 
         //size: 0.030008 0.050003998 0.03
@@ -132,7 +132,7 @@ public class TestAttributedMeshReader extends TestCase {
         AttributedMeshReader reader = new AttributedMeshReader(filePath);
         //TriangleProducer tp = new TriangleProducer2Converter(reader);
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
-        reader.getTriangles2(bb);
+        reader.getAttTriangles(bb);
         double bounds[] = bb.getRoundedBounds(voxelSize);
 
         //size: 0.030008 0.050003998 0.03
@@ -204,7 +204,7 @@ public class TestAttributedMeshReader extends TestCase {
 
         AttributedMeshReader reader = new AttributedMeshReader(filePath);
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
-        reader.getTriangles2(bb);
+        reader.getAttTriangles(bb);
 
         double bounds[] = bb.getRoundedBounds(voxelSize);
 
@@ -240,7 +240,7 @@ public class TestAttributedMeshReader extends TestCase {
 
         }
 
-        reader.getTriangles2(bb);
+        reader.getAttTriangles(bb);
 
         double bounds[] = bb.getRoundedBounds(voxelSize);
 
@@ -273,7 +273,7 @@ public class TestAttributedMeshReader extends TestCase {
         AttributedMeshReader reader = new AttributedMeshReader(filePath);
         //TriangleProducer tp = new TriangleProducer2Converter(reader);
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
-        reader.getTriangles2(bb);
+        reader.getAttTriangles(bb);
         double bounds[] = bb.getRoundedBounds(voxelSize);
 
         //size: 0.030008 0.050003998 0.03

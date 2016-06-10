@@ -15,9 +15,9 @@ package abfab3d.io.input;
 import abfab3d.util.DataSource;
 import abfab3d.util.Transformer;
 import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleCollector2;
+import abfab3d.util.AttributedTriangleCollector;
 import abfab3d.util.TriangleProducer;
-import abfab3d.util.TriangleProducer2;
+import abfab3d.util.AttributedTriangleProducer;
 import abfab3d.util.VecTransform;
 import org.apache.commons.io.FilenameUtils;
 
@@ -31,7 +31,7 @@ import java.io.InputStream;
  *
  * @author Alan Hudson
  */
-public class AttributedMeshReader implements TriangleProducer2, Transformer {
+public class AttributedMeshReader implements AttributedTriangleProducer, Transformer {
 
     public static final String
         EXT_STL = "stl",
@@ -45,7 +45,7 @@ public class AttributedMeshReader implements TriangleProducer2, Transformer {
     private String m_format;
     private String m_baseURL;
     private VecTransform m_transform;
-    private TriangleProducer2 m_producer;
+    private AttributedTriangleProducer m_producer;
     private DataSource m_attributeCalc;
     private int m_dataDimension = -1;
 
@@ -68,7 +68,7 @@ public class AttributedMeshReader implements TriangleProducer2, Transformer {
     }
 
 
-    public boolean getTriangles2(TriangleCollector2 out) {
+    public boolean getAttTriangles(AttributedTriangleCollector out) {
 
         m_dataDimension = 3;
 
@@ -81,7 +81,7 @@ public class AttributedMeshReader implements TriangleProducer2, Transformer {
             
         }
         
-        boolean ret_val = m_producer.getTriangles2(out);
+        boolean ret_val = m_producer.getAttTriangles(out);
 
         if (m_producer instanceof AttributedX3DReader) {
             m_dataDimension = ((AttributedX3DReader)m_producer).getDataDimension();

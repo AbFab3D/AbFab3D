@@ -1195,11 +1195,22 @@ public class MathUtil {
 
 
     /**
-       
+       linear interpolation 
      */
     public static final double lerp(double v1, double v2, double t){
         return v1 + t * (v2-v1);
     }
+
+    /**
+       linear interpolation between two arrays
+     */
+    public static final void lerp(double u[], double v[], double t, double res[]){
+        int dim = Math.min(u.length, v.length);
+        for(int i = 0; i < dim; i++){
+            res[i] = lerp(u[i], v[i], t);
+        }
+    }
+
 
     /**
        bilinear interpolation between 4 values 
@@ -1214,6 +1225,7 @@ public class MathUtil {
         return lerp(lerp(v00, v10, x), lerp(v01, v11, x), y);
 
     }
+
 
 
     /**

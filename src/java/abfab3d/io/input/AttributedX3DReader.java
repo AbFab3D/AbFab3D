@@ -38,7 +38,7 @@ import static abfab3d.util.Output.printf;
  *
  * @author Alan Hudson
  */
-public class AttributedX3DReader implements TriangleProducer2, Transformer, DataSource {
+public class AttributedX3DReader implements AttributedTriangleProducer, Transformer, DataSource {
 
     static final boolean DEBUG = false;
 
@@ -77,7 +77,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
     /**
        reads file and passes triangles to TriangleCollector
      */
-    private void read(TriangleCollector2 out) throws IOException {
+    private void read(AttributedTriangleCollector out) throws IOException {
 
         if(m_fileLoader == null){
             m_fileLoader = new X3DFileLoader(new SysErrorReporter(SysErrorReporter.PRINT_ERRORS));
@@ -211,7 +211,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
     /**
      * Send triangles stored as indices to TriangleCollector
      */
-    private void addTriangles3(float coord[],int coordIndex[], TriangleCollector2 out){
+    private void addTriangles3(float coord[],int coordIndex[], AttributedTriangleCollector out){
         if(DEBUG)printf("%s.addTriangles(coord:%d, coordIndex:%d)\n", this,coord.length, coordIndex.length );
         // count of triangles
         int len = coordIndex.length / 3;
@@ -241,7 +241,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
             v2.v[2] = coord[off++];
 
             makeTransform(v0, v1, v2);
-            out.addTri2(v0, v1, v2);
+            out.addAttTri(v0, v1, v2);
         }
 
     }
@@ -249,7 +249,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
     /**
      * Send triangles stored as indices to TriangleCollector
      */
-    private void addTriangles6(float coord[],float tcoord[],int tex, int coordIndex[], int[] tcoordIndex, TriangleCollector2 out){
+    private void addTriangles6(float coord[],float tcoord[],int tex, int coordIndex[], int[] tcoordIndex, AttributedTriangleCollector out){
         if(DEBUG)printf("%s.addTriangles(coord:%d, coordIndex:%d)\n", this,coord.length, coordIndex.length );
         // count of triangles 
         int len = coordIndex.length / 3;
@@ -293,7 +293,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
             v2.v[4] = tcoord[toff++];
             v2.v[5] = tex;
             makeTransform(v0, v1, v2);
-            out.addTri2(v0, v1, v2);
+            out.addAttTri(v0, v1, v2);
         }
         
     }
@@ -301,7 +301,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
     /**
      * Send triangles stored as indices to TriangleCollector
      */
-    private void addTriangles5(float coord[],float tcoord[], int coordIndex[], int[] tcoordIndex, TriangleCollector2 out){
+    private void addTriangles5(float coord[],float tcoord[], int coordIndex[], int[] tcoordIndex, AttributedTriangleCollector out){
         if(DEBUG)printf("%s.addTriangles(coord:%d, coordIndex:%d)\n", this,coord.length, coordIndex.length );
         // count of triangles
         int len = coordIndex.length / 3;
@@ -343,7 +343,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
             v2.v[4] = tcoord[toff++];
 
             makeTransform(v0, v1, v2);
-            out.addTri2(v0, v1, v2);
+            out.addAttTri(v0, v1, v2);
         }
 
     }
@@ -362,7 +362,7 @@ public class AttributedX3DReader implements TriangleProducer2, Transformer, Data
     /**
      * interface TriangleProducer2
      */
-    public boolean getTriangles2(TriangleCollector2 out) {
+    public boolean getAttTriangles(AttributedTriangleCollector out) {
         try {
 
             read(out);
