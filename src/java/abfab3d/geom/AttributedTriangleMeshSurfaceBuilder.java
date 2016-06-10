@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors; 
 import java.util.concurrent.TimeUnit;
 
-import javax.vecmath.Vector3d; 
+//import javax.vecmath.Vector3d; 
 
 import java.util.concurrent.ExecutorService; 
 import java.util.concurrent.Executors; 
@@ -39,9 +39,19 @@ import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.MathUtil.L2S;
+import static abfab3d.util.MathUtil.M00;
+import static abfab3d.util.MathUtil.M01;
+import static abfab3d.util.MathUtil.M02;
+import static abfab3d.util.MathUtil.M10;
+import static abfab3d.util.MathUtil.M11;
+import static abfab3d.util.MathUtil.M12;
+import static abfab3d.util.MathUtil.M20;
+import static abfab3d.util.MathUtil.M21;
+import static abfab3d.util.MathUtil.M22;
+import static abfab3d.util.MathUtil.invertMatrix3;
+import static abfab3d.util.MathUtil.multMV3;
 import static abfab3d.util.MathUtil.iround;
 import static abfab3d.util.MathUtil.clamp;
-
 
 /**
    generated set of points on the surface of attributed triangle mesh on a given grid 
@@ -55,7 +65,8 @@ import static abfab3d.util.MathUtil.clamp;
  */
 public class AttributedTriangleMeshSurfaceBuilder implements TriangleCollector2 {
 
-    static final boolean DEBUG = true;    
+    final int MAX_DIMENSION = 6;  // max dimension of data (to pre-allocate arrays) 
+    static final boolean DEBUG = false;    
     static final double TOL = 1.e-2;
     static final double HALF = 0.5; // half voxel offset to the center of voxel
 
@@ -93,7 +104,7 @@ public class AttributedTriangleMeshSurfaceBuilder implements TriangleCollector2 
     }
     
     /**
-       set dimension of data (x,y,z and attributes) 
+       set dimension of data (x,y,z plus attributes) 
      */
     public void setDataDimension(int dimension){
         m_dataDimension = dimension;
@@ -111,7 +122,7 @@ public class AttributedTriangleMeshSurfaceBuilder implements TriangleCollector2 
        if
      */
     public void setSortPoints(boolean value) {
-        printf("setSortPoints(%s)\n", value);
+        if(DEBUG)printf("setSortPoints(%s)\n", value);
         m_sortPoints = value;
     }
 
@@ -127,45 +138,56 @@ public class AttributedTriangleMeshSurfaceBuilder implements TriangleCollector2 
     }
     
     /**
-       returs surface points into 3 arrays 
-       @param pntx  x coordinates 
-       @param pnty  y coordinates 
-       @param pntz  z coordinates 
+       returs surface points into 2D array 
+       return points into array pnt[dataDimesion][pointsCount]
+       point index i data component d is stored in pnts[d][i] 
+
+       @param pnts  array of dimension[dataDimension][pointsCount]
      */
-    public void getPoints(double pntx[],double pnty[],double pntz[]){
+    public void getPoints(double pnt[][]){
         
-        getPointsInGridUnits(pntx,pnty,pntz);
+        if(DEBUG)printf("getPoints()\n");
+        getPointsInGridUnits(pnt);
         //
         // original coordinates are in grid units. we need to transform into physical units 
         //
-        for(int i = 0; i < pntx.length; i++){
-            pntx[i] = toWorldX(pntx[i]);
-            pnty[i] = toWorldY(pnty[i]);
-            pntz[i] = toWorldZ(pntz[i]);
+        int count = pnt[0].length;
+        for(int i = 0; i < count; i++){
+            if(DEBUG)printf("(%5.1f %5.1f %5.1f)\n", pnt[0][i],pnt[1][i],pnt[2][i]);
+            pnt[0][i] = toWorldX(pnt[0][i]);
+            pnt[1][i] = toWorldY(pnt[1][i]);
+            pnt[2][i] = toWorldZ(pnt[2][i]);           
+            // other component need no transformation 
         }
     }
 
 
     /**
+       writes points into array pnt[dataDimesion][pointsCount]
+       point index i data component d is stored in pnts[d][i] 
        
      */
-    private void getPointsInGridUnits(double pntx[],double pnty[],double pntz[]){
-        printf("getPointsInGridUnits()\n");
-        if(m_sortPoints){
-            // do point sorting in the inreased Y-coordinate wih grid precision 
-            getPointsInGridUnitsSorted(pntx, pnty, pntz, m_points, m_ny);
+    private void getPointsInGridUnits(double pnt[][]){
 
+        if(DEBUG)printf("getPointsInGridUnits()\n");
+        if(m_sortPoints){
+            throw new RuntimeException("not implemented");
+            // do point sorting in the inreased Y-coordinate wih grid precision 
+            // sorting seems to be increasing timing 
+            //getPointsInGridUnitsSorted(pntx, pnty, pntz, m_points, m_ny);
         } else {
             //
             // coordinates are in grid units 
             //
+            int dim = m_dataDimension;
             int npnt = m_points.size();
-            Vec pnt = new Vec(m_dataDimension);
+            Vec p = new Vec(m_dataDimension);
             for(int i = 0; i < npnt; i++){
-                m_points.getPoint(i, pnt);
-                pntx[i] = pnt.v[0];
-                pnty[i] = pnt.v[1];
-                pntz[i] = pnt.v[2];
+                m_points.getPoint(i, p);
+                if(DEBUG)printf("[%5.1f %5.1f %5.1f]\n", p.v[0],p.v[1],p.v[2]);
+                for(int d = 0; d < dim; d++){
+                    pnt[d][i] = p.v[d];
+                }
             }
         }
     }
@@ -212,11 +234,11 @@ public class AttributedTriangleMeshSurfaceBuilder implements TriangleCollector2 
             coordy[cindex] = p.v[1];
             coordz[cindex] = p.v[2];            
         }        
-        printf("points sorting time: %d ms\n", time() - t0);
+        if(DEBUG)printf("points sorting time: %d ms\n", time() - t0);
     }
 
     /**
-       this method MUST be called before starting adding triangles 
+x       this method MUST be called before starting adding triangles 
      */
     public boolean initialize(){
 
@@ -246,6 +268,7 @@ public class AttributedTriangleMeshSurfaceBuilder implements TriangleCollector2 
         return true;
     }
     
+    /*
     Vector3d // work vectors 
         v0 = new Vector3d(),
         v1 = new Vector3d(),
@@ -253,22 +276,25 @@ public class AttributedTriangleMeshSurfaceBuilder implements TriangleCollector2 
         m_v1 = new Vector3d(),
         m_v2 = new Vector3d(),
         m_normal = new Vector3d();
-    
+    */ 
     /**
        method of interface TriangleCollector2 
        
      */
     public boolean addTri2(Vec p0, Vec p1, Vec p2){
-        if(m_useBestPlane) 
-            return addTri_bestPlane(p0,p1,p2);
-        else 
+        if(m_useBestPlane) {
+            throw new RuntimeException("not implemented");
+            //return addTri_bestPlane(p0,p1,p2);
+        } else {
             return addTri_allPlanes(p0,p1,p2);
+        }
     }
 
     /**       
        render triangle in the plane orthogonal to the longest normal projection 
        rendering generates points on intersection of triangle and voxel grid lines 
     */
+    /*
     protected boolean addTri_bestPlane(Vec p0, Vec p1, Vec p2){
         m_triCount++;
         p0.get(v0);
@@ -334,7 +360,13 @@ public class AttributedTriangleMeshSurfaceBuilder implements TriangleCollector2 
 
         return true;
     }
-
+    */
+    Vec m_v0 = new Vec(6);
+    Vec m_v1 = new Vec(6);
+    Vec m_v2 = new Vec(6);
+    double m_triMat[] = new double[9]; // working matrix
+    double m_coeff[][] = new double[MAX_DIMENSION][3];
+    double m_values[] = new double[3];
     /**
       render triangle in all 3 planes 
       
@@ -342,52 +374,78 @@ public class AttributedTriangleMeshSurfaceBuilder implements TriangleCollector2 
     protected boolean addTri_allPlanes(Vec p0, Vec p1, Vec p2){
 
         m_triCount++;
-        p0.get(v0);
-        p1.get(v1);
-        p2.get(v2);
 
-        toGrid(v0);
-        toGrid(v1);
-        toGrid(v2);
-        // calculate triangle normal 
-        m_v1.sub(v1, v0);
-        m_v2.sub(v2, v0);
-        m_normal.cross(m_v2,m_v1);
-        double 
-            nv0 = m_normal.dot(v0),
-            nx = m_normal.x,
-            ny = m_normal.y,
-            nz = m_normal.z,
-            anx = abs(nx),
-            any = abs(ny),
-            anz = abs(nz);        
 
-        // minimal normal projection to render in that orientation 
-        final double NEPS = 0.01;
+        //for(int axis = 2; axis < 3; axis++){
+        for(int axis = 0; axis < 3; axis++){
+        //for(int axis = 1; axis < 2; axis++){
 
-        // render triangle in 3 orthogonal directions
-        if(abs(nx) > NEPS) {
-            m_voxelRenderer.setAxis(0);
-            m_voxelRenderer.setPlane(-ny/nx, -nz/nx, nv0/nx); 
-            m_triRenderer.fillTriangle(m_voxelRenderer, v0.y, v0.z,v1.y, v1.z, v2.y, v2.z);
-        }
-        if(abs(ny) > NEPS) {
-            m_voxelRenderer.setAxis(1);
-            m_voxelRenderer.setPlane(-nz/ny, -nx/ny, nv0/ny); 
-            m_triRenderer.fillTriangle(m_voxelRenderer, v0.z, v0.x,v1.z, v1.x, v2.z, v2.x);
-        }
-        if(abs(nz) > NEPS) {
-            m_voxelRenderer.setAxis(2);
-            m_voxelRenderer.setPlane(-nx/nz, -ny/nz, nv0/nz); 
-            m_triRenderer.fillTriangle(m_voxelRenderer, v0.x, v0.y,v1.x, v1.y, v2.x, v2.y);
+            m_v0.set(p0);
+            m_v1.set(p1);
+            m_v2.set(p2);
+            
+            toGrid(m_v0);
+            toGrid(m_v1);
+            toGrid(m_v2);
+
+            if(DEBUG) printf("axis: %d tri: (%5.1f %5.1f %5.1f; %5.1f %5.1f %5.1f;%5.1f %5.1f %5.1f)\n",
+                             axis, m_v0.v[0],m_v0.v[1],m_v0.v[2], m_v1.v[0],m_v1.v[1],m_v1.v[2],m_v2.v[0],m_v2.v[1],m_v2.v[2]);
+            
+            double u0, v0, u1, v1, u2, v2, w0, w1, w2;
+            int iu = (axis+1)%3;
+            int iv = (axis+2)%3;
+            int iw = (axis)%3;
+
+            u0 = m_v0.v[iu]; 
+            u1 = m_v1.v[iu];
+            u2 = m_v2.v[iu];
+
+            v0 = m_v0.v[iv]; 
+            v1 = m_v1.v[iv];
+            v2 = m_v2.v[iv];
+
+            w0 = m_v0.v[iw]; 
+            w1 = m_v1.v[iw];
+            w2 = m_v2.v[iw];
+            // save w values into z component 
+            m_v0.v[2] = w0;
+            m_v1.v[2] = w1;
+            m_v2.v[2] = w2;
+            if(DEBUG) printf("triUV: (%5.1f %5.1f %5.1f; %5.1f %5.1f %5.1f;%5.1f %5.1f %5.1f)\n", u0, v0, w0,u1, v1, w1,u2, v2, w2);
+            m_triMat[M00] = u0;
+            m_triMat[M01] = v0;
+            m_triMat[M02] = 1;
+            m_triMat[M10] = u1;
+            m_triMat[M11] = v1;
+            m_triMat[M12] = 1;
+            m_triMat[M20] = u2;
+            m_triMat[M21] = v2;
+            m_triMat[M22] = 1;
+            
+            if(invertMatrix3(m_triMat) == 0) {
+                // non inversible matrix ignore triangle in that orientation
+                continue;
+            }
+            // calculate interpolation coefficients for z and remaining attributes
+            for(int d = 2; d < m_dataDimension; d++){
+                m_values[0] = m_v0.v[d];
+                m_values[1] = m_v1.v[d];
+                m_values[2] = m_v2.v[d];
+                if(DEBUG)printf("axis: %d values:%7.5f %7.5f %7.5f\n",axis, m_values[0],m_values[1],m_values[2]);
+                multMV3(m_triMat, m_values,m_coeff[d]);
+                if(DEBUG)printf("axis:%d coeff[%d]: %7.5f %7.5f %7.5f\n",axis, d, m_coeff[d][0],m_coeff[d][1],m_coeff[d][2]);
+            }
+            m_voxelRenderer.setAxis(axis);
+            m_voxelRenderer.setCoeff(m_coeff); 
+            m_triRenderer.fillTriangle(m_voxelRenderer, u0,v0,  u1,v1, u2,v2);
         }
         return true;
     }
 
-    final void toGrid(Vector3d v){
-        v.x = toGridX(v.x);
-        v.y = toGridY(v.y);
-        v.z = toGridZ(v.z);
+    final void toGrid(Vec v){
+        v.v[0] = toGridX(v.v[0]);
+        v.v[1] = toGridY(v.v[1]);
+        v.v[2] = toGridZ(v.v[2]);
     }
 
     final double toGridX(double x){
@@ -414,43 +472,70 @@ public class AttributedTriangleMeshSurfaceBuilder implements TriangleCollector2 
      */
     class AttributedPointRenderer implements TriangleRenderer.PixelRenderer {
 
-        double m_ax, m_ay, m_az;
         int m_axis = 2;
-        Vec m_work = new Vec(m_dataDimension);
-        double m_u[] = new double[m_dataDimension];
-        double m_v[] = new double[m_dataDimension];
-        double m_w[] = new double[m_dataDimension];
+        Vec m_work = new Vec(MAX_DIMENSION);
+        double m_coeff[][];
+
+        AttributedPointRenderer(){            
+        }
 
         final void setAxis(int axis){
             m_axis = axis;
         }
         
-        final void setPlane(double ax, double ay, double az){
-            m_ax = ax;
-            m_ay = ay;
-            m_az = az;
+        final void setCoeff(double coeff[][]){
+            m_coeff = coeff;
+            if(DEBUG) {
+                printf("setCoeff()\n");
+                for(int d = 0; d < m_coeff.length; d++){
+                    printf("%7.5f %7.5f %7.5f\n", m_coeff[d][0],m_coeff[d][1],m_coeff[d][2]);
+                }
+            }
         }
         
-        public void setPixel(int ix, int iy){
+        /**
+           caled by TriangeleRenderer for each pixel inside of triangle
+           triangle is rasterized in one of 3 possible planes 
+           0 yz 
+           1 zx 
+           2 xy 
+           @param iu integer coordinate of pixel 
+           @param iv integer coordinate of pixel 
+           
+         */
+        public final void setPixel(int iu, int iv){
             
+            // double coordoinates of pixel center (it is shifted by 0.5) 
             double 
-                x = ix + HALF,
-                y = iy + HALF,                
-                z = m_ax*x + m_ay*y + m_az;
-            
+                u = iu + HALF,
+                v = iv + HALF;
+            //
+            // interpolate z-component 
+            //
+            double w = m_coeff[2][0]*u + m_coeff[2][1]*v + m_coeff[2][2];
+
+            //if(DEBUG) printf("uvw: %5.1f  %5.1f  %5.1f\n", u,v,w);
+
+            double x,y,z; // point coordinates in grid units 
             switch(m_axis){
-            case 0: m_work.set(z,x,y); break;
-            case 1: m_work.set(y,z,x); break;
-            case 2: m_work.set(x,y,z); break;                
+            default:
+            case 0: x = w; y = u; z = v; break;
+            case 1: x = v; y = w; z = u; break;
+            case 2: x = u; y = v; z = w; break;                
             }
-            
+            if(DEBUG) printf("          x,y,z: %5.1f %5.1f %5.1f \n", x,y,z);
+            // save coord 
+            m_work.v[0] = x;
+            m_work.v[1] = y;
+            m_work.v[2] = z;
+            // interpolate other attribiutes
             switch(m_dataDimension){
-            case 3:
-                m_work.v[5] = m_u[2]*x + m_v[2]*y + m_w[2];
-            case 2:
-                m_work.v[4] = m_u[1]*x + m_v[1]*y + m_w[1];
-            case 1:
-                m_work.v[3] = m_u[0]*x + m_v[0]*y + m_w[0];
+            case 6:
+                m_work.v[5] = m_coeff[5][0] * u + m_coeff[5][1] * v + m_coeff[5][2];
+            case 5:
+                m_work.v[4] = m_coeff[4][0] * u + m_coeff[4][1] * v + m_coeff[4][2];
+            case 4:
+                m_work.v[3] = m_coeff[3][0] * u + m_coeff[3][1] * v + m_coeff[3][2];
             }
             m_points.addPoint(m_work);
         }                   

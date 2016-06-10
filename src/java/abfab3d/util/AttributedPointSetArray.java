@@ -22,6 +22,7 @@ import abfab3d.util.TriangleCollector;
 import abfab3d.util.PointSet;
 
 import static abfab3d.util.Units.MM;
+import static abfab3d.util.Output.printf;
 
 /**
    representation of point set as array of values
@@ -81,8 +82,12 @@ public class AttributedPointSetArray implements AttributedPointSet  {
             reallocArray();
 
         int start = m_size*m_dimension;
-        for(int i=0; i < m_dimension; i++)
+        //printf("addPoint(");
+        for(int i=0; i < m_dimension; i++){
             coord[start+i] = point.v[i];
+            //printf(" %5.1f",point.v[i]);
+        }
+        //printf(")\n");
         
         m_size++;
     }

@@ -15,24 +15,24 @@ package abfab3d.util;
 import javax.vecmath.Vector3d;
 
 /**
-   convert TriangleProducer2 into TriangleProducer 
+   convert TriangleProducer into TriangleProducer2 
    
-   accept triangles from TrianglaProducer2 and sends them to TriangleCollector 
+   accept triangles from TriangleProducer and sends them to TriangleCollector2 
 
    @author Vladimir Bulatov
  */
-public class TriangleProducer2Converter implements TriangleProducer, TriangleCollector2 {
+public class TriangleProducerConverter2 implements TriangleProducer2, TriangleCollector {
 
     // producer to get traingles from 
-    TriangleProducer2 tp2;
+    TriangleProducer tp;
     // collector to send triamngles to 
-    TriangleCollector tc;
+    TriangleCollector2 tc2;
 
     /**
        
      */
-    public TriangleProducer2Converter(TriangleProducer2 tp2){
-        this.tp2 = tp2;
+    public TriangleProducerConverter2(TriangleProducer tp){
+        this.tp = tp;
     }
 
 
@@ -41,24 +41,25 @@ public class TriangleProducer2Converter implements TriangleProducer, TriangleCol
 
        returns true if success, false if faiure        
      */
-    public boolean getTriangles(TriangleCollector tc){
-        this.tc = tc;
-        return tp2.getTriangles2(this);
+    public boolean getTriangles2(TriangleCollector2 tc2){
+        this.tc2 = tc2;
+        return tp.getTriangles(this);
     }
 
-    Vector3d // work vectors
-        w0 = new Vector3d(),
-        w1 = new Vector3d(),
-        w2 = new Vector3d();
+    Vec // work vectors
+        w0 = new Vec(6),
+        w1 = new Vec(6),
+        w2 = new Vec(6);
 
 
-    public boolean addTri2(Vec p0, Vec p1, Vec p2){
+    
+    public boolean addTri(Vector3d p0, Vector3d p1, Vector3d p2){
 
-        p0.get(w0);
-        p1.get(w1);
-        p2.get(w2);
+        w0.set(p0);
+        w1.set(p1);
+        w2.set(p2);
 
-        return tc.addTri(w0, w1, w2);
+        return tc2.addTri2(w0, w1, w2);
     }
     
 }

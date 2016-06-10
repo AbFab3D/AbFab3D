@@ -190,10 +190,9 @@ public class MathUtil {
 
     
     // small number to detect degenerate matrix 
-    static final double EPS = 1.e-9;
-    static final double EPS2 = EPS*EPS; // squared epsilon
-
-    static final int // elements of 3x3 matrix stored in array 
+    public static final double EPS = 1.e-9;
+    public static final double EPS2 = EPS*EPS; // squared epsilon
+    public static final int // elements of 3x3 matrix stored in array 
         M00 = 0, M01 = 1, M02 = 2, 
         M10 = 3, M11 = 4, M12 = 5, 
         M20 = 6, M21 = 7, M22 = 8; 
@@ -863,7 +862,7 @@ public class MathUtil {
        m10*x0  + m11*x1 + m12*x2 = c1
        m20*x0  + m21*x1 + m22*x2 = c2        
        
-       return false if equation has no unique solution exists (determinant is 0) 
+       return false if equation has no solution (determinant is 0) 
        
      */
 
@@ -895,7 +894,7 @@ public class MathUtil {
     }
 
     /**
-       calculated result of multiplication of 3x3 matrix and vector 3 vector
+       calculated result of multiplication of 3x3 matrix and 3 vector
        y = M x 
        y0 = m00*x0 + m01*x1 + m02*x2 
        y1 = m10*x0 + m11*x1 + m12*x2 
@@ -912,7 +911,7 @@ public class MathUtil {
     
     /**
        multiply two matrices M and N and place result in R
-       r = m  * n 
+       R = M  * N 
      */
     public static void multMM3(double m[], double n[], double r[]){
 

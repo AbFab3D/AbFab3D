@@ -42,6 +42,10 @@ public class Vec {
         v = new double[]{x,y,z};        
     }
 
+    public Vec(Tuple3d p){
+        v = new double[]{p.x,p.y,p.z};        
+    }
+
     public Vec(Vec in){
         v = new double[in.v.length];
         set(in);
@@ -95,8 +99,9 @@ public class Vec {
 
         if(in == this)
             return;
-
-        for(int i=0; i < v.length; i++){
+        int len = Math.min(v.length, in.v.length);
+        
+        for(int i=0; i < len; i++){
             v[i] = in.v[i];
         }
         voxelSize = in.voxelSize;
