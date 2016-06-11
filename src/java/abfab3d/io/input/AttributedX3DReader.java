@@ -38,7 +38,7 @@ import static abfab3d.util.Output.printf;
  *
  * @author Alan Hudson
  */
-public class AttributedX3DReader implements AttributedTriangleProducer, Transformer, DataSource {
+public class AttributedX3DReader implements AttributedTriangleProducer, Transformer{
 
     static final boolean DEBUG = false;
 
@@ -51,8 +51,9 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
     private InputStream m_is;
     private String m_baseURL;
 
-    private ImageColorMap[] textures;
-    protected Bounds m_bounds = Bounds.INFINITE;
+    private ImageColorMap[] m_textures;
+    AttributeCalculator m_attributeCalculator = null;
+
     private int m_dataDimension = 0;
 
     public AttributedX3DReader(String path) {
@@ -94,7 +95,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         Iterator<CommonEncodable> itr = shapes.iterator();
         int tex = 0;
 
-        textures = new ImageColorMap[shapes.size()];
+        m_textures = new ImageColorMap[shapes.size()];
         m_dataDimension = calcDataDimension(shapes);
 
         while(itr.hasNext()) {
@@ -205,7 +206,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         if (repeatY != null) icm.setRepeatY(repeatY);
 
         icm.initialize();
-        textures[idx] = icm;
+        m_textures[idx] = icm;
     }
 
     /**
@@ -378,42 +379,10 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
      * @return
      */
     public DataSource getAttributeCalculator() {
-        return this;
-    }
+        if(m_attributeCalculator == null)
+            m_attributeCalculator = new AttributeCalculator(m_textures, m_dataDimension-3);
 
-
-    /**
-     * Returns u,v or u,v,texIndex
-     *
-     * @param pnt Point where the data is calculated
-     * @param dataValue - storage for returned calculated data
-     * @return
-     */
-    public int getDataValue(Vec pnt, Vec dataValue) {
-        int tz = (int)pnt.v[2];
-        ImageColorMap icm = textures[tz];
-
-        icm.getDataValue(pnt,dataValue);
-
-        return RESULT_OK;
-    }
-
-    @Override
-    public int getChannelsCount() {
-        return m_dataDimension - 3;
-    }
-
-    @Override
-    public Bounds getBounds() {
-        return m_bounds;
-    }
-
-    /**
-     * Set the bounds of this data source.  For infinite bounds use Bounds.INFINITE
-     * @param bounds
-     */
-    public void setBounds(Bounds bounds) {
-        this.m_bounds = bounds.clone();
+        return m_attributeCalculator;
     }
 
     /**
@@ -451,4 +420,58 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             throw new RuntimeException("data dimension is not kwnown yet");
         return m_dataDimension;
     }
+
+
+    /**
+       calculates color value for point in texture coordinates 
+       multiple textures are indexed by 3rd coordinate
+       supports multiple textures 
+     */
+    static class AttributeCalculator implements DataSource {
+
+        int channelsCount;
+        ImageColorMap textures[];
+        AttributeCalculator(ImageColorMap textures[], int channelsCount){
+            this.channelsCount = channelsCount;
+            this.textures = textures;
+        }
+        /**
+         * Returns u,v or u,v,texIndex
+         *
+         * @param pnt Point where the data is calculated
+         * @param dataValue - storage for returned calculated data
+         * @return
+         */
+        public int getDataValue(Vec pnt, Vec dataValue) {
+
+            int tz = (int)pnt.v[2];
+            ImageColorMap icm = textures[tz];
+            
+            icm.getDataValue(pnt,dataValue);
+            
+            return RESULT_OK;
+        }
+        
+        /**
+
+           @Override
+        */
+        public int getChannelsCount() {
+            return channelsCount;
+        }
+        
+        /**
+           @Override
+        */
+        public Bounds getBounds() {
+            return null;
+        }            
+        /**
+           @Override
+         */
+        public void setBounds(Bounds bounds) {
+            //ignore
+        }
+    } // class AttributeCalculator
+
 }

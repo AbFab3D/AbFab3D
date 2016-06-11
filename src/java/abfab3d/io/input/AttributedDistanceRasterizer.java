@@ -222,7 +222,7 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
        @param triProducer - the mesh 
        @param distanceGrid grid to contain distances to the mesh 
      */
-    public void getDistances(AttributedTriangleProducer triProducer, AttributeGrid distanceGrid){
+    public void getDistances(AttributedTriangleProducer triProducer, DataSource attributeColorizer, AttributeGrid distanceGrid){
         
         if(DEBUG)printf("DistanceRasterizer2.getDistances(grid)\n");
         long t0 = time();

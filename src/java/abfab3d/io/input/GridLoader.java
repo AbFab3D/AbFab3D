@@ -70,7 +70,6 @@ public class GridLoader {
     protected double m_maxOutDistance = 2*MM;
     protected double m_maxInDistance = 2*MM;
     // data dimension to use for mesh (default - 3 coordinates only ) 
-    protected int m_dataDimension = 3; 
     protected double m_shellHalfThickness = 2;
     protected int m_threadCount = 1;
     protected int m_triangleCount;
@@ -453,12 +452,13 @@ public class GridLoader {
         if(DEBUG)printf("grid: [%d x %d x %d]\n", grid.getWidth(),grid.getHeight(),grid.getDepth());
         if(DEBUG)printf("voxelSize: %7.5f\n", grid.getVoxelSize()); 
         AttributedDistanceRasterizer rasterizer = new AttributedDistanceRasterizer(bounds, grid.getWidth(),grid.getHeight(),grid.getDepth());
-        rasterizer.setDataDimension(m_dataDimension);
+
+        rasterizer.setDataDimension(attTriProducer.getDataDimension());
         rasterizer.setShellHalfThickness(m_shellHalfThickness);
         rasterizer.setSurfaceVoxelSize(m_surfaceVoxelSize);
         rasterizer.setThreadCount(m_threadCount);
-        
-        rasterizer.getDistances(attTriProducer, grid);
+       
+        rasterizer.getDistances(attTriProducer, attributeColorizer, grid);
                 
         return grid;
         
