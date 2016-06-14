@@ -70,7 +70,7 @@ public interface AttributeGrid extends Grid {
     public void setAttribute(int x, int y, int z, long attribute);
 
     /**
-     * Set a row of attribute values
+     * Set a z row of attribute values
      * @param x
      * @param y
      * @param attribute

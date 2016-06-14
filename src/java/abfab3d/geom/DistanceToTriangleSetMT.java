@@ -139,7 +139,7 @@ public class DistanceToTriangleSetMT implements Operation, AttributeOperation {
 
         // calculate final distances in the given interval 
         ClosestPointIndexer.makeDistanceGrid(indexGrid, pntx, pnty, pntz,
-                interiorGrid, distanceGrid, m_maxInDistance, m_maxOutDistance);
+                interiorGrid, m_maxInDistance, m_maxOutDistance, distanceGrid);
         return distanceGrid;
     }
 

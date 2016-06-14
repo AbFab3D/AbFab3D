@@ -123,7 +123,7 @@ public class DistanceToTriangleSet implements Operation, AttributeOperation {
         ClosestPointIndexer.getPointsInWorldUnits(indexGrid, pntx, pnty, pntz);
 
         // calculate final distances in the given interval 
-        ClosestPointIndexer.makeDistanceGrid(indexGrid, pntx, pnty, pntz, interiorGrid, distanceGrid, m_maxInDistance, m_maxOutDistance);               
+        ClosestPointIndexer.makeDistanceGrid(indexGrid, pntx, pnty, pntz, interiorGrid, m_maxInDistance, m_maxOutDistance, distanceGrid);               
         return distanceGrid;
     }
 

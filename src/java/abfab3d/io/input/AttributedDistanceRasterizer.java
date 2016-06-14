@@ -257,10 +257,11 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
 
         t0 = time();
 
-        // distribute indices on the whole indexGrid        
         
+        // initially point are in grid units 
         ClosestPointIndexer.getPointsInGridUnits(m_indexGrid, pnt[0], pnt[1], pnt[2]);
-        
+
+        // distribute indices on the whole indexGrid                
         if(m_threadCount <= 1) {
             ClosestPointIndexer.PI3_bounded(pnt[0], pnt[1], pnt[2], m_maxDistanceVoxels, m_indexGrid);
             if(DEBUG_TIMING)printf("ClosestPointIndexer.PI3_sorted time: %d ms\n", (time() - t0));
@@ -277,7 +278,7 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
         
         t0 = time();
         if(m_threadCount <= 1) {
-            ClosestPointIndexer.makeDistanceGrid(m_indexGrid, pnt[0], pnt[1], pnt[2], interiorGrid, distanceGrid, m_maxInDistance, m_maxOutDistance);
+            ClosestPointIndexer.makeDistanceGrid(m_indexGrid, pnt[0], pnt[1], pnt[2], interiorGrid, m_maxInDistance, m_maxOutDistance, distanceGrid);
             if(DEBUG_TIMING)printf("ClosestPointIndexer.makeDistanceGrid()ime: %d ms\n", (time() - t0));
         } else {
             ClosestPointIndexerMT.makeDistanceGrid_MT(m_indexGrid, pnt[0], pnt[1], pnt[2], interiorGrid, distanceGrid, m_maxInDistance, m_maxOutDistance, m_threadCount);

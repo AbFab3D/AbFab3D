@@ -16,11 +16,14 @@ package abfab3d.grid.op;
 import javax.vecmath.Vector3d;
 
 import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.AttributeMaker;
 import abfab3d.grid.GridDataChannel;
 
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.Grid2D;
 
+import abfab3d.util.Vec;
+import abfab3d.util.DataSource;
 import abfab3d.util.Bounds;
 import abfab3d.util.PointSet;
 
@@ -1299,8 +1302,149 @@ public class ClosestPointIndexer {
             py[i] = pnt.y;
             pz[i] = pnt.z;
         }
-        makeDistanceGrid(indexGrid, px, py, pz, interiorGrid, distanceGrid, minDistance, maxDistance);
+        makeDistanceGrid(indexGrid, px, py, pz, interiorGrid, minDistance, maxDistance, distanceGrid);
 
+    }
+
+    /**
+       calculates distance grid with optional multichannel data originated from array of attributed points 
+       
+       on output each voxel of outGrid contians distance to closest point and (possble transformed) attribute values of that point
+       @param indexGrid contain indices of closes point to each voxel 
+       @param pnts  coordinates and attributed of each point used in 
+       pnts[0] - x-coordinates 
+       pnts[1] - y-coordinates 
+       pnts[2] - z-coordinates 
+       pnts[3] - attribute channel 0
+       pnts[4] - attribute channel 1
+       ..............
+       @param interiorGrid if not null contain non-zero value for interior voxels. It is used to assign negative distance value to interior voxels 
+       @param minDistance  minimal signed distance value to store in the grid. Values smaller than  minDistance are assigned value minDistance.
+       @param maxDistance  maximal signed distance value to store in the grid. Voxels with distacnes larger than maxDistance are 
+       @param attributeColorizer optional converter from points attributes into grid channel attributes. 
+       Particular use case when points attributes contain 2D textre coordinates and they need to be converted into 3D color components. 
+       If attributeColorizer is null, identity DataSource is used instead.
+
+       @param outGrid output grid which contains calculated attributes 
+       outGrid data description, obtained via outGrid.gridDataDesc() method shall return appropriate GridDataDesc which can be used to convert (distance, att0, att1, att2, ...) 
+       into grid attribute value.              
+       
+    */
+    public static void makeAttributedDistanceGrid(AttributeGrid indexGrid, 
+                                                  double pnts[][],
+                                                  AttributeGrid interiorGrid, 
+                                                  double minDistance,
+                                                  double maxDistance,
+                                                  DataSource colorizer,
+                                                  AttributeGrid outGrid
+                                                  ){
+        int 
+            ny = indexGrid.getHeight(),
+            nz = indexGrid.getDepth();
+        if(DEBUG)printf("makeAttributedDistanceGrid() doing slices\n");
+        Bounds bounds = indexGrid.getGridBounds();
+        long att[] = new long[nz];
+        boolean interior[] = new boolean[nz];
+
+        for(int y = 0; y < ny; y++)
+            makeAttributedDistanceGridSlice(y, y+1, bounds, att, interior,
+                                            indexGrid, pnts, interiorGrid,minDistance,maxDistance,colorizer, outGrid);
+        
+    }
+
+    public static void makeAttributedDistanceGridSlice(int yStart, 
+                                                       int yEnd, 
+                                                       Bounds bounds, 
+                                                       long att[], 
+                                                       boolean interior[],
+                                                       AttributeGrid indexGrid, 
+                                                       double pnts[][],
+                                                       AttributeGrid interiorGrid, 
+                                                       double minDistance,
+                                                       double maxDistance,
+                                                       DataSource colorizer,
+                                                       AttributeGrid outGrid
+                                                       ){
+        if(DEBUG)printf("makeAttributedDistanceGridSlice(%d, %d)\n", yStart, yEnd);        
+        int 
+            nx = indexGrid.getWidth(),
+            nz = indexGrid.getDepth();
+
+        AttributeMaker attMaker = outGrid.getDataDesc().getAttributeMaker();
+
+        double vs = bounds.getVoxelSize();
+        double vs2 = vs/2;
+        double xmin = bounds.xmin+vs2;
+        double ymin = bounds.ymin+vs2;
+        double zmin = bounds.zmin+vs2;
+
+        double pntx[] = pnts[0];
+        double pnty[] = pnts[1];
+        double pntz[] = pnts[2];
+        double pntu[] = pnts[3];
+        double pntv[] = pnts[4];
+        double pntw[] = pnts[5];
+
+        // TODO use variable channel dimension 
+        Vec pntData = new Vec(3);        
+        Vec colorData = new Vec(3);        
+        Vec voxelData = new Vec(4);        
+        voxelData.v[0] = minDistance;
+        long inAtt = attMaker.makeAttribute(voxelData);
+        voxelData.v[0] = maxDistance;
+        long outAtt = attMaker.makeAttribute(voxelData);
+
+        for(int y = yStart; y < yEnd; y++){
+            double coordy = ymin + vs*y;
+            for(int x = 0; x < nx; x++){
+                double coordx = xmin + vs*x;
+                // read input grid data into 1D arrays
+                for(int z = 0; z < nz; z++){
+                    att[z] = indexGrid.getAttribute(x,y,z);
+                }   
+                if(interiorGrid != null){
+                    for(int z = 0; z < nz; z++){
+                        interior[z] = (interiorGrid.getAttribute(x,y,z) != 0);
+                    }                
+                }
+                for(int z = 0; z < nz; z++){
+                    int ind = (int)att[z];
+                    if(ind > 0) {
+                        // point has closest point 
+                        double coordz = zmin + vs*z;
+                        double dist2 = distance2(coordx,coordy,coordz, pntx[ind],pnty[ind],pntz[ind]);
+                        double dist = sqrt(dist2);
+                        
+                        pntData.v[0] = pntu[ind];
+                        pntData.v[1] = pntv[ind];
+                        pntData.v[2] = pntw[ind];
+
+                        colorizer.getDataValue(pntData, colorData);
+                        //TODO - use different channels dimension 
+                        if(interior[z]) {
+                            dist = -dist;
+                        }
+                        voxelData.v[0] = dist;
+                        voxelData.v[1] = colorData.v[0];
+                        voxelData.v[2] = colorData.v[1];
+                        voxelData.v[3] = colorData.v[2];
+                        att[z] = attMaker.makeAttribute(voxelData);
+                    }  else {
+                        // point is undefined 
+                        if(interior[z]){
+                            // interior 
+                            att[z] = inAtt;
+                        } else {
+                            // exterior 
+                            att[z] = outAtt;
+                        }
+                    }
+                } // for(int z
+                // write distances into output grid                
+                outGrid.setAttributes(x,y,att);                                
+            }
+        }
+        
     }
 
     
@@ -1312,17 +1456,17 @@ public class ClosestPointIndexer {
        
        @param indexGrid contains indices of closest point. index = 0 meand closesnt point is undefined
        @param pnts  pnts[0] x-coordinates, pnts[1] y-coordinates, 
-       @param interiorGrid grid of voxles whcuh are in the shape interior 
+       @param interiorGrid contains non zero value for voxels in the shape interior 
        
      */
     public static void makeDistanceGrid(AttributeGrid indexGrid, 
                                         double pnts[][],
                                         AttributeGrid interiorGrid, 
-                                        AttributeGrid distanceGrid,
                                         double minDistance,
-                                        double maxDistance
+                                        double maxDistance,
+                                        AttributeGrid distanceGrid
                                         ){
-        makeDistanceGrid(indexGrid, pnts[0], pnts[1], pnts[2], interiorGrid, distanceGrid, minDistance, maxDistance);        
+        makeDistanceGrid(indexGrid, pnts[0], pnts[1], pnts[2], interiorGrid, minDistance, maxDistance, distanceGrid);        
     }
 
     /**
@@ -1341,9 +1485,9 @@ public class ClosestPointIndexer {
     public static void makeDistanceGrid(AttributeGrid indexGrid, 
                                         double pntx[], double pnty[], double pntz[], 
                                         AttributeGrid interiorGrid, 
-                                        AttributeGrid distanceGrid,
                                         double minDistance,
-                                        double maxDistance
+                                        double maxDistance,
+                                        AttributeGrid distanceGrid
                                         ){
         
         int 
@@ -1356,100 +1500,37 @@ public class ClosestPointIndexer {
 
         for(int y = 0; y < ny; y++)
             makeDistanceGridSlice(y, y+1, bounds, att, interior,
-                                  indexGrid, pntx,pnty, pntz, interiorGrid, distanceGrid,minDistance,maxDistance);
+                                  indexGrid, pntx,pnty, pntz, interiorGrid,minDistance,maxDistance,distanceGrid);
     }
 
     /**
-       make all in one piece
-     */
-    /*
-    public static void makeDistanceGrid_v1(AttributeGrid indexGrid, 
-                                        double pntx[], double pnty[], double pntz[], 
-                                        AttributeGrid interiorGrid, 
-                                        AttributeGrid distanceGrid,
-                                        double maxInDistance,
-                                        double maxOutDistance
-                                        ){
-        
-        int 
-            nx = indexGrid.getWidth(),
-            ny = indexGrid.getHeight(),
-            nz = indexGrid.getDepth();
-        GridDataChannel dataChannel = distanceGrid.getDataDesc().getChannel(0);
-
-        long inAtt = dataChannel.makeAtt(-maxInDistance);
-        long outAtt = dataChannel.makeAtt(maxOutDistance);
-        Bounds bounds = indexGrid.getGridBounds();
-        double vs = bounds.getVoxelSize();
-        double vs2 = vs/2;
-        double xmin = bounds.xmin+vs2;
-        double ymin = bounds.ymin+vs2;
-        double zmin = bounds.zmin+vs2;
-
-        double maxInDistance2 = maxInDistance*maxInDistance;
-        double maxOutDistance2 = maxOutDistance*maxOutDistance;
-
-        long att[] = new long[nz];
-        boolean interior[] = new boolean[nz];
-
-        for(int y = 0; y < ny; y++){
-            double coordy = ymin + vs*y;
-            for(int x = 0; x < nx; x++){
-                double coordx = xmin + vs*x;
-                // read input grid data into 1D arrays
-                for(int z = 0; z < nz; z++){
-                    att[z] = indexGrid.getAttribute(x,y,z);
-                }                
-                for(int z = 0; z < nz; z++){
-                    interior[z] = (interiorGrid.getAttribute(x,y,z) != 0);
-                }                
-
-                for(int z = 0; z < nz; z++){
-                    int ind = (int)att[z];
-                    if(ind > 0) {
-                        // point has closest point 
-                        double coordz = zmin + vs*z;
-                        double dist2 = distance2(coordx,coordy,coordz, pntx[ind],pnty[ind],pntz[ind]);
-                        double dist = sqrt(dist2);
-                        //xbprintf("%d\n", dist);
-                        if(interior[z]) {
-                            dist = -dist;
-                        }
-                        att[z] = dataChannel.makeAtt(dist);                         
-                    }  else {
-                        // point is undefined 
-                        if(interior[z]){
-                            // interior 
-                            att[z] = inAtt;
-                        } else {
-                            // exterior 
-                            att[z] = outAtt;
-                        }
-                    }
-                } // for(int z
-                // write distances into output grid
-                for(int z = 0; z < nz; z++){
-                    distanceGrid.setAttribute(x,y,z,att[z]);
-                }                
-            }
-        }
-    }
-    */
-    /**
-       calculate y-slice of distance between yStard and yEnd 
+       calculate distance values in grid y-slice (yStart <= y < yEnd) 
        
+       @param yStart first slice to make 
+       @param yEnd last slice to make (exclusive) 
+       @param bounds grid bounds used to control the 3D positions where distance is calculated. Bounds have to have correct voxel size as well 
+       bounds of other grid are ignored                
+       @param indexGrid  contains index of closes point to each voxel. value 0 means undefined, noclosest point was assigned
+       @param pntx  x-coordinates of array of points (point index 0 is not used) 
+       @param pnty  y-coordinates of array of points (point index 0 is not used) 
+       @param pntz  z-coordinates of array of points (point index 0 is not used) 
+       @param interiorGrid if not null contain non-zero value for interior voxels. It is used to assign negative distance value to interior voxels 
+       @param distanceGrid on output contains calculated distance values to closest point
+       @param minDistance  minimal signed distance value to store in the grid. Values smaller than  minDistance are assigned value minDistance.
+       @param maxDistance  maximal signed distance value to store in the grid. Voxels with distacnes larger than maxDistance are 
        @param att work array of length grid depth
        @param interior work array of length grid depth
      */
     public static void makeDistanceGridSlice(int yStart, int yEnd, 
                                              Bounds bounds, 
-                                             long att[], boolean interior[],
+                                             long att[], 
+                                             boolean interior[],
                                              AttributeGrid indexGrid, 
                                              double pntx[], double pnty[], double pntz[], 
                                              AttributeGrid interiorGrid, 
-                                             AttributeGrid distanceGrid,
                                              double minDistance,
-                                             double maxDistance
+                                             double maxDistance,
+                                             AttributeGrid distanceGrid
                                              ){
         
         int 
@@ -1465,12 +1546,6 @@ public class ClosestPointIndexer {
 
         long inAtt = distanceDataChannel.makeAtt(minDistance);
         long outAtt = distanceDataChannel.makeAtt(maxDistance);
-
-        //double maxInDistance2 = maxInDistance*maxInDistance;
-        //double maxOutDistance2 = maxOutDistance*maxOutDistance;
-
-        //long att[] = new long[nz];
-        //boolean interior[] = new boolean[nz];
 
         for(int y = yStart; y < yEnd; y++){
             double coordy = ymin + vs*y;

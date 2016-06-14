@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2011-2016
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -20,35 +20,51 @@ import abfab3d.util.Vec;
 import static abfab3d.util.Output.printf;
 
 /**
- * A description of a grid attribute
+ * A description of a grid attribute with multiple data channels
  *
  * @author Vladimir Bulatov
  */
 public class GridDataDesc {
 
     static final boolean DEBUG = false;
-    static int debugCount = 10000;
+    static int debugCount = 0;
 
     AttributeMaker m_attributeMaker; 
 
+    /**
+       constructor with no data channel
+       not rreally useful before adding some data  channels
+     */
     public GridDataDesc(){
     }
 
+    /**
+       constructor with single data channel
+     */
     public GridDataDesc(GridDataChannel channel){
         addChannel(channel);
     }
 
+    /**
+       constructor with two data channels
+     */
     public GridDataDesc(GridDataChannel channel1, GridDataChannel channel2){
         addChannel(channel1);
         addChannel(channel2);
     }
 
+    /**
+       constructor with three data channels
+     */
     public GridDataDesc(GridDataChannel channel1, GridDataChannel channel2, GridDataChannel channel3){
         addChannel(channel1);
         addChannel(channel2);
         addChannel(channel3);
     }
 
+    /**
+       constructor with four data channels
+     */
     public GridDataDesc(GridDataChannel channel1, GridDataChannel channel2, GridDataChannel channel3, GridDataChannel channel4){
         addChannel(channel1);
         addChannel(channel2);
@@ -58,10 +74,16 @@ public class GridDataDesc {
 
     Vector<GridDataChannel> m_channels = new Vector<GridDataChannel>();
 
+    /**
+       @return count of data channels 
+     */
     public int size(){
         return m_channels.size();
     }
-    
+
+    /**
+       return total bit count needed to store data in all channels 
+     */
     public int getBitCount(){
         int cnt = 0;
         for(int i = 0; i < m_channels.size(); i++){
@@ -72,10 +94,16 @@ public class GridDataDesc {
     }
 
 
+    /**
+       @return channel of given index
+     */
     public GridDataChannel getChannel(int index){
         return m_channels.get(index);
     }
 
+    /**
+       @return first found channel of given type 
+     */
     public GridDataChannel getChannelWithType(String channelType){
         
         for(int i = 0; i < m_channels.size(); i++){
@@ -85,20 +113,27 @@ public class GridDataDesc {
         }
         return null;
     }
-    
+
+    /**
+       
+     */
     public void addChannel(GridDataChannel channel){
 
         m_channels.add(channel);
 
     }
 
+
+    /**
+       @return converter which converts from multihgcannel double[] data into long attribute 
+     */
     public AttributeMaker getAttributeMaker(){
 
         if(m_attributeMaker == null) {
-            //m_attributeMaker = new AttributeMakerDensity(255);
+
             m_attributeMaker = new DefaultAttributeMaker(this);
+
         }
-        //m_attributeMaker = new DefaultAttributeMaker(this);
 
         return m_attributeMaker;
 
@@ -117,36 +152,8 @@ public class GridDataDesc {
 
 
     /**
-       convert multi component data into grid attribute 
+       @return channel which has type GridDataChannel.DENSITY 
      */
-    public static class DefaultAttributeMaker implements AttributeMaker {
-
-        GridDataChannel channels[];
-        
-        public DefaultAttributeMaker(GridDataDesc dataDesc){
-            channels = new GridDataChannel[dataDesc.size()];
-            for(int i = 0; i < channels.length; i++){
-                channels[i] = dataDesc.getChannel(i);
-            }
-        }
-        
-        public long makeAttribute(Vec vec){
-
-            long att = 0;
-            for(int i = 0; i < channels.length; i++){
-                long catt = channels[i].makeAtt(vec.v[i]);
-                if(DEBUG){
-                    if(debugCount-- >0) printf(".%8x", catt);
-                }
-                att |= catt;
-            }
-            if(DEBUG){
-                if(debugCount-- >0) printf(".->att:%8x\n", att);
-            }
-            return att;
-        }        
-    }
-
     public GridDataChannel getDensityChannel() {
         for(int i = 0; i < m_channels.size(); i++){
             GridDataChannel ac = m_channels.get(i);
@@ -156,12 +163,19 @@ public class GridDataDesc {
         return null;
     }
 
+
+    /**
+       
+     */
     public GridDataChannel getDefaultChannel() {
         return getChannel(0);
     }
 
+
     /**
-       creates default attrinute descrition with single 8 bits density channel) 
+
+       @return default attrinute descrition with single 8 bits density channel)  
+       
      */
     public static GridDataDesc getDefaultAttributeDesc(int bitCount){
         GridDataDesc at = new GridDataDesc();
@@ -198,4 +212,39 @@ public class GridDataDesc {
         return at;
 
     }
-}
+
+
+
+    /**
+       convert multi component data into grid attribute 
+     */
+    public static class DefaultAttributeMaker implements AttributeMaker {
+
+        GridDataChannel channels[];
+        
+        public DefaultAttributeMaker(GridDataDesc dataDesc){
+            channels = new GridDataChannel[dataDesc.size()];
+            for(int i = 0; i < channels.length; i++){
+                channels[i] = dataDesc.getChannel(i);
+            }
+        }
+        
+        public long makeAttribute(Vec vec){
+
+            long att = 0;
+            for(int i = 0; i < channels.length; i++){
+                long catt = channels[i].makeAtt(vec.v[i]);
+                if(DEBUG){
+                    if(debugCount-- >0) printf(".%8x", catt);
+                }
+                att |= catt;
+            }
+            if(DEBUG){
+                if(debugCount-- >0) printf(".->att:%8x\n", att);
+            }
+            return att;
+        }        
+
+    } //static class DefaultAttributeMaker
+
+} // class GridDataDesc 

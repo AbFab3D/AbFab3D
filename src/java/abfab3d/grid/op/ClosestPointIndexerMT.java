@@ -346,7 +346,7 @@ public class ClosestPointIndexerMT {
                     break;
 
                 makeDistanceGridSlice(slice.smin, slice.smax, gridBounds, att, interior,
-                                      indexGrid, coordx, coordy, coordz, interiorGrid, distanceGrid, maxInDistance, maxOutDistance);
+                                      indexGrid, coordx, coordy, coordz, interiorGrid, maxInDistance, maxOutDistance, distanceGrid);
                 //if(DEBUG)printf("thread: %d slice: %d %d done\n", id, slice.smin, slice.smax);
             }
             

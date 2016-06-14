@@ -152,8 +152,8 @@ public class TestClosestPointIndexerMT extends TestCase {
             AttributeGrid distGrid2 = makeDistanceGrid(bounds, -w, w, distanceBitCount, vs);
             ClosestPointIndexer.getPointsInWorldUnits(indexGrid1, pntx, pnty, pntz);
             
-            ClosestPointIndexer.makeDistanceGrid(indexGrid1,pntx, pnty, pntz, null, distGrid1, w, w);
-            ClosestPointIndexer.makeDistanceGrid(indexGrid2,pntx, pnty, pntz, null, distGrid2, w, w);
+            ClosestPointIndexer.makeDistanceGrid(indexGrid1,pntx, pnty, pntz, null, -w,w,distGrid1);
+            ClosestPointIndexer.makeDistanceGrid(indexGrid2,pntx, pnty, pntz, null, -w,w,distGrid2);
             long diffDist = GridUtil.compareGrids(distGrid1, distGrid2);
             printf("distance difference count: %d\n", diffDist);
         }
