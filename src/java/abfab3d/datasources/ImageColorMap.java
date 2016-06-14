@@ -12,10 +12,7 @@
 package abfab3d.datasources;
 
 
-import abfab3d.param.BooleanParameter;
-import abfab3d.param.ObjectParameter;
-import abfab3d.param.Parameter;
-import abfab3d.param.Vector3dParameter;
+import abfab3d.param.*;
 import abfab3d.util.ImageColor;
 import abfab3d.util.Vec;
 
@@ -94,7 +91,6 @@ public class ImageColorMap extends TransformableDataSource {
 
         mp_imageSource.setValue(imageSource);
         mp_size.setValue(new Vector3d(sizex, sizey, sizez));
-
     }
 
 
@@ -326,6 +322,14 @@ public class ImageColorMap extends TransformableDataSource {
         printf("ImageColorMap.prepareImage() time: %d ms\n", (time() - t0));
 
         return RESULT_OK;
+    }
+
+    /**
+     * Get a label for the OpenCL buffer, account for all params which change the buffer value
+     * @return
+     */
+    public String getBufferLabel() {
+        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparams);
     }
 
     /**

@@ -14,10 +14,7 @@ package abfab3d.datasources;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.param.Parameter;
-import abfab3d.param.IntParameter;
-import abfab3d.param.DoubleParameter;
-import abfab3d.param.Vector3dParameter;
+import abfab3d.param.*;
 
 
 import abfab3d.util.Vec;
@@ -110,6 +107,17 @@ public class Noise extends TransformableDataSource {  // Periodic noise in 3D
         mp_nz.setValue(nz);
 
         m_gradients = gradients;
+    }
+
+    /**
+     * Get a label for the OpenCL buffer, account for all params which change the buffer value
+     * @return
+     */
+    public String getBufferLabel() {
+        // TODO: Taking account m_gradients which is not part of params is klunky
+        String st = BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparam);
+        if (m_gradients != null) m_gradients.toString();
+        return st;
     }
 
     public int initialize(){

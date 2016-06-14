@@ -23,6 +23,7 @@ import java.io.IOException;
 
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
+import abfab3d.grid.GridDataChannel;
 import abfab3d.param.*;
 
 import abfab3d.util.ImageUtil;
@@ -105,7 +106,10 @@ public class ImageMap extends TransformableDataSource {
     private Parameter[] imageParams;
 
     // 
-    private ImageGray16 m_imageData;
+    private Grid2D m_imageGrid;
+    // converted to get physical value from grid attribute
+    protected GridDataChannel m_dataChannel;
+
     private String m_savedParamString = "";    
 
     /**
@@ -263,14 +267,22 @@ public class ImageMap extends TransformableDataSource {
      * @noRefGuide
      */
     public int getBitmapWidth(){
-        return m_imageData.getWidth();
+        return m_imageGrid.getWidth();
     }
 
     /**
      * @noRefGuide
      */
     public int getBitmapHeight(){
-        return m_imageData.getHeight();
+        return m_imageGrid.getHeight();
+    }
+
+    /**
+     * Get a label for the OpenCL buffer, account for all params which change the buffer value
+     * @return
+     */
+    public String getBufferLabel() {
+        return BaseParameterizable.getParamString(getClass().getSimpleName(), imageParams);
     }
 
     /**
@@ -278,15 +290,39 @@ public class ImageMap extends TransformableDataSource {
      */
     public void getBitmapDataUByte(byte data[]){
 
-        int nx = m_imageData.getWidth();
-        int ny = m_imageData.getHeight();
+        int nx = m_imageGrid.getWidth();
+        int ny = m_imageGrid.getHeight();
         for(int y = 0;  y < ny; y++){
             for(int x = 0;  x < nx; x++){
                 
-                double d = m_imageData.getDataD(x, y);
+                double d = m_dataChannel.getValue(m_imageGrid.getAttribute(x, y));
                 // d in (0,1) 
                 // normalization to byte 
                 data[x + y * nx] = (byte)((int)(d * 255.) & 0xFF); 
+            }
+        }
+    }
+
+    // store bitmap data as 16 bit shorts
+    /**
+     * @noRefGuide
+     */
+    public void getBitmapDataUShort(byte data[]){
+
+        int nx = m_imageGrid.getWidth();
+        int ny = m_imageGrid.getHeight();
+        int nx2 = nx*2;
+
+        for(int y = 0;  y < ny; y++){
+            for(int x = 0;  x < nx; x++){
+
+                double d = m_dataChannel.getValue(m_imageGrid.getAttribute(x, y));
+
+                // normalization to byte
+                int id = ((int)(d * 0xFFFF)) & 0xFFFF;
+                int ind = 2*x + y * nx2;
+                data[ind] = (byte)(id & 0xFF);
+                data[ind + 1] = (byte)((id >> 8) & 0xFF);
             }
         }
     }
@@ -325,14 +361,16 @@ public class ImageMap extends TransformableDataSource {
                 throw new IllegalArgumentException("undefined image");
             }
 
-            ParamCache.getInstance().put(vhash, m_imageData);
+            ParamCache.getInstance().put(vhash, m_imageGrid);
 
         } else {
-            m_imageData = (ImageGray16) co;
+            m_imageGrid = (Grid2D) co;
+            m_dataChannel = m_imageGrid.getAttributeDesc().getDefaultChannel();
+
         }
 
-        m_imageSizeX  = m_imageData.getWidth();
-        m_imageSizeY  = m_imageData.getHeight();
+        m_imageSizeX  = m_imageGrid.getWidth();
+        m_imageSizeY  = m_imageGrid.getHeight();
 
         return RESULT_OK;
         
@@ -352,54 +390,56 @@ public class ImageMap extends TransformableDataSource {
         if(imageSource == null)
             throw new RuntimeException("imageSource is null");
 
+        ImageGray16 imageData = null;
+
         if(imageSource instanceof String){
             
             try {
                 String fname = (String)imageSource;
                 if(DEBUG)printf("reading image from file: %s\n",fname);
-                m_imageData = new ImageGray16(ImageIO.read(new File(fname)));
+                imageData = new ImageGray16(ImageIO.read(new File(fname)));
             } catch(IOException e) {
                 // empty 1x1 image 
-                m_imageData = new ImageGray16();
+                imageData = new ImageGray16();
                 throw new RuntimeException(e);
             }
 
         } else if(imageSource instanceof Text2D){
             if (DEBUG) printf("Getting text2d image\n");
-            m_imageData = new ImageGray16(((Text2D)imageSource).getImage());
+            imageData = new ImageGray16(((Text2D)imageSource).getImage());
 
         } else if(imageSource instanceof BufferedImage){
 
-            m_imageData = new ImageGray16((BufferedImage)imageSource);                        
+            imageData = new ImageGray16((BufferedImage)imageSource);
 
         } else if(imageSource instanceof ImageWrapper){
 
-           m_imageData = new ImageGray16(((ImageWrapper)imageSource).getImage());
+           imageData = new ImageGray16(((ImageWrapper)imageSource).getImage());
         } else if (imageSource instanceof Grid2DShort) {
             long t1 = System.currentTimeMillis();
-            m_imageData = new ImageGray16(Grid2DShort.convertGridToImage((Grid2DShort)imageSource));
+            imageData = new ImageGray16(Grid2DShort.convertGridToImage((Grid2DShort)imageSource));
             if(DEBUG)printf("Convert to grid.  time: %d ms\n",(System.currentTimeMillis() - t1));
         }
 
-        if(DEBUG)printf("m_imageData: %s\n",m_imageData);
+        if(DEBUG)printf("m_imageData: %s\n",imageData);
 
-        if (m_imageData == null) {
+        if (imageData == null) {
             // Cast to String for now, not sure how to really handle this
             String file = imageSource.toString();
             printf("Converted to string: " + file);
             try {
-                m_imageData = new ImageGray16(ImageIO.read(new File(file)));
+                imageData = new ImageGray16(ImageIO.read(new File(file)));
 
             } catch(IOException e) {
                 // empty 1x1 image
-                m_imageData = new ImageGray16();
+                imageData = new ImageGray16();
                 throw new IllegalArgumentException("Unhandled imageSource: " + imageSource);
             }
         }
 
 
-        m_imageSizeX  = m_imageData.getWidth();
-        m_imageSizeY  = m_imageData.getHeight();
+        m_imageSizeX  = imageData.getWidth();
+        m_imageSizeY  = imageData.getHeight();
 
         double blurWidth = mp_blurWidth.getValue();
         if (blurWidth > 0.0) {
@@ -408,7 +448,7 @@ public class ImageMap extends TransformableDataSource {
 
             double blurSizePixels = blurWidth / pixelSize;
 
-            m_imageData.gaussianBlur(blurSizePixels);
+            imageData.gaussianBlur(blurSizePixels);
             printf("ImageMap image[%d x %d] gaussian blur: %7.2f pixels blur width: %10.5fmm time: %d ms\n", 
                    m_imageSizeX, m_imageSizeY, blurSizePixels, blurWidth/MM, (time() - t1));
 
@@ -434,11 +474,15 @@ public class ImageMap extends TransformableDataSource {
                 source = source.replace(";","_");
 
                 printf("final: %s\n",source);
-                m_imageData.write("/tmp/imagemap_" + source + ".png");
+                imageData.write("/tmp/imagemap_" + source + ".png");
             } catch(IOException ioe) {
                 ioe.printStackTrace();
             }
         }
+
+        double imagePixelSize = ((Vector3d)mp_size.getValue()).x/imageData.getWidth();
+        m_imageGrid = Grid2DShort.convertImageToGrid(imageData, true, imagePixelSize);
+        m_dataChannel = m_imageGrid.getAttributeDesc().getChannel(0);
 
         return RESULT_OK;
     }
@@ -502,10 +546,10 @@ public class ImageMap extends TransformableDataSource {
         }
         
         double 
-            v00 = m_imageData.getDataD(ix, iy),
-            v10 = m_imageData.getDataD(ix1, iy),
-            v01 = m_imageData.getDataD(ix, iy1),
-            v11 = m_imageData.getDataD(ix1, iy1);
+            v00 = m_dataChannel.getValue(m_imageGrid.getAttribute(ix, iy)),
+            v10 = m_dataChannel.getValue(m_imageGrid.getAttribute(ix1, iy)),
+            v01 = m_dataChannel.getValue(m_imageGrid.getAttribute(ix, iy1)),
+            v11 = m_dataChannel.getValue(m_imageGrid.getAttribute(ix1, iy1));
         double 
             dx1 = 1.- dx,
             dy1 = 1.- dy;
