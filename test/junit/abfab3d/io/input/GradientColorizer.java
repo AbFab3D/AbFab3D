@@ -26,7 +26,7 @@ import abfab3d.util.MathUtil;
  */
 public class GradientColorizer implements DataSource {
 
-    Vector3d grad = new Vector3d();
+    Vector3d grad = new Vector3d(1,0,0);
 
     static final double COLOR0[] = new double[]{1,0,0};
     static final double COLOR1[] = new double[]{0,0,1};
@@ -56,7 +56,7 @@ public class GradientColorizer implements DataSource {
 
         double dot = pnt.v[0]*grad.x + pnt.v[1]*grad.y + pnt.v[2]*grad.z;
         
-        double t = dot - Math.floor(dot);
+        double t = 2*Math.abs((dot - Math.floor(dot))-0.5);
         
         MathUtil.lerp(color0, color1, t, dataValue.v);
         return RESULT_OK;

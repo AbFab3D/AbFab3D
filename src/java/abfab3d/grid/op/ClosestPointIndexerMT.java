@@ -27,6 +27,7 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.util.Bounds;
 import abfab3d.util.SliceManager;
 import abfab3d.util.Slice;
+import abfab3d.util.DataSource;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
@@ -36,6 +37,7 @@ import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepY_bounded;
 import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepZ_bounded;
 
 import static abfab3d.grid.op.ClosestPointIndexer.makeDistanceGridSlice;
+import static abfab3d.grid.op.ClosestPointIndexer.makeAttributedDistanceGridSlice;
 
 /**
    MT version of closest point indexer
@@ -53,7 +55,7 @@ public class ClosestPointIndexerMT {
 
     static final boolean DEBUG_TIMING = false;
     static final boolean DEBUG = false;
-    static final double DEF_LAYER_THICKNESS = 1.8;
+    //static final double DEF_LAYER_THICKNESS = 1.8;
 
     
     /**
@@ -291,6 +293,40 @@ public class ClosestPointIndexerMT {
     }
     
 
+    public static void makeAttributedDistanceGrid_MT(AttributeGrid indexGrid, 
+                                                     double [][] pnts, 
+                                                     AttributeGrid interiorGrid, 
+                                                     double minDistance, 
+                                                     double maxDistance, 
+                                                     DataSource attColorizer,
+                                                     int threadCount, 
+                                                     AttributeGrid outGrid){
+
+        if(DEBUG) printf("makeAttributedDistanceGrid_MT() threadCount: %d\n", threadCount);
+        int sliceThickness = 1;
+        SliceManager slicer = new SliceManager(outGrid.getHeight(),sliceThickness);
+        
+        if(DEBUG) printf("threads: %d slices: %d \n", threadCount, slicer.getSliceCount());
+        
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        
+        for(int ind = 0; ind < threadCount; ind++){
+            SliceProcessorAttributedDistance sliceProcessor = new SliceProcessorAttributedDistance(ind, slicer,indexGrid, pnts, interiorGrid, minDistance,maxDistance, attColorizer, outGrid);
+            executor.submit(sliceProcessor);
+        }
+        executor.shutdown();
+        
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        if(DEBUG) printf("makeAttributedDistanceGrid_MT() done\n");
+        
+    }
+
+
+
     /**
        class to calculate distance values on the grid
      */
@@ -354,4 +390,70 @@ public class ClosestPointIndexerMT {
         }        
     } // static class SliceProcessorDistance 
 
-}
+
+    /**
+       class to calculate attributed distance slice values on the grid
+     */
+    static class SliceProcessorAttributedDistance implements Runnable {
+
+        SliceManager slicer;
+        int id;
+        double pnts[][];
+        AttributeGrid indexGrid;
+        AttributeGrid interiorGrid;
+        AttributeGrid outGrid; 
+        // work arrays
+        long att[];
+        boolean interior[];
+        double minDistance, maxDistance;
+        Bounds gridBounds;
+        DataSource colorizer;
+
+        SliceProcessorAttributedDistance(int id, 
+                                         SliceManager slicer,                                          
+                                         AttributeGrid indexGrid, 
+                                         double pnts[][], 
+                                         AttributeGrid interiorGrid, 
+                                         double minDistance,
+                                         double maxDistance, 
+                                         DataSource colorizer,
+                                         AttributeGrid outGrid){
+            
+            this.id = id;
+            this.slicer = slicer;
+            this.pnts = pnts;
+            this.indexGrid = indexGrid;
+            this.interiorGrid = interiorGrid;
+            this.minDistance = minDistance;
+            this.maxDistance = maxDistance;
+            this.colorizer = colorizer;
+            this.outGrid = outGrid;
+            this.gridBounds = indexGrid.getGridBounds();
+
+            int nz = indexGrid.getDepth();
+                        
+            // work arrays
+            this.att = new long[nz];
+            this.interior = new boolean[nz];
+            
+        }
+
+        public void run(){
+
+            if(DEBUG)printf("thread: %d run\n", id);
+            while(true){
+                
+                Slice slice = slicer.getNextSlice();
+                //if(DEBUG)printf("thread: %d slice: %s\n", id, slice);
+                if(slice == null)
+                    break;
+                try {
+                    makeAttributedDistanceGridSlice(slice.smin, slice.smax, gridBounds,  att, interior,indexGrid, pnts,interiorGrid, minDistance,maxDistance,colorizer,outGrid);
+                } catch(Exception e){
+                    e.printStackTrace();
+                }
+            }            
+        }        
+    } // static class SliceProcessorAttributedDistance 
+
+} // class ClosestPointIndexer_MT

@@ -41,7 +41,8 @@ public class TexturedTorus implements  AttributedTriangleProducer{
     }
     
     public int getDataDimension() {
-        return 5;
+        // may be 5 or 6 
+        return 6; 
     }
 
     
@@ -82,7 +83,7 @@ public class TexturedTorus implements  AttributedTriangleProducer{
         double r = Rout + Rin*cos(u);
         double x = r*cos(v);
         double y = r*sin(v);
-
+        // assign texture values in (0,1) 
         double tx = (x + (Rin+Rout))/(2*((Rin+Rout)));
         double ty = (y + (Rin+Rout))/(2*((Rin+Rout)));
         double tz = 0; // single texture case 

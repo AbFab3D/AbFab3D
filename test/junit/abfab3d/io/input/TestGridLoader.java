@@ -372,10 +372,13 @@ public class TestGridLoader extends TestCase {
 
         printf("devTestRasterizeTexturedTriangles()\n");        
         GridLoader loader = new GridLoader();
-        loader.setMaxInDistance(1*MM);
-        loader.setMaxOutDistance(1*MM);   
-        
-        AttributeGrid grid = loader.rasterizeAttributedTriangles(new TexturedTorus(10*MM, 5*MM, 4, 4), new GradientColorizer(new Vector3d(10*MM,0,0)));
+        loader.setThreadCount(8);
+        loader.setMaxInDistance(10*MM);
+        loader.setMaxOutDistance(10*MM);           
+        loader.setMargins(5*MM);   
+        double Rout = 40*MM;
+        double Rin = 30*MM;
+        AttributeGrid grid = loader.rasterizeAttributedTriangles(new TexturedTorus(Rout, Rin,40,40),new GradientColorizer(new Vector3d(0.05,0,0)));
         GridSaver writer = new GridSaver();
         String outPath = "/tmp/tex/outGrid.svx";
         printf("writing: %s\n", outPath);
@@ -412,8 +415,8 @@ public class TestGridLoader extends TestCase {
             //new TestGridLoader().devTestSTL_distance();
             //new TestGridLoader().testRasterizerDistancePrecision();
             //new TestGridLoader().testRasterizerDistance2Precision();
-            //new TestGridLoader().devTestRasterizeTexturedTriangles();
-            new TestGridLoader().devTestGradientColorizer();
+            new TestGridLoader().devTestRasterizeTexturedTriangles();
+            //new TestGridLoader().devTestGradientColorizer();
         }
     }
 }

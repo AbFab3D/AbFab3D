@@ -457,8 +457,9 @@ public class GridLoader {
         rasterizer.setShellHalfThickness(m_shellHalfThickness);
         rasterizer.setSurfaceVoxelSize(m_surfaceVoxelSize);
         rasterizer.setThreadCount(m_threadCount);
+        rasterizer.setDistanceRange(-m_maxInDistance, m_maxOutDistance);
        
-        rasterizer.getDistances(attTriProducer, attributeColorizer, grid);
+        rasterizer.getAttributedDistances(attTriProducer, attributeColorizer, grid);
                 
         return grid;
         

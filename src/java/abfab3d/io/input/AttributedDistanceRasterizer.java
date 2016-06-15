@@ -35,6 +35,7 @@ import abfab3d.geom.AttributedTriangleMeshSurfaceBuilder;
 import abfab3d.grid.op.PointSetShellBuilder;
 
 
+import static java.lang.Math.abs;
 import static abfab3d.util.Units.MM;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
@@ -66,25 +67,27 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
     // this is used purely for precision of distance calculations on distance grid    
     //long m_subvoxelResolution=100;
     // size of grid 
-    int gridX,gridY,gridZ;
+    protected int gridX,gridY,gridZ;
 
     // z-buffer rasterizer to get mesh interior 
-    MeshRasterizer m_rasterizer;     
+    protected MeshRasterizer m_rasterizer;     
     // triangles rasterizer 
-    AttributedTriangleMeshSurfaceBuilder m_surfaceBuilder;
+    protected AttributedTriangleMeshSurfaceBuilder m_surfaceBuilder;
     // builder of shell around rasterized points 
-    PointSetShellBuilder m_shellBuilder;
+    protected PointSetShellBuilder m_shellBuilder;
 
-    Bounds m_bounds;
-    AttributeGrid m_indexGrid;
-    // max value to calculate exterior distances   
-    double m_maxInDistance = 1.*MM;
-    // max value to calculate interior distance 
-    double m_maxOutDistance = 1*MM;
+    protected Bounds m_bounds;
+    protected AttributeGrid m_indexGrid;
+
     // flag to use distance calculation with limited range. Setting it true increases perpormance especiualy if needed 
-    // distanace range is small
-    boolean m_useDistanceRange = true;
-    double m_maxDistanceVoxels; // max distance to calculate in case of using distance range 
+    // distance range is small
+    protected boolean m_useDistanceRange = true;
+
+    // range to calculate distances 
+    protected double m_minDistance = -1.*MM;
+    protected double m_maxDistance = 1.*MM;
+
+    protected double m_maxDistanceVoxels; // max distance to calculate in case of using distance range 
     protected int m_threadCount = 1;
 
     // size of surface voxels relative to size fo grid voxles 
@@ -92,10 +95,10 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
     // total dimnenson of data (3 coord + attributes)
     protected int m_dataDimension = 3;
 
-    int m_triCount = 0;
+    protected int m_triCount = 0;
 
     // half thickness of initial shell around the mesh (in voxels )
-    double m_shellHalfThickness = 1.0;
+    protected double m_shellHalfThickness = 1.0;
 
     public AttributedDistanceRasterizer(Bounds bounds, int gridX, int gridY, int gridZ){
         
@@ -119,18 +122,13 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
     }
 
     /**
-       set maximal interior distance to calculate 
+       set range to calculate distances
      */
-    public void setMaxInDistance(double value){
-        m_maxInDistance = value;
-    }
+    public void setDistanceRange(double minDistance, double maxDistance){
 
-    /**
-       set maximal exterior distance to calculate 
-     */
-    public void setMaxOutDistance(double value){
-
-        m_maxOutDistance = value;
+        m_minDistance = minDistance;
+        m_maxDistance = maxDistance;
+        
 
     }
 
@@ -162,6 +160,8 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
        sets dimension of data (3 coord + attributes) 
      */
     public void setDataDimension(int dataDimension){
+
+        if(DEBUG) printf("AttributedDIstanceRasterizer.setDataDimensoion(%d)\n", dataDimension);
         m_dataDimension = dataDimension;
     }
 
@@ -183,7 +183,7 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
         
         m_shellBuilder.setShellHalfThickness(m_shellHalfThickness);
 
-        if(m_useDistanceRange) m_maxDistanceVoxels = Math.max(m_maxInDistance, m_maxOutDistance)/m_bounds.getVoxelSize();
+        if(m_useDistanceRange) m_maxDistanceVoxels = Math.max(abs(m_maxDistance), abs(m_minDistance))/m_bounds.getVoxelSize();
         else m_maxDistanceVoxels = 0.;
 
         return DataSource.RESULT_OK;
@@ -220,11 +220,12 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
     /**
        Calculates distances on distanceGrid from given mesh 
        @param triProducer - the mesh 
-       @param distanceGrid grid to contain distances to the mesh 
+       @param attributeColorizer colorizer which converts point attributes into grid data channel
+       @param outGrid grid to contain distances to the mesh 
      */
-    public void getDistances(AttributedTriangleProducer triProducer, DataSource attributeColorizer, AttributeGrid distanceGrid){
+    public void getAttributedDistances(AttributedTriangleProducer triProducer, DataSource attributeColorizer, AttributeGrid outGrid){
         
-        if(DEBUG)printf("DistanceRasterizer2.getDistances(grid)\n");
+        if(DEBUG)printf("AttributedDistanceRasterizer.getAttributedDistances(grid) threadCount: %d\n", m_threadCount);
         long t0 = time();
 
         init();
@@ -275,14 +276,18 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
         ClosestPointIndexer.getPointsInWorldUnits(m_indexGrid, pnt[0], pnt[1], pnt[2]);
         if(DEBUG_TIMING)printf("ClosestPointIndexer.getPointsInWorldUnits(): %d ms\n", (time() - t0));
         
-        
         t0 = time();
         if(m_threadCount <= 1) {
-            ClosestPointIndexer.makeDistanceGrid(m_indexGrid, pnt[0], pnt[1], pnt[2], interiorGrid, m_maxInDistance, m_maxOutDistance, distanceGrid);
-            if(DEBUG_TIMING)printf("ClosestPointIndexer.makeDistanceGrid()ime: %d ms\n", (time() - t0));
+
+            ClosestPointIndexer.makeAttributedDistanceGrid(m_indexGrid, pnt, interiorGrid, m_minDistance, m_maxDistance, attributeColorizer,outGrid);
+            //ClosestPointIndexer.makeDistanceGrid(m_indexGrid, pnt[0], pnt[1], pnt[2], interiorGrid, m_maxInDistance, m_maxOutDistance, distanceGrid);
+
+            if(DEBUG_TIMING)printf("ClosestPointIndexer.makeAttributedDistanceGrid() time: %d ms\n", (time() - t0));
         } else {
-            ClosestPointIndexerMT.makeDistanceGrid_MT(m_indexGrid, pnt[0], pnt[1], pnt[2], interiorGrid, distanceGrid, m_maxInDistance, m_maxOutDistance, m_threadCount);
-            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.makeDistanceGrid_MT()ime: %d ms\n", (time() - t0));
+
+            printf("calling ClosestPointIndexerMT.makeAttributedDistanceGrid_MT()\n");            
+            ClosestPointIndexerMT.makeAttributedDistanceGrid_MT(m_indexGrid, pnt, interiorGrid, m_minDistance, m_maxDistance, attributeColorizer,m_threadCount, outGrid);
+            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.makeAttributedDistanceGrid_MT() time: %d ms\n", (time() - t0));
         }
        
     } // getDistances()
