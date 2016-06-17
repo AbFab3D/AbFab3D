@@ -212,7 +212,7 @@ public class TestTextureRenderer extends TestCase {
         double lines[][] = new double[3][3];
         double edist = 1;
 
-        TextureRenderer.extendTriangle(tri, etri, edist, lines);
+        TextureRenderer.extendTriangle(tri, edist, lines, etri);
 
         printf(" tri: [(%7.4f,%7.4f) (%7.4f,%7.4f) (%7.4f,%7.4f)\n",tri[0][0],tri[0][1], tri[1][0],tri[1][1], tri[2][0],tri[2][1]);
         printf("etri: [(%7.4f,%7.4f) (%7.4f,%7.4f) (%7.4f,%7.4f)\n",etri[0][0],etri[0][1], etri[1][0],etri[1][1], etri[2][0],etri[2][1]);

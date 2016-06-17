@@ -23,6 +23,7 @@ import abfab3d.util.Bounds;
 import static java.lang.Math.sqrt;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
+import static abfab3d.util.MathUtil.extendTriangle;
 
 
 /**
@@ -113,11 +114,11 @@ public class TextureRenderer {
        @param extTexTri[3][2] work array for extended triangles 
        @param lines[3][3] work array for triangle sides equations 
      */
-    public void renderTriangleExtended(double tri[][], double texTri[][], double extendWidth, double extTexTri[][], double lines[][]){
+    public void renderTriangleExtended(double tri[][], double texTri[][], double extWidth, double extTexTri[][], double lines[][]){
         
         m_triInterpolator.init(texTri, tri);
 
-        extendTriangle(texTri, extTexTri, extendWidth, lines);
+        extendTriangle(texTri, extWidth, lines, extTexTri);
         double tex[][] = extTexTri;        
         m_triRenderer.fillTriangle(m_pixelRenderer, 
                                    tex[0][0],tex[0][1],
@@ -125,88 +126,7 @@ public class TextureRenderer {
                                    tex[2][0],tex[2][1]);       
     }
 
-        
-    /**
-     *
-     *  extends 2D texured triangle int all directipons by equal amount 
-     *  
-     *  
-     *           /|
-     *          / |                             
-     *         /  |
-     *        /   |
-     *       -----
-     *            /|
-     *           / |
-     *          //||
-     *         // ||                            
-     *        //  ||
-     *       //   ||
-     *      /----- |
-     *      -------
-     * @param tri[3][2] original triangle 
-     * @param etri[3][2] extended triangle 
-     * @param distance - width of extension 
-     * @param lines[3][3] - working array to store equations of lines of triangle 
-     */
-    static void extendTriangle(double [][] tri, double [][] etri, double distance, double lines[][]){
-        
-        for(int k = 0; k < 3; k++){
-            getLineFromPoints2D(tri[k], tri[(k+1)%3], lines[k]);
-            // shift the line 
-            lines[k][2] += distance;
-        }
-        for(int k = 0; k < 3; k++){
-            getPointFromLines2D(lines[(k+3-1)%3], lines[k], etri[k]);
-        }        
-    }
-
-    /**
-       calculates equation of normalized 2D line via 2D points p, q
-       line equation : line[0]*x + line[1]*y + line[2] = 0;
-       coefficents satisfy: line[0]^2 + line[0]^2 = 1; 
-
-       (line[0],line[1], line[2]) 
-       line with equation  (line[0],line[1], line[2] + D) 
-       is shifted by distance D to the right from original line 
-       
-       @param p - first point 
-       @param q - second point 
-       @param line - line equation 
-       
-     */ 
-    static void getLineFromPoints2D(double p[],double q[], double line[]){
-        
-        line[0] = p[1] - q[1]; 
-        line[1] = -(p[0] - q[0]); 
-        // length of normal 
-        double norm = sqrt(line[0]*line[0] + line[1]*line[1]);
-        // make unit normal 
-        line[0] /= norm;
-        line[1] /= norm;
-        line[2] = -(p[0] * line[0] + p[1] * line[1]);
-        
-    }
-
-    /**
-       calculates intersection of two 2D lines and stores result in p[2] 
-       
-       @param s[3] - first line 
-       @param t[3] - second line equation
-       @param p[2] - pont coordinates 
-     */
-    static void getPointFromLines2D(double s[], double t[], double p[]){
-        // use projective approach 
-        // line 
-        double x = s[1]*t[2] - s[2]*t[1];
-        double y = s[2]*t[0] - s[0]*t[2];
-        double z = s[0]*t[1] - s[1]*t[0];
-        p[0] = x/z;
-        p[1] = y/z;
-        
-        
-    }
-
+   
     /**
        renders individual pixels of texture 
      */
@@ -276,7 +196,7 @@ public class TextureRenderer {
             m_textureGrid.setAttribute(u, 0, v, makeAtt(icolor));   
         }
 
-        // TODO - shall go to output data channel ? 
+        // TODO - shall thid be done by output data channel ? 
         long makeAtt(double c[]){   
             
             return (((int)(c[0]*255))& 0xFF) | ((((int)(c[1]*255))&0xFF)<<8) | ((((int)(c[2]*255))&0xFF)<<16);

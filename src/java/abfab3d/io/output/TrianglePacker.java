@@ -59,7 +59,7 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
 
     int m_triCount = 0;
 
-    // gap between triangles 
+    // gap between triangles in pixel units
     double m_gap = 1.; 
     // rectangles packer 
     RectPacking m_packer; 
@@ -72,6 +72,10 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
         m_pixelSize = pixelSize;
     }
 
+    /**
+       set extra gap around triangles 
+       @param gap size of safety band in pixel units 
+     */
     public void setGap(double gap){
 
         m_gap = gap;
@@ -198,7 +202,7 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
         double v2y = triHeight; // y- coordinate of 2D triangle 2
         double v2x = p1.dot(p2)/len01;
         
-        m_ctri.add(new CanonicalTri(v1x/m_pixelSize, v2x/m_pixelSize, v2y/m_pixelSize));
+        m_ctri.add(new CanonicalTri(v1x/m_pixelSize, v2x/m_pixelSize, v2y/m_pixelSize, m_gap));
         
         //
         // all triangles are oriented canonically: v0,v1 is the longest side 
@@ -227,8 +231,12 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
         for(int i = 0; i < rc; i++){
             getCanonicalTri(i,ct);
             // add triangle with a safety gap around it 
-            m_packer.addRect(ct.v1x+2*m_gap, ct.v2y + 2*m_gap);
-            if(false)printf("tri: %d [%7.2f; (%7.2f, %7.2f)]\n", i, ct.v1x, ct.v2x, ct.v2y);
+            //TODO - make proper margin around triangle 
+            
+            //m_packer.addRect(ct.v1x+2*m_gap, ct.v2y + 2*m_gap);
+            m_packer.addRect(ct.getWidth(), ct.getHeight());
+            
+            if(false)printf("tri: %d %s\n", i, ct);
         }
         m_packer.pack();        
         if(DEBUG)printf("RectPacking done\n");
@@ -242,17 +250,13 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
             getCanonicalTri(k,ct);
             m_packer.getRectOrigin(k, origin);
 
-            origin.x += m_gap;
-            origin.y += m_gap;
+            //TODO - make proper margin around triangle 
+            //origin.x += m_gap;
+            //origin.y += m_gap;
 
             int texindex = k*6;
 
-            m_texCoord[texindex]   = origin.x;
-            m_texCoord[texindex+1] = origin.y;
-            m_texCoord[texindex+2] = ct.v1x + origin.x;
-            m_texCoord[texindex+3] = origin.y;
-            m_texCoord[texindex+4] = ct.v2x + origin.x;
-            m_texCoord[texindex+5] = ct.v2y + origin.y;
+            ct.getTexCoord(origin.x, origin.y,texindex, m_texCoord);
 
         }   
 
@@ -279,7 +283,7 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
        @param texGrid 2D grid (3D grid with single y-slice) to accept the texture 
        @param extendWidth width of extension of rendered triangles
      */
-    public void renderTexturedTriangles(AttributeGrid dataGrid, LongConverter colorMaker, AttributeGrid texGrid, double extendWidth){
+    public void renderTexturedTriangles(AttributeGrid dataGrid, LongConverter colorMaker, AttributeGrid texGrid, double extWidth){
         
         TextureRenderer tr = new TextureRenderer(dataGrid, colorMaker, texGrid);
 
@@ -307,10 +311,10 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
             tex[2][0] = m_texCoord[texindex+4];
             tex[2][1] = m_texCoord[texindex+5];
 
-            if(extendWidth == 0.0)
+            if(extWidth == 0.0)
                 tr.renderTriangle(tri, tex);
             else 
-                tr.renderTriangleExtended(tri, tex, extendWidth, extTri, triLines);
+                tr.renderTriangleExtended(tri, tex, extWidth, extTri, triLines);
         }
     }
     
@@ -356,42 +360,6 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
         dest[1] = src.y;
         dest[2] = src.z;
 
-    }
-
-    //   vertex v0 - at origin 
-    //   vertex v1 - at the x axis 
-    //   vertex v2 - above x axis 
-    //
-    //
-    //           2 
-    //           *   
-    //          / \  
-    //         /   \ 
-    //      0 *-----* 1
-    //
-    // side 01 is the longest side 
-    // it means, that projection of v2 is inside of that side (0 < v2x < v1x) 
-    static class CanonicalTri{
-        // coordinates of 2D triangle in canonocal orientation 
-        double v1x;
-        double v2x;
-        double v2y;        
-
-        CanonicalTri(){
-        }
-        CanonicalTri(double v1x, double v2x, double v2y){
-
-            this.v1x = v1x;
-            this.v2x = v2x;
-            this.v2y = v2y;
-
-        }        
-        void set(CanonicalTri tri){
-
-            this.v1x = tri.v1x;
-            this.v2x = tri.v2x;
-            this.v2y = tri.v2y;            
-        }
     }
 
 } //  class TrianglePacker

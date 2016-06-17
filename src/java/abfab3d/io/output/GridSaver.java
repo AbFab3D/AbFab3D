@@ -108,8 +108,9 @@ public class GridSaver {
     int m_decimalDigits = -1; // numer of decimal digits to use for ascii output 
     double m_texPixelSize = 0.5;
     // extension of textured triangles 
-    double m_texTriExt = 1.5; 
-    double m_texTriGap = 3.;
+    double m_texTriExt = 1; 
+    // gap between packed triangles
+    double m_texTriGap = 1;
 
     public static final String EXT_X3DB = ".x3db";// binary
     public static final String EXT_X3DV = ".x3dv";  // classic
@@ -336,11 +337,17 @@ public class GridSaver {
     }
 
 
+    /**
+       extracts mesh from grid and writes into 3d file with texture
+     */
     public void writeAsTexturedMesh(AttributeGrid grid, LongConverter colorMaker, String outFile) throws IOException{
         WingedEdgeTriangleMesh mesh = getMesh(grid);
         writeTexturedMesh(mesh, grid, colorMaker, outFile);
     }
 
+    /**
+       writes mesh into 3d file with texture
+     */
     public void writeTexturedMesh(WingedEdgeTriangleMesh mesh, AttributeGrid grid, LongConverter colorMaker, String outFile) throws IOException{
 
         printf("writeAsMeshWithTexture()\n");
@@ -383,6 +390,7 @@ public class GridSaver {
         
         tp.renderTexturedTriangles(grid, colorMaker, texGrid, m_texTriExt);
 
+        // write single slice 
         SlicesWriter sw = new SlicesWriter();
         sw.writeSlices(texGrid, texFilePath, 0, 0, 1, SlicesWriter.AXIS_Y, 24, new DefaultLongConverter());
 
@@ -401,7 +409,8 @@ public class GridSaver {
 
 
     /**
-       writes textured triangles into a X3D file
+       writes textured triangles into a X3D file.
+       texture file is already saved 
      */
     public void writeTexturedX3D(double coord[], int coordIndex[], double texCoord[], int texCoordIndex[], String fileName, String texFileName) throws IOException {
         
