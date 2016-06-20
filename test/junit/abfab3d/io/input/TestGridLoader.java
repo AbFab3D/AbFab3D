@@ -379,12 +379,16 @@ public class TestGridLoader extends TestCase {
         loader.setPreferredVoxelSize(0.5*MM);   
         double Rout = 30*MM;
         double Rin = 15*MM;
-        AttributeGrid grid = loader.rasterizeAttributedTriangles(new TexturedTorus(Rout, Rin,100,100),new GradientColorizer(new Vector3d(0.05,0,0)));
+        AttributeGrid grid = loader.rasterizeAttributedTriangles(new TexturedTorus(Rout, Rin,3,40),new GradientColorizer(new Vector3d(0.05,0,0)));
         GridSaver writer = new GridSaver();
         writer.setWriteTexturedMesh(true);
         writer.setTexPixelSize(1);
+        writer.setMeshSmoothingWidth(1);
+        writer.setTexTriExt(1.5);
+        writer.setTexTriGap(1.5);
         //String outPath = "/tmp/tex/outGrid.svx";
-        String outPath = "/tmp/tex/texturedTorus3.x3d";
+        //String outPath = "/tmp/tex/texturedTorus3.x3d";
+        String outPath = "/tmp/tex/texturedTorus7.x3d";
         printf("writing: %s\n", outPath);
         writer.write(grid, outPath);
         printf("done\n");        

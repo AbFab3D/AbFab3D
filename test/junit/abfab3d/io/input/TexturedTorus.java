@@ -62,8 +62,8 @@ public class TexturedTorus implements  AttributedTriangleProducer{
             double u1 = (i+1)*2*Math.PI/Nin;
             
             for(int j = 0; j < Nout; j++){
-                double v0 = j*2*Math.PI/Nin;
-                double v1 = (j+1)*2*Math.PI/Nin;
+                double v0 = j*2*Math.PI/Nout;
+                double v1 = (j+1)*2*Math.PI/Nout;
                 getPoint(u0,v0,p00);
                 getPoint(u0,v1,p01);
                 getPoint(u1,v0,p10);

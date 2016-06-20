@@ -44,7 +44,7 @@ public class CanonicalTri{
     private double v1x;
     private double v2x;
     private double v2y;        
-    private double ext; // extension of triangle size
+    //private double ext; // extension of triangle size
     private double width;
     private double height;
 
@@ -61,9 +61,11 @@ public class CanonicalTri{
         this.v1x = v1x;
         this.v2x = v2x;
         this.v2y = v2y;
-        this.ext = ext;
+        //this.ext = ext;
         this.width = v1x;
         this.height = v2y;
+        this.x0 = 0;
+        this.y0 = 0;
 
         if(ext <= 0.)
             return;
