@@ -21,9 +21,12 @@ import java.io.FileInputStream;
 
 import javax.vecmath.Vector3f;
 import javax.vecmath.Vector3d;
+
+import abfab3d.util.AttributedTriangleCollector;
 import abfab3d.util.TriangleCollector;
 
 import abfab3d.grid.Grid;
+import abfab3d.util.Vec;
 
 import static java.lang.System.currentTimeMillis;
 import static abfab3d.util.Output.printf; 
@@ -34,7 +37,7 @@ import static abfab3d.util.Output.printf;
 
    @author Vladimir Bulatov
  */
-public class BoundsCalculator implements TriangleCollector {
+public class BoundsCalculator implements TriangleCollector, AttributedTriangleCollector {
     
     
     double
@@ -48,10 +51,18 @@ public class BoundsCalculator implements TriangleCollector {
         checkVertex(v1);
         checkVertex(v2);
 
-        return true; // to continue 
-
+        return true; // to continue
     }
-    
+
+    @Override
+    public boolean addAttTri(Vec v0, Vec v1, Vec v2) {
+        checkVertex(v0);
+        checkVertex(v1);
+        checkVertex(v2);
+
+        return true; // to continue
+    }
+
     public void checkVertex(Vector3d v){
 
         double x = v.x;
@@ -67,6 +78,23 @@ public class BoundsCalculator implements TriangleCollector {
         if(z < zmin) zmin = z;
         if(z > zmax) zmax = z;
         
+    }
+
+    public void checkVertex(Vec v){
+
+        double x = v.v[0];
+        double y = v.v[1];
+        double z = v.v[2];
+
+        if(x < xmin) xmin = x;
+        if(x > xmax) xmax = x;
+
+        if(y < ymin) ymin = y;
+        if(y > ymax) ymax = y;
+
+        if(z < zmin) zmin = z;
+        if(z > zmax) zmax = z;
+
     }
 
     public void getBounds(double bounds[]){

@@ -481,7 +481,7 @@ public class ImageMap extends TransformableDataSource {
         }
 
         double imagePixelSize = ((Vector3d)mp_size.getValue()).x/imageData.getWidth();
-        m_imageGrid = Grid2DShort.convertImageToGrid(imageData, true, imagePixelSize);
+        m_imageGrid = Grid2DShort.convertImageToGrid(imageData, false, imagePixelSize);
         m_dataChannel = m_imageGrid.getAttributeDesc().getChannel(0);
 
         return RESULT_OK;

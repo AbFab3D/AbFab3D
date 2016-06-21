@@ -230,12 +230,13 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
 
         init();
         triProducer.getAttTriangles(this);
-        if(DEBUG_TIMING)printf("triProducer.getTriangles(this) time: %d ms\n", (time() - t0));
+        if(DEBUG_TIMING)printf("AttributedDistanceRasterizer..getTriangles(this) time: %d ms\n", (time() - t0));
 
         int pcount = m_surfaceBuilder.getPointCount();
         if(DEBUG)printf("pcount: %d\n", pcount);
 
-        double pnt[][] = new double[m_dataDimension][pcount];
+//        double pnt[][] = new double[m_dataDimension][pcount];
+        double pnt[][] = new double[Math.max(m_dataDimension,6)][pcount];
         t0 = time();
 
         m_surfaceBuilder.getPoints(pnt);

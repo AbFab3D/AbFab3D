@@ -41,7 +41,7 @@ public class TestCLResourceManager extends TestCase {
         TestResource tr2 = new TestResource("tr2",1);
         TestResource tr3 = new TestResource("tr3",1);
 
-        CLResourceManager rm = CLResourceManager.getInstance(UUID.randomUUID().timestamp(),1);
+        CLResourceManager rm = CLResourceManager.getInstance(UUID.randomUUID().hashCode(),1);
 
         rm.add(tr1,tr1.getSize());
         rm.add(tr2,tr2.getSize());
@@ -53,12 +53,13 @@ public class TestCLResourceManager extends TestCase {
     }
 
     public void testAging() {
-        CLResourceManager rm = CLResourceManager.getInstance(UUID.randomUUID().timestamp(),1, 10);
+        CLResourceManager rm = CLResourceManager.getInstance(UUID.randomUUID().hashCode(),1, 10);
 
         TestResource tr1 = new TestResource("tr1",1);
         rm.add(tr1,tr1.getSize());
 
         try { Thread.sleep(500); } catch(Exception e) {}
+        rm.cleanOldEntries();
 
         assertTrue("tr1 not gone", !rm.isResident(tr1));
     }
@@ -68,7 +69,7 @@ public class TestCLResourceManager extends TestCase {
         TestResource tr2 = new TestResource("tr2",1);
         TestResource tr3 = new TestResource("tr3",1);
 
-        CLResourceManager rm = CLResourceManager.getInstance(UUID.randomUUID().timestamp(),3);
+        CLResourceManager rm = CLResourceManager.getInstance(UUID.randomUUID().hashCode(),3);
 
         rm.add(tr1,tr1.getSize());
         rm.add(tr2,tr2.getSize());
@@ -80,6 +81,26 @@ public class TestCLResourceManager extends TestCase {
         rm.add(tr3,tr3.getSize());
 
         assertTrue("tr3", rm.isResident(tr3));
+    }
+
+    public void testRemoveOldest() {
+        TestResource tr1 = new TestResource("tr1",1);
+        TestResource tr2 = new TestResource("tr2",1);
+        TestResource tr3 = new TestResource("tr3",1);
+
+        CLResourceManager rm = CLResourceManager.getInstance(UUID.randomUUID().hashCode(),3);
+
+        rm.add(tr1,tr1.getSize());
+        try { Thread.sleep(10); } catch(InterruptedException ie) {}
+        rm.add(tr2,tr2.getSize());
+        try { Thread.sleep(10); } catch(InterruptedException ie) {}
+        rm.add(tr3, tr3.getSize());
+        try { Thread.sleep(10); } catch(InterruptedException ie) {}
+
+        rm.insureCapacity(2);
+        assertTrue("tr1 gone", !rm.isResident(tr1));
+        assertTrue("tr2 gone", !rm.isResident(tr2));
+        assertFalse("tr3 gone", !rm.isResident(tr3));
     }
 
     static class TestResource implements Resource {
