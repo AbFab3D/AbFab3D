@@ -14,6 +14,7 @@ package abfab3d.io.input;
 
 import abfab3d.datasources.Constant;
 import abfab3d.grid.ArrayAttributeGridByte;
+import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.GridDataDesc;
@@ -56,9 +57,10 @@ public class TestAttributedDistanceRasterizer extends TestCase {
         AttributedDistanceRasterizer rasterizer = new AttributedDistanceRasterizer(bounds, size,size,size);
         rasterizer.setDataDimension(3);
 
-        AttributeGrid grid = new ArrayAttributeGridByte(bounds,vs,vs);
+        AttributeGrid grid = new ArrayAttributeGridShort(bounds,vs,vs);
         GridDataDesc attDesc = new GridDataDesc();
         GridDataChannel gdc = new GridDataChannel(GridDataChannel.DISTANCE, "dist", 16,-1*MM,1*MM);
+        printf("gdc: %s\n",gdc);
         attDesc.addChannel(gdc);
         grid.setDataDesc(attDesc);
 
