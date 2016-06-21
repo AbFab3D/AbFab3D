@@ -161,7 +161,7 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
      */
     public void setDataDimension(int dataDimension){
 
-        if(DEBUG) printf("AttributedDIstanceRasterizer.setDataDimensoion(%d)\n", dataDimension);
+        if(DEBUG) printf("AttributedDIstanceRasterizer.setDataDimension(%d)\n", dataDimension);
         m_dataDimension = dataDimension;
     }
 
@@ -234,13 +234,20 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
 
         int pcount = m_surfaceBuilder.getPointCount();
         if(DEBUG)printf("pcount: %d\n", pcount);
-
-//        double pnt[][] = new double[m_dataDimension][pcount];
-        double pnt[][] = new double[Math.max(m_dataDimension,6)][pcount];
+        
+        double pnt[][] = new double[m_dataDimension][pcount];
         t0 = time();
 
         m_surfaceBuilder.getPoints(pnt);
-
+        if(DEBUG){
+            int n = Math.min(pnt[0].length, 100);
+            for(int k = 0; k < n; k++){
+                for(int d = 0; d < pnt.length; d++){
+                    printf("%8.5f ", pnt[d][k]);
+                }                
+                printf("\n");
+            }
+        }
         m_shellBuilder.setPoints(new PointSetCoordArrays(pnt[0], pnt[1], pnt[2]));
         m_shellBuilder.setShellHalfThickness(m_shellHalfThickness);
 
@@ -255,7 +262,6 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
         m_rasterizer.getRaster(interiorGrid);
 
         if(DEBUG_TIMING)printf("m_rasterizer.getRaster(interiorGrid) time: %d ms\n", (time() - t0));
-
 
         t0 = time();
 

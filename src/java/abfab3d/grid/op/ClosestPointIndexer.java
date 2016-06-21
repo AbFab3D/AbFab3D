@@ -18,6 +18,7 @@ import javax.vecmath.Vector3d;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.AttributePacker;
 import abfab3d.grid.GridDataChannel;
+import abfab3d.grid.GridDataDesc;
 
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.Grid2D;
@@ -1370,7 +1371,8 @@ public class ClosestPointIndexer {
             nx = indexGrid.getWidth(),
             nz = indexGrid.getDepth();
 
-        AttributePacker attMaker = outGrid.getDataDesc().getAttributePacker();
+        GridDataDesc dataDesc =  outGrid.getDataDesc();        
+        AttributePacker attMaker = dataDesc.getAttributePacker();
 
         double vs = bounds.getVoxelSize();
         double vs2 = vs/2;
@@ -1378,12 +1380,16 @@ public class ClosestPointIndexer {
         double ymin = bounds.ymin+vs2;
         double zmin = bounds.zmin+vs2;
 
+        int maxDataInd = pnts.length-1;
+
         double pntx[] = pnts[0];
         double pnty[] = pnts[1];
         double pntz[] = pnts[2];
-        double pntu[] = pnts[3];
-        double pntv[] = pnts[4];
-        double pntw[] = pnts[5];
+        // TODO 
+        // what do to if there is less data 
+        double pntu[] = pnts[Math.min(3,maxDataInd)];
+        double pntv[] = pnts[Math.min(4,maxDataInd)];
+        double pntw[] = pnts[Math.min(5,maxDataInd)];
 
         // TODO use variable channel dimension 
         Vec pntData = new Vec(3);        

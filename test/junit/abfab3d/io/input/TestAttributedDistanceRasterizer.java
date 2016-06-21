@@ -81,7 +81,7 @@ public class TestAttributedDistanceRasterizer extends TestCase {
 
         AttributedMesh box = makeBox(bx,by,bz);
         Bounds bounds = box.getBounds();
-        Constant colorizer = new Constant(0.9,0.2,0.2);
+        Constant colorizer = new Constant(0.9,0.2,0.0);
         colorizer.initialize();
 
         GridLoader loader = new GridLoader();
@@ -106,7 +106,7 @@ public class TestAttributedDistanceRasterizer extends TestCase {
     }
 
     private AttributedMesh makeBox(double bx,double by,double bz) {
-        AttributedMesh box = new AttributedMesh();
+        AttributedMesh box = new AttributedMesh(3);
         Vec v0 = new Vec(bx,by,bz,0,0,0);
         Vec v1 = new Vec(-bx,by,bz,0,0,0);
         Vec v2 = new Vec(-bx,-by,bz,0,0,0);

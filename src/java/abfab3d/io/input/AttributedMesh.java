@@ -32,10 +32,14 @@ public class AttributedMesh implements AttributedTriangleProducer, TriangleProdu
     private ArrayList<Triangle> tris;
     private Bounds bounds;
     private DataSource attributeCalculator;
-    private int dim;
+    private int dim=3; 
 
     public AttributedMesh() {
-        tris = new ArrayList<Triangle>();
+        this(3);
+    }
+
+    public AttributedMesh(int dataDimension) {
+        this(dataDimension, 10);
     }
 
     /**
@@ -43,7 +47,9 @@ public class AttributedMesh implements AttributedTriangleProducer, TriangleProdu
      *
      * @param ntris - Approximate number of triangles
      */
-    public AttributedMesh(int ntris) {
+    public AttributedMesh(int dataDimension, int ntris) {
+        this.dim = dataDimension;
+        tris = new ArrayList<Triangle>();
         tris = new ArrayList<Triangle>(ntris);
     }
 
