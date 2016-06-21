@@ -58,7 +58,9 @@ public class TestAttributedDistanceRasterizer extends TestCase {
 
         AttributeGrid grid = new ArrayAttributeGridByte(bounds,vs,vs);
         GridDataDesc attDesc = new GridDataDesc();
-        attDesc.addChannel(new GridDataChannel(GridDataChannel.DISTANCE, "dist", 16,-1*MM,1*MM));
+        GridDataChannel gdc = new GridDataChannel(GridDataChannel.DISTANCE, "dist", 16,-1*MM,1*MM);
+        attDesc.addChannel(gdc);
+        grid.setDataDesc(attDesc);
 
         rasterizer.getAttributedDistances(box, colorizer, grid);
 
