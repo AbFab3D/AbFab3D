@@ -29,11 +29,11 @@ public class GridDataDesc {
     static final boolean DEBUG = false;
     static int debugCount = 0;
 
-    AttributeMaker m_attributeMaker; 
+    AttributePacker m_attributePacker; 
 
     /**
-       constructor with no data channel
-       not rreally useful before adding some data  channels
+       constructor with no data channels
+       it is not really useful before adding some data  channels
      */
     public GridDataDesc(){
     }
@@ -124,20 +124,24 @@ public class GridDataDesc {
     }
 
 
+    
     /**
-       @return converter which converts from multihgcannel double[] data into long attribute 
+       
+       @return converter which converts between multiple channel data and long attribute 
      */
-    public AttributeMaker getAttributeMaker(){
+    public AttributePacker getAttributePacker(){
 
-        if(m_attributeMaker == null) {
+        if(m_attributePacker == null) {
 
-            m_attributeMaker = new DefaultAttributeMaker(this);
+            m_attributePacker = new DefaultAttributePacker(this);
 
         }
 
-        return m_attributeMaker;
+        return m_attributePacker;
 
     }
+
+    
 
     public String toString(){
         StringBuffer sb = new StringBuffer();
@@ -213,16 +217,16 @@ public class GridDataDesc {
 
     }
 
-
+    
 
     /**
        convert multi component data into grid attribute 
      */
-    public static class DefaultAttributeMaker implements AttributeMaker {
+    public static class DefaultAttributePacker implements AttributePacker {
 
         GridDataChannel channels[];
         
-        public DefaultAttributeMaker(GridDataDesc dataDesc){
+        public DefaultAttributePacker(GridDataDesc dataDesc){
             channels = new GridDataChannel[dataDesc.size()];
             for(int i = 0; i < channels.length; i++){
                 channels[i] = dataDesc.getChannel(i);
@@ -243,7 +247,14 @@ public class GridDataDesc {
                 if(debugCount-- >0) printf(".->att:%8x\n", att);
             }
             return att;
-        }        
+        }   
+     
+        public void getData(long attribute, Vec data){
+            
+            for(int i = 0; i < channels.length; i++){
+                data.v[i] = channels[i].getValue(attribute);
+            }
+        }
 
     } //static class DefaultAttributeMaker
 

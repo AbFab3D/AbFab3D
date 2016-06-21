@@ -32,8 +32,8 @@ import junit.framework.TestSuite;
 
 
 // Internal Imports
-import abfab3d.grid.AttributeMaker;
-import abfab3d.grid.AttributeMakerGeneral;
+import abfab3d.grid.AttributePacker;
+import abfab3d.grid.AttributePackerGeneral;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridInt;
@@ -288,7 +288,7 @@ public class TestGridSaver extends TestCase {
         
     }
 
-    static void printRay(DataSource source, Vector3d v0, Vector3d v1, int count, double vs, AttributeMaker attMaker){
+    static void printRay(DataSource source, Vector3d v0, Vector3d v1, int count, double vs, AttributePacker attMaker){
         if(source instanceof Initializable) ((Initializable)source).initialize();
         Vector3d v = new Vector3d();
         double delta = 1./count;

@@ -19,6 +19,7 @@ import abfab3d.util.Vec;
 import abfab3d.util.Bounds;
 
 import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.AttributePacker;
 
 import abfab3d.param.IntParameter;
 import abfab3d.param.ObjectParameter;
@@ -49,6 +50,13 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
 
     protected AttributeGrid m_grid;
+
+    // packer to pack data into data buffer
+    protected AttributePacker m_bufferDataPacker;
+
+    // packer to unpack data from grid
+    protected AttributePacker m_gridDataPacker;
+
     protected GridDataChannel m_dataChannel;
     protected byte[] m_cachedByteData;
 
@@ -56,11 +64,13 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     double xmin, ymin, zmin, xscale, yscale, zscale;
 
     ObjectParameter  mp_grid = new ObjectParameter("grid","grid to be used as source", null);
+    ObjectParameter  mp_bufferDataPacker = new ObjectParameter("dataPacker","packer for grid data into buffer", null);
     IntParameter  mp_gridDataTypeSize = new IntParameter("gridDataTypeSize","size of grid data type", 1);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_grid,
         mp_gridDataTypeSize,
+        mp_bufferDataPacker,
     };
        
     /**
@@ -180,11 +190,11 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     }
 
     /**
-     * Set the number of bytes to use for a grid.  Determines precision of rendering.
-     * @param val Currently supports 1 or 2
+     * Set the data size in bytes to use for a grid.  Determines precision of rendering.
+     * @param size Currently supports 1 or 2
      */
-    public void setGridDataTypeSize(int val) {
-        mp_gridDataTypeSize.setValue(val);
+    public void setGridDataTypeSize(int size) {
+        mp_gridDataTypeSize.setValue(size);
     }
 
     public int getGridDataTypeSize() {
@@ -236,7 +246,6 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
                     // v is inside of (vmin, vmax);
                     data[x + y * nx + z * nxy] = (byte)((int)(MAX_BYTE*clamp((v - vmin)/(vmax - vmin),0.,1.)) & MAX_BYTE);
                 }
-                //if(DEBUG & (z == nz/2)) printf("\n");
             }            
         }
     }
@@ -271,6 +280,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         }
     }
 
+
     /**
 
        @noRefGuide            
@@ -279,7 +289,13 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
         super.initialize();
         
+        m_bufferDataPacker = (AttributePacker)mp_bufferDataPacker.getValue();
 
+        if(m_bufferDataPacker == null) {
+            // no specific data packer provided - use default 
+            m_bufferDataPacker = m_grid.getDataDesc().getAttributePacker();
+        }
+        
         if(m_dataChannel == null)
             throw new RuntimeException("m_dataChannel == null");
 
@@ -335,6 +351,10 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         return RESULT_OK; 
             
     }
+
+
+    
+
     private int getLinearInterpolatedValue(Vec pnt, Vec data){
         
         double v[] = pnt.v;
@@ -365,7 +385,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
             dx1 = 1. - dx,
             dy1 = 1. - dy,
             dz1 = 1. - dz;
-
+        
         
         double  
             v000 = getGridValue(ix,  iy,  iz ),  
@@ -392,24 +412,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     }
 
     private final double getGridValue(int x, int y, int z){
-
         return m_dataChannel.getValue(m_grid.getAttribute(x,y,z));
-
-        /*
-        //TODO hee we need to have flexible way of getting data from the grid value        
-        switch(m_subvoxelResolution){            
-        case 0:  // grid value is in state 
-            byte state = m_grid.getState(x, y, z);            
-            switch(state){
-            case Grid.OUTSIDE:
-                return 0;                
-            default:
-                return 1;
-            }             
-        default:
-            return dataChannel.getBits(m_grid.getAttribute(x,y,z));
-        }
-        */
     }
 
     /**

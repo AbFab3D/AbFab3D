@@ -1195,14 +1195,23 @@ public class MathUtil {
 
 
     /**
-       linear interpolation 
+       linear interpolation between two double values 
+       @param u first value
+       @param v second second 
+       @param t interpolation parameter (if t = 0, result will be first value, if t == 1 result will be second value, linear interpolation for other values)
+       
      */
-    public static final double lerp(double v1, double v2, double t){
-        return v1 + t * (v2-v1);
+    public static final double lerp(double u, double v, double t){
+        return u + t * (v-u);
     }
 
     /**
-       linear interpolation between two arrays
+       makes linear interpolation between two arrays of double values 
+       
+       @param u first array 
+       @param v second array 
+       @param t interpolation parameter (if t = 0, result will be first array, if t == 1 result will be second array, linear interpoation for other values )
+       @param res array to store result
      */
     public static final void lerp(double u[], double v[], double t, double res[]){
         int dim = Math.min(u.length, v.length);
@@ -1213,17 +1222,39 @@ public class MathUtil {
 
 
     /**
-       bilinear interpolation between 4 values 
+       bi-linear interpolation between 4 values 
        
        v01   v11
        v00   v10
 
        
      */
-    public static final double lerp2(double v00, double v10, double v11, double v01, double x, double y){
+    public static final double lerp2(double v00, double v10, double v01, double v11, double x, double y){
                 
         return lerp(lerp(v00, v10, x), lerp(v01, v11, x), y);
 
+    }
+
+    /**
+       tri-linear interpolation between 4 values 
+       
+       first layer 
+       v010   v110
+       v000   v100
+       
+       second layer
+       v011   v111
+       v001   v101
+
+       
+       
+     */
+    public static final double lerp3(double v000, double v100, double v010, double v110, 
+                                     double v001, double v101, double v011, double v111, double x, double y, double z){
+                
+        return lerp(lerp(lerp(v000, v100, x), lerp(v010, v110, x), y),
+                    lerp(lerp(v001, v101, x), lerp(v011, v111, x), y),z);            
+        
     }
 
 

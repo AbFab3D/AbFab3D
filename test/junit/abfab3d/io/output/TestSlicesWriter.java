@@ -32,7 +32,7 @@ import junit.framework.TestSuite;
 
 
 // Internal Imports
-import abfab3d.grid.AttributeMakerGeneral;
+import abfab3d.grid.AttributePackerGeneral;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridLong;
@@ -599,7 +599,7 @@ public class TestSlicesWriter extends TestCase {
         
         GridMaker gm = new GridMaker();  
 
-        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,2,2}, true));
+        gm.setAttributePacker(new AttributePackerGeneral(new int[]{8,2,2}, true));
         gm.setSource(mux);
 
         //gm.setSource(sphere);
@@ -655,7 +655,7 @@ public class TestSlicesWriter extends TestCase {
 
         GridMaker gm = new GridMaker();  
 
-        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8,8}, true));
+        gm.setAttributePacker(new AttributePackerGeneral(new int[]{8,8,8,8}, true));
         gm.setSource(new Composition(Composition.AoutB, sphere1, sphere2));
         
         AttributeGrid grid = new ArrayAttributeGridLong(ng[0],ng[1],ng[2], voxelSize, voxelSize);
@@ -711,7 +711,7 @@ public class TestSlicesWriter extends TestCase {
 
         GridMaker gm = new GridMaker();  
 
-        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8,8}, true));
+        gm.setAttributePacker(new AttributePackerGeneral(new int[]{8,8,8,8}, true));
         
         gm.setSource(new Composition(Composition.BoutA, sphere1, sphere2, sphere3));        
         //gm.setSource(new Composition(Composition.AoverB, sphere1, sphere3));        
@@ -762,7 +762,7 @@ public class TestSlicesWriter extends TestCase {
 
         GridMaker gm = new GridMaker();  
 
-        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8,8}, true));
+        gm.setAttributePacker(new AttributePackerGeneral(new int[]{8,8,8,8}, true));
         
         //int types[]= new int[]{Composition.AoverB};
         int types[]= Composition.allTypes;
@@ -823,7 +823,7 @@ public class TestSlicesWriter extends TestCase {
         GridMaker gm = new GridMaker();  
         gm.setMargin(2);
 
-        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8,8}, true));
+        gm.setAttributePacker(new AttributePackerGeneral(new int[]{8,8,8,8}, true));
         
         int types[]= Composition.allTypes;
 
@@ -885,7 +885,7 @@ public class TestSlicesWriter extends TestCase {
         GridMaker gm = new GridMaker();  
         gm.setMargin(0);
         
-        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8}, true));
+        gm.setAttributePacker(new AttributePackerGeneral(new int[]{8}, true));
         
         gm.setSource(noise);
 

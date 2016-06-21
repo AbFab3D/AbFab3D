@@ -21,17 +21,18 @@ import abfab3d.util.Vec;
    @author Vladimir Bulatov
  */
 
-public class AttributeMakerDensity implements AttributeMaker{
+public class AttributePackerDensity implements AttributePacker {
 
     long  m_resolution;
+    double m_scale;
 
     /**
-       
+       @param resoulution value whuch corrensponds to density value 1
      */
-    public AttributeMakerDensity(long resolution){
+    public AttributePackerDensity(long resolution){
 
         m_resolution = resolution;
-
+        m_scale = 1./resolution;
     }
     /**
        convert vector of double into long voxel attribute 
@@ -46,6 +47,11 @@ public class AttributeMakerDensity implements AttributeMaker{
             
         return d;
         
+    }
+
+    public void getData(long attribute, Vec data){
+        data.v[0] = m_scale * attribute;
+
     }
 
 }

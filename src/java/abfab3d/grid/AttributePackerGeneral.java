@@ -23,23 +23,23 @@ import abfab3d.util.MathUtil;
    @author Vladimir Bulatov
  */
 
-public class AttributeMakerGeneral implements AttributeMaker{
+public class AttributePackerGeneral implements AttributePacker {
     
     int m_length; // length of channels array 
     long  m_resolution[];
     int m_shift[];
     
     // if this is true, and value of first channel is 0, all channels are set to 0 
-    // this is usefull to optimize memory used by grid in case if first channel is density (most common case)
+    // this is usefull to optimize memory used by grid in case if first channel is density or signed distance
     boolean m_controlByDensity = true;
     /**
        
      */
-    public AttributeMakerGeneral(int bits[]){
+    public AttributePackerGeneral(int bits[]){
         this(bits, true);
     }
 
-    public AttributeMakerGeneral(int bits[], boolean controlByDensity){
+    public AttributePackerGeneral(int bits[], boolean controlByDensity){
         m_controlByDensity =  controlByDensity;
         m_length = bits.length;
 
@@ -88,5 +88,11 @@ public class AttributeMakerGeneral implements AttributeMaker{
         return res;
         
     }
+
+    
+    public void getData(long attribute, Vec data){
+        throw new RuntimeException("not implemented");
+    }
+
 
 }

@@ -56,14 +56,14 @@ public class TestSTSReadWrite extends TestCase {
 
         DataSourceMixer mux = new DataSourceMixer(density, color1);
 
-        AttributeMaker attmuxer = new AttributeMakerGeneral(new int[]{8,8});
+        AttributePacker attmuxer = new AttributePackerGeneral(new int[]{8,8});
 
         GridMaker gm = new GridMaker();
 
         gm.setSource(mux);
         gm.setThreadCount(threadCount);
 
-        gm.setAttributeMaker(attmuxer);
+        gm.setAttributePacker(attmuxer);
 
         AttributeGrid grid = new ArrayAttributeGridInt(nx[0], nx[1], nx[2], vs, vs);
         grid.setGridBounds(bounds);
@@ -144,14 +144,14 @@ public class TestSTSReadWrite extends TestCase {
 
         DataSourceMixer mux = new DataSourceMixer(density, color1);
 
-        AttributeMaker attmuxer = new AttributeMakerGeneral(new int[]{8,8});
+        AttributePacker attmuxer = new AttributePackerGeneral(new int[]{8,8});
 
         GridMaker gm = new GridMaker();
 
         gm.setSource(mux);
         gm.setThreadCount(threadCount);
 
-        gm.setAttributeMaker(attmuxer);
+        gm.setAttributePacker(attmuxer);
 
         AttributeGrid grid = new ArrayAttributeGridInt(nx[0], nx[1], nx[2], vs, vs);
         grid.setGridBounds(bounds);

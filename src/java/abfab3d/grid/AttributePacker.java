@@ -20,9 +20,17 @@ import abfab3d.util.Vec;
    @author Vladimir Bulatov
  */
 
-public interface AttributeMaker {
+public interface AttributePacker {
+    
     /**
        convert vector of double into long voxel attribute 
      */
     public long makeAttribute(Vec data);
+
+    /**
+       converts attribute into vector of double data 
+       @param attribute 
+       @param data values of data stored in attribute 
+     */
+    public void getData(long attribute, Vec data);
 }

@@ -171,7 +171,7 @@ public class GridDataWriter extends BaseParameterizable {
                 double v01 = dataChannel.getValue(a01);
                 double v11 = dataChannel.getValue(a11);
 
-                double v = lerp2(v00, v10, v11, v01,dx, dy);
+                double v = lerp2(v00, v10, v01, v11, dx, dy);
                 sliceData[ix + (iny-1-iy)*inx] = colorMapper.getColor(v);
             }
         }

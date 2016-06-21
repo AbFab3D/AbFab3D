@@ -43,7 +43,7 @@ import junit.framework.TestSuite;
 
 
 // Internal Imports
-import abfab3d.grid.AttributeMakerGeneral;
+import abfab3d.grid.AttributePackerGeneral;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.GridDataDesc;
@@ -171,7 +171,7 @@ public class TestTextureRenderer extends TestCase {
         gm.setThreadCount(1);
         gm.setMargin(0);
         gm.setSource(mux);
-        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8}, true));
+        gm.setAttributePacker(new AttributePackerGeneral(new int[]{8,8,8}, true));
  
         
         printf("gm.makeGrid()\n");
@@ -212,7 +212,7 @@ public class TestTextureRenderer extends TestCase {
         double lines[][] = new double[3][3];
         double edist = 1;
 
-        TextureRenderer.extendTriangle(tri, edist, lines, etri);
+        MathUtil.extendTriangle(tri, edist, lines, etri);
 
         printf(" tri: [(%7.4f,%7.4f) (%7.4f,%7.4f) (%7.4f,%7.4f)\n",tri[0][0],tri[0][1], tri[1][0],tri[1][1], tri[2][0],tri[2][1]);
         printf("etri: [(%7.4f,%7.4f) (%7.4f,%7.4f) (%7.4f,%7.4f)\n",etri[0][0],etri[0][1], etri[1][0],etri[1][1], etri[2][0],etri[2][1]);
@@ -358,7 +358,7 @@ public class TestTextureRenderer extends TestCase {
         gm.setMargin(0);
         gm.setSource(mux);
 
-        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8}, true));
+        gm.setAttributePacker(new AttributePackerGeneral(new int[]{8,8,8}, true));
          
         printf("gm.makeGrid(%d x %d x %d)\n", ng[0],ng[1],ng[2]);
         gm.makeGrid(dataGrid);        
@@ -390,7 +390,7 @@ public class TestTextureRenderer extends TestCase {
         gm.setMargin(0);
         gm.setSource(mux);
 
-        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8}, true));
+        gm.setAttributePacker(new AttributePackerGeneral(new int[]{8,8,8}, true));
          
         printf("gm.makeGrid(%d x %d x %d)\n", ng[0],ng[1],ng[2]);
         gm.makeGrid(dataGrid);        

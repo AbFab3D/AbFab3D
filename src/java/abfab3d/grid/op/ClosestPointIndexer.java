@@ -16,7 +16,7 @@ package abfab3d.grid.op;
 import javax.vecmath.Vector3d;
 
 import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.AttributeMaker;
+import abfab3d.grid.AttributePacker;
 import abfab3d.grid.GridDataChannel;
 
 import abfab3d.grid.ArrayAttributeGridShort;
@@ -1370,7 +1370,7 @@ public class ClosestPointIndexer {
             nx = indexGrid.getWidth(),
             nz = indexGrid.getDepth();
 
-        AttributeMaker attMaker = outGrid.getDataDesc().getAttributeMaker();
+        AttributePacker attMaker = outGrid.getDataDesc().getAttributePacker();
 
         double vs = bounds.getVoxelSize();
         double vs2 = vs/2;

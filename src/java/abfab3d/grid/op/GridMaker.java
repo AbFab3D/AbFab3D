@@ -30,11 +30,11 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 
 /**
-   class accept Grid , VecTransform, DataSource and AttributeMaker and fills voxel attributes of the grid. 
+   class accept Grid , VecTransform, DataSource and AttributePacker and fills voxel attributes of the grid. 
 
    For each Grid voxel the cordinates of the voxel are transformed using inverse of VecTransform 
    The data value is calculated in the transformed point using DataSource 
-   All the channels of the DataSource are converted into voxel attibutes using AttributeMaker.
+   All the channels of the DataSource are converted into voxel attibutes using AttributePacker.
    This allows calculation of multi color and multimaterial grids with custom meaning and 
    resolutiuon of each AttributeChannel. 
 
@@ -64,10 +64,10 @@ public class GridMaker implements Operation, AttributeOperation {
     private int m_slizeSize = 2;
 
     // custom converter of Vec into long attribute
-    AttributeMaker m_attributeMaker; 
+    AttributePacker m_attributePacker; 
     // dimension of the data channel 
     int m_dataChannelsCount = 1;
-    // number of gray levels in the calculations this is being replaces by universal m_attributeMaker
+    // number of gray levels in the calculations this is being replaces by universal m_attributePacker
     long m_subvoxelResolution = 255;
 
     //
@@ -133,7 +133,7 @@ public class GridMaker implements Operation, AttributeOperation {
     /**
        sets scaling value for attributes
        @deprecated 
-       is replaced by setAttributeMaker(AttributeMaker attributeMaker) should be used instead 
+       is replaced by setAttributePacker(AttributePacker attributePacker) should be used instead 
      */
     public void setMaxAttributeValue(long value){
 
@@ -144,7 +144,7 @@ public class GridMaker implements Operation, AttributeOperation {
     /**
        sets subvoxel resolution used for antialiased grids 
        @deprecated 
-       setAttributeMaker(AttributeMaker attributeMaker) should be used instead 
+       setAttributePacker(AttributePacker attributePacker) should be used instead 
      */
     public void setSubvoxelResolution(long value){
         
@@ -155,9 +155,9 @@ public class GridMaker implements Operation, AttributeOperation {
     /**
        sets converter from Vec into long for grid attributes 
      */
-    public void setAttributeMaker(AttributeMaker attributeMaker){
+    public void setAttributePacker(AttributePacker attributePacker){
 
-        m_attributeMaker = attributeMaker; 
+        m_attributePacker = attributePacker; 
     }
 
     /**
@@ -246,17 +246,17 @@ public class GridMaker implements Operation, AttributeOperation {
         m_ny = grid.getHeight();
         m_nz = grid.getDepth();
         
-        if(m_attributeMaker == null){
+        if(m_attributePacker == null){
             // no attibute maker given -> try to make one             
             GridDataDesc attDesc = m_grid.getDataDesc();
             if(attDesc == null) {
                 // unknow grid 
-                m_attributeMaker = new AttributeMakerDensity((int)m_subvoxelResolution);
+                m_attributePacker = new AttributePackerDensity((int)m_subvoxelResolution);
             } else {
-                m_attributeMaker = attDesc.getAttributeMaker();
+                m_attributePacker = attDesc.getAttributePacker();
             }
         }
-        if(DEBUG)printf("GridMaker using attributeMaker: %s\n",m_attributeMaker);
+        if(DEBUG)printf("GridMaker using attributePacker: %s\n",m_attributePacker);
         
         long t0 = time();
 
@@ -350,7 +350,7 @@ public class GridMaker implements Operation, AttributeOperation {
                     res = m_dataSource.getDataValue(pntData, dataValue);
                     if(res != VecTransform.RESULT_OK)
                         continue;
-                    long vd = m_attributeMaker.makeAttribute(dataValue);
+                    long vd = m_attributePacker.makeAttribute(dataValue);
                     if(vd != 0)
                     m_grid.setData(ix, iy, iz, Grid.INSIDE, vd);
 
@@ -436,7 +436,7 @@ public class GridMaker implements Operation, AttributeOperation {
                         if(res != VecTransform.RESULT_OK)
                             continue;
 
-                        long vd = m_attributeMaker.makeAttribute(dataValue);
+                        long vd = m_attributePacker.makeAttribute(dataValue);
                         m_grid.setAttribute(ix, iy, iz, vd);
                     }
                 }
