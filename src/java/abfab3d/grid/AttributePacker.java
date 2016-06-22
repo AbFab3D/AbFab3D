@@ -33,4 +33,10 @@ public interface AttributePacker {
        @param data values of data stored in attribute 
      */
     public void getData(long attribute, Vec data);
+
+    /**
+       bit count used by this packer to pack attribute 
+     */
+    public int getBitCount();
+
 }

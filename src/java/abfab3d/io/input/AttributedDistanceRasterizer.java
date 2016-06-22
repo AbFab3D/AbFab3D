@@ -239,7 +239,7 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
         t0 = time();
 
         m_surfaceBuilder.getPoints(pnt);
-        if(DEBUG){
+        if(false){
             int n = Math.min(pnt[0].length, 100);
             for(int k = 0; k < n; k++){
                 for(int d = 0; d < pnt.length; d++){

@@ -20,6 +20,7 @@ import abfab3d.util.AttributedTriangleProducer;
 import abfab3d.util.AttributedTriangleCollector;
 import abfab3d.util.AttributedTriangleProducerConverter;
 import abfab3d.util.DataSource;
+import abfab3d.util.Initializable;
 
 import abfab3d.grid.op.DistanceTransformLayered;
 
@@ -69,7 +70,6 @@ public class GridLoader {
     protected int m_distanceAlgorithm = RASTERIZER_DISTANCE;
     protected double m_maxOutDistance = 2*MM;
     protected double m_maxInDistance = 2*MM;
-    // data dimension to use for mesh (default - 3 coordinates only ) 
     protected double m_shellHalfThickness = 2;
     protected int m_threadCount = 1;
     protected int m_triangleCount;
@@ -446,6 +446,7 @@ public class GridLoader {
         
         if(DEBUG) printf("GridLoader.rasterizeTexturedTriangles(%s)\n", attTriProducer);
         TriangleProducer tp = new AttributedTriangleProducerConverter(attTriProducer);
+        if(attributeColorizer instanceof Initializable) ((Initializable)attributeColorizer).initialize();
         Bounds bounds = getModelBounds(tp);
         if(DEBUG) printf("model bounds: %s\n", bounds);
         AttributeGrid grid = createDistRGBGrid(bounds);

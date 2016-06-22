@@ -217,7 +217,21 @@ public class GridDataDesc {
 
     }
 
-    
+    /**
+       creates data description for multichannel grid with distance and color 
+     */
+    public static GridDataDesc getDistBGR(double maxDist){
+
+        int bitCount = 8;
+        GridDataDesc at = new GridDataDesc();
+        at.addChannel(new GridDataChannel(GridDataChannel.DISTANCE,    "0_distance", bitCount,  0,  maxDist, -maxDist));
+        at.addChannel(new GridDataChannel(GridDataChannel.COLOR_RED,   "1_red",      bitCount,  24, 0., 1.));
+        at.addChannel(new GridDataChannel(GridDataChannel.COLOR_GREEN, "2_green",    bitCount,  16, 0., 1.));
+        at.addChannel(new GridDataChannel(GridDataChannel.COLOR_BLUE,  "3_blue",     bitCount,   8, 0., 1.));
+        
+        return at;
+
+    }    
 
     /**
        convert multi component data into grid attribute 
@@ -225,11 +239,12 @@ public class GridDataDesc {
     public static class DefaultAttributePacker implements AttributePacker {
 
         GridDataChannel channels[];
-        
+        int bitCount;
         public DefaultAttributePacker(GridDataDesc dataDesc){
             channels = new GridDataChannel[dataDesc.size()];
             for(int i = 0; i < channels.length; i++){
                 channels[i] = dataDesc.getChannel(i);
+                bitCount += channels[i].getBitCount(); 
             }
         }
         
@@ -238,14 +253,11 @@ public class GridDataDesc {
             long att = 0;
             for(int i = 0; i < channels.length; i++){
                 long catt = channels[i].makeAtt(vec.v[i]);
-                if(DEBUG){
-                    if(debugCount-- >0) printf(".%8x", catt);
-                }
+                if(DEBUG && debugCount-- >0) printf(".%8x", catt);                
                 att |= catt;
             }
-            if(DEBUG){
-                if(debugCount-- >0) printf(".->att:%8x\n", att);
-            }
+            if(DEBUG && debugCount-- >0) printf(".->att:%8x\n", att);
+            
             return att;
         }   
      
@@ -254,6 +266,9 @@ public class GridDataDesc {
             for(int i = 0; i < channels.length; i++){
                 data.v[i] = channels[i].getValue(attribute);
             }
+        }
+        public int getBitCount(){
+            return bitCount;
         }
 
     } //static class DefaultAttributeMaker

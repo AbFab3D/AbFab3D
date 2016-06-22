@@ -16,10 +16,10 @@ import abfab3d.util.Vec;
 import abfab3d.util.MathUtil;
 
 /**
-   converts mltiple components of Vec into single long attribute 
+   converts multiple components of Vec into single long attribute 
    each channel uses custom number of bits supplied via bits[] 
    input double values are clamped into [0, 1] interval and are mapped into [0, (1<< bits[])-1] range 
-   
+   only useful for density and color channels 
    @author Vladimir Bulatov
  */
 
@@ -28,7 +28,8 @@ public class AttributePackerGeneral implements AttributePacker {
     int m_length; // length of channels array 
     long  m_resolution[];
     int m_shift[];
-    
+    int m_bitCount = 0;
+
     // if this is true, and value of first channel is 0, all channels are set to 0 
     // this is usefull to optimize memory used by grid in case if first channel is density or signed distance
     boolean m_controlByDensity = true;
@@ -50,6 +51,7 @@ public class AttributePackerGeneral implements AttributePacker {
             m_resolution[i] = MathUtil.getBitMask(bits[i]);
             m_shift[i] = shift;
             shift += bits[i];
+            m_bitCount += bits[i];
         }
     }
 
@@ -94,5 +96,8 @@ public class AttributePackerGeneral implements AttributePacker {
         throw new RuntimeException("not implemented");
     }
 
+    public int getBitCount() {
+        return m_bitCount;
+    }
 
 }

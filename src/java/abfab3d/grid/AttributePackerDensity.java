@@ -25,14 +25,20 @@ public class AttributePackerDensity implements AttributePacker {
 
     long  m_resolution;
     double m_scale;
-
+    int m_bitCount = 0;
     /**
-       @param resoulution value whuch corrensponds to density value 1
+       @param resolution value which corrensponds to density value 1
      */
     public AttributePackerDensity(long resolution){
 
         m_resolution = resolution;
         m_scale = 1./resolution;
+        for(int i = 64; i >= 0; i--){
+            if(((1 << (i-1)) & m_resolution) != 0) {
+                m_bitCount = i;
+                break;
+            }
+        }
     }
     /**
        convert vector of double into long voxel attribute 
@@ -51,7 +57,10 @@ public class AttributePackerDensity implements AttributePacker {
 
     public void getData(long attribute, Vec data){
         data.v[0] = m_scale * attribute;
+    }
 
+    public int getBitCount(){
+        return m_bitCount;
     }
 
 }

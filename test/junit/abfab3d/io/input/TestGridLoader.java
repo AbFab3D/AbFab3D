@@ -14,6 +14,8 @@ package abfab3d.io.input;
 
 import javax.vecmath.Vector3d;
 
+import abfab3d.util.DataSource;
+import abfab3d.util.Bounds;
 import abfab3d.util.ColorMapper;
 import abfab3d.util.ColorMapperDistance;
 import abfab3d.util.ColorMapperDensity;
@@ -35,6 +37,9 @@ import abfab3d.grid.GridDataChannel;
 
 import abfab3d.distance.DistanceData;
 import abfab3d.distance.DistanceDataSphere;
+
+import abfab3d.datasources.DataSourceGrid;
+import abfab3d.datasources.Constant;
 
 import abfab3d.grid.util.GridUtil;
 
@@ -396,6 +401,38 @@ public class TestGridLoader extends TestCase {
     }
 
 
+    public void devTestDataSourceGrid() throws Exception {
+
+        printf("devTestDataSourceGrid()\n");
+        GridLoader loader = new GridLoader();
+        loader.setThreadCount(8);
+        loader.setMaxInDistance(1*MM);
+        loader.setMaxOutDistance(1*MM);           
+        loader.setMargins(1*MM);   
+        loader.setPreferredVoxelSize(0.5*MM);   
+        double R = 5*MM;
+        AttributeGrid grid = loader.rasterizeAttributedTriangles(new TexturedSphere(R, 40,40),new Constant(0.2, 0.4, 0.6));
+        //AttributeGrid grid = loader.rasterizeAttributedTriangles(new TexturedSphere(R, 40,40),new GradientColorizer(new Vector3d(0.05,0,0)));
+        DataSourceGrid ds = new DataSourceGrid(grid);
+        ds.initialize();
+        double s = R+1*MM;
+        printDataSourceSlice(ds, new Bounds(-s,s,-s,s,-s,s),20,20, 1*MM);
+        /*
+        GridSaver writer = new GridSaver();
+        writer.setWriteTexturedMesh(true);
+        writer.setTexPixelSize(1);
+        writer.setMeshSmoothingWidth(1);
+        writer.setTexTriExt(1.5);
+        writer.setTexTriGap(1.5);
+        //String outPath = "/tmp/tex/outGrid.svx";
+        //String outPath = "/tmp/tex/texturedTorus3.x3d";
+        String outPath = "/tmp/tex/texturedTorus7.x3d";
+        printf("writing: %s\n", outPath);
+        writer.write(grid, outPath);
+        printf("done\n");        
+        */
+    }
+
     public void devTestGradientColorizer(){
         GradientColorizer gc = new GradientColorizer(new Vector3d(10*MM,0,0));
         int n = 40;
@@ -410,10 +447,33 @@ public class TestGridLoader extends TestCase {
             Vec.lerp(v0, v1, delta*k, v);
             gc.getDataValue(v, c);
             printf("(%7.5f %7.5f)->(%5.2f,%5.2f,%5.2f)\n", v.v[0],v.v[1],c.v[0],c.v[1],c.v[2]);
-
+            
         }
     }
-    
+
+    static void printDataSourceSlice(DataSource ds, Bounds bounds, int nx, int ny, double z){
+        
+        Vec pnt = new Vec(3);
+        Vec data = new Vec(4);
+
+        for(int d = 0; d < 4; d++){            
+            printf("d: %d ===\n", d);
+            for(int iy = 0; iy < ny; iy++){            
+                for(int ix = 0; ix < nx; ix++){
+                    double x = bounds.xmin + (bounds.xmax-bounds.xmin)*ix/nx;
+                    double y = bounds.ymin + (bounds.ymax-bounds.ymin)*iy/ny;
+                    pnt.v[0] = x;
+                    pnt.v[1] = y;
+                    pnt.v[2] = z;
+                    ds.getDataValue(pnt, data);
+                    printf("%8.5f ", data.v[d]);
+                }
+                printf("\n");
+            }
+            printf("===\n");
+        }
+    }
+
     static int debugCount = 1000;
 
     public static void main(String[] args) throws Exception{
@@ -423,7 +483,8 @@ public class TestGridLoader extends TestCase {
             //new TestGridLoader().devTestSTL_distance();
             //new TestGridLoader().testRasterizerDistancePrecision();
             //new TestGridLoader().testRasterizerDistance2Precision();
-            new TestGridLoader().devTestRasterizeTexturedTriangles();
+            //new TestGridLoader().devTestRasterizeTexturedTriangles();
+            new TestGridLoader().devTestDataSourceGrid();
             //new TestGridLoader().devTestGradientColorizer();
         }
     }
