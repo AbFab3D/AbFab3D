@@ -100,10 +100,8 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
 
             if (m_is != null) {
                 m_producer = new AttributedX3DReader(m_is,m_baseURL);
-                m_attributeCalc = ((AttributedX3DReader) m_producer).getAttributeCalculator();
             } else {
                 m_producer = new AttributedX3DReader(m_path);
-                m_attributeCalc = ((AttributedX3DReader) m_producer).getAttributeCalculator();
             }
         }
     }
@@ -118,6 +116,10 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
      */
     public DataSource getAttributeCalculator() {
         if (m_dataDimension == -1) throw new IllegalStateException("Must call getTriangles2 first");
+
+        if (m_producer instanceof AttributedX3DReader) {
+            m_attributeCalc = ((AttributedX3DReader) m_producer).getAttributeCalculator();
+        }
         return m_attributeCalc;
     }
 

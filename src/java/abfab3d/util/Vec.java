@@ -17,6 +17,7 @@ import javax.vecmath.Matrix3d;
 
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 
 
 /**
@@ -155,7 +156,17 @@ public class Vec {
         v[2] = z;
     }
 
-    
+
+    public static String toString(Vec v) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Vec: ");
+        for(int i=0; i < v.v.length; i++) {
+            sb.append(fmt("%8.4f",v.v[i]));
+            sb.append(" ");
+        }
+        return sb.toString();
+    }
 
 
 }

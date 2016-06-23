@@ -223,8 +223,10 @@ public class TestGridSaver extends TestCase {
         printf("gm.makeGrid() done\n");
 
         GridSaver gsaver = new GridSaver();        
-        
+
+        new File("/tmp/tex").mkdirs();
         gsaver.setWriteTexturedMesh(true);
+        gsaver.setTexPixelSize(1);
         //gsaver.setTexturePixelSize(0.5);
         gsaver.write(grid,"/tmp/tex/texturedGyroid_400.x3dv");  
         //gsaver.write(grid,"/tmp/tex/texturedMesh.x3db");  
