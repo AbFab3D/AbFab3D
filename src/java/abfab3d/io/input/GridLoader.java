@@ -474,4 +474,29 @@ public class GridLoader {
         return grid;
         
     }
+    public AttributeGrid rasterizeAttributedTriangles(AttributedMeshReader reader){
+
+        if(DEBUG) printf("GridLoader.rasterizeTexturedTriangles(%s)\n", reader);
+        TriangleProducer tp = new AttributedTriangleProducerConverter(reader);
+        Bounds bounds = getModelBounds(tp);
+        DataSource attributeColorizer = reader.getAttributeCalculator();
+        if(attributeColorizer instanceof Initializable) ((Initializable)attributeColorizer).initialize();
+        if(DEBUG) printf("model bounds: %s\n", bounds);
+        AttributeGrid grid = createDistRGBGrid(bounds);
+        if(DEBUG)printf("grid: [%d x %d x %d]\n", grid.getWidth(),grid.getHeight(),grid.getDepth());
+        if(DEBUG)printf("voxelSize: %7.5f\n", grid.getVoxelSize());
+        AttributedDistanceRasterizer rasterizer = new AttributedDistanceRasterizer(bounds, grid.getWidth(),grid.getHeight(),grid.getDepth());
+
+        rasterizer.setDataDimension(reader.getDataDimension());
+        rasterizer.setShellHalfThickness(m_shellHalfThickness);
+        rasterizer.setSurfaceVoxelSize(m_surfaceVoxelSize);
+        rasterizer.setThreadCount(m_threadCount);
+        rasterizer.setDistanceRange(-m_maxInDistance, m_maxOutDistance);
+
+        rasterizer.getAttributedDistances(reader, attributeColorizer, grid);
+
+        return grid;
+
+    }
+
 }
