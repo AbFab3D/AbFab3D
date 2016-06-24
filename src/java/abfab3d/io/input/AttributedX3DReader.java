@@ -270,7 +270,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v0.v[2] = coord[off++];
 
             v0.v[3] = tcoord[toff++];
-            v0.v[4] = tcoord[toff++];
+            v0.v[4] = 1-tcoord[toff++];
             v0.v[5] = tex;
 
             off = coordIndex[idx] * 3;
@@ -281,7 +281,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v1.v[2] = coord[off++];
 
             v1.v[3] = tcoord[toff++];
-            v1.v[4] = tcoord[toff++];
+            v1.v[4] = 1-tcoord[toff++];
             v1.v[5] = tex;
 
             off = coordIndex[idx] * 3;
@@ -292,7 +292,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v2.v[2] = coord[off++];
 
             v2.v[3] = tcoord[toff++];
-            v2.v[4] = tcoord[toff++];
+            v2.v[4] = 1-tcoord[toff++];
             v2.v[5] = tex;
             makeTransform(v0, v1, v2);
             out.addAttTri(v0, v1, v2);
@@ -322,7 +322,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v0.v[2] = coord[off++];
 
             v0.v[3] = tcoord[toff++];
-            v0.v[4] = tcoord[toff++];
+            v0.v[4] = 1-tcoord[toff++];
 
             off = coordIndex[idx] * 3;
             toff = tcoordIndex[idx++] * 2;
@@ -332,7 +332,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v1.v[2] = coord[off++];
 
             v1.v[3] = tcoord[toff++];
-            v1.v[4] = tcoord[toff++];
+            v1.v[4] = 1-tcoord[toff++];
 
             off = coordIndex[idx] * 3;
             toff = tcoordIndex[idx++] * 2;
@@ -342,7 +342,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v2.v[2] = coord[off++];
 
             v2.v[3] = tcoord[toff++];
-            v2.v[4] = tcoord[toff++];
+            v2.v[4] = 1-tcoord[toff++];
 
             makeTransform(v0, v1, v2);
             out.addAttTri(v0, v1, v2);
