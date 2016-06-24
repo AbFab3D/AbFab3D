@@ -197,9 +197,10 @@ public class TextureRenderer {
         }
 
         // TODO - shall thid be done by output data channel ? 
-        long makeAtt(double c[]){   
-            
-            return (((int)(c[0]*255))& 0xFF) | ((((int)(c[1]*255))&0xFF)<<8) | ((((int)(c[2]*255))&0xFF)<<16);
+        long makeAtt(double c[]){
+//            return (((int)(c[0]*255))& 0xFF) | ((((int)(c[1]*255))&0xFF)<<8) | ((((int)(c[2]*255))&0xFF)<<16);
+
+            return (((int)(c[2]*255))& 0xFF) | ((((int)(c[1]*255))&0xFF)<<8) | ((((int)(c[0]*255))&0xFF)<<16);
         }
 
         // get color of the given voxel 

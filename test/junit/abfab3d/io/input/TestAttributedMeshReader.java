@@ -12,6 +12,9 @@
 
 package abfab3d.io.input;
 
+import abfab3d.datasources.Constant;
+import abfab3d.grid.AttributeGrid;
+import abfab3d.io.output.GridSaver;
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.util.DataSource;
 import abfab3d.util.TriangleProducer;
@@ -193,6 +196,65 @@ public class TestAttributedMeshReader extends TestCase {
         atts.getDataValue(uv,color);
         printf("u: %4.2f v: %4.2f  color: %4.2f %4.2f %4.2f\n",uv.v[0],uv.v[1],color.v[0],color.v[1],color.v[2]);
         assertTrue("r wrong",Math.abs(color.v[0] - expected.v[0]) < EPS);
+
+    }
+
+    public void testColorWriting() throws IOException {
+
+        double voxelSize = 0.1*MM;
+
+        //String filePath = "test/models/R2D2.x3dv";
+        //String filePath = "test/models/donut_textured_ifs.x3dv";
+        String filePath = "test/models/cube_textured.x3dv";
+        //String filePath = "test/models/flufee.x3db";
+
+        AttributedMeshReader reader = new AttributedMeshReader(filePath);
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        reader.getAttTriangles(bb);
+        double bounds[] = bb.getRoundedBounds(voxelSize);
+
+        GridSaver writer = new GridSaver();
+        writer.setWriteTexturedMesh(true);
+        writer.setTexPixelSize(0.75);
+        writer.setMeshSmoothingWidth(1);
+        writer.setTexTriExt(1.5);
+        writer.setTexTriGap(1.5);
+        //String outPath = "/tmp/tex/box.svx";
+        String outPath = "/tmp/tex/donut.x3d";
+
+        GridLoader loader = new GridLoader();
+        loader.setThreadCount(0);
+        loader.setMaxInDistance(2*MM);
+        loader.setMaxOutDistance(2*MM);
+        loader.setMargins(0.2*MM);
+        loader.setPreferredVoxelSize(0.1*MM);
+
+        Constant colorizer = new Constant(0.9,0.2,0.0);
+        colorizer.initialize();
+
+        //DataSource ac = (DataSource) colorizer;
+        DataSource ac = reader.getAttributeCalculator();
+        AttributeGrid grid = loader.rasterizeAttributedTriangles(reader, ac);
+
+
+        Vec expected = new Vec(3);
+        Vec uv = new Vec(3);
+        Vec color = new Vec(3);
+        double EPS = 0.1;
+
+        expected.v[0] = 0;
+        expected.v[1] = 1;
+        expected.v[2] = 0;
+
+        uv.v[0] = 0;
+        uv.v[1] = 1;
+        ac.getDataValue(uv,color);
+        printf("u: %4.2f v: %4.2f  color: %4.2f %4.2f %4.2f\n",uv.v[0],uv.v[1],color.v[0],color.v[1],color.v[2]);
+        assertTrue("r wrong",Math.abs(color.v[0] - expected.v[0]) < EPS);
+        assertTrue("g wrong",Math.abs(color.v[1] - expected.v[1]) < EPS);
+        assertTrue("b wrong",Math.abs(color.v[2] - expected.v[2]) < EPS);
+
+        writer.write(grid, outPath);
 
     }
 

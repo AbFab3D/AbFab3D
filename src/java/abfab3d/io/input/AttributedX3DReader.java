@@ -40,7 +40,7 @@ import static abfab3d.util.Output.printf;
  */
 public class AttributedX3DReader implements AttributedTriangleProducer, Transformer{
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     /** Transformation to apply to positional vertices, null for none */
     private VecTransform m_transform;
@@ -202,6 +202,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         Boolean repeatY = (Boolean) tex.getValue("repeatY");
 
         ImageColorMap icm = new ImageColorMap(m_baseURL + File.separator + url[0],1,1,1);
+        icm.setCenter(new Vector3d(0.5,0.5,0.5));
         if (repeatX != null) icm.setRepeatX(repeatX);
         if (repeatY != null) icm.setRepeatY(repeatY);
 
@@ -269,7 +270,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v0.v[2] = coord[off++];
 
             v0.v[3] = tcoord[toff++];
-            v0.v[4] = tcoord[toff++];
+            v0.v[4] = 1-tcoord[toff++];
             v0.v[5] = tex;
 
             off = coordIndex[idx] * 3;
@@ -280,7 +281,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v1.v[2] = coord[off++];
 
             v1.v[3] = tcoord[toff++];
-            v1.v[4] = tcoord[toff++];
+            v1.v[4] = 1-tcoord[toff++];
             v1.v[5] = tex;
 
             off = coordIndex[idx] * 3;
@@ -291,7 +292,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v2.v[2] = coord[off++];
 
             v2.v[3] = tcoord[toff++];
-            v2.v[4] = tcoord[toff++];
+            v2.v[4] = 1-tcoord[toff++];
             v2.v[5] = tex;
             makeTransform(v0, v1, v2);
             out.addAttTri(v0, v1, v2);
@@ -321,7 +322,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v0.v[2] = coord[off++];
 
             v0.v[3] = tcoord[toff++];
-            v0.v[4] = tcoord[toff++];
+            v0.v[4] = 1-tcoord[toff++];
 
             off = coordIndex[idx] * 3;
             toff = tcoordIndex[idx++] * 2;
@@ -331,7 +332,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v1.v[2] = coord[off++];
 
             v1.v[3] = tcoord[toff++];
-            v1.v[4] = tcoord[toff++];
+            v1.v[4] = 1-tcoord[toff++];
 
             off = coordIndex[idx] * 3;
             toff = tcoordIndex[idx++] * 2;
@@ -341,7 +342,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v2.v[2] = coord[off++];
 
             v2.v[3] = tcoord[toff++];
-            v2.v[4] = tcoord[toff++];
+            v2.v[4] = 1-tcoord[toff++];
 
             makeTransform(v0, v1, v2);
             out.addAttTri(v0, v1, v2);
@@ -417,7 +418,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
      */
     public int getDataDimension() {
         if(m_dataDimension < 1)
-            throw new RuntimeException("data dimension is not kwnown yet");
+            throw new RuntimeException("data dimension is not known yet");
         return m_dataDimension;
     }
 
@@ -428,13 +429,15 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
        supports multiple textures 
      */
     static class AttributeCalculator implements DataSource {
+        static int debugCount = 5000;
 
         int channelsCount;
         ImageColorMap textures[];
-        AttributeCalculator(ImageColorMap textures[], int channelsCount){
+        AttributeCalculator(ImageColorMap[] textures, int channelsCount){
             this.channelsCount = channelsCount;
             this.textures = textures;
         }
+
         /**
          * Returns u,v or u,v,texIndex
          *
@@ -443,12 +446,27 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
          * @return
          */
         public int getDataValue(Vec pnt, Vec dataValue) {
-
-            int tz = (int)pnt.v[2];
+            int tz = 0;
+            double EPS = 1e-5;
+/*
+            if (pnt.v[0] == 0.000) {
+                printf("pnt: %s --> dv: %s\n", Vec.toString(pnt), Vec.toString(dataValue));
+            }
+*/
+            if (channelsCount > 2) {
+                tz = (int) pnt.v[2];
+            }
             ImageColorMap icm = textures[tz];
             
             icm.getDataValue(pnt,dataValue);
-            
+
+            if (DEBUG) {
+                if (debugCount-- > 0) {
+                    if (pnt.v[0] == 0.0) {
+                        printf("pnt: %s --> dv: %s\n", Vec.toString(pnt), Vec.toString(dataValue));
+                    }
+                }
+            }
             return RESULT_OK;
         }
         

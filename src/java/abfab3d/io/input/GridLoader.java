@@ -13,6 +13,7 @@
 package abfab3d.io.input;
 
 import abfab3d.mesh.AreaCalculator;
+import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.util.Bounds;
 import abfab3d.util.TriangleProducer;
@@ -92,8 +93,16 @@ public class GridLoader {
         }
     }
     
-    public void setThreadCount(int threadCount){
-        m_threadCount = threadCount;
+    public void setThreadCount(int count){
+        if (count < 1) {
+            count = Runtime.getRuntime().availableProcessors();
+        }
+
+        int max_threads = ((Number) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        if (count > max_threads)
+            count = max_threads;
+
+        m_threadCount = count;
     }
 
     public void setMaxGridSize(long maxGridSize){

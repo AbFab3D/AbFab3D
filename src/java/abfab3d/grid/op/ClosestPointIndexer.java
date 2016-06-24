@@ -43,20 +43,20 @@ import static abfab3d.util.MathUtil.step10;
    result is grid which contains indices of the closest point to the center of voxel
    the algorithm is originated from 
    Felzenszwalb P. Huttenlocher D. (2004) Distance Transforms of Sampled Functions
-   in origonal algorithm the points were located in the centers of voxels 
+   in original algorithm the points were located in the centers of voxels
    the result of the original algorithm was exact. 
    Here the algorithm is generalized to arbitrary locations of points 
    
    most direct generalization of original algorithm is in PI3() 
 
-   Unfortunate result of arbitrary points locations is that the algoirithm is not exact anymore. 
+   Unfortunate result of arbitrary points locations is that the algorithm is not exact anymore.
    Some percentage of voxels have errors. The points found for those voxels are located by fraction of voxel further then optimal point. 
 
-   Partial workaround is to use PI3_multiPass whcih uses several passes of the algorithm in different order. This significanly reduces errors, but increases timing. 
+   Partial workaround is to use PI3_multiPass whcih uses several passes of the algorithm in different order. This significantly reduces errors, but increases timing.
    
    The algorithm takes partially initialized grid of closest point indexes. Used point indices start from 1. Index 0 is used to represent non initialized point.    
 
-   Units or measurmement is size of voxel. 
+   Units or measurement is size of voxel.
 
    @author Vladimir Bulatov
  */
@@ -1064,7 +1064,7 @@ public class ClosestPointIndexer {
 
 
     /**
-       convert points in grid goordinates into world coordinates 
+       convert points in grid coordinates into world coordinates
      */
     public static void getPointsInWorldUnits(AttributeGrid grid, double pntx[], double pnty[], double pntz[]){
 
@@ -1085,7 +1085,7 @@ public class ClosestPointIndexer {
     }
 
     /**
-       convert points in grid goordinates into world coordinates 
+       convert points in grid coordinates into world coordinates
      */
     public static void getPointsInWorldUnits(Grid2D grid, double pntx[], double pnty[]){
 
@@ -1310,7 +1310,7 @@ public class ClosestPointIndexer {
     /**
        calculates distance grid with optional multichannel data originated from array of attributed points 
        
-       on output each voxel of outGrid contians distance to closest point and (possble transformed) attribute values of that point
+       on output each voxel of outGrid contains distance to closest point and (possible transformed) attribute values of that point
        @param indexGrid contain indices of closes point to each voxel 
        @param pnts  coordinates and attributed of each point used in 
        pnts[0] - x-coordinates 
@@ -1321,8 +1321,8 @@ public class ClosestPointIndexer {
        ..............
        @param interiorGrid if not null contain non-zero value for interior voxels. It is used to assign negative distance value to interior voxels 
        @param minDistance  minimal signed distance value to store in the grid. Values smaller than  minDistance are assigned value minDistance.
-       @param maxDistance  maximal signed distance value to store in the grid. Voxels with distacnes larger than maxDistance are 
-       @param attributeColorizer optional converter from points attributes into grid channel attributes. 
+       @param maxDistance  maximal signed distance value to store in the grid. Voxels with distances larger than maxDistance are
+       @param colorizer optional converter from points attributes into grid channel attributes.
        Particular use case when points attributes contain 2D textre coordinates and they need to be converted into 3D color components. 
        If attributeColorizer is null, identity DataSource is used instead.
 
