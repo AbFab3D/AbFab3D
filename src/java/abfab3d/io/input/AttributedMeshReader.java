@@ -83,6 +83,10 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
                     main = files[i].getAbsolutePath();
                 }
             }
+
+            if (main == null) {
+                throw new IllegalArgumentException("Zip does not contain a supported main file");
+            }
             m_path = main;
 
             printf("main file: %s\n",m_path);
