@@ -184,6 +184,21 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
      }
 
     /**
+       @return bit shift of this channel data 
+     */
+     public int getShift(){
+         return m_shift;
+     }
+
+    /**
+       @return mask used to extract data for this channel using following expression 
+       data = ((attribute >> shift) & mask)
+     */
+     public long getMask(){
+         return m_mask;
+     }
+
+    /**
        @return type of the channel as string. 
     */
     public String getType(){

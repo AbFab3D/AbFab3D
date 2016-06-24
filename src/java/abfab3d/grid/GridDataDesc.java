@@ -74,6 +74,17 @@ public class GridDataDesc {
 
     Vector<GridDataChannel> m_channels = new Vector<GridDataChannel>();
 
+
+    /**
+       add channel to the grid data descripting 
+     */
+    public void addChannel(GridDataChannel channel){
+
+        m_channels.add(channel);
+
+    }
+
+
     /**
        @return count of data channels 
      */
@@ -113,16 +124,6 @@ public class GridDataDesc {
         }
         return null;
     }
-
-    /**
-       
-     */
-    public void addChannel(GridDataChannel channel){
-
-        m_channels.add(channel);
-
-    }
-
 
     
     /**

@@ -1183,14 +1183,7 @@ public class MathUtil {
         if(bitCount >= 64)
             return 0xFFFFFFFFL;
         return ((1L << bitCount)-1);
-        /*
-        long mask = 0;
-        for(int i = 0; i < bitCount; i++){
-            mask |= (1L << i);
-        }
 
-        return ((1L << bitCount)-1);
-        */
     }
 
 

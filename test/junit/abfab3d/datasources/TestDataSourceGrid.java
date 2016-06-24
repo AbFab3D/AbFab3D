@@ -115,8 +115,8 @@ public class TestDataSourceGrid extends TestCase {
         }
         
         DataSourceGrid ds = new DataSourceGrid(grid);
-        int data[] = new int[ds.getGridDataBufferSize()];
-        ds.getGridData(data);
+        int data[] = new int[ds.getBufferSize()];
+        ds.getBuffer(data);
         for(int i = 0; i < data.length; i++){
             printf("%08x\n", data[i]);
         }

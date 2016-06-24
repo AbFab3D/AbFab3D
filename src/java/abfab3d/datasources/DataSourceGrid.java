@@ -20,6 +20,7 @@ import abfab3d.util.Bounds;
 import abfab3d.grid.GridDataChannel;
 import abfab3d.grid.GridDataDesc;
 import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.AttributePacker;
 
 import abfab3d.param.IntParameter;
@@ -87,7 +88,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
     ObjectParameter  mp_grid = new ObjectParameter("grid","grid to be used as source", null);
     ObjectParameter  mp_bufferDataPacker = new ObjectParameter("dataPacker","packer for grid data into buffer", null);
-    IntParameter  mp_gridDataTypeSize = new IntParameter("gridDataTypeSize","size of grid data type", 1);
+    IntParameter  mp_gridDataTypeSize = new IntParameter("gridDataTypeSize","size of grid data type in bytes", 1);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_grid,
@@ -147,12 +148,16 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         }
     }
 
+    /**
+     * @noRefGuide
+     */
     protected void emptyCache(){
         m_cachedByteData = null;
     }
 
     /**
        
+     * @noRefGuide
        sets type used for intervoxel interpolation
        @param value of interpolation (INTERPOLATION_BOX or INTERPOLATION_LINEAR)
        
@@ -166,6 +171,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     }
 
     /**
+     * @noRefGuide
      * Gets type used for intervoxel interpolation
      */
     public int getInpolationType() {
@@ -204,52 +210,71 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         return m_nz;
     }
 
-    public GridDataChannel[] getDataChannels() {
-        return m_dataChannels;
-    }
-
     /**
+     * @noRefGuide
      * Set the data size in bytes to use for a grid.  Determines precision of rendering.
+     
      * @param size Currently supports 1 or 2
+     *
      */
-    public void setGridDataTypeSize(int size) {
-        mp_gridDataTypeSize.setValue(size);
-    }
-
-    public int getGridDataTypeSize() {
-        return mp_gridDataTypeSize.getValue();
-    }
+    //public void setGridDataTypeSize(int size) {
+    //    mp_gridDataTypeSize.setValue(size);
+    //}
 
     /**
      * @noRefGuide
      */
-    /*
-    public byte[] getCachedData(){
-        if(m_cachedByteData == null){
-
-            int gridDataTypeSize = mp_gridDataTypeSize.getValue();
-            switch(gridDataTypeSize){
-            default: 
-            case 1: 
-                m_cachedByteData = new byte[m_nx*m_ny*m_nz];
-                getGridDataUByte(m_cachedByteData);
-                break;
-            case 2: 
-                m_cachedByteData = new byte[m_nx*m_ny*m_nz*2];
-                getGridDataUShort(m_cachedByteData);
-                break;
-            }
-        } 
-        return m_cachedByteData;         
-    }
-    */
-
+    //public int getGridDataTypeSize() {
+    //    return mp_gridDataTypeSize.getValue();
+    //}
     
-    public int getGridDataBufferSize(){
-        return getGridDataBufferSize(m_grid.getDataDesc().getAttributePacker());
+    public GridDataDesc getGridDataDesc(){
+
+        return m_grid.getDataDesc();
+
     }
 
-    public int getGridDataBufferSize(AttributePacker packer){
+    /**
+     * @noRefGuide
+       returns buffer data description 
+     */
+    public GridDataDesc getBufferDataDesc(){
+
+        //int dds = getGridDataTypeSize();
+        GridDataDesc gdd = m_grid.getDataDesc();
+        // make new GridDataDesc which will be used to make buffer data                
+        GridDataDesc bdd = new GridDataDesc();
+        int cc = gdd.size();        
+        int bitOffset = 0;
+        for(int i = 0; i < cc; i++){
+            GridDataChannel gc = gdd.getChannel(i);
+            //TODO make active channels selectable 
+            //TODO make bitCount adjustable           
+            int bitCount = 8;
+            bdd.addChannel(new GridDataChannel(gc.getType(),gc.getName(),bitCount,bitOffset, gc.getValue0(), gc.getValue1()));
+            bitOffset += bitCount;
+        }
+
+        return bdd;
+
+    }
+
+    /**
+     * @noRefGuide
+       returns size (in words) of data buffer needed to store grid data 
+     */
+    public int getBufferSize(){
+
+        return getBufferSize(getBufferDataDesc());
+    }
+
+    /**
+     * @noRefGuide
+     * returns size of buffer needed for specific grid data description 
+     */
+    public int getBufferSize(GridDataDesc bufDataDesc){
+
+        AttributePacker packer = bufDataDesc.getAttributePacker();
 
         int outBits = packer.getBitCount();
 
@@ -279,15 +304,47 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
     }
 
-    /**
-       
-     */
-    public void getGridData(int data[]){
-        getGridData(data, m_grid.getDataDesc().getAttributePacker());
+    public int getBufferTypeSize(){
+
+        return  getBufferTypeSize(getBufferDataDesc());
+
+
     }
 
-    public void getGridData(int data[], AttributePacker packer){
-        
+    public int getBufferTypeSize(GridDataDesc bufferDataDesc){
+
+        int bits = bufferDataDesc.getAttributePacker().getBitCount();
+        int bytes = (bits + BYTE_BITS-1)/BYTE_BITS;
+        switch(bytes){
+        default:
+            throw new RuntimeException(fmt("unsupported bytes count:%d", bytes));
+        case 1: 
+            return 1;
+        case 2: 
+            return 2;
+        case 3: 
+        case 4: 
+            return 4;
+        }                
+    }
+
+    /**
+       return data in default data format
+       
+     */
+    public void getBuffer(int data[]){
+
+        getBuffer(data, getBufferDataDesc());
+
+    }
+
+
+    /**
+       return data in specific data format
+     */
+    public void getBuffer(int data[], GridDataDesc bufferDataDesc){
+
+        AttributePacker packer = bufferDataDesc.getAttributePacker();
         int nx = m_nx;
         int ny = m_ny;
         int nz = m_nz;
@@ -314,8 +371,9 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     /**
        return grid data as array of bytes packed into array of ints
      */
-    public void getGridDataUByte(int data[], AttributePacker unpacker, AttributePacker packer){
+    protected void getGridDataUByte(int data[], AttributePacker unpacker, AttributePacker packer){
         
+        if(DEBUG)printf("getGridDataUByte()\n");
         final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = nx*nz;
         Vec value = new Vec(MAX_DATA_DIMENSION);
 
@@ -340,8 +398,9 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     /**
        return grid data as array of shorts packed into array of ints
      */
-    public void getGridDataUShort(int data[], AttributePacker unpacker, AttributePacker packer){
+     protected void getGridDataUShort(int data[], AttributePacker unpacker, AttributePacker packer){
 
+         if(DEBUG)printf("getGridDataUShort()\n");
         final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = nx*nz;
         Vec value = new Vec(MAX_DATA_DIMENSION);
         for(int y = 0; y < ny; y++){
@@ -365,88 +424,34 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     }
 
     /**
+     * @noRefGuide
        return grid data as array of ints
      */
-    public void getGridDataUInt(int data[], AttributePacker unpacker, AttributePacker packer){
-
-        final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = nx*nz;
-        Vec value = new Vec(MAX_DATA_DIMENSION);
-        for(int z = 0; z < nz; z++){
-            for(int y = 0; y < ny; y++){
-                for(int x = 0; x < nx; x++){
-                    long att = m_grid.getAttribute(x, y, z); 
-                    long outAtt = att;
-                    if(unpacker != packer){
-                        unpacker.getData(att, value);
-                        outAtt = packer.makeAttribute(value);
-                    }
-                    int ind = (x*nz + y * nxz + z); 
-                    data[ind] = (int)(outAtt & INT_MASK);                    
-                }
-            }            
-        }        
-    }
-
-    /**
-     * @noRefGuide
-     * fill byte array with grid data converted into bytes
-     */
-    /*
-    public void getGridDataUByte(byte data[]){
-
-        int nx = m_nx;
-        int ny = m_ny;
-        int nz = m_nz;
-        int nxy = nx*ny;
-
-        double vmin = m_dataChannel.getValue0();
-        double vmax = m_dataChannel.getValue1();
-        if(DEBUG) printf("vmin: %9.5f, vmax: %9.5f\n", vmin, vmax);
-
-        for(int z = 0; z < nz; z++){
-            for(int y = 0; y < ny; y++){
-                for(int x = 0; x < nx; x++){
-                    
-                    double v = m_dataChannel.getValue(m_grid.getAttribute(x, y, z));
-                    // v is inside of (vmin, vmax);
-                    data[x + y * nx + z * nxy] = (byte)((int)(MAX_BYTE*clamp((v - vmin)/(vmax - vmin),0.,1.)) & MAX_BYTE);
-                }
-            }            
-        }
-    }
-    */
-    /**
-     * @noRefGuide
-     * fill byte array with grid data converted into unsigned short
-     */
-    /*
-    public void getGridDataUShort(byte data[] ){
-
-        int nx = m_nx;
-        int ny = m_ny;
-        int nz = m_nz;
-        int nxy = nx*ny;
-
-        double vmin = m_dataChannel.getValue0();
-        double vmax = m_dataChannel.getValue1();
-        if(DEBUG) printf("vmin: %9.5f, vmax: %9.5f\n", vmin, vmax);
-
-        for(int z = 0; z < nz; z++){
-            for(int y = 0; y < ny; y++){
-                for(int x = 0; x < nx; x++){
-                    
-                    double v = m_dataChannel.getValue(m_grid.getAttribute(x, y, z));
-                    // v is inside of (vmin, vmax);
-                    int value = ((int)(MAX_SHORT*clamp((v - vmin)/(vmax - vmin),0.,1.)) & MAX_SHORT);
-                    int ind = 2*(x + y * nx + z * nxy);
-                    data[ind] = (byte)(value & MAX_BYTE); 
-                    data[ind + 1] = (byte)((value >> 8) & MAX_BYTE);
-                }
-            }            
-        }
-    }
-    */
-
+     protected void getGridDataUInt(int data[], AttributePacker unpacker, AttributePacker packer){
+         
+         if(DEBUG)printf("getGridDataUInt()\n");
+         final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = nx*nz;
+         Vec value = new Vec(MAX_DATA_DIMENSION);
+         if(false)printf("--------------\n ");
+         for(int z = 0; z < nz; z++){
+             for(int y = 0; y < ny; y++){
+                 for(int x = 0; x < nx; x++){
+                     long att = m_grid.getAttribute(x, y, z); 
+                     long outAtt = att;
+                     if(unpacker != packer){
+                         unpacker.getData(att, value);
+                         outAtt = packer.makeAttribute(value);
+                     }
+                     if(false)printf("%8x ", outAtt);
+                     int ind = (x*nz + y * nxz + z); 
+                     data[ind] = (int)(outAtt & INT_MASK);                    
+                 }
+                 if(false)printf("\n ");
+             }            
+             if(false)printf("-----------\n ");
+         }        
+     }
+    
     /**
 
        @noRefGuide            
@@ -579,15 +584,50 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         
     }
     
+
     /**
-       not most efficient way - accessed grid multiple times 
+       temp hack to make colored distance grid 
+       @noRefGuide            
+       
      */
-    private final double getGridValue(int x, int y, int z, int channel){
+    public void colorize(){
+
+        if(DEBUG)printf("DataSourceGrid.colorize()");
+        double vs = m_grid.getVoxelSize();
+        AttributeGrid cGrid = new ArrayAttributeGridInt(m_grid.getGridBounds(), vs, vs);
+        GridDataChannel distChannel = m_grid.getDataChannel();
+        double maxDist = Math.abs(distChannel.getValue0());
+        GridDataDesc cDesc = GridDataDesc.getDistBGR(maxDist);
+        cGrid.setDataDesc(cDesc);
+        AttributePacker packer = cDesc.getAttributePacker();
+        Vec pnt = new Vec(3);
+        Vec out = new Vec(4);        
+        if(false)printf("---------------\n");
+        for(int iy = 0; iy < m_ny; iy++){
+            for(int ix = 0; ix < m_nx; ix++){
+                for(int iz = 0; iz < m_nz; iz++){
+                    long iatt = m_grid.getAttribute(ix, iy, iz);
+                    //printf("%8x ", iatt);
+                    double dist = distChannel.getValue(iatt);
+                    //printf("%4d", (int)(100*(dist/maxDist)));
+                    out.v[0] = dist;
+                    double r = Math.sin(4*Math.PI*ix/m_nx);
+                    double g = Math.sin(8*Math.PI*iy/m_ny);
+                    double b = Math.sin(16*Math.PI*iz/m_nz);
+                    out.v[1] = r*r;
+                    out.v[2] = g*g;
+                    out.v[3] = b*b;
+                    long att = packer.makeAttribute(out);
+                    if(false)printf("%8x ", att);
+                    cGrid.setAttribute(ix, iy, iz, att);
+                }
+                if(false)printf("\n");
+            }
+            if(false)printf("---------------\n");
+        }
         
-        return m_dataChannels[channel].getValue(m_grid.getAttribute(x,y,z));
-
+        m_grid = cGrid;
     }
-
     /**
      * @noRefGuide
      */
