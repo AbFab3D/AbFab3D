@@ -74,8 +74,8 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
             String main = null;
 
             for(int i=0; i < len; i++) {
-                String st = files[i].getName();
-                if (supportedExt.contains(st)) {
+                String ext = FilenameUtils.getExtension(files[i].getName());
+                if (supportedExt.contains(ext)) {
                     if (main != null) {
                         throw new IllegalArgumentException("Zip contains multiple main file.  First: " + main + " Second: " + files[i]);
                     }
