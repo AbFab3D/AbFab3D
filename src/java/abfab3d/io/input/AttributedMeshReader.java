@@ -92,7 +92,7 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
             printf("main file: %s\n",m_path);
         }
 
-        m_format = FilenameUtils.getExtension(path);
+        m_format = FilenameUtils.getExtension(m_path);
     }
 
     /**

@@ -261,6 +261,7 @@ public class ImageColorMap extends TransformableDataSource {
             try {
                 m_imageData = new ImageColor(ImageIO.read(new File((String) imageSource)));
             } catch (IOException e) {
+                printf("Can't find file: %s\n",imageSource);
                 // empty 1x1 image 
                 m_imageData = new ImageColor(1, 1);
                 throw new RuntimeException(e);
