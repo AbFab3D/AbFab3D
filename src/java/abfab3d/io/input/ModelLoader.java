@@ -12,7 +12,6 @@
 package abfab3d.io.input;
 
 import abfab3d.grid.AttributeGrid;
-import abfab3d.io.shapeways.MaterialType;
 
 import static abfab3d.util.Units.*;
 import static abfab3d.util.Output.printf;
@@ -37,6 +36,7 @@ public class ModelLoader {
     private AttributeGrid m_grid;
     private AttributedMeshReader m_reader;
     private abfab3d.shapejs.MaterialType m_materialType;
+    private long m_maxGridSize = 1000l * 1000 * 1000;
 
 
     public ModelLoader(String path) {
@@ -105,11 +105,15 @@ public class ModelLoader {
         m_maxOutDistance = val;
     }
 
+    public void setMaxGridSize(long val) {
+        m_maxGridSize = val;
+    }
+
     public AttributeGrid getGrid() {
         if (m_grid != null) return m_grid;
 
         GridLoader loader = new GridLoader();
-        loader.setMaxGridSize(1000 * 1000 * 1000L);
+        loader.setMaxGridSize(m_maxGridSize);
         loader.setDensityBitCount(m_densityBitCount);
         loader.setDistanceBitCount(m_distanceBitCount);
         loader.setPreferredVoxelSize(m_vs);
