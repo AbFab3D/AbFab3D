@@ -171,6 +171,9 @@
             jars="vecmath.jar xj3d-core_2.0.0.jar j3d-org-all_2.0.0.jar"
         />
 
+        <compilejava package="abfab3d/shapejs"
+                     jars=""
+                />
         <compilejava package="abfab3d/validate"
             jars=""
         />
@@ -353,6 +356,7 @@
                 abfab3d/intersect/*
                 abfab3d/distance/*
                 abfab3d/mesh/*
+                abfab3d/shapejs/*
                 abfab3d/io/input/*
                 abfab3d/io/output/*
                 abfab3d/opencl/*

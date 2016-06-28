@@ -57,8 +57,9 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
     private int m_dataDimension = 0;
 
     public AttributedX3DReader(String path) {
-        m_path = path;
-        m_baseURL = File.separator + FilenameUtils.getPath(path);
+        File f = new File(path);
+        m_path = f.getAbsolutePath();
+        m_baseURL = f.getParent();
         printf("base url: %s\n",m_baseURL);
     }
     
@@ -202,7 +203,9 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         Boolean repeatX = (Boolean) tex.getValue("repeatX");
         Boolean repeatY = (Boolean) tex.getValue("repeatY");
 
-        ImageColorMap icm = new ImageColorMap(m_baseURL + File.separator + url[0],1,1,1);
+        String path = m_baseURL + File.separator + url[0];
+        if (DEBUG) printf("X3DReader.addTexture: %s\n",path);
+        ImageColorMap icm = new ImageColorMap(path,1,1,1);
         icm.setCenter(new Vector3d(0.5,0.5,0.5));
         if (repeatX != null) icm.setRepeatX(repeatX);
         if (repeatY != null) icm.setRepeatY(repeatY);
@@ -449,6 +452,8 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         public int getDataValue(Vec pnt, Vec dataValue) {
             int tz = 0;
             double EPS = 1e-5;
+
+            // TODO: All of these compares are bad, switch to different impls based on dimensions
 /*
             if (pnt.v[0] == 0.000) {
                 printf("pnt: %s --> dv: %s\n", Vec.toString(pnt), Vec.toString(dataValue));
@@ -457,8 +462,14 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             if (channelsCount > 2) {
                 tz = (int) pnt.v[2];
             }
+
+            if (tz > textures.length - 1 || textures[tz] == null) {
+                printf("***defaulting to no textures\n");
+                dataValue.set(pnt);
+                return RESULT_OK;
+
+            }
             ImageColorMap icm = textures[tz];
-            
             icm.getDataValue(pnt,dataValue);
 
             if (DEBUG) {

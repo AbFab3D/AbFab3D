@@ -105,7 +105,6 @@ public class AttributedMesh implements AttributedTriangleProducer, TriangleProdu
     }
 
     public boolean getAttTriangles(AttributedTriangleCollector tc) {
-        printf("Getting att triangles\n");
         for(Triangle t : tris) {
             tc.addAttTri(t.v0, t.v1, t.v2);
         }
@@ -118,8 +117,6 @@ public class AttributedMesh implements AttributedTriangleProducer, TriangleProdu
     }
 
     public boolean getTriangles(TriangleCollector tc) {
-        printf("Getting regular triangles\n");
-
         Vector3d v0 = new Vector3d();
         Vector3d v1 = new Vector3d();
         Vector3d v2 = new Vector3d();

@@ -27,7 +27,7 @@ import static abfab3d.util.Output.printf;
 public class GridDataDesc {
 
     static final boolean DEBUG = false;
-    static int debugCount = 0;
+    static int debugCount = 20;
 
     AttributePacker m_attributePacker; 
 

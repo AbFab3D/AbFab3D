@@ -144,6 +144,8 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
                 m_producer = new AttributedX3DReader(m_path);
             }
         }
+
+        if (m_producer == null) throw new IllegalArgumentException("Unsupported format: " + m_format + " path: " + m_path);
     }
         
     public void setTransform(VecTransform trans) {
