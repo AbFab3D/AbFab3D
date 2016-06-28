@@ -57,16 +57,11 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
     private int m_dataDimension = 0;
 
     public AttributedX3DReader(String path) {
-
         m_path = path;
-
-        // TODO: Sketchy
-        String p = path.replace("C:\\","\\");
-        printf("p: %s\n",p);
-        m_baseURL = "\\" + FilenameUtils.getPath(p);
-
+        m_baseURL = File.separator + FilenameUtils.getPath(path);
         printf("base url: %s\n",m_baseURL);
     }
+    
     public AttributedX3DReader(InputStream is, String baseURL) {
         m_is = is;
         m_baseURL = baseURL;
