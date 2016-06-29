@@ -62,7 +62,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         m_baseURL = f.getParent();
         printf("base url: %s\n",m_baseURL);
     }
-    
+
     public AttributedX3DReader(InputStream is, String baseURL) {
         m_is = is;
         m_baseURL = baseURL;
@@ -91,7 +91,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
                 m_fileLoader.loadFile(new File(m_path));
             }
         }
-                
+
         List<CommonEncodable> shapes = m_fileLoader.getShapes();
 
         Iterator<CommonEncodable> itr = shapes.iterator();
@@ -159,7 +159,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
 
             tex++;
         }
-        
+
     }
 
     /**
@@ -257,7 +257,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
      */
     private void addTriangles6(float coord[],float tcoord[],int tex, int coordIndex[], int[] tcoordIndex, AttributedTriangleCollector out){
         if(DEBUG)printf("%s.addTriangles(coord:%d, coordIndex:%d)\n", this,coord.length, coordIndex.length );
-        // count of triangles 
+        // count of triangles
         int len = coordIndex.length / 3;
 
         Vec
@@ -266,7 +266,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             v2 = new Vec(6);
 
         for(int i=0, idx = 0; i < len; i++ ) {
-            
+
             int off = coordIndex[idx] * 3;
             int toff = tcoordIndex[idx++] * 2;
             v0.v[0] = coord[off++];
@@ -301,7 +301,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             makeTransform(v0, v1, v2);
             out.addAttTri(v0, v1, v2);
         }
-        
+
     }
 
     /**
@@ -355,16 +355,16 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
     }
 
     final void makeTransform(Vec v0, Vec v1, Vec v2){
-        
+
         if(m_transform == null)
             return;
-        
+
         m_transform.transform(v0,v0);
         m_transform.transform(v1,v1);
         m_transform.transform(v2,v2);
     }
 
-    
+
     /**
      * interface TriangleProducer2
      */
@@ -428,9 +428,9 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
 
 
     /**
-       calculates color value for point in texture coordinates 
+       calculates color value for point in texture coordinates
        multiple textures are indexed by 3rd coordinate
-       supports multiple textures 
+       supports multiple textures
      */
     static class AttributeCalculator implements DataSource {
         static int debugCount = 5000;
@@ -464,11 +464,10 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             }
 
             if (tz > textures.length - 1 || textures[tz] == null) {
-                printf("***defaulting to no textures\n");
                 dataValue.set(pnt);
                 return RESULT_OK;
-
             }
+
             ImageColorMap icm = textures[tz];
             icm.getDataValue(pnt,dataValue);
 
@@ -481,7 +480,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             }
             return RESULT_OK;
         }
-        
+
         /**
 
            @Override
@@ -489,13 +488,13 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         public int getChannelsCount() {
             return channelsCount;
         }
-        
+
         /**
            @Override
         */
         public Bounds getBounds() {
             return null;
-        }            
+        }
         /**
            @Override
          */
