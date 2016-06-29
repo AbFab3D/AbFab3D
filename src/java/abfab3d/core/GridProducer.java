@@ -11,8 +11,6 @@
  ****************************************************************************/
 package abfab3d.core;
 
-import abfab3d.grid.AttributeGrid;
-
 /**
  * Able to produce a grid result
  *
