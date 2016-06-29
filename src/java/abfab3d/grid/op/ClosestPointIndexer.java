@@ -1549,10 +1549,10 @@ public class ClosestPointIndexer {
         double xmin = bounds.xmin+vs2;
         double ymin = bounds.ymin+vs2;
         double zmin = bounds.zmin+vs2;
-
+        
         long inAtt = distanceDataChannel.makeAtt(minDistance);
         long outAtt = distanceDataChannel.makeAtt(maxDistance);
-
+        printf("minDistance: %7.5f maxDistance: %7.5f minAtt: 0x%x  maxAtt: 0x%x \n", minDistance, maxDistance, inAtt, outAtt);
         for(int y = yStart; y < yEnd; y++){
             double coordy = ymin + vs*y;
             for(int x = 0; x < nx; x++){

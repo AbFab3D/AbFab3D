@@ -42,7 +42,7 @@ import static abfab3d.util.MathUtil.lerp3;
  */
 public class DataSourceGrid extends TransformableDataSource implements Cloneable {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     static int debugCount = 1000;
     //static final int MAX_SHORT = 0xFFFF;
     //static final int MAX_BYTE = 0xFF;
@@ -122,9 +122,21 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     public DataSourceGrid(AttributeGrid grid, double _bounds[], int subvoxelResolution){
         
         super.addParams(m_aparam);
-        
-        mp_grid.setValue(grid);
 
+        setGrid(grid);
+
+        if(DEBUG){
+            printf("DataSourceGrid()\n");
+            printf("  grid: (%d x %d x %d) \n", grid.getWidth(),grid.getHeight(),grid.getDepth());
+        }
+    }
+
+    public void setGrid(AttributeGrid grid){
+
+        printf("setGrid(%d x %d x %d) \n", grid.getWidth(),grid.getHeight(),grid.getDepth());
+
+        mp_grid.setValue(grid);
+        
         m_grid = grid;
         
         Bounds bounds = m_grid.getGridBounds();
@@ -139,13 +151,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
         xscale = m_nx / bounds.getSizeX();
         yscale = m_ny / bounds.getSizeY();
-        zscale = m_nz / bounds.getSizeZ();
-
-
-        if(DEBUG){
-            printf("DataSourceGrid()\n");
-            printf("  grid: (%d x %d x %d) \n", grid.getWidth(),grid.getHeight(),grid.getDepth());
-        }
+        zscale = m_nz / bounds.getSizeZ();        
+            
     }
 
     /**
@@ -348,7 +355,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         int nx = m_nx;
         int ny = m_ny;
         int nz = m_nz;
-        int nxy = nx*ny;
+        //int nxy = nx*ny;
         Vec value = new Vec(6);
         AttributePacker unpacker = m_grid.getDataDesc().getAttributePacker();
         int outBits = packer.getBitCount();
@@ -374,9 +381,9 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     protected void getGridDataUByte(int data[], AttributePacker unpacker, AttributePacker packer){
         
         if(DEBUG)printf("getGridDataUByte()\n");
-        final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = nx*nz;
+        final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = m_nx*m_nz;
         Vec value = new Vec(MAX_DATA_DIMENSION);
-
+        
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){
                 for(int z = 0; z < nz; z++){
@@ -401,28 +408,28 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
      protected void getGridDataUShort(int data[], AttributePacker unpacker, AttributePacker packer){
 
          if(DEBUG)printf("getGridDataUShort()\n");
-        final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = nx*nz;
-        Vec value = new Vec(MAX_DATA_DIMENSION);
-        for(int y = 0; y < ny; y++){
-            for(int x = 0; x < nx; x++){
-                for(int z = 0; z < nz; z++){
-                    long att = m_grid.getAttribute(x, y, z); 
-                    long outAtt = att;
-                    if(unpacker != packer){
-                        unpacker.getData(att, value);
-                        outAtt = packer.makeAttribute(value);
-                    }
-
-                    unpacker.getData(att, value);
-                    int ind = (x*nz + y * nxz + z); 
-                    int wordInd = ind >> 1;
-                    int shortInWord = ind & 1; 
-                    data[wordInd] = (int)((data[wordInd] & SHORT_COMPLEMENT[shortInWord]) | (outAtt << SHORT_SHIFT[shortInWord]));
-                }
-            }            
-        }                
-    }
-
+         final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = m_nx*m_nz;
+         Vec value = new Vec(MAX_DATA_DIMENSION);
+         for(int y = 0; y < ny; y++){
+             for(int x = 0; x < nx; x++){
+                 for(int z = 0; z < nz; z++){
+                     long att = m_grid.getAttribute(x, y, z); 
+                     long outAtt = att;
+                     if(unpacker != packer){
+                         unpacker.getData(att, value);
+                         outAtt = packer.makeAttribute(value);
+                     }
+                     
+                     unpacker.getData(att, value);
+                     int ind = (x*nz + y * nxz + z); 
+                     int wordInd = ind >> 1;
+                     int shortInWord = ind & 1; 
+                     data[wordInd] = (int)((data[wordInd] & SHORT_COMPLEMENT[shortInWord]) | (outAtt << SHORT_SHIFT[shortInWord]));
+                 }
+             }            
+         }                
+     }
+    
     /**
      * @noRefGuide
        return grid data as array of ints
@@ -430,12 +437,12 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
      protected void getGridDataUInt(int data[], AttributePacker unpacker, AttributePacker packer){
          
          if(DEBUG)printf("getGridDataUInt()\n");
-         final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = nx*nz;
+         final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = m_nx*m_nz;
          Vec value = new Vec(MAX_DATA_DIMENSION);
          if(false)printf("--------------\n ");
-         for(int z = 0; z < nz; z++){
-             for(int y = 0; y < ny; y++){
-                 for(int x = 0; x < nx; x++){
+         for(int y = 0; y < ny; y++){
+             for(int x = 0; x < nx; x++){
+                 for(int z = 0; z < nz; z++){
                      long att = m_grid.getAttribute(x, y, z); 
                      long outAtt = att;
                      if(unpacker != packer){
@@ -626,7 +633,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
             if(false)printf("---------------\n");
         }
         
-        m_grid = cGrid;
+        setGrid(cGrid);
+
     }
     /**
      * @noRefGuide

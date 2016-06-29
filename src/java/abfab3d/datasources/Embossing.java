@@ -22,12 +22,12 @@ import abfab3d.param.DoubleParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
+import abfab3d.util.MathUtil;
+
 
 import static java.lang.Math.abs;
 
 import static abfab3d.util.Output.printf;
-
-
 import static abfab3d.util.MathUtil.clamp;
 import static abfab3d.util.MathUtil.step10;
 
@@ -45,16 +45,16 @@ import static abfab3d.util.Units.MM;
  */
 public class Embossing extends TransformableDataSource implements SNode {
     
-    DataSource dataSource1;
-    DataSource dataSource2;
 
     SNodeParameter mp_shape = new SNodeParameter("baseShape");
     SNodeParameter mp_embosser = new SNodeParameter("embosser");
     DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
     DoubleParameter mp_minValue = new DoubleParameter("minValue", "min value to emboss", -1*MM);
     DoubleParameter mp_maxValue = new DoubleParameter("maxValue", "max value to emboss", 1*MM);
-    DoubleParameter mp_factor = new DoubleParameter("factor", "embosser factor", 1.);
-    DoubleParameter mp_offset = new DoubleParameter("offset", "embosser offset", 0.);
+    DoubleParameter mp_factor = new DoubleParameter("factor", "multipier for embosser value", 1.);
+    DoubleParameter mp_offset = new DoubleParameter("offset", "offset for embosser value", 0.);
+    DoubleParameter mp_attribMixThreshold = new DoubleParameter("attribMixThreshold", "threshold when attributes mixing occurs", 0.1);
+    DoubleParameter mp_attribMixBlendWidth = new DoubleParameter("attribMixBlendWidth", "with of transition for attributes mixing", 0.1);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_shape,
@@ -64,7 +64,10 @@ public class Embossing extends TransformableDataSource implements SNode {
         mp_maxValue,
         mp_factor,
         mp_offset,
+        mp_attribMixThreshold,
+        mp_attribMixBlendWidth,
     };    
+
 
     /**
        constructor for shape and embosser
@@ -183,21 +186,45 @@ public class Embossing extends TransformableDataSource implements SNode {
         return mp_blendWidth.getValue();
     }
 
+    // private variables for used in calculation 
+    
+    private TransformableDataSource m_baseShape;
+    private TransformableDataSource m_embosser;
+    private double m_minValue; 
+    private double m_maxValue; 
+    private double m_factor; 
+    private double m_offset; 
+    private int m_embosserChannelsCount;
+    private int m_baseChannelsCount;
+    private double m_attribMixFactor;
+    private double m_attribMixThreshold;
+
     /**
        @noRefGuide
      */
     public int initialize(){
 
         super.initialize();
-        dataSource1 = (DataSource)mp_shape.getValue();
-        dataSource2 = (DataSource)mp_embosser.getValue();
+        m_baseShape = (TransformableDataSource)mp_shape.getValue();
+        m_embosser = (TransformableDataSource)mp_embosser.getValue();
+        super.initializeChild(m_baseShape);
+        super.initializeChild(m_embosser);
 
-        if(dataSource1 != null && dataSource1 instanceof Initializable){
-            ((Initializable)dataSource1).initialize();
-        }
-        if(dataSource2 != null && dataSource2 instanceof Initializable){
-            ((Initializable)dataSource2).initialize();
-        }
+        m_minValue = mp_minValue.getValue();
+        m_maxValue = mp_maxValue.getValue();
+        m_factor = mp_factor.getValue();
+        m_offset = mp_offset.getValue();
+
+
+        m_embosserChannelsCount = m_embosser.getChannelsCount();
+        m_baseChannelsCount = m_baseShape.getChannelsCount();
+
+        m_channelsCount = m_baseChannelsCount;
+        double th = (m_maxValue - m_minValue)*mp_attribMixThreshold.getValue();
+        double mf = 1/(mp_attribMixBlendWidth.getValue()*(m_maxValue - m_minValue));
+        m_attribMixThreshold = th;
+        m_attribMixFactor = mf;
+        //printf("th: %10.5f mf: %10.5f\n", th, mf);
         return RESULT_OK;
         
     }
@@ -205,51 +232,30 @@ public class Embossing extends TransformableDataSource implements SNode {
     /**
      * @noRefGuide
        
-     * calculates values of all data sources and return maximal value
-     * can be used to make union of few shapes
      */
     public int getDataValue(Vec pnt, Vec data) {
         
         super.transform(pnt);
-        double v1 = 0, v2 = 0;
-        // TODO implement properly 
-        // this currently works as pure subtraction 
-        int res = dataSource1.getDataValue(new Vec(pnt), data);
-        if(res != RESULT_OK){
-            data.v[0] = 0.0;
-            return res;
-        }
-        
-        v1 = data.v[0];
-        
-        if(v1 <= 0.){
-            data.v[0] = 0.0;
-            return RESULT_OK;
-        }
-        
-        // we are here if v1 > 0
-        
-        res = dataSource2.getDataValue(new Vec(pnt), data);
-        
-        if(res != RESULT_OK){
-            data.v[0] = v1;
-            return RESULT_OK;
-        }
-        
-        v2 = data.v[0];
-        if(v2 >= 1.){
-            data.v[0] = 0.;
-            return RESULT_OK;
-        }
-        data.v[0] = v1*(1-v2);
-        
+                
+        Vec embData = new Vec(m_embosserChannelsCount);
+
+        m_baseShape.getDataValue(pnt, data);
+        m_embosser.getDataValue(pnt, embData);
+        // embossing distance 
+        double dist = embData.v[0]*m_factor + m_offset;
+        dist = clamp(dist, m_minValue, m_maxValue);
+        data.v[0] -= dist; // emboss 
+        double attribMix = ((dist-m_minValue) - m_attribMixThreshold)*m_attribMixFactor;
+        attribMix = clamp(attribMix,0.,1.);
+        lerp(data.v,embData.v, attribMix, data.v, 1,m_baseChannelsCount-1);                       
         return RESULT_OK;
     }
 
-    /**
-     * @noRefGuide
-     */
-    public SNode[] getChildren() {
-        return new SNode[] {(SNode)mp_shape.getValue(),(SNode)mp_embosser.getValue()};
+    static void lerp(double v0[], double v1[], double t, double vout[], int startIndex, int count){
+        for(int i = 0; i < count; i++){
+            int index = i + startIndex;
+            vout[index] = MathUtil.lerp(v0[index], v1[index], t); 
+        }
     }
+
 } // class Embossing

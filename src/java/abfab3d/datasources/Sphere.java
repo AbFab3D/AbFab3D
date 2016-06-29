@@ -62,7 +62,7 @@ public class Sphere extends TransformableDataSource {
      * @noRefGuide
      */
     public Sphere(){
-
+        
         this(0.,0.,0.,1*MM);
     }
 
@@ -86,6 +86,7 @@ public class Sphere extends TransformableDataSource {
      * sphere with given center and radius
      */
     public Sphere(double cx, double cy, double cz, double radius){
+        m_dataType = DATA_DISTANCE;
         initParams();
 
         setCenter(cx, cy, cz);
@@ -207,11 +208,18 @@ public class Sphere extends TransformableDataSource {
         // good approximation to the distance to the surface of the ball).x                             
         //double dist = ((x*x + y*y + z*z) - rv*rv)/(2*rv);
         double r = Math.sqrt(x*x + y*y + z*z);//)/(R2);
-        if(sign){
+        double dist = (sign)? (r - this.R): (this.R - r);
+
+        switch(m_dataType) {
+        default: 
+        case DATA_DENSITY: 
             data.v[0] = step10(r, this.R, vs);
-        } else {
-            data.v[0] = step01(r, this.R, vs);
+            break;
+        case DATA_DISTANCE:            
+            data.v[0] = dist / pnt.getScaleFactor();
+            break;
         }
+
         super.getMaterialDataValue(pnt, data);
         return RESULT_OK;
     }

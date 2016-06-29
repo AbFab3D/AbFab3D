@@ -32,6 +32,8 @@ import abfab3d.util.ImageGray16;
 
 
 import static java.lang.Math.floor;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 import static abfab3d.util.ImageMipMapGray16.getScaledDownDataBlack;
 import static abfab3d.util.MathUtil.intervalCap;
@@ -506,18 +508,21 @@ public class ImageMap extends TransformableDataSource {
         x /= m_sizeX;
         y /= m_sizeY;
 
-
-        x /= m_sizeX;
-        y /= m_sizeY;
-
         // xy are in (0,1) range 
-        if(m_repeatX) x -= floor(x);
-        if(m_repeatY) y -= floor(y);
-
+        if(m_repeatX) 
+            x -= floor(x);
+        else 
+            x = min(1, max(0,x));
+        if(m_repeatY) 
+            y -= floor(y);
+        else 
+            y = min(1, max(0,y));
+       
         // x in [0, imageSizeX]
         // y in [0, imageSizeY]
         x *= m_imageSizeX;
         y *= m_imageSizeY;
+
         // half pixel shift 
         x -= 0.5;
         y -= 0.5;
@@ -526,6 +531,7 @@ public class ImageMap extends TransformableDataSource {
         int iy = (int)floor(y);
         double dx = x - ix;
         double dy = y - iy;
+
         if(ix < 0){
             if(m_repeatX) ix = m_imageSizeX-1;
             else ix = 0;
@@ -536,15 +542,15 @@ public class ImageMap extends TransformableDataSource {
         }
         int ix1 = ix + 1;
         if(ix1 >= m_imageSizeX){
-            if(m_repeatX) ix = 0;
-            else ix = m_imageSizeX-1;            
+            if(m_repeatX) ix1 = 0;
+            else ix1 = m_imageSizeX-1;            
         }
         int iy1 = iy + 1;
         if(iy1 >= m_imageSizeY){
-            if(m_repeatY) iy = 0;
-            else iy = m_imageSizeY-1;            
+            if(m_repeatY) iy1 = 0;
+            else iy1 = m_imageSizeY-1;            
         }
-        
+
         double 
             v00 = m_dataChannel.getValue(m_imageGrid.getAttribute(ix, iy)),
             v10 = m_dataChannel.getValue(m_imageGrid.getAttribute(ix1, iy)),

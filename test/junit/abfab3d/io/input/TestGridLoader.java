@@ -235,10 +235,10 @@ public class TestGridLoader extends TestCase {
         printf("running devTestSTL_distance()\n");
         int densityBitCount = 8;
         int distanceBitCount = 16;
-        double voxelSize = 0.2*MM;
+        double voxelSize = 1*MM;
         double bandWidth = 0.5*MM;
-        double maxInDistance = 1.5*MM;
-        double maxOutDistance = 1.5*MM;
+        double maxInDistance = 5*MM;
+        double maxOutDistance = 5*MM;
         int magnification = 3;
         int threadCount = 4;
         int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
@@ -250,10 +250,10 @@ public class TestGridLoader extends TestCase {
             //"test/models/sphere_10cm_.4K_tri.stl",
             //"test/models/sphere_10cm_5K_tri.stl",
             //"test/models/gyrosphere.stl",
-            //"test/models/sphere_10cm_32K_tri.stl",
+            "test/models/sphere_10cm_32K_tri.stl",
             //"test/models/sphere_10cm_400K_tri.stl"
             //"test/models/deer.stl",
-            "test/models/coffee_maker.x3db"
+            //"test/models/coffee_maker.x3db"
 
         };
 
@@ -280,17 +280,28 @@ public class TestGridLoader extends TestCase {
             
             long t0 = time();
             AttributeGrid grid = loader.loadDistanceGrid(path[i]);
+
+            GridDataDesc desc = grid.getDataDesc();            
+            GridDataChannel channel = desc.getChannel(0);
+            int np = 100;
+            for(int k = 0; k <= np; k++){
+                double v = k*(maxOutDistance+maxInDistance)/np-maxInDistance;
+                long att = channel.makeAtt(v);
+                printf("%7.5f -> 0x%x\n", v, att);
+            }
+            
             long tt = (time() - t0);
             printf("gridSize: [%d x %d x %d]\n", grid.getWidth(), grid.getHeight(), grid.getDepth(), loader.getTriangleCount());
             printf("triangleCount: %d \n", loader.getTriangleCount());
             printf("loadingTime: %d ms\n", tt);
-            t0 = time();
+            GridSaver writer = new GridSaver();
+            writer.write(grid, "/tmp/dist.svx");
             //if(false){int iz = grid.getDepth()/2;
             //for(int iz = grid.getDepth()/2; iz < grid.getDepth()/2+1; iz++){
             for(int iz = 0; iz < grid.getDepth(); iz += 1){
                 GridDataChannel dataChannel = grid.getDataDesc().getChannel(0);
                 ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, bandWidth);
-                GridUtil.writeSlice(grid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));
+                if(false)GridUtil.writeSlice(grid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));
             }
         }
     }
@@ -480,11 +491,11 @@ public class TestGridLoader extends TestCase {
 
         for(int k = 0; k < 1; k++){
             //new TestGridLoader().devTestSTL_density();
-            //new TestGridLoader().devTestSTL_distance();
+            new TestGridLoader().devTestSTL_distance();
             //new TestGridLoader().testRasterizerDistancePrecision();
             //new TestGridLoader().testRasterizerDistance2Precision();
             //new TestGridLoader().devTestRasterizeTexturedTriangles();
-            new TestGridLoader().devTestDataSourceGrid();
+            //new TestGridLoader().devTestDataSourceGrid();
             //new TestGridLoader().devTestGradientColorizer();
         }
     }

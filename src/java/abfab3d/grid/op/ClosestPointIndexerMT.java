@@ -258,10 +258,10 @@ public class ClosestPointIndexerMT {
     public static void makeDistanceGrid_MT(AttributeGrid indexGrid, 
                                            double pntx[], double pnty[], double pntz[], 
                                            AttributeGrid interiorGrid, 
-                                           AttributeGrid distanceGrid,
-                                           double maxInDistance,
-                                           double maxOutDistance,
-                                           int threadCount
+                                           double minDistance,
+                                           double maxDistance,
+                                           int threadCount,
+                                           AttributeGrid distanceGrid
                                         ){
 
 
@@ -277,7 +277,7 @@ public class ClosestPointIndexerMT {
         for(int i = 0; i < threadCount; i++){
             SliceProcessorDistance sliceProcessor = new SliceProcessorDistance(i, slicer,
                                                                                indexGrid, pntx, pnty, pntz, 
-                                                                               interiorGrid, distanceGrid, maxInDistance,maxOutDistance);
+                                                                               interiorGrid, distanceGrid, minDistance,maxDistance);
             executor.submit(sliceProcessor);
         }
         executor.shutdown();
@@ -343,12 +343,12 @@ public class ClosestPointIndexerMT {
         // work arrays
         long att[];
         boolean interior[];
-        double maxInDistance, maxOutDistance;
+        double minDistance, maxDistance;
         Bounds gridBounds;
 
         SliceProcessorDistance(int id, SliceManager slicer, 
                                AttributeGrid indexGrid, double coordx[], double coordy[], double coordz[], AttributeGrid interiorGrid, AttributeGrid distanceGrid, 
-                               double maxInDistance,double maxOutDistance){
+                               double minDistance,double maxDistance){
 
             this.id = id;
             this.slicer = slicer;
@@ -358,8 +358,8 @@ public class ClosestPointIndexerMT {
             this.indexGrid = indexGrid;
             this.distanceGrid = distanceGrid;
             this.interiorGrid = interiorGrid;
-            this.maxInDistance = maxInDistance;
-            this.maxOutDistance = maxOutDistance;
+            this.minDistance = minDistance;
+            this.maxDistance = maxDistance;
 
             this.gridBounds = indexGrid.getGridBounds();
 
@@ -382,7 +382,7 @@ public class ClosestPointIndexerMT {
                     break;
 
                 makeDistanceGridSlice(slice.smin, slice.smax, gridBounds, att, interior,
-                                      indexGrid, coordx, coordy, coordz, interiorGrid, maxInDistance, maxOutDistance, distanceGrid);
+                                      indexGrid, coordx, coordy, coordz, interiorGrid, minDistance, maxDistance, distanceGrid);
                 //if(DEBUG)printf("thread: %d slice: %d %d done\n", id, slice.smin, slice.smax);
             }
             

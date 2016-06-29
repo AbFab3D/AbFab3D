@@ -46,7 +46,7 @@ public class GridMaker implements Operation, AttributeOperation {
     
     static final int POINT_DIMENSION = 3;
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     static int debugCount = 0;
     
     protected VecTransform m_transform;

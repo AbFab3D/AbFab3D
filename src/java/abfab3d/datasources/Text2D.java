@@ -100,8 +100,8 @@ public class Text2D extends BaseParameterizable {
     ObjectParameter mp_font = new ObjectParameter("font","Specific font to use",null);
 
     Parameter m_aparam[] = new Parameter[]{
-            mp_vertAlign,
-            mp_horizAlign,
+        mp_vertAlign,
+        mp_horizAlign,
         mp_fit,
         mp_aspect,
         mp_height,

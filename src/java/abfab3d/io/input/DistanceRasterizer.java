@@ -186,10 +186,10 @@ public class DistanceRasterizer implements TriangleCollector {
         
         t0 = time();
         if(m_threadCount <= 1) {
-            ClosestPointIndexer.makeDistanceGrid(m_indexGrid, pntx, pnty, pntz, interiorGrid, m_maxInDistance, m_maxOutDistance, distanceGrid);
+            ClosestPointIndexer.makeDistanceGrid(m_indexGrid, pntx, pnty, pntz, interiorGrid, -m_maxInDistance, m_maxOutDistance, distanceGrid);
             printf("ClosestPointIndexer.makeDistanceGrid() time: %d ms\n", (time() - t0));
         } else {
-            ClosestPointIndexerMT.makeDistanceGrid_MT(m_indexGrid, pntx, pnty, pntz, interiorGrid, distanceGrid, m_maxInDistance, m_maxOutDistance, m_threadCount);
+            ClosestPointIndexerMT.makeDistanceGrid_MT(m_indexGrid, pntx, pnty, pntz, interiorGrid, -m_maxInDistance, m_maxOutDistance, m_threadCount,distanceGrid);
             printf("ClosestPointIndexerMT.makeDistanceGrid_MT() time: %d ms\n", (time() - t0));
         }
        

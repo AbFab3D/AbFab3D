@@ -18,6 +18,7 @@ import java.util.Vector;
 import abfab3d.util.Vec;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 
 /**
  * A description of a grid attribute with multiple data channels
@@ -252,7 +253,8 @@ public class GridDataDesc {
         public long makeAttribute(Vec vec){
 
             long att = 0;
-            for(int i = 0; i < channels.length; i++){
+            int count = Math.min(channels.length,vec.v.length);
+            for(int i = 0; i < count; i++){
                 long catt = channels[i].makeAtt(vec.v[i]);
                 if(DEBUG && debugCount-- >0) printf(".%8x", catt);                
                 att |= catt;
@@ -271,7 +273,15 @@ public class GridDataDesc {
         public int getBitCount(){
             return bitCount;
         }
-
+        public String toString(){
+            StringBuffer sb = new StringBuffer();
+            sb.append("DefaultAttributePacker(\n");
+            for(int i = 0; i < channels.length; i++){
+                sb.append(fmt("\t[%s]\n",channels[i].toString()));
+            }
+            sb.append(")");
+            return sb.toString();
+        }
     } //static class DefaultAttributeMaker
 
 } // class GridDataDesc 
