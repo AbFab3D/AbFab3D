@@ -15,18 +15,19 @@ package abfab3d.datasources;
 
 import javax.vecmath.Vector3d;
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
-import abfab3d.util.Bounds;
-import abfab3d.util.Vec;
+import abfab3d.core.Bounds;
+import abfab3d.core.Vec;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
-import static abfab3d.util.MathUtil.step10;
-import static abfab3d.util.MathUtil.step01;
+import static abfab3d.core.MathUtil.step10;
+import static abfab3d.core.MathUtil.step01;
 
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Units.MM;
 
 
 /**
@@ -164,7 +165,7 @@ public class Sphere extends TransformableDataSource {
         y0 = c.y;
         z0 = c.z;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -221,7 +222,7 @@ public class Sphere extends TransformableDataSource {
         }
 
         super.getMaterialDataValue(pnt, data);
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
     
 }  // class Sphere

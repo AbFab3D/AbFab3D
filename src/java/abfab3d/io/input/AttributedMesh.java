@@ -11,17 +11,17 @@
  ****************************************************************************/
 package abfab3d.io.input;
 
-import abfab3d.util.AttributedTriangleCollector;
-import abfab3d.util.AttributedTriangleProducer;
-import abfab3d.util.Bounds;
-import abfab3d.util.DataSource;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.Vec;
+import abfab3d.core.AttributedTriangleCollector;
+import abfab3d.core.AttributedTriangleProducer;
+import abfab3d.core.Bounds;
+import abfab3d.core.DataSource;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.Vec;
 
 import javax.vecmath.Vector3d;
 import java.util.ArrayList;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Container for attributed triangular mesh data

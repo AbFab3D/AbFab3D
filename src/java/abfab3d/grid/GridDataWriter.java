@@ -19,20 +19,21 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridDataChannel;
 import abfab3d.param.Parameter;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.IntParameter;
 import abfab3d.param.DoubleParameter;
-import abfab3d.param.StringParameter;
 
 import abfab3d.util.ColorMapper;
 import abfab3d.util.ColorMapperDensity;
 import abfab3d.util.ColorMapperDistance;
 
-import static abfab3d.util.MathUtil.lerp2;
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.MathUtil.lerp2;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 /**
    class to write grid into bunch of individual image files 

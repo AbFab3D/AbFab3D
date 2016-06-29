@@ -13,21 +13,17 @@ package abfab3d.datasources;
 
 import java.util.Vector;
 
-import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.Output;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 
 
 import static java.lang.Math.floor;
 import static java.lang.Math.abs;
 import static java.lang.Math.log;
-import static java.lang.Math.exp;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
    provides accress to a grid on several levels of details. 
@@ -81,7 +77,7 @@ public class GridMipMap extends TransformableDataSource {
         
         createMipMap(m_grid);
         
-        return RESULT_OK; 
+        return ResultCodes.RESULT_OK;
     } 
 
     public void setScalingType(int type){
@@ -169,7 +165,7 @@ public class GridMipMap extends TransformableDataSource {
         
         if(vg <= 1.) {        
             dataValue.v[0] = m_normalization*getValue(m_grids[0], xg, yg, zg);
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         } 
 
         int level = 0, maxLevel = m_grids.length-1;
@@ -186,7 +182,7 @@ public class GridMipMap extends TransformableDataSource {
         double v0 = m_normalization*getValue(m_grids[level], xg/scale, yg/scale, zg/scale);
         if(false){
             dataValue.v[0] = v0;
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
         if(level < maxLevel && m_interpolationType != INTERPOLATION_BOX){  
             // intrerpolate with next level 
@@ -207,7 +203,7 @@ public class GridMipMap extends TransformableDataSource {
             // last level or INTERPOLATION_BOX 
             dataValue.v[0] = v0;
         }
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
     
 

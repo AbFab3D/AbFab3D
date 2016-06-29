@@ -15,7 +15,7 @@ package abfab3d.symmetry;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
 
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 
 import static abfab3d.symmetry.SymmetryUtil.dot;
 import static abfab3d.symmetry.SymmetryUtil.subSet;

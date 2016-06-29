@@ -12,7 +12,7 @@
 package abfab3d.mesh;
 
 import javax.vecmath.Vector3d;
-import abfab3d.util.TriangleCollector;
+import abfab3d.core.TriangleCollector;
 
 /**
  * Calculates the surface area of a model.  And a for free bonus you get the Volume!

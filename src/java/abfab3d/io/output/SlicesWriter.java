@@ -33,15 +33,15 @@ import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Grid;
-import abfab3d.util.LongConverter;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.LongConverter;
 import abfab3d.util.DefaultLongConverter;
 
 
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 
 /**

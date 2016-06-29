@@ -19,7 +19,7 @@ import java.util.*;
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.mesh.*;
 import abfab3d.util.StructMixedData;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 import org.web3d.vrml.sav.*;
 import toxi.geom.mesh.Face;

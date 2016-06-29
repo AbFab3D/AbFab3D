@@ -14,10 +14,9 @@ package abfab3d.io.output;
 
 // External Imports
 import java.util.*;
-import java.io.*;
 
 // Internal Imports
-import abfab3d.grid.*;
+import abfab3d.core.Grid;
 
 /**
  * Exporters grids to external formats.

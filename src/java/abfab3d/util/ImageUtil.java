@@ -12,6 +12,9 @@
 
 package abfab3d.util;
 
+import abfab3d.core.Output;
+import abfab3d.core.ResultCodes;
+
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.Graphics2D;
@@ -19,10 +22,10 @@ import java.awt.Graphics2D;
 import java.awt.image.*;
 
 import static java.lang.Math.max;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.MathUtil.lerp;
-import static abfab3d.util.MathUtil.iround;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.MathUtil.lerp;
+import static abfab3d.core.MathUtil.iround;
 
 
 /**
@@ -558,7 +561,7 @@ public class ImageUtil {
     }
         
     // convert image data into gray data
-    // return RESULT_OK or RESULT_FAILURE
+    // return ResultCodes.RESULT_OK or RESULT_FAILURE
     // 
     public static int ushort2gray16(short imageData[], short grayData[]){
         
@@ -584,7 +587,7 @@ public class ImageUtil {
             }            
             break;
         }
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
 

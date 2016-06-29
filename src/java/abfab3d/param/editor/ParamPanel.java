@@ -20,7 +20,7 @@ import java.util.Vector;
 
 import javax.swing.*;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Creates an editing panel for a parameterizable

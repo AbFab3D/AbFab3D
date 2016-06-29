@@ -12,10 +12,7 @@
 
 package abfab3d.grid.op;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Operation;
-import abfab3d.grid.AttributeOperation;
+import abfab3d.core.AttributeGrid;
 
 /**
    inside tester for shape represented as antialised density grid 

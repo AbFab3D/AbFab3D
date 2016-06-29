@@ -16,14 +16,15 @@ package abfab3d.grid;
 import java.lang.reflect.Constructor;
 import java.util.Random;
 
-import abfab3d.util.Bounds;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Bounds;
 
 
 // Internal Imports
-import abfab3d.util.Output;
+import abfab3d.core.Output;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 /**
  * Tests the functionality of a ArrayAttributeGridInt.

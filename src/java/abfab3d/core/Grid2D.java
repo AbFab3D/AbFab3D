@@ -10,9 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid;
-
-import abfab3d.util.Bounds;
+package abfab3d.core;
 
 
 /**

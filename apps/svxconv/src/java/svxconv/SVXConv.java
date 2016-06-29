@@ -11,8 +11,11 @@
  ****************************************************************************/
 package svxconv;
 
+import abfab3d.core.MathUtil;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.Units;
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.GridShortIntervals;
 import abfab3d.io.input.*;
 import abfab3d.io.output.GridSaver;
@@ -29,9 +32,9 @@ import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.util.Map;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
 
 /**
  * SVX format conversion tools.

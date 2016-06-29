@@ -20,6 +20,12 @@ import javax.vecmath.Vector3d;
 
 
 // external imports
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.AttributePacker;
+import abfab3d.core.DataSource;
+import abfab3d.core.MathUtil;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
 import abfab3d.grid.*;
 import abfab3d.util.*;
 import junit.framework.Test;
@@ -33,41 +39,19 @@ import abfab3d.grid.op.GridMaker;
 
 import abfab3d.datasources.TransformableDataSource;
 import abfab3d.datasources.DataSourceMixer;
-import abfab3d.datasources.Box;
-import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Plane;
-import abfab3d.datasources.Ring;
-import abfab3d.datasources.DataTransformer;
 import abfab3d.datasources.Intersection;
-import abfab3d.datasources.Union;
-import abfab3d.datasources.Subtraction;
-import abfab3d.datasources.Triangle;
-import abfab3d.datasources.Cylinder;
-import abfab3d.datasources.LimitSet;
-import abfab3d.datasources.VolumePatterns;
-
-import abfab3d.transforms.RingWrap;
-import abfab3d.transforms.FriezeSymmetry;
-import abfab3d.transforms.WallpaperSymmetry;
-import abfab3d.transforms.Rotation;
-import abfab3d.transforms.CompositeTransform;
-import abfab3d.transforms.Scale;
-import abfab3d.transforms.SphereInversion;
-import abfab3d.transforms.Translation;
-import abfab3d.transforms.PlaneReflection;
 
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.util.zip.ZipOutputStream;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.CM;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
 
-import static abfab3d.util.MathUtil.step10;
+import static abfab3d.core.MathUtil.step10;
 
 
 import static java.lang.Math.cos;
@@ -370,7 +354,7 @@ public class TestMeshMaker extends TestCase {
             super.initialize();
             this.factor = 2*PI/period;
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
         public int getDataValue(Vec pnt, Vec data){
@@ -390,7 +374,7 @@ public class TestMeshMaker extends TestCase {
             
             data.v[0] = step10(d, 0, vs);
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
         
     }

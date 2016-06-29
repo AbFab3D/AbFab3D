@@ -26,9 +26,7 @@ import java.awt.image.BufferedImage;
 
 import static java.lang.Math.abs;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
 
 /**
  */

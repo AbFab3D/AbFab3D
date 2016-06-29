@@ -14,6 +14,7 @@ package abfab3d.util;
 
 // External Imports
 
+import abfab3d.core.MathUtil;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -22,16 +23,14 @@ import java.util.Random;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Quat4d;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
-import static java.lang.Math.sqrt;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.TODEGREE;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.TODEGREE;
 
 /**
  */
@@ -184,7 +183,7 @@ public class TestMathUtil extends TestCase {
             if(MathUtil.solveLinear3(m,c,x)){
                 //printf("x: (%15.12f,%15.12f,%15.12f)\n",x[0],x[1],x[2]);
                 MathUtil.multMV3(m,x,cc);
-                double delta = MathUtil.maxDistance(cc,c);
+                double delta = MathUtil.maxDistance(cc, c);
                 if(delta > maxDelta)
                     maxDelta = delta;
                 sum += delta;

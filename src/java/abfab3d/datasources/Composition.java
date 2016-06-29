@@ -12,10 +12,11 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.*;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.Vec;
+import abfab3d.core.DataSource;
+import abfab3d.core.Initializable;
+import abfab3d.core.Vec;
 
 import java.util.List;
 
@@ -259,7 +260,7 @@ public class Composition extends TransformableDataSource {
         // density channel 
         m_channelsCount = 1;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
 
@@ -321,7 +322,7 @@ public class Composition extends TransformableDataSource {
         unpremult(va, ccnta);
 
         // always success
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 

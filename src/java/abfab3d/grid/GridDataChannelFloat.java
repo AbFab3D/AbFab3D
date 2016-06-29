@@ -13,7 +13,9 @@
 
 package abfab3d.grid;
 
-import static abfab3d.util.Output.fmt;
+import abfab3d.core.GridDataChannel;
+
+import static abfab3d.core.Output.fmt;
 
 /**
    attribute channel to represent float as int bits 

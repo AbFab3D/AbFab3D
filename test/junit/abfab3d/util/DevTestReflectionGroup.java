@@ -12,13 +12,12 @@
 
 package abfab3d.util;
 
+import abfab3d.core.Vec;
+
 import javax.vecmath.Vector3d;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.CM;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Units.MM;
 
 public class DevTestReflectionGroup {
     

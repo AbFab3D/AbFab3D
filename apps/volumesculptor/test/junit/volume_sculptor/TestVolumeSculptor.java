@@ -16,9 +16,7 @@ package volume_sculptor;
 
 import abfab3d.grid.Model;
 import abfab3d.grid.ModelWriter;
-import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.MeshExporter;
-import abfab3d.io.output.STLWriter;
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.util.TriangleMesh;
 import junit.framework.Test;
@@ -29,8 +27,8 @@ import volumesculptor.shell.ExecResult;
 import volumesculptor.shell.Main;
 
 import java.io.File;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.fmt;
 
 /**
  * Tests the functionality of a VolumeSculptor
@@ -318,7 +316,7 @@ public class TestVolumeSculptor extends TestCase {
         }
     }
 
-    public void testSphere() {
+    public void _testSphere() {
         String script = "importPackage(Packages.abfab3d.grid.op);\n" +
                 "importPackage(Packages.abfab3d.grid);\n" +
                 "importPackage(Packages.abfab3d.datasources);\n" +
@@ -357,7 +355,7 @@ public class TestVolumeSculptor extends TestCase {
         }
     }
 
-    public void testDecimationParams() {
+    public void _testDecimationParams() {
         String script1 = "meshErrorFactor = 0.25;\n" +
                 "function main(args) {\n" +
                 "\tvar radius = args[0];" +

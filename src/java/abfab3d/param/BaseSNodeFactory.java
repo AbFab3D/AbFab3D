@@ -14,7 +14,7 @@ package abfab3d.param;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.fmt;
 
 /**
    interface to create new nodes via name

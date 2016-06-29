@@ -14,7 +14,9 @@ package abfab3d.grid;
 
 // External Imports
 
-import abfab3d.util.Bounds;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.Bounds;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 

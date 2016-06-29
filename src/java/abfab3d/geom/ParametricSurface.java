@@ -14,12 +14,6 @@ package abfab3d.geom;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.util.Vec; 
-
-import abfab3d.util.TriangleCollector;
-
-import static java.lang.Math.sqrt;
-
 
 /**
  *

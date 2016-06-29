@@ -12,35 +12,23 @@
 
 package abfab3d.transforms;
 
-import java.util.Vector;
-
-import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.AxisAngle4d;
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.SNodeParameter;
-import abfab3d.param.ObjectParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.BooleanParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.Parameter;
-import abfab3d.param.Vector3dParameter;
 
-import abfab3d.util.Vec;
-import abfab3d.util.Initializable;
-import abfab3d.util.Symmetry;
+import abfab3d.core.Vec;
+import abfab3d.core.Initializable;
 import abfab3d.util.ReflectionGroup;
-import abfab3d.util.VecTransform;
-import abfab3d.util.DataSource;
-import abfab3d.util.Units;
+import abfab3d.core.VecTransform;
+import abfab3d.core.Units;
 import abfab3d.util.SymmetryGenerator;
 
-import net.jafama.FastMath;
-
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Symmetry.getReflection;
+import static abfab3d.core.Output.printf;
 import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 
@@ -185,7 +173,7 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
                 
         m_group.setRiemannSphereRadius(mp_riemannSphereRadius.getValue());
         m_group.setMaxIterations(mp_iterations.getValue());
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
     
     /**
@@ -195,7 +183,7 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
         // direct transform is identity transform 
         out.set(in);
         // TODO we may use one specific element from the group
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
 

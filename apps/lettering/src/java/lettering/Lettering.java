@@ -17,6 +17,8 @@ import java.io.*;
 import java.util.HashMap;
 import java.awt.image.BufferedImage;
 
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
 import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.io.output.*;
 import org.j3d.geom.GeometryData;

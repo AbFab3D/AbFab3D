@@ -12,27 +12,17 @@
 
 package abfab3d.transforms;
 
-import java.util.Vector;
-
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.AxisAngle4d;
-
+import abfab3d.core.ResultCodes;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
 
-import abfab3d.util.Vec;
-import abfab3d.util.Initializable;
-import abfab3d.util.Symmetry;
-import abfab3d.util.ReflectionGroup;
-import abfab3d.util.VecTransform;
+import abfab3d.core.Vec;
+import abfab3d.core.Initializable;
+import abfab3d.core.VecTransform;
 
 import net.jafama.FastMath;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Symmetry.getReflection;
+import static abfab3d.core.Output.printf;
 import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 
@@ -93,7 +83,7 @@ public class RingWrap extends BaseTransform implements VecTransform, Initializab
      */
     public int initialize(){
         m_radius = mp_radius.getValue();
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
     /**
      * Calculate cartesian to polar coordinates
@@ -114,7 +104,7 @@ public class RingWrap extends BaseTransform implements VecTransform, Initializab
         out.v[0] = r * sina;
         out.v[1] = in.v[1];
         out.v[2] = r * cosa;
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }                
     
     /**
@@ -141,7 +131,7 @@ public class RingWrap extends BaseTransform implements VecTransform, Initializab
         out.v[1] = wy;
         out.v[2] = wz;
         
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
 }        

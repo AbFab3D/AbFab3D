@@ -1,8 +1,8 @@
 package abfab3d.io.output;
 
+import abfab3d.core.Grid;
 import abfab3d.grid.*;
 import org.web3d.util.ErrorReporter;
-import org.web3d.util.spatial.VolumetricSpaceArrayTriangle;
 import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
 import org.web3d.vrml.export.X3DBinarySerializer;
 import org.web3d.vrml.export.X3DClassicRetainedExporter;
@@ -10,8 +10,6 @@ import org.web3d.vrml.export.X3DXMLRetainedExporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
 import toxi.geom.Vec3D;
 import toxi.geom.mesh.*;
-import toxi.volume.ArrayIsoSurface;
-import toxi.volume.HashIsoSurface;
 import toxi.volume.IsoSurface;
 import toxi.volume.VolumetricSpaceArray;
 

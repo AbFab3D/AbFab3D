@@ -12,23 +12,23 @@
 
 package abfab3d.geom;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.Operation;
 import abfab3d.grid.AttributeOperation;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.op.ClosestPointIndexer;
 
-import abfab3d.util.Bounds;
-import abfab3d.util.TriangleProducer;
+import abfab3d.core.Bounds;
+import abfab3d.core.TriangleProducer;
 
 import static java.lang.Math.max;
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 
 /**

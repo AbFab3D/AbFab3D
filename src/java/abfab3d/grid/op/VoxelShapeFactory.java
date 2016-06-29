@@ -14,7 +14,7 @@ package abfab3d.grid.op;
 
 import abfab3d.grid.GridMask;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 public class VoxelShapeFactory {
     

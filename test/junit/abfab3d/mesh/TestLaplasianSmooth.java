@@ -27,8 +27,8 @@ import javax.vecmath.Vector3d;
 import java.io.File;
 import java.io.IOException;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 import static java.lang.System.currentTimeMillis;
 
 /**

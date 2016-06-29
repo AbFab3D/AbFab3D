@@ -1,7 +1,7 @@
 package abfab3d.geom;
 
 import abfab3d.grid.ArrayInt;
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 import abfab3d.grid.GridIntervals;
 import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.BoundingBoxUtilsFloat;
@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Multithread version of TriangleModelCreator.  Due to garbage creation its not very scalable.

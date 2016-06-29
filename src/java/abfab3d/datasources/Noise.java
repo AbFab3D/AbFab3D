@@ -14,19 +14,15 @@ package abfab3d.datasources;
 
 import javax.vecmath.Vector3d;
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.*;
 
 
-import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
-import abfab3d.util.SimplexNoise;
-import abfab3d.util.SimplexNoisePerlin;
+import abfab3d.core.Vec;
 import abfab3d.util.PerlinNoise3D;
 
 
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Units.MM;
 
 /**
    generates Perlin noise of given period and frequency
@@ -143,7 +139,7 @@ public class Noise extends TransformableDataSource {  // Periodic noise in 3D
             m_noise = new PerlinNoise3D(nx, ny, nz, seed);
         
         
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
     
@@ -162,7 +158,7 @@ public class Noise extends TransformableDataSource {  // Periodic noise in 3D
         double v = (m_noise.get(x,y,z)*m_factor + m_offset);
         value.v[0] = v;
         
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
 }

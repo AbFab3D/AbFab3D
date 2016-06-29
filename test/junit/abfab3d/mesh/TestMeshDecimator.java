@@ -14,10 +14,10 @@ package abfab3d.mesh;
 
 // External Imports
 
-import abfab3d.grid.ClassTraverser;
-import abfab3d.grid.Grid;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
 import abfab3d.grid.GridShortIntervals;
-import abfab3d.grid.VoxelClasses;
+import abfab3d.core.VoxelClasses;
 import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.io.input.MeshRasterizer;
 import abfab3d.io.input.STLRasterizer;
@@ -39,8 +39,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 import static java.lang.System.currentTimeMillis;
 
 /**

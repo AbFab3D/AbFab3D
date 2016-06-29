@@ -13,6 +13,8 @@
 package abfab3d.grid.query;
 
 // External Imports
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -302,7 +304,7 @@ System.out.println("vol: " + vol);
         // Create a simple region
         grid.setData(5,5,5,Grid.INSIDE,1);
         grid.setData(5,5,6,Grid.INSIDE,1);
-        grid.setData(5,5,7,Grid.INSIDE,1);
+        grid.setData(5,5,7, Grid.INSIDE,1);
         grid.setData(5,6,5,Grid.INSIDE,1);
         grid.setData(5,6,6,Grid.INSIDE,1);
         grid.setData(5,6,7,Grid.INSIDE,1);

@@ -1,5 +1,7 @@
 package abfab3d.grid;
 
+import abfab3d.core.Grid;
+
 /**
  * TODO: Add docs
  *

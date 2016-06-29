@@ -1,5 +1,8 @@
 package abfab3d.grid;
 
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
 import abfab3d.geom.CubeCreator;
 import abfab3d.geom.TriangleModelCreator;
 import com.sun.japex.JapexDriverBase;

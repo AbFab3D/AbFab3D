@@ -13,15 +13,12 @@
 package abfab3d.geom;
 
 // External Imports
-import java.util.*;
-import java.io.*;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.DualWrapper;
-import org.web3d.vrml.sav.ContentHandler;
 
 // Internal Imports
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 
 /**
  * Creates a cube following the patterns specified.

@@ -14,6 +14,10 @@ package abfab3d.grid;
 
 // External Imports
 
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
+import abfab3d.core.VoxelData;
 import abfab3d.io.output.BoxesX3DExporter;
 import junit.framework.TestCase;
 import org.web3d.util.ErrorReporter;

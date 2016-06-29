@@ -17,9 +17,11 @@ package abfab3d.grid.query;
 // Internal Imports
 import java.util.*;
 
-import abfab3d.grid.*;
-import abfab3d.grid.VoxelClasses;
-import abfab3d.path.Path;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassAttributeTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelData;
+import abfab3d.core.VoxelClasses;
 
 /**
  * Counts the number of materials in a grid.

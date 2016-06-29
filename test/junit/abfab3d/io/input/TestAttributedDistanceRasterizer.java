@@ -14,14 +14,12 @@ package abfab3d.io.input;
 
 import abfab3d.datasources.Constant;
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.GridDataChannel;
-import abfab3d.grid.GridDataDesc;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.GridDataDesc;
 import abfab3d.grid.util.GridUtil;
-import abfab3d.util.BoundingBoxCalculator;
-import abfab3d.util.Bounds;
-import abfab3d.util.DataSource;
-import abfab3d.util.Vec;
+import abfab3d.core.Bounds;
+import abfab3d.core.Vec;
 
 import abfab3d.io.output.GridSaver;
 
@@ -30,8 +28,8 @@ import junit.framework.TestCase;
 
 import java.io.IOException;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Units.MM;
 
 
 /**

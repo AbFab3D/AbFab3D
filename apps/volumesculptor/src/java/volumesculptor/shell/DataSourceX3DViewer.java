@@ -13,10 +13,9 @@ package volumesculptor.shell;
 
 import abfab3d.datasources.Box;
 import abfab3d.param.SNode;
-import abfab3d.datasources.TransformableDataSource;
-import abfab3d.grid.Grid;
-import abfab3d.util.DataSource;
-import abfab3d.util.VecTransform;
+import abfab3d.core.Grid;
+import abfab3d.core.DataSource;
+import abfab3d.core.VecTransform;
 import org.web3d.vrml.sav.*;
 
 import java.util.ArrayList;

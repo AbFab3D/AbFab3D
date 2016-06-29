@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2012
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -10,22 +10,19 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
+package abfab3d.core;
+
 
 /**
-
-   interface for objects, which require some kind of one time initialization before doing computationally intensive job 
-   
+   interface to convert data stored in long attribute into long result 
+   can be used to get some component of data stored as bits in the grid attribute
  */
-public interface Initializable {
-
-    //public static final int 
-    //    RESULT_OK = DataSource.RESULT_OK,     // success
-    //    RESULT_ERROR  = DataSource.RESULT_ERROR;  // error
+public interface LongConverter  {
 
     /**
-       
+       return data custom data component stored in long attribute
      */
-    public int initialize();
-        
+    public long get(long data);
+    
 }
+

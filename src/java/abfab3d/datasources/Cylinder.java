@@ -13,18 +13,19 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 
 import javax.vecmath.AxisAngle4d;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
 
-import static abfab3d.util.MathUtil.step10;
-import static java.lang.Math.*;import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.MathUtil.step10;
+import static java.lang.Math.*;import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Units.MM;
 
 
 /**
@@ -196,7 +197,7 @@ public class Cylinder extends TransformableDataSource {
         m_normalY = nY/ss;
         m_normalR = nR/ss;
                 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
 
@@ -281,7 +282,7 @@ public class Cylinder extends TransformableDataSource {
 
         super.getMaterialDataValue(pnt, data);
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**

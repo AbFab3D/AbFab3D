@@ -12,16 +12,15 @@
 
 package abfab3d.util;
 
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
+
 import javax.vecmath.Vector3d;
 import javax.vecmath.Tuple3d;
 
 import java.util.Vector;
 
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.PointSet;
-
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Units.MM;
 
 /**
    creates a set of small objects (octahedra) to represent unstructured cloud of 3D points 

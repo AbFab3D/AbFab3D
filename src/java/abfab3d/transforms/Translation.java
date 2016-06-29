@@ -12,13 +12,10 @@
 
 package abfab3d.transforms;
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
-import abfab3d.util.Vec;
-import abfab3d.util.VecTransform;
-
-import abfab3d.param.Parameter;
-import abfab3d.param.Vector3dParameter;
+import abfab3d.core.Vec;
 
 import javax.vecmath.Vector3d;
 
@@ -97,7 +94,7 @@ public class Translation extends BaseTransform {
         out.v[2] = in.v[2] + tz;
 
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -109,7 +106,7 @@ public class Translation extends BaseTransform {
         out.v[1] = in.v[1] - ty;
         out.v[2] = in.v[2] - tz;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 } // class Translation

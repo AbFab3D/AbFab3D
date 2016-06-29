@@ -14,27 +14,23 @@ package abfab3d.grid.op;
 
 import java.util.Arrays;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.SliceExporter;
 import abfab3d.grid.Operation;
 import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.ArrayAttributeGridShort;
-import abfab3d.grid.GridBitIntervals;
-import abfab3d.grid.ClassTraverser;
 import abfab3d.grid.GridBit;
-import abfab3d.util.LongConverter;
+import abfab3d.core.LongConverter;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
 import static abfab3d.util.ImageUtil.makeRGB;
 import static abfab3d.util.ImageUtil.makeARGB;
 import static abfab3d.util.ImageUtil.MAXC;
 
 
-import static abfab3d.grid.Grid.OUTSIDE;
 import static java.lang.Math.round;
 import static java.lang.Math.ceil;
 import static java.lang.Math.min;

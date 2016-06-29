@@ -13,14 +13,13 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.Parameter;
-import abfab3d.param.BaseParameterizable;
 
-import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Bounds;
+import abfab3d.core.Vec;
+import abfab3d.core.Bounds;
 
 
 /**
@@ -120,7 +119,7 @@ public class Constant extends TransformableDataSource {//BaseParameterizable imp
         m_value3 = mp_value3.getValue();
         m_dimension = mp_dimension.getValue();
         m_channelsCount = m_dimension;
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -138,7 +137,7 @@ public class Constant extends TransformableDataSource {//BaseParameterizable imp
             data.v[0] = m_value0;
         }
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     public Bounds getBounds(){

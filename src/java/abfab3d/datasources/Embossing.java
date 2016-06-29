@@ -14,24 +14,24 @@ package abfab3d.datasources;
 
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeParameter;
 import abfab3d.param.DoubleParameter;
 
-import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.MathUtil;
+import abfab3d.core.Vec;
+import abfab3d.core.DataSource;
+import abfab3d.core.MathUtil;
 
 
 import static java.lang.Math.abs;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.step10;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.MathUtil.step10;
 
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Units.MM;
 
 
 /**
@@ -225,7 +225,7 @@ public class Embossing extends TransformableDataSource implements SNode {
         m_attribMixThreshold = th;
         m_attribMixFactor = mf;
         //printf("th: %10.5f mf: %10.5f\n", th, mf);
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
     
@@ -248,7 +248,7 @@ public class Embossing extends TransformableDataSource implements SNode {
         double attribMix = ((dist-m_minValue) - m_attribMixThreshold)*m_attribMixFactor;
         attribMix = clamp(attribMix,0.,1.);
         lerp(data.v,embData.v, attribMix, data.v, 1,m_baseChannelsCount-1);                       
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     static void lerp(double v0[], double v1[], double t, double vout[], int startIndex, int count){

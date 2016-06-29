@@ -13,48 +13,14 @@
 package abfab3d.mesh;
 
 // External Imports
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.*;
 
-
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
-
-
-import org.web3d.vrml.sav.BinaryContentHandler;
-
-import abfab3d.io.input.IndexedTriangleSetLoader;
-import abfab3d.io.input.STLReader;
-import abfab3d.io.input.STLRasterizer;
-import abfab3d.io.input.MeshRasterizer;
-import abfab3d.io.output.SAVExporter;
-import abfab3d.io.output.MeshExporter;
-import abfab3d.io.output.IsosurfaceMaker;
-import abfab3d.io.output.STLWriter;
-
-
-import abfab3d.grid.Grid;
-import abfab3d.grid.GridShortIntervals;
-import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.ClassTraverser;
-import abfab3d.grid.op.ErosionMask;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.j3d.geom.*;
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.*;
 
-
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-
-import static java.lang.System.currentTimeMillis;
+import static abfab3d.core.Output.printf;
 
 /**
  * Tests the functionality of PointSet

@@ -12,10 +12,11 @@
 
 package abfab3d.grid;
 
-import abfab3d.util.Bounds;
+import abfab3d.core.Bounds;
+import abfab3d.core.Grid2D;
 
 
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.fmt;
 
 /**
  * A 2D grid backed by arrays. 

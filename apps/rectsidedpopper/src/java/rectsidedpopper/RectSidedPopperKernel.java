@@ -14,13 +14,13 @@ package rectsidedpopper;
 
 // External Imports
 
+import abfab3d.core.Grid;
 import abfab3d.creator.GeometryKernel;
 import abfab3d.creator.KernelResults;
 import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
 import abfab3d.grid.*;
-import abfab3d.datasources.*;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.transforms.*;
 import abfab3d.io.output.BoxesX3DExporter;
@@ -48,9 +48,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static abfab3d.util.MathUtil.TORAD;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.MathUtil.TORAD;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 import static java.lang.System.currentTimeMillis;
 
 //import java.awt.*;

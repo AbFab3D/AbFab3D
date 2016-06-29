@@ -12,6 +12,9 @@
 
 package abfab3d.grid;
 
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelData;
+
 import java.util.ArrayList;
 import java.util.BitSet;
 

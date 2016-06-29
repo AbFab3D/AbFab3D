@@ -12,13 +12,12 @@
 
 package abfab3d.io.output;
 
-import javax.vecmath.Vector3f;
 import javax.vecmath.Vector3d;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.ClassTraverser;
-import abfab3d.grid.VoxelClasses;
-import abfab3d.util.TriangleCollector;
+import abfab3d.core.Grid;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.VoxelClasses;
+import abfab3d.core.TriangleCollector;
 
 
 /**

@@ -13,8 +13,8 @@
 package abfab3d.util;
 
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 /**
    rasterises filled triangle using custom interface TriangleRenderer.PixelRenderer

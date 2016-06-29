@@ -15,31 +15,30 @@ package abfab3d.io.input;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.util.Vec;
-import abfab3d.util.AttributedTriangleCollector;
-import abfab3d.util.AttributedTriangleProducer;
-import abfab3d.util.Bounds;
-import abfab3d.util.DataSource;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
+import abfab3d.core.AttributedTriangleCollector;
+import abfab3d.core.AttributedTriangleProducer;
+import abfab3d.core.Bounds;
+import abfab3d.core.DataSource;
 import abfab3d.util.PointSetCoordArrays;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.GridMask;
 
 import abfab3d.grid.op.ClosestPointIndexer;
 import abfab3d.grid.op.ClosestPointIndexerMT;
 
-import abfab3d.grid.util.GridUtil;
-
 import abfab3d.geom.AttributedTriangleMeshSurfaceBuilder;
 import abfab3d.grid.op.PointSetShellBuilder;
 
 
 import static java.lang.Math.abs;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.MathUtil.step10;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.MathUtil.step10;
 
 
 /**
@@ -186,7 +185,7 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
         if(m_useDistanceRange) m_maxDistanceVoxels = Math.max(abs(m_maxDistance), abs(m_minDistance))/m_bounds.getVoxelSize();
         else m_maxDistanceVoxels = 0.;
 
-        return DataSource.RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
 

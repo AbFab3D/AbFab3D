@@ -1,5 +1,11 @@
 package abfab3d.io.output;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.AttributePacker;
+import abfab3d.core.DataSource;
+import abfab3d.core.MathUtil;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
 import abfab3d.datasources.*;
 import abfab3d.grid.*;
 import abfab3d.grid.op.GridMaker;
@@ -14,10 +20,10 @@ import java.io.*;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import static abfab3d.util.MathUtil.step10;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.MathUtil.step10;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
 import static java.lang.Math.PI;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
@@ -264,7 +270,7 @@ public class TestSTSReadWrite extends TestCase {
             super.initialize();
             this.factor = 2*PI/period;
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
         public int getDataValue(Vec pnt, Vec data){
@@ -284,7 +290,7 @@ public class TestSTSReadWrite extends TestCase {
 
             data.v[0] = step10(d, 0, vs);
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
     }

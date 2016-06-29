@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
+package abfab3d.core;
 
 
 import java.io.PrintStream;

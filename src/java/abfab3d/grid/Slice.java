@@ -13,8 +13,7 @@
 package abfab3d.grid;
 
 // External Imports
-import java.util.*;
-import java.io.*;
+import abfab3d.core.VoxelData;
 
 /**
  * A slice of a grid.  Uses X3D coordinate system.

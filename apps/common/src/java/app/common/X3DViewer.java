@@ -12,7 +12,7 @@
 
 package app.common;
 
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 import org.apache.commons.io.FileUtils;
 import abfab3d.io.output.GridSaver;
 import java.awt.*;

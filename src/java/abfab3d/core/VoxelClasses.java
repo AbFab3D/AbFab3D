@@ -1,4 +1,4 @@
-package abfab3d.grid;
+package abfab3d.core;
 
 /**
  * Classes of voxels for bulk operations

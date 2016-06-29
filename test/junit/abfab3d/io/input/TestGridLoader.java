@@ -14,8 +14,8 @@ package abfab3d.io.input;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.util.DataSource;
-import abfab3d.util.Bounds;
+import abfab3d.core.DataSource;
+import abfab3d.core.Bounds;
 import abfab3d.util.ColorMapper;
 import abfab3d.util.ColorMapperDistance;
 import abfab3d.util.ColorMapperDensity;
@@ -26,14 +26,11 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 
-import abfab3d.util.AttributedTriangleProducer;
-import abfab3d.util.AttributedTriangleCollector;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.GridDataChannel;
 
 import abfab3d.distance.DistanceData;
 import abfab3d.distance.DistanceDataSphere;
@@ -47,15 +44,15 @@ import abfab3d.io.output.GridSaver;
 
 import static java.lang.Math.max;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.CM3;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.MathUtil.clamp;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.CM3;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.util.ImageUtil.lerpColors;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
 /**

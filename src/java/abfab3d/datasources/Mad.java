@@ -13,24 +13,21 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.Parameter;
-import abfab3d.param.SNode;
 import abfab3d.param.SNodeParameter;
-import abfab3d.param.DoubleParameter;
 
-import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
+import abfab3d.core.Vec;
+import abfab3d.core.DataSource;
+import abfab3d.core.Initializable;
 
 import static java.lang.Math.abs;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.step10;
-
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.MathUtil.step10;
 
 
 /**
@@ -125,7 +122,7 @@ public class Mad extends TransformableDataSource{
             ((Initializable)m_b).initialize();
         }
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
     
@@ -148,7 +145,7 @@ public class Mad extends TransformableDataSource{
         data.v[0] = d*a + b;
 
         //TODO - material 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 

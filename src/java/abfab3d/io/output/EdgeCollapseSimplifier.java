@@ -1,6 +1,6 @@
 package abfab3d.io.output;
 
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
 import org.web3d.vrml.export.X3DBinarySerializer;

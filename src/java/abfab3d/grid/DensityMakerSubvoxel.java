@@ -12,8 +12,6 @@
 
 package abfab3d.grid;
 
-import abfab3d.util.Vec;
-
 /**
    class converets denstity stored in the grid as integer in the range [0, subvoxelResolution] inclusive 
 

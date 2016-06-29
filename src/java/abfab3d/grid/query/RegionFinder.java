@@ -16,10 +16,14 @@ package abfab3d.grid.query;
 import java.util.*;
 
 // Internal Imports
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
+import abfab3d.core.VoxelData;
 import abfab3d.grid.*;
 import abfab3d.grid.util.GridVisitedIndexed;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Find all the regions in a grid.

@@ -11,8 +11,9 @@
 
 package abfab3d.transforms;
 
-import abfab3d.util.Initializable;
+import abfab3d.core.Initializable;
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.EnumParameter;
 import abfab3d.param.IntParameter;
@@ -22,10 +23,7 @@ import abfab3d.param.ObjectParameter;
 
 import abfab3d.symmetry.SymmetryGroup;
 import abfab3d.symmetry.FriezeSymmetries;
-import abfab3d.util.Vec;
-import abfab3d.util.VecTransform;
-
-import javax.vecmath.Vector4d;
+import abfab3d.core.Vec;
 
 import static abfab3d.util.Symmetry.toFundamentalDomain;
 
@@ -172,7 +170,7 @@ public class FriezeSymmetry extends BaseTransform implements Initializable {
         mp_symmetryGroup.setValue(m_group);
         m_group.setMaxIterations(maxCount);
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 
@@ -193,7 +191,7 @@ public class FriezeSymmetry extends BaseTransform implements Initializable {
         out.v[1] = y;
         out.v[2] = z;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**

@@ -16,8 +16,9 @@ package abfab3d.grid.query;
 
 // Internal Imports
 
-import abfab3d.grid.*;
-import abfab3d.util.Bounds;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.Bounds;
 
 /**
  * Calculate the bounds of the object based on the surface density

@@ -13,13 +13,12 @@ package abfab3d.opencl;
 
 import com.jogamp.opencl.CLContext;
 import com.jogamp.opencl.CLObject;
-import com.jogamp.opencl.CLResource;
 
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * OpenCL Resource manager.  Tracks and manages resource usage on a GPU.  This class does not

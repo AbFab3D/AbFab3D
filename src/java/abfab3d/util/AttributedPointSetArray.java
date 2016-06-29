@@ -12,17 +12,9 @@
 
 package abfab3d.util;
 
-import javax.vecmath.Vector3d;
-import javax.vecmath.Tuple3d;
+import abfab3d.core.Vec;
 
-import java.util.Vector;
-
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.PointSet;
-
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
    representation of point set as array of values

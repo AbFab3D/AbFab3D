@@ -12,38 +12,15 @@
 
 package abfab3d.geom;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors; 
-import java.util.concurrent.TimeUnit;
+import javax.vecmath.Vector3d;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.vecmath.Vector3d; 
-
-import java.util.concurrent.ExecutorService; 
-import java.util.concurrent.Executors; 
-import java.util.concurrent.TimeUnit;
-
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Operation;
-import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.GridBit;
-import abfab3d.grid.GridMask;
-import abfab3d.grid.GridBitIntervals;
-import abfab3d.grid.ArrayAttributeGridInt;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridShort;
-import abfab3d.grid.VectorIndexer;
-import abfab3d.grid.VectorIndexerArray;
-import abfab3d.grid.ArrayInt;
 
 import abfab3d.grid.op.Neighborhood;
-import abfab3d.grid.util.ExecutionStoppedException;
 
-import abfab3d.util.Bounds;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.PointSet;
-import abfab3d.util.PointSetArray;
+import abfab3d.core.Bounds;
+import abfab3d.core.TriangleCollector;
 import abfab3d.util.TriangleRenderer;
 import abfab3d.util.PointToTriangleDistance;
 import abfab3d.util.PointMap;
@@ -53,11 +30,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
 
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.MathUtil.L2S;
-import static abfab3d.util.MathUtil.iround;
+import static abfab3d.core.Output.printf;
 
 
 /**

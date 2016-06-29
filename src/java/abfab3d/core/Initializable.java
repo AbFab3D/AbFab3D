@@ -10,21 +10,18 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
-
-import javax.vecmath.Vector3d;
+package abfab3d.core;
 
 /**
-   interface to supply object with VecTransform 
+
+   interface for objects, which require some kind of one time initialization before doing computationally intensive job 
    
  */
-public interface Transformer {
+public interface Initializable {
 
     /**
-       feeds all triangles into supplied TriangleCollector 
-
-       returns true if success, false if faiure        
+       
      */
-    public void setTransform(VecTransform vt);
-    
+    public int initialize();
+        
 }

@@ -17,6 +17,7 @@ import java.io.*;
 import java.util.*;
 import javax.vecmath.Vector3d;
 
+import abfab3d.core.Grid;
 import abfab3d.io.output.*;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 
@@ -32,8 +33,8 @@ import abfab3d.creator.shapeways.*;
 
 //import java.awt.*;
 
-import static abfab3d.util.MathUtil.TORAD;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.MathUtil.TORAD;
+import static abfab3d.core.Output.printf;
 import static java.lang.Math.PI;
 
 import abfab3d.io.output.GridSaver;

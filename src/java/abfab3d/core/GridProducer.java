@@ -22,5 +22,5 @@ public interface GridProducer {
      * Return a grid representation of this object
      * @return The attributed grid
      */
-    //AttributeGrid getGrid();
+    AttributeGrid getGrid();
 }

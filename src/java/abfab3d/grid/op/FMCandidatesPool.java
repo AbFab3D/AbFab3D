@@ -18,8 +18,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.Iterator;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 /**
    pool of candidate voxels for fast marching algorithm 

@@ -21,10 +21,10 @@ import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
 
 /**
    decimator to reduce face count of triangle mesh    

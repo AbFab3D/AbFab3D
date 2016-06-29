@@ -12,24 +12,15 @@
 
 package abfab3d.io.input;
 
-import java.io.IOException;
 
-import java.io.DataInputStream;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-
-
-import javax.vecmath.Vector3f;
 import javax.vecmath.Vector3d;
 
-import abfab3d.util.AttributedTriangleCollector;
-import abfab3d.util.TriangleCollector;
+import abfab3d.core.AttributedTriangleCollector;
+import abfab3d.core.TriangleCollector;
 
-import abfab3d.grid.Grid;
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 
-import static java.lang.System.currentTimeMillis;
-import static abfab3d.util.Output.printf; 
+import static abfab3d.core.Output.printf;
 
 
 /**

@@ -15,21 +15,19 @@ import java.util.Vector;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.TriangleCollector;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.TriangleCollector;
 import abfab3d.util.PointToTriangleDistance;
 import abfab3d.grid.ArrayInt;
-
-import abfab3d.util.MathUtil;
 
 import static java.lang.Math.sqrt;
 
 
-import static abfab3d.util.MathUtil.distance;
-import static abfab3d.util.MathUtil.midPoint;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.MathUtil.distance;
+import static abfab3d.core.MathUtil.midPoint;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
 
 
 

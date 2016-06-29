@@ -12,18 +12,14 @@
 
 package abfab3d.io.input;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
-import abfab3d.io.output.ShellResults;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
-import abfab3d.util.BoundingBoxCalculator;
 import junit.framework.TestCase;
 
 import java.io.IOException;
-
-import static abfab3d.util.Units.MM;
 
 
 /**

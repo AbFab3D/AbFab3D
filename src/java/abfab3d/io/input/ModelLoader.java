@@ -11,10 +11,10 @@
  ****************************************************************************/
 package abfab3d.io.input;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 
-import static abfab3d.util.Units.*;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Units.*;
+import static abfab3d.core.Output.printf;
 
 /**
  * Loads 3D models

@@ -14,10 +14,11 @@ package abfab3d.io.input;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.util.Bounds;
-import abfab3d.util.DataSource;
-import abfab3d.util.Vec;
-import abfab3d.util.MathUtil;
+import abfab3d.core.Bounds;
+import abfab3d.core.DataSource;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
+import abfab3d.core.MathUtil;
 
 
 /**
@@ -59,7 +60,7 @@ public class GradientColorizer implements DataSource {
         double t = 2*Math.abs((dot - Math.floor(dot))-0.5);
         
         MathUtil.lerp(color0, color1, t, dataValue.v);
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**

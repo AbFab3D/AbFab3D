@@ -20,13 +20,11 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
 
 /**
  * Test ImageGray16 methods

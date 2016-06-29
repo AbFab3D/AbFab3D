@@ -1,6 +1,6 @@
 package abfab3d.io.output;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ModelWriter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.util.TriangleMesh;

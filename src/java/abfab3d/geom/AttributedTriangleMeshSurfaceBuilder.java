@@ -12,46 +12,33 @@
 
 package abfab3d.geom;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors; 
-import java.util.concurrent.TimeUnit;
+//import javax.vecmath.Vector3d;
 
-//import javax.vecmath.Vector3d; 
-
-import java.util.concurrent.ExecutorService; 
-import java.util.concurrent.Executors; 
-import java.util.concurrent.TimeUnit;
-
-import abfab3d.util.Vec;
-import abfab3d.util.Bounds;
-import abfab3d.util.AttributedTriangleCollector;
+import abfab3d.core.Vec;
+import abfab3d.core.Bounds;
+import abfab3d.core.AttributedTriangleCollector;
 import abfab3d.util.AttributedPointSet;
 import abfab3d.util.AttributedPointSetArray;
 import abfab3d.util.TriangleRenderer;
-import abfab3d.util.PointToTriangleDistance;
 
-import static java.lang.Math.sqrt;
-import static java.lang.Math.max;
+        import static java.lang.Math.max;
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
 
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.MathUtil.L2S;
-import static abfab3d.util.MathUtil.M00;
-import static abfab3d.util.MathUtil.M01;
-import static abfab3d.util.MathUtil.M02;
-import static abfab3d.util.MathUtil.M10;
-import static abfab3d.util.MathUtil.M11;
-import static abfab3d.util.MathUtil.M12;
-import static abfab3d.util.MathUtil.M20;
-import static abfab3d.util.MathUtil.M21;
-import static abfab3d.util.MathUtil.M22;
-import static abfab3d.util.MathUtil.invertMatrix3;
-import static abfab3d.util.MathUtil.multMV3;
-import static abfab3d.util.MathUtil.iround;
-import static abfab3d.util.MathUtil.clamp;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Output.printf;
+        import static abfab3d.core.MathUtil.M00;
+import static abfab3d.core.MathUtil.M01;
+import static abfab3d.core.MathUtil.M02;
+import static abfab3d.core.MathUtil.M10;
+import static abfab3d.core.MathUtil.M11;
+import static abfab3d.core.MathUtil.M12;
+import static abfab3d.core.MathUtil.M20;
+import static abfab3d.core.MathUtil.M21;
+import static abfab3d.core.MathUtil.M22;
+import static abfab3d.core.MathUtil.invertMatrix3;
+import static abfab3d.core.MathUtil.multMV3;
+        import static abfab3d.core.MathUtil.clamp;
 
 /**
    generated set of points on the surface of attributed triangle mesh on a given grid 

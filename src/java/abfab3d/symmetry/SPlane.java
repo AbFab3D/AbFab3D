@@ -12,7 +12,7 @@
 
 package abfab3d.symmetry;
 
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 
 /**
 

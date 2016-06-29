@@ -16,20 +16,15 @@ package abfab3d.mesh;
 import javax.vecmath.Vector3d;
 
 
-import junit.framework.Test;
 import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 import abfab3d.transforms.Rotation;
 import abfab3d.geom.TriangulatedModels;
 
 import abfab3d.io.output.STLWriter; 
 
-import static abfab3d.util.Units.MM; 
-import static abfab3d.util.Output.printf; 
-import static abfab3d.util.Output.fmt; 
-
-import static java.lang.System.currentTimeMillis;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
 
 
 /**

@@ -16,7 +16,7 @@ package booleanops;
 
 import abfab3d.geom.MeshVoxelizer;
 import abfab3d.grid.ArrayGridByte;
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.Operation;
 import abfab3d.grid.op.SubtractOpMT;
@@ -38,8 +38,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 // Internal Imports
 

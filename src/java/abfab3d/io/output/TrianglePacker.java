@@ -23,15 +23,15 @@ import javax.vecmath.Vector2d;
 
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 
-import abfab3d.util.LongConverter;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducer;
+import abfab3d.core.LongConverter;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
 import abfab3d.util.RectPacking;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 /**
    class responsible for packing and rendering textured triangles into 2D texure image 

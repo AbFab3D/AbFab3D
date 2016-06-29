@@ -13,9 +13,7 @@
 package abfab3d.geom;
 
 // External Imports
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -26,11 +24,7 @@ import junit.framework.TestSuite;
 import abfab3d.util.TrianglePrinter;
 import abfab3d.io.output.STLWriter;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Units.MM;
-import static java.lang.Math.sin;
-import static java.lang.Math.cos;
-import static java.lang.Math.sqrt;
+import static abfab3d.core.Output.printf;
 
 
 /**

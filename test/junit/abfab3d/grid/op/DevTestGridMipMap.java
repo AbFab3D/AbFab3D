@@ -14,31 +14,22 @@
 package abfab3d.grid.op;
 
 // External Imports
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.PlainTextErrorReporter;
-
-import junit.framework.Test;
-import junit.framework.TestSuite;
-import junit.framework.TestCase;
 
 // Internal Imports
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ResultCodes;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.io.output.SlicesWriter;
 
-import abfab3d.util.Vec;
-import abfab3d.util.VecTransform;
+import abfab3d.core.Vec;
+import abfab3d.core.VecTransform;
 
 import abfab3d.datasources.GridMipMap;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Units.MM;
 
 import static java.lang.Math.sin;
 import static java.lang.Math.PI;
@@ -133,12 +124,12 @@ public class DevTestGridMipMap {
 
         public int transform(Vec in, Vec out){
             out.set(in);
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
         public int inverse_transform(Vec in, Vec out){
             out.set(in);
             out.setVoxelSize(in.getVoxelSize() * (25*(1-in.v[0]/boxWidth)));
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
     }
 

@@ -12,7 +12,6 @@
 
 package abfab3d.util;
 
-import abfab3d.util.Vec;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Line2D;
@@ -25,7 +24,7 @@ import static java.lang.Math.sin;
 import static java.lang.Math.cos;
 import static java.lang.Math.max;
 import static java.lang.Math.abs;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
    misc methods for symmetries in inversive geometry 

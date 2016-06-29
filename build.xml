@@ -90,8 +90,8 @@
                      jars=""
                 />
         <compilejava package="abfab3d/util"
-            jars="xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar"
-        />
+                     jars="xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar"
+                />
         <compilejava package="abfab3d/param"
                      jars=""
                 />        
@@ -348,6 +348,7 @@
             version="${version}"
             manifest="abfab3d_core.mf"
             includes="
+                abfab3d/core/*
                 abfab3d/math/*
                 abfab3d/symmetry/*
                 abfab3d/transforms/*

@@ -3,7 +3,6 @@ package abfab3d.param.editor;
 import abfab3d.param.*;
 
 import javax.swing.*;
-import javax.vecmath.Vector3d;
 
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
@@ -11,10 +10,8 @@ import abfab3d.datasources.Union;
 import abfab3d.datasources.VolumePatterns;
 
 
-
-import static abfab3d.util.Units.MM;
 import static java.awt.AWTEvent.WINDOW_EVENT_MASK;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 public class DevTestEditors extends JFrame implements ParamChangedListener {
 

@@ -10,24 +10,19 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
+package abfab3d.core;
 
 /**
-   interface which generates a raw mesh of triangles with attributes 
+   interface which generates a raw mesh of triangles
    
  */
-public interface AttributedTriangleProducer {
+public interface TriangleProducer {
 
     /**
-       feeds all triangles into supplied AttributedTriangleCollector
+       feeds all triangles into supplied TriangleCollector 
 
-       @return true if success, false if faiure        
+       returns true if success, false if faiure        
      */
-    public boolean getAttTriangles(AttributedTriangleCollector tc);
-
-    /**
-       @return dimension of data for each vertex 
-     */
-    public int getDataDimension();
+    public boolean getTriangles(TriangleCollector tc);
     
 }

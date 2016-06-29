@@ -17,7 +17,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
-import abfab3d.util.Bounds;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.Bounds;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.TorusGenerator;
 import org.web3d.util.ErrorReporter;

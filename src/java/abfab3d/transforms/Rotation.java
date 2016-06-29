@@ -12,28 +12,19 @@
 
 package abfab3d.transforms;
 
-import java.util.Vector;
-
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
-import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.AxisAngle4dParameter;
-import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
-import abfab3d.util.Vec;
-import abfab3d.util.Initializable;
-import abfab3d.util.Symmetry;
-import abfab3d.util.ReflectionGroup;
-import abfab3d.util.VecTransform;
+import abfab3d.core.Vec;
+import abfab3d.core.Initializable;
+import abfab3d.core.VecTransform;
 
-import net.jafama.FastMath;
-
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Symmetry.getReflection;
+import static abfab3d.core.Output.printf;
 import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 /**
@@ -134,7 +125,7 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
         m_centery = c.y;
         m_centerz = c.z;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
     
     /**
@@ -163,7 +154,7 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
         out.v[2] += m_centerz;
         
         
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
     
     /**
@@ -191,7 +182,7 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
         out.v[1] += m_centery;
         out.v[2] += m_centerz;
         
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
     

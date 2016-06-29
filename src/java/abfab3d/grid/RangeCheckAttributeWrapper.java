@@ -16,7 +16,15 @@ package abfab3d.grid;
 
 // Internal Imports
 
-import abfab3d.util.Bounds;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassAttributeTraverser;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.VoxelClasses;
+import abfab3d.core.VoxelData;
+import abfab3d.core.Bounds;
 
 /**
  * Detects whether any operations exceed the dimensions specified by

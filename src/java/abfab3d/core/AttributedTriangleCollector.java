@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2012
+ *                        Shapeways, Inc Copyright (c) 2011
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -10,19 +10,22 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
+package abfab3d.core;
 
+import abfab3d.core.Vec;
 
 /**
-   interface to convert data stored in long attribute into long result 
-   can be used to get some component of data stored as bits in the grid attribute
+   interface accepts a collection of triangles with possible extra information (texture, color, etc)
+   
  */
-public interface LongConverter  {
+public interface AttributedTriangleCollector {
 
     /**
-       return data custom data component stored in long attribute
+       add triangle 
+       vertices are copied into internal structure and can be reused after return       
+
+       returns true if success, false if faiure        
      */
-    public long get(long data);
+    public boolean addAttTri(Vec v0,Vec v1,Vec v2);
     
 }
-

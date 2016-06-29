@@ -13,14 +13,15 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNodeParameter;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.Units;
-import abfab3d.util.Vec;
+import abfab3d.core.DataSource;
+import abfab3d.core.Initializable;
+import abfab3d.core.Units;
+import abfab3d.core.Vec;
 
 import javax.vecmath.Vector3d;
 
@@ -148,7 +149,7 @@ public class Smooth extends TransformableDataSource {
             default:
                 throw new IllegalArgumentException("Not implemented pattern: " + mp_pattern.getValue());
         }
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -169,7 +170,7 @@ public class Smooth extends TransformableDataSource {
         for(int i=0; i < len; i++) {
             spnt.set(pnt.v[0]+neigh[i].x,pnt.v[1]+neigh[i].y,pnt.v[2]+neigh[i].z);
             int res = dataSource.getDataValue(spnt, sdata);
-            if (res != RESULT_OK) {
+            if (res != ResultCodes.RESULT_OK) {
                 // bad result in source
                 data.v[0] = 1;
                 return res;
@@ -177,7 +178,7 @@ public class Smooth extends TransformableDataSource {
             d += sdata.v[0];
         }
         data.v[0] = d / len;
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 } // class Smooth
 

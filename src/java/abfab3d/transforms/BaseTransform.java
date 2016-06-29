@@ -1,7 +1,7 @@
 package abfab3d.transforms;
 
 import abfab3d.param.BaseParameterizable;
-import abfab3d.util.VecTransform;
+import abfab3d.core.VecTransform;
 
 /**
  * Base code for all transforms

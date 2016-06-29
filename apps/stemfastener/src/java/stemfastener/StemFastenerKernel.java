@@ -16,6 +16,7 @@ package stemfastener;
 import java.io.*;
 import java.util.*;
 
+import abfab3d.core.Grid;
 import abfab3d.io.output.*;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.MeshDecimator;
@@ -32,8 +33,8 @@ import abfab3d.creator.shapeways.*;
 
 //import java.awt.*;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 /**
  * Geometry Kernel for the ImageEditor.

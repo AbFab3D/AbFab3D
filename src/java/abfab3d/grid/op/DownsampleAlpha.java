@@ -16,9 +16,11 @@ package abfab3d.grid.op;
 
 // Internal Imports
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.grid.*;
 import abfab3d.util.DefaultLongConverter;
-import abfab3d.util.LongConverter;
+import abfab3d.core.LongConverter;
 
 /**
  * Downsample a grid.  Uses attribute data as an alpha channel.

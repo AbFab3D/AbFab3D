@@ -13,6 +13,8 @@
 package abfab3d.util;
 
 
+import abfab3d.core.MathUtil;
+
 /**
    class to calculate color for given densitry value
    densty is expacted in the range (0,1)

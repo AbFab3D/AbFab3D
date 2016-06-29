@@ -14,7 +14,9 @@ package abfab3d.grid;
 
 // External Imports
 
-import abfab3d.util.Bounds;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.Bounds;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -155,7 +157,7 @@ public class TestShortIntervals extends BaseTestAttributeGrid {
      */
     public void testSetSameTwice() {
         AttributeGrid grid = new GridShortIntervals(new Bounds(1.0, 0.4, 0.5), 0.05, 0.01);
-        grid.setData(0,0,0,Grid.INSIDE,2);
+        grid.setData(0,0,0, Grid.INSIDE,2);
         grid.setData(0,0,0,Grid.INSIDE,2);
     }
 

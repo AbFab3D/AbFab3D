@@ -11,14 +11,11 @@
  ****************************************************************************/
 
 
-package abfab3d.grid;
+package abfab3d.core;
 
-import abfab3d.util.LongConverter;
-import abfab3d.util.MathUtil;
-
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.MathUtil.clamp;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.MathUtil.clamp;
 
 /**
  * A description of a single channel of a grid attribute
@@ -73,8 +70,8 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
     String m_stype;
     // integer type of the channel 
     int m_itype; 
-     // shift to move bits toward origin 
-     int m_shift;
+     // shift to move bits toward origin
+    protected int m_shift;
     int m_bits;
 
     // mask to get sign bit 
@@ -298,7 +295,7 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
         }
     }
 
-    protected void setGrid(AttributeGrid grid) {
+    public void setGrid(AttributeGrid grid) {
         m_grid = grid;
     }
 

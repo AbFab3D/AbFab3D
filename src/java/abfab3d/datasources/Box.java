@@ -13,18 +13,18 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
-import abfab3d.util.Bounds;
-import abfab3d.util.Units;
-import abfab3d.util.Vec;
+import abfab3d.core.Bounds;
+import abfab3d.core.Vec;
 
 import javax.vecmath.Vector3d;
 
-import static abfab3d.util.MathUtil.intervalCap;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.MathUtil.intervalCap;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Units.MM;
 
 
 /**
@@ -301,7 +301,7 @@ public class Box extends TransformableDataSource {
         zmin = centerZ - sizeZ / 2;
         zmax = centerZ + sizeZ / 2;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 
@@ -339,7 +339,7 @@ public class Box extends TransformableDataSource {
                     y <= ymin - vs || y >= ymax + vs ||
                     z <= zmin - vs || z >= zmax + vs) {
                 data.v[0] = 0.;
-                return RESULT_OK;
+                return ResultCodes.RESULT_OK;
             }
             double finalValue = 1;
 
@@ -354,7 +354,7 @@ public class Box extends TransformableDataSource {
         }
 
         super.getMaterialDataValue(pnt, data);        
-        return RESULT_OK;        
+        return ResultCodes.RESULT_OK;
 
     }
 

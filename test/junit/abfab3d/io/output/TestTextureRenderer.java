@@ -44,17 +44,17 @@ import junit.framework.TestSuite;
 
 // Internal Imports
 import abfab3d.grid.AttributePackerGeneral;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridInt;
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.GridDataChannel;
 
-import abfab3d.util.LongConverter;
-import abfab3d.util.TriangleProducer;
+import abfab3d.core.LongConverter;
+import abfab3d.core.TriangleProducer;
 
 import abfab3d.geom.TriangulatedModels;
 
-import abfab3d.util.MathUtil;
+import abfab3d.core.MathUtil;
 
 import abfab3d.datasources.DataSourceMixer;
 import abfab3d.datasources.Sphere;
@@ -62,13 +62,13 @@ import abfab3d.datasources.VolumePatterns;
 
 import abfab3d.grid.op.GridMaker;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
 
-import static abfab3d.util.MathUtil.maxDistance;
+import static abfab3d.core.MathUtil.maxDistance;
 
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Units.MM;
 
 
 /**

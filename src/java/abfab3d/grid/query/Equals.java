@@ -15,11 +15,9 @@ package abfab3d.grid.query;
 // External Imports
 
 // Internal Imports
-import java.util.HashSet;
 
-import abfab3d.grid.*;
-import abfab3d.grid.VoxelClasses;
-import abfab3d.path.Path;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelData;
 
 /**
  * Determines whether 2 grids are equal.  Checks each voxel and makes sure

@@ -14,8 +14,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Vector;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 
 public class ScrollTextField extends TextField {

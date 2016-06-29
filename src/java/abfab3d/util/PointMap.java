@@ -15,7 +15,7 @@ import java.util.Arrays;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * A set like interface for making points unique given some epsilon.

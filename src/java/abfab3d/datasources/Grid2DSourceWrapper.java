@@ -1,11 +1,11 @@
 package abfab3d.datasources;
 
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.Grid2D;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.Grid2D;
 import abfab3d.param.SourceWrapper;
-import abfab3d.util.Bounds;
+import abfab3d.core.Bounds;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Wraps a grid and keep tracks of the source used.  Will clear out the source if any setters are used

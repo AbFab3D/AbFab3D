@@ -14,6 +14,8 @@ package linkedrings;
 
 // External Imports
 import java.io.*;
+
+import abfab3d.core.Grid;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 

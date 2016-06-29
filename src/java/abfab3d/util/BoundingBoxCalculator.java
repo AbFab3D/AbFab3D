@@ -12,10 +12,16 @@
 
 package abfab3d.util;
 
+import abfab3d.core.AttributedTriangleCollector;
+import abfab3d.core.Bounds;
+import abfab3d.core.MathUtil;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.Vec;
+
 import javax.vecmath.Vector3d;
 
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
 /**

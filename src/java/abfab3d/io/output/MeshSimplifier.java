@@ -1,6 +1,6 @@
 package abfab3d.io.output;
 
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 import toxi.geom.mesh.WETriangleMesh;
 
 /**

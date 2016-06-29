@@ -1,5 +1,8 @@
 package abfab3d.util;
 
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
+
 import javax.vecmath.Point3d;
 
 /**
