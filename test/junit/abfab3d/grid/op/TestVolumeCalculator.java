@@ -12,6 +12,7 @@
 
 package abfab3d.grid.op;
 
+import abfab3d.datasources.TransformableDataSource;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
@@ -51,6 +52,7 @@ public class TestVolumeCalculator extends TestCase {
         double s = r+1*MM;
         double vs = 0.5*MM;
         Sphere sp = new Sphere(r);
+        sp.setDataType(TransformableDataSource.DATA_DENSITY);
         ArrayAttributeGridByte grid = new ArrayAttributeGridByte(new Bounds(-s,s,-s,s,-s,s), vs,vs);
         GridMaker gm = new GridMaker();
         gm.setThreadCount(8);

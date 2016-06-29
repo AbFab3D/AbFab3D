@@ -318,7 +318,7 @@ public class TestVolumeSculptor extends TestCase {
         }
     }
 
-    public void testSphere() {
+    public void _testSphere() {
         String script = "importPackage(Packages.abfab3d.grid.op);\n" +
                 "importPackage(Packages.abfab3d.grid);\n" +
                 "importPackage(Packages.abfab3d.datasources);\n" +
@@ -357,7 +357,7 @@ public class TestVolumeSculptor extends TestCase {
         }
     }
 
-    public void testDecimationParams() {
+    public void _testDecimationParams() {
         String script1 = "meshErrorFactor = 0.25;\n" +
                 "function main(args) {\n" +
                 "\tvar radius = args[0];" +
