@@ -35,24 +35,26 @@ import junit.framework.TestSuite;
 
 
 // Internal Imports
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.Vec;
+import abfab3d.core.MathUtil;
+import abfab3d.core.VecTransform;
+import abfab3d.core.Bounds;
+import abfab3d.core.AttributePacker;
+
+
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.GridShortIntervals;
-import abfab3d.grid.AttributePacker;
 
 import abfab3d.grid.op.GridMaker;
 
 
-import abfab3d.util.Vec;
-import abfab3d.util.MathUtil;
 import abfab3d.util.TextUtil;
 import abfab3d.util.Symmetry;
-import abfab3d.util.VecTransform;
-import abfab3d.util.Bounds;
 
 import abfab3d.datasources.DataSourceGrid;
 
@@ -62,10 +64,12 @@ import abfab3d.io.output.GridSaver;
 import abfab3d.util.ImageMipMap;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.MathUtil.TORAD;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.MathUtil.TORAD;
+import static abfab3d.core.VecTransform.RESULT_OK;
+import static abfab3d.core.Units.MM;
 
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Math.sin;
@@ -73,9 +77,6 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.PI;
 
-import static abfab3d.util.VecTransform.RESULT_OK;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
 
 /**
  * Tests the functionality of Embossing
@@ -121,8 +122,8 @@ public class TestEmbossing extends TestCase {
         emb.set("minValue",0.0*MM);
         emb.set("maxValue",0.5*MM);
         emb.set("factor", 1);
-        emb.set("attribMixThreshold", 0.1);
-        emb.set("attribMixAmount", 0.5);
+        emb.set("mixThreshold", 0.1);
+        emb.set("mixAmount", 0.2);
         
         //AttributeGrid grid = makeDensBGRGrid(bounds);
         AttributeGrid grid = makeDistBGRGrid(bounds, maxDist);

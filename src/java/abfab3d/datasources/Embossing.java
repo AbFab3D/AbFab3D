@@ -15,15 +15,14 @@ package abfab3d.datasources;
 
 
 import abfab3d.core.ResultCodes;
-import abfab3d.param.Parameter;
-import abfab3d.param.SNode;
-import abfab3d.param.SNodeParameter;
-import abfab3d.param.DoubleParameter;
-
 import abfab3d.core.Vec;
 import abfab3d.core.DataSource;
 import abfab3d.core.MathUtil;
 
+import abfab3d.param.Parameter;
+import abfab3d.param.SNode;
+import abfab3d.param.SNodeParameter;
+import abfab3d.param.DoubleParameter;
 
 import static java.lang.Math.abs;
 
@@ -56,9 +55,9 @@ public class Embossing extends TransformableDataSource implements SNode {
     DoubleParameter mp_maxValue = new DoubleParameter("maxValue", "max value to emboss", 1*MM);
     DoubleParameter mp_factor = new DoubleParameter("factor", "multipier for embosser value", 1.);
     DoubleParameter mp_offset = new DoubleParameter("offset", "offset for embosser value", 0.);
-    DoubleParameter mp_attribMixThreshold = new DoubleParameter("attribMixThreshold", "threshold for embosser value when attributes mixing occurs", 0.1);
-    DoubleParameter mp_attribMixAmount = new DoubleParameter("attribMixAmount", "amount of attributes mixing", 0);
-    DoubleParameter mp_attribMixBlendWidth = new DoubleParameter("attribMixBlendWidth", "width of attributes mixing transition", 0.1);
+    DoubleParameter mp_mixThreshold = new DoubleParameter("mixThreshold", "threshold for embosser value for attributes mixing", 0.1);
+    DoubleParameter mp_mixAmount = new DoubleParameter("mixAmount", "amount of attributes mixing", 0);
+    DoubleParameter mp_mixBlend = new DoubleParameter("mixBlend", "width of attributes mixing transition", 0.1);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_shape,
@@ -68,9 +67,9 @@ public class Embossing extends TransformableDataSource implements SNode {
         mp_maxValue,
         mp_factor,
         mp_offset,
-        mp_attribMixAmount,
-        mp_attribMixThreshold,
-        mp_attribMixBlendWidth,
+        mp_mixAmount,
+        mp_mixThreshold,
+        mp_mixBlend,
     };    
 
 
@@ -201,9 +200,9 @@ public class Embossing extends TransformableDataSource implements SNode {
     private double m_offset; 
     private int m_embosserChannelsCount;
     private int m_baseChannelsCount;
-    private double m_attribMixFactor;
-    private double m_attribMixThreshold;
-    private double m_attribMixAmount;
+    private double m_mixFactor;
+    private double m_mixThreshold;
+    private double m_mixAmount;
     /**
        @noRefGuide
      */
@@ -225,9 +224,9 @@ public class Embossing extends TransformableDataSource implements SNode {
         m_baseChannelsCount = m_baseShape.getChannelsCount();
 
         m_channelsCount = m_baseChannelsCount;
-        m_attribMixThreshold = (m_maxValue - m_minValue)*mp_attribMixThreshold.getValue();
-        m_attribMixFactor = 1/(mp_attribMixBlendWidth.getValue()*(m_maxValue - m_minValue));
-        m_attribMixAmount = mp_attribMixAmount.getValue();
+        m_mixThreshold = (m_maxValue - m_minValue)*mp_mixThreshold.getValue();
+        m_mixFactor = 1/(mp_mixBlend.getValue()*(m_maxValue - m_minValue));
+        m_mixAmount = mp_mixAmount.getValue();
         //printf("th: %10.5f mf: %10.5f\n", th, mf);
         return ResultCodes.RESULT_OK;
         
@@ -249,8 +248,8 @@ public class Embossing extends TransformableDataSource implements SNode {
         double dist = embData.v[0]*m_factor + m_offset;
         dist = clamp(dist, m_minValue, m_maxValue);
         data.v[0] -= dist; // emboss 
-        double mix = ((dist-m_minValue) - m_attribMixThreshold)*m_attribMixFactor;
-        mix = m_attribMixAmount*clamp(mix,0.,1.);
+        double mix = ((dist-m_minValue) - m_mixThreshold)*m_mixFactor;
+        mix = m_mixAmount*clamp(mix,0.,1.);
         lerp(data.v,embData.v, mix, data.v, 1,m_baseChannelsCount-1);                       
         return ResultCodes.RESULT_OK;
     }
