@@ -37,8 +37,11 @@ import static abfab3d.util.Units.MM;
 /**
 
    Makes an embossing on a surface of the base shape with another source.  This is similar to displacement maps in other
-   packages.  In general this technique only works well close to the surface, roughly within 2mm.
+   packages.  In general this technique only works well close to the surface, but can be good anywhere. 
+
    <br/>
+
+   
 
    @author Vladimir Bulatov
 
@@ -53,8 +56,9 @@ public class Embossing extends TransformableDataSource implements SNode {
     DoubleParameter mp_maxValue = new DoubleParameter("maxValue", "max value to emboss", 1*MM);
     DoubleParameter mp_factor = new DoubleParameter("factor", "multipier for embosser value", 1.);
     DoubleParameter mp_offset = new DoubleParameter("offset", "offset for embosser value", 0.);
-    DoubleParameter mp_attribMixThreshold = new DoubleParameter("attribMixThreshold", "threshold when attributes mixing occurs", 0.1);
-    DoubleParameter mp_attribMixBlendWidth = new DoubleParameter("attribMixBlendWidth", "with of transition for attributes mixing", 0.1);
+    DoubleParameter mp_attribMixThreshold = new DoubleParameter("attribMixThreshold", "threshold for embosser value when attributes mixing occurs", 0.1);
+    DoubleParameter mp_attribMixAmount = new DoubleParameter("attribMixAmount", "amount of attributes mixing", 0);
+    DoubleParameter mp_attribMixBlendWidth = new DoubleParameter("attribMixBlendWidth", "width of attributes mixing transition", 0.1);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_shape,
@@ -64,6 +68,7 @@ public class Embossing extends TransformableDataSource implements SNode {
         mp_maxValue,
         mp_factor,
         mp_offset,
+        mp_attribMixAmount,
         mp_attribMixThreshold,
         mp_attribMixBlendWidth,
     };    
@@ -198,7 +203,7 @@ public class Embossing extends TransformableDataSource implements SNode {
     private int m_baseChannelsCount;
     private double m_attribMixFactor;
     private double m_attribMixThreshold;
-
+    private double m_attribMixAmount;
     /**
        @noRefGuide
      */
@@ -220,10 +225,9 @@ public class Embossing extends TransformableDataSource implements SNode {
         m_baseChannelsCount = m_baseShape.getChannelsCount();
 
         m_channelsCount = m_baseChannelsCount;
-        double th = (m_maxValue - m_minValue)*mp_attribMixThreshold.getValue();
-        double mf = 1/(mp_attribMixBlendWidth.getValue()*(m_maxValue - m_minValue));
-        m_attribMixThreshold = th;
-        m_attribMixFactor = mf;
+        m_attribMixThreshold = (m_maxValue - m_minValue)*mp_attribMixThreshold.getValue();
+        m_attribMixFactor = 1/(mp_attribMixBlendWidth.getValue()*(m_maxValue - m_minValue));
+        m_attribMixAmount = mp_attribMixAmount.getValue();
         //printf("th: %10.5f mf: %10.5f\n", th, mf);
         return RESULT_OK;
         
@@ -245,9 +249,9 @@ public class Embossing extends TransformableDataSource implements SNode {
         double dist = embData.v[0]*m_factor + m_offset;
         dist = clamp(dist, m_minValue, m_maxValue);
         data.v[0] -= dist; // emboss 
-        double attribMix = ((dist-m_minValue) - m_attribMixThreshold)*m_attribMixFactor;
-        attribMix = clamp(attribMix,0.,1.);
-        lerp(data.v,embData.v, attribMix, data.v, 1,m_baseChannelsCount-1);                       
+        double mix = ((dist-m_minValue) - m_attribMixThreshold)*m_attribMixFactor;
+        mix = m_attribMixAmount*clamp(mix,0.,1.);
+        lerp(data.v,embData.v, mix, data.v, 1,m_baseChannelsCount-1);                       
         return RESULT_OK;
     }
 
