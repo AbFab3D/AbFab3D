@@ -182,16 +182,21 @@ public class GridLoader {
         return m_triangleCount;
 
     }
+
+    public AttributeGrid loadDistanceGrid(String filepath) {
+        if(DEBUG)printf("loadDistanceGrid(%s)\n",filepath);
+
+        MeshReader reader = new MeshReader(filepath);
+        return loadDistanceGrid(reader);
+    }
+
     /**
        open mesh on given path and return distance grid to that mesh 
        
        @return distance grid to the rasterized mesh
      */
-    public AttributeGrid loadDistanceGrid(String filePath){
+    public AttributeGrid loadDistanceGrid(TriangleProducer reader){
         
-        if(DEBUG)printf("loadDistanceGrid(%s)\n",filePath);
-
-        MeshReader reader = new MeshReader(filePath);
         long t0 = time();
         Bounds bounds = getModelBounds(reader);
 
@@ -447,7 +452,7 @@ public class GridLoader {
 
     /**
         creates grid from textured triangle mesh 
-        @param triProducer produces texured triangles via TriangleColletor2 interface 
+        @param attTriProducer produces texured triangles via TriangleColletor2 interface
         @param attributeColorizer
         @return grid which contains distance and color information to given limits 
      */
@@ -458,12 +463,27 @@ public class GridLoader {
         if(attributeColorizer instanceof Initializable) ((Initializable)attributeColorizer).initialize();
         Bounds bounds = getModelBounds(tp);
         if(DEBUG) printf("model bounds: %s\n", bounds);
-        AttributeGrid grid = createDistRGBGrid(bounds);
-        if(DEBUG)printf("grid: [%d x %d x %d]\n", grid.getWidth(),grid.getHeight(),grid.getDepth());
+        int dims = attTriProducer.getDataDimension();
+        AttributeGrid grid = null;
+
+        switch(dims) {
+            case 3:
+                grid = createDistanceGrid(bounds);
+                break;
+            case 5:
+                grid = createDistRGBGrid(bounds);
+                break;
+            case 6:
+                grid = createDistRGBGrid(bounds);
+                break;
+            default:
+                throw new IllegalArgumentException("Unhandled case.  dims: " + dims);
+        }
+        if(DEBUG)printf("grid: [%d x %d x %d]  dims: %d\n", grid.getWidth(),grid.getHeight(),grid.getDepth(),dims);
         if(DEBUG)printf("voxelSize: %7.5f\n", grid.getVoxelSize()); 
         AttributedDistanceRasterizer rasterizer = new AttributedDistanceRasterizer(bounds, grid.getWidth(),grid.getHeight(),grid.getDepth());
 
-        rasterizer.setDataDimension(attTriProducer.getDataDimension());
+        rasterizer.setDataDimension(dims);
         rasterizer.setShellHalfThickness(m_shellHalfThickness);
         rasterizer.setSurfaceVoxelSize(m_surfaceVoxelSize);
         rasterizer.setThreadCount(m_threadCount);
@@ -473,5 +493,50 @@ public class GridLoader {
                 
         return grid;
         
+    }
+    public AttributeGrid rasterizeAttributedTriangles(AttributedMeshReader reader){
+
+        if(DEBUG) printf("GridLoader.rasterizeTexturedTriangles(%s)\n", reader);
+
+        TriangleProducer tp = null;
+
+        if (reader instanceof TriangleProducer) tp = (TriangleProducer) reader;
+        else tp = new AttributedTriangleProducerConverter(reader);
+
+        Bounds bounds = getModelBounds(tp);
+        DataSource attributeColorizer = reader.getAttributeCalculator();
+        if(attributeColorizer instanceof Initializable) ((Initializable)attributeColorizer).initialize();
+        if(DEBUG) printf("model bounds: %s\n", bounds);
+        int dims = reader.getDataDimension();
+        AttributeGrid grid = null;
+
+        switch(dims) {
+            case 3:
+                grid = createDistanceGrid(bounds);
+                break;
+            case 5:
+                grid = createDistRGBGrid(bounds);
+                break;
+            case 6:
+                grid = createDistRGBGrid(bounds);
+                break;
+            default:
+                throw new IllegalArgumentException("Unhandled case.  dims: " + dims);
+        }
+        if(DEBUG)printf("grid: [%d x %d x %d]  dims: %d\n", grid.getWidth(),grid.getHeight(),grid.getDepth(),dims);
+        if(DEBUG)printf("voxelSize: %7.5f\n", grid.getVoxelSize());
+        AttributedDistanceRasterizer rasterizer = new AttributedDistanceRasterizer(bounds, grid.getWidth(),grid.getHeight(),grid.getDepth());
+
+        rasterizer.setDataDimension(reader.getDataDimension());
+        if (DEBUG) printf("dims: %d\n",reader.getDataDimension());
+        rasterizer.setShellHalfThickness(m_shellHalfThickness);
+        rasterizer.setSurfaceVoxelSize(m_surfaceVoxelSize);
+        rasterizer.setThreadCount(m_threadCount);
+        rasterizer.setDistanceRange(-m_maxInDistance, m_maxOutDistance);
+
+        rasterizer.getAttributedDistances(reader, attributeColorizer, grid);
+
+        return grid;
+
     }
 }

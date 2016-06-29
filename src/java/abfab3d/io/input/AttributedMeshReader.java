@@ -21,7 +21,11 @@ import abfab3d.util.AttributedTriangleProducer;
 import abfab3d.util.VecTransform;
 import org.apache.commons.io.FilenameUtils;
 
+import java.io.File;
 import java.io.InputStream;
+import java.util.HashSet;
+
+import static abfab3d.util.Output.printf;
 
 /**
  * Reads triangle mesh from a file/stream into various formats.  Supports attribute loading of color and multimaterial
@@ -39,6 +43,7 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
         EXT_X3D = "x3d",
         EXT_X3DV = "x3dv";
 
+    public static HashSet<String> supportedExt;
 
     private String m_path;
     private InputStream m_is;
@@ -49,10 +54,45 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
     private DataSource m_attributeCalc;
     private int m_dataDimension = -1;
 
+    static {
+        supportedExt = new HashSet<String>();
+        supportedExt.add(EXT_STL);
+        supportedExt.add(EXT_X3D);
+        supportedExt.add(EXT_X3DB);
+        supportedExt.add(EXT_X3DV);
+    }
 
     public AttributedMeshReader(String path) {
         m_path = path;
-        m_format = FilenameUtils.getExtension(path);
+
+        File f = new File(m_path);
+
+        if (f.isDirectory()) {
+            // got a directory, need to find the main file
+            File[] files = f.listFiles();
+            int len = files.length;
+            String main = null;
+
+            for(int i=0; i < len; i++) {
+                String ext = FilenameUtils.getExtension(files[i].getName());
+                if (supportedExt.contains(ext)) {
+                    if (main != null) {
+                        throw new IllegalArgumentException("Zip contains multiple main file.  First: " + main + " Second: " + files[i]);
+                    }
+
+                    main = files[i].getAbsolutePath();
+                }
+            }
+
+            if (main == null) {
+                throw new IllegalArgumentException("Zip does not contain a supported main file");
+            }
+            m_path = main;
+
+            printf("main file: %s\n",m_path);
+        }
+
+        m_format = FilenameUtils.getExtension(m_path);
     }
 
     /**
@@ -104,6 +144,8 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
                 m_producer = new AttributedX3DReader(m_path);
             }
         }
+
+        if (m_producer == null) throw new IllegalArgumentException("Unsupported format: " + m_format + " path: " + m_path);
     }
         
     public void setTransform(VecTransform trans) {

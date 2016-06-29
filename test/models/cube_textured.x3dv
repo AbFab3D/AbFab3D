@@ -12,8 +12,8 @@ Viewpoint {
  Shape {
     appearance Appearance {
        texture ImageTexture {
-          url ["tc_map.png"]
- #         url ["letters2.png"]
+#          url ["tc_map.png"]
+          url ["letters2.png"]
        }
     }
     geometry IndexedTriangleSet {

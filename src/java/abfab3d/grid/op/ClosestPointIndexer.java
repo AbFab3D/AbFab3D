@@ -1425,7 +1425,9 @@ public class ClosestPointIndexer {
                         pntData.v[1] = pntv[ind];
                         pntData.v[2] = pntw[ind];
 
-                        colorizer.getDataValue(pntData, colorData);
+                        if (colorizer != null) {
+                            colorizer.getDataValue(pntData, colorData);
+                        }
                         //TODO - use different channels dimension 
                         if(interior[z]) {
                             dist = -dist;
