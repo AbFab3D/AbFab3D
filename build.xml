@@ -86,6 +86,9 @@
     </target>
   
     <target name="compile" depends="init" description="Compile all Java source files">
+        <compilejava package="abfab3d/core"
+                     jars=""
+                />
         <compilejava package="abfab3d/util"
             jars="xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar"
         />

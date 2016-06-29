@@ -525,7 +525,6 @@ public class Image3D extends TransformableDataSource {
     }
 
     public void setImage(Object val) {
-        printf("Image3D setImage:  %s  class: %s\n",val.toString(),val.getClass());
         mp_image.setValue(val);
     }
 

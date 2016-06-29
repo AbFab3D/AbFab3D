@@ -33,7 +33,7 @@ import static abfab3d.util.Output.printf;
  */
 public class DistanceToTriangleSetMT implements Operation, AttributeOperation {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     static final int DEFAULT_SVR = 100;
 
