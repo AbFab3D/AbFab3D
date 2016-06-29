@@ -22,7 +22,7 @@ import java.io.IOException;
 
 
 import abfab3d.core.ResultCodes;
-import abfab3d.grid.Grid2D;
+import abfab3d.core.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.core.GridDataChannel;
 import abfab3d.param.*;

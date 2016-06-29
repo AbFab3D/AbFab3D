@@ -17,7 +17,7 @@ package abfab3d.grid.op;
 // Internal Imports
 
 import abfab3d.core.GridDataChannel;
-import abfab3d.grid.Grid2D;
+import abfab3d.core.Grid2D;
 import abfab3d.grid.Operation2D;
 
 /**

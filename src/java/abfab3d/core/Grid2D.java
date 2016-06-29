@@ -10,10 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid;
-
-import abfab3d.core.GridDataDesc;
-import abfab3d.core.Bounds;
+package abfab3d.core;
 
 
 /**

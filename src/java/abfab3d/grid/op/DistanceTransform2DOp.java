@@ -14,7 +14,7 @@ package abfab3d.grid.op;
 
 import abfab3d.core.GridDataDesc;
 import abfab3d.core.GridDataChannel;
-import abfab3d.grid.Grid2D;
+import abfab3d.core.Grid2D;
 import abfab3d.grid.Grid2DInt;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.Grid2DByte;

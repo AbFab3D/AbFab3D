@@ -14,6 +14,7 @@ package abfab3d.grid;
 
 // External Imports
 
+import abfab3d.core.Grid2D;
 import abfab3d.core.GridDataDesc;
 import abfab3d.core.Bounds;
 

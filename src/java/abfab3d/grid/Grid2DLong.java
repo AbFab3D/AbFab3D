@@ -13,6 +13,7 @@
 package abfab3d.grid;
 
 import abfab3d.core.Bounds;
+import abfab3d.core.Grid2D;
 
 
 import static abfab3d.core.Output.fmt;

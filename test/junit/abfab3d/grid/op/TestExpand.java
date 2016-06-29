@@ -1,6 +1,6 @@
 package abfab3d.grid.op;
 
-import abfab3d.grid.Grid2D;
+import abfab3d.core.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import junit.framework.Test;
 import junit.framework.TestCase;

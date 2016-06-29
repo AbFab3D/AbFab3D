@@ -21,7 +21,7 @@ import abfab3d.core.GridDataChannel;
 import abfab3d.core.GridDataDesc;
 
 import abfab3d.grid.ArrayAttributeGridShort;
-import abfab3d.grid.Grid2D;
+import abfab3d.core.Grid2D;
 
 import abfab3d.core.Vec;
 import abfab3d.core.DataSource;

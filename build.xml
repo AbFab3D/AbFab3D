@@ -348,6 +348,7 @@
             version="${version}"
             manifest="abfab3d_core.mf"
             includes="
+                abfab3d/core/*
                 abfab3d/math/*
                 abfab3d/symmetry/*
                 abfab3d/transforms/*

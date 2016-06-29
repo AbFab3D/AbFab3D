@@ -1,7 +1,7 @@
 package abfab3d.datasources;
 
 import abfab3d.core.GridDataDesc;
-import abfab3d.grid.Grid2D;
+import abfab3d.core.Grid2D;
 import abfab3d.param.SourceWrapper;
 import abfab3d.core.Bounds;
 

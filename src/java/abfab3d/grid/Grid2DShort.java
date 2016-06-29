@@ -13,6 +13,7 @@
 package abfab3d.grid;
 
 
+import abfab3d.core.Grid2D;
 import abfab3d.core.GridDataDesc;
 import abfab3d.util.ImageUtil;
 import abfab3d.core.Bounds;

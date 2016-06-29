@@ -17,6 +17,7 @@ package abfab3d.grid.op;
 // Internal Imports
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.Grid;
+import abfab3d.core.Grid2D;
 import abfab3d.core.GridDataChannel;
 import abfab3d.core.VoxelData;
 import abfab3d.grid.*;

@@ -14,6 +14,7 @@ package abfab3d.grid;
 
 // External Imports
 
+import abfab3d.core.Grid2D;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
