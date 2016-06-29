@@ -11,7 +11,7 @@
  ****************************************************************************/
 package abfab3d.io.output;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.MaterialMaker;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Writes a grid out in the sts format.

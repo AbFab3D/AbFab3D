@@ -10,7 +10,10 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
+package abfab3d.core;
+
+import abfab3d.core.Bounds;
+import abfab3d.core.Vec;
 
 /**
    
@@ -19,12 +22,6 @@ package abfab3d.util;
    @author Vladimir Bulatov 
  */
 public interface DataSource {
-
-    public static final int 
-        RESULT_OK = 0,     // success
-        RESULT_ERROR = 1,  // error occurs 
-        RESULT_OUTSIDE = 2; // argument is outside of the domain of data definition 
-
     /**
        data value at the given point 
        @param pnt Point where the data is calculated 

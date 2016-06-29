@@ -15,6 +15,8 @@ package abfab3d.grid.op;
 // External Imports
 import java.util.*;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.intersect.TriangleIntersectionDoubleUtil;
 import abfab3d.util.BoundingBoxUtilsFloat;
 import abfab3d.util.MatrixUtil;

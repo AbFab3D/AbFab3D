@@ -22,7 +22,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
+import abfab3d.core.ResultCodes;
 import abfab3d.grid.DensityMaker;
 import abfab3d.grid.DensityMakerSubvoxel;
 
@@ -32,14 +33,14 @@ import abfab3d.mesh.MeshDecimator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 
 import abfab3d.util.AbFab3DGlobals;
-import abfab3d.util.MathUtil;
-import abfab3d.util.TriangleCollector;
+import abfab3d.core.MathUtil;
+import abfab3d.core.TriangleCollector;
 
 
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 import static java.lang.System.nanoTime;
 
 /**
@@ -232,7 +233,7 @@ public class MeshMakerMT {
             printf("    finalFaceCount: %d\n", block.finalFaceCount);
         }
         block.writeTriangles(tc);        
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 
@@ -366,7 +367,7 @@ public class MeshMakerMT {
             printf("originalFaceCount: %d\n", origFaceCount);
             printf("finalFaceCount: %d\n", finalFaceCount);
         }
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 

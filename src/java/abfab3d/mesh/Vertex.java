@@ -14,10 +14,9 @@ package abfab3d.mesh;
 import abfab3d.util.StructDataDefinition;
 import abfab3d.util.StructMixedData;
 
-import javax.vecmath.Point3d;
 import javax.vecmath.Tuple3d;
 
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.fmt;
 
 /**
  * Vertex defined by a point in space.

@@ -12,12 +12,11 @@
 
 package abfab3d.io.input;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import abfab3d.util.TriangleMesh;
 import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.w3c.dom.Document;
@@ -36,7 +35,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * SVX Reader.

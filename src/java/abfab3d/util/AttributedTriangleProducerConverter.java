@@ -12,6 +12,12 @@
 
 package abfab3d.util;
 
+import abfab3d.core.AttributedTriangleCollector;
+import abfab3d.core.AttributedTriangleProducer;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.Vec;
+
 import javax.vecmath.Vector3d;
 
 /**

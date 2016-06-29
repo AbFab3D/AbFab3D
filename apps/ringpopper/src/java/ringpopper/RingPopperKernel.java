@@ -22,9 +22,9 @@ import abfab3d.creator.util.ParameterUtil;
 
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.GridShortIntervals;
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 
-import abfab3d.util.DataSource;
+import abfab3d.core.DataSource;
 import abfab3d.util.TextUtil;
 
 import abfab3d.datasources.ImageBox;
@@ -68,9 +68,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static abfab3d.util.MathUtil.TORAD;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.MathUtil.TORAD;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 //import java.awt.*;
 

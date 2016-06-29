@@ -16,11 +16,11 @@ package abfab3d.grid.query;
 
 // Internal Imports
 
-import abfab3d.grid.GridDataChannel;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.AttributeGrid;
 //import abfab3d.io.input.*;
 import abfab3d.util.AbFab3DGlobals;
-import abfab3d.util.Bounds;
+import abfab3d.core.Bounds;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

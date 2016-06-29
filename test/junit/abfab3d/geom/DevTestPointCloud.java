@@ -15,20 +15,16 @@ package abfab3d.geom;
 // External Imports
 import javax.vecmath.Vector3d;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Vector;
 
 
 // Internal Imports
-import abfab3d.util.TrianglePrinter;
 import abfab3d.io.output.STLWriter;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Units.MM;
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
-import static java.lang.Math.sqrt;
 
 
 /**

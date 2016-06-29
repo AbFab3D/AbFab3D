@@ -12,9 +12,10 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.*;
 import abfab3d.util.ImageColor;
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Vector3d;
@@ -22,8 +23,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 import static java.lang.Math.floor;
 
 
@@ -211,14 +212,14 @@ public class ImageColorMap extends TransformableDataSource {
         if (needToPrepareImage()) {
 
             int res = prepareImage();
-            if (res != RESULT_OK) {
+            if (res != ResultCodes.RESULT_OK) {
                 // something wrong with the image 
                 throw new IllegalArgumentException("undefined image");
             }
             saveImageData();
         }
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 
@@ -322,7 +323,7 @@ public class ImageColorMap extends TransformableDataSource {
 
         printf("ImageColorMap.prepareImage() time: %d ms\n", (time() - t0));
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -431,7 +432,7 @@ public class ImageColorMap extends TransformableDataSource {
         dataValue.v[1] = g;
         dataValue.v[2] = b;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     final static int getRed(int color) {

@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Random;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 // Internal Imports
 

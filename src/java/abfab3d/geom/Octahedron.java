@@ -14,8 +14,8 @@ package abfab3d.geom;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducer;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
 
 /**
    class to represent Octahedron with given radius and center 

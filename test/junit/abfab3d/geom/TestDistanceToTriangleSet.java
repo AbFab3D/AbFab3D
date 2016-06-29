@@ -15,6 +15,11 @@ package abfab3d.geom;
 import java.io.File;
 import java.io.IOException;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Bounds;
+import abfab3d.core.Grid;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.VoxelData;
 import abfab3d.grid.*;
 import abfab3d.grid.op.DensityGridExtractor;
 import abfab3d.grid.op.DistanceTransformLayered;
@@ -41,10 +46,10 @@ import static java.lang.Math.round;
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
 import static java.lang.Math.max;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.MathUtil.L2S;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.MathUtil.L2S;
 
 /**
  * Test the DistanceToTriangleSet class.

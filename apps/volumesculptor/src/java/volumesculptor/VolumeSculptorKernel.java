@@ -17,7 +17,7 @@ package volumesculptor;
 import abfab3d.creator.KernelResults;
 import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.Model;
 import abfab3d.grid.ModelWriter;
 import abfab3d.io.input.BoundsCalculator;
@@ -38,8 +38,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 /**
  * Geometry Kernel for the VolumeSculptor

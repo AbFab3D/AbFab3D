@@ -12,12 +12,12 @@
 
 package abfab3d.grid.op;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridShort;
 
 import abfab3d.grid.GridShortIntervals;
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.GridDataChannel;
 
 
 /**

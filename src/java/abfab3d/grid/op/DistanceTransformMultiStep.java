@@ -12,22 +12,17 @@
 
 package abfab3d.grid.op;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.Operation;
 import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.ArrayAttributeGridShort;
-import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.GridMask;
-import abfab3d.grid.ClassTraverser;
 import abfab3d.grid.GridBit;
 import abfab3d.grid.util.ExecutionStoppedException;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
-import static abfab3d.grid.Grid.OUTSIDE;
 import static java.lang.Math.max;
 import static java.lang.Math.round;
 import static java.lang.Math.ceil;

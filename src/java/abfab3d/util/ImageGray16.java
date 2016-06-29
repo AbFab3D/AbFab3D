@@ -12,6 +12,8 @@
 
 package abfab3d.util;
 
+import abfab3d.core.MathUtil;
+
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
@@ -24,9 +26,9 @@ import java.util.Arrays;
 
 import static abfab3d.util.ImageUtil.us2i; 
 import static abfab3d.util.ImageUtil.ub2i; 
-import static abfab3d.util.MathUtil.clamp;
+import static abfab3d.core.MathUtil.clamp;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
    gray scale image represented as array of unsigned short

@@ -15,41 +15,29 @@ package abfab3d.datasources;
 
 import java.awt.image.BufferedImage;
 
-import java.util.Vector;
 import java.awt.Font;
-import java.awt.Insets;
 
 
 import javax.vecmath.Vector3d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.AxisAngle4d;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.*;
 
 
-import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
-import abfab3d.util.Units;
+import abfab3d.core.Vec;
 import abfab3d.util.TextUtil;
 import abfab3d.util.Insets2;
 
-import abfab3d.util.PointToTriangleDistance;
-
-import static java.lang.Math.sqrt;
-import static java.lang.Math.atan2;
 import static java.lang.Math.abs;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.intervalCap;
-import static abfab3d.util.MathUtil.step10;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.MathUtil.step10;
 
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Units.MM;
 
 
 /**
@@ -306,7 +294,7 @@ public class Text extends TransformableDataSource {
         m_bitmap.initialize();
 
         
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
     

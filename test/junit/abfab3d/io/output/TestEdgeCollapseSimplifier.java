@@ -13,30 +13,18 @@
 package abfab3d.io.output;
 
 // External Imports
-import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.*;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.j3d.geom.GeometryData;
-import org.j3d.geom.BoxGenerator;
-import org.j3d.geom.CylinderGenerator;
-import org.j3d.geom.TorusGenerator;
-import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
-import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
-import org.web3d.vrml.export.X3DBinarySerializer;
 import org.web3d.vrml.export.X3DClassicRetainedExporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
 // Internal Imports
-import abfab3d.grid.*;
-import abfab3d.grid.VoxelClasses;
-import abfab3d.io.output.BoxesX3DExporter;
 import toxi.geom.Line3D;
 import toxi.geom.Vec3D;
 import toxi.geom.mesh.*;

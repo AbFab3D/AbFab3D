@@ -19,7 +19,6 @@ import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 
 import java.awt.Font;
-import java.awt.Insets;
 
 
 import java.io.File;
@@ -29,6 +28,7 @@ import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 
 // external imports
+import abfab3d.core.ResultCodes;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -36,16 +36,16 @@ import junit.framework.TestSuite;
 
 // Internal Imports
 //import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.GridShortIntervals;
 
-import abfab3d.util.Vec;
-import abfab3d.util.MathUtil;
+import abfab3d.core.Vec;
+import abfab3d.core.MathUtil;
 import abfab3d.util.TextUtil;
 import abfab3d.util.Insets2;
 import abfab3d.util.Symmetry;
-import abfab3d.util.VecTransform;
+import abfab3d.core.VecTransform;
 
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
@@ -73,10 +73,10 @@ import abfab3d.io.output.MeshMakerMT;
 import abfab3d.util.ImageMipMap;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.MathUtil.TORAD;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.MathUtil.TORAD;
 
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Math.sin;
@@ -84,8 +84,8 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.PI;
 
-import static abfab3d.util.VecTransform.RESULT_OK;
-import static abfab3d.util.MathUtil.normalizePlane;
+import static abfab3d.core.VecTransform.RESULT_OK;
+import static abfab3d.core.MathUtil.normalizePlane;
 
 /**
  * Tests the functionality of GridMaker
@@ -1051,12 +1051,12 @@ public class TestGridMaker extends TestCase {
 
         public int transform(Vec in, Vec out) {
             
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
         public int inverse_transform(Vec in, Vec out) {
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }        
     }
 

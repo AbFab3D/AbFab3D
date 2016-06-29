@@ -1,5 +1,7 @@
 package abfab3d.io.output;
 
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelData;
 import abfab3d.grid.*;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;

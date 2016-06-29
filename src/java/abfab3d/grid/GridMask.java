@@ -12,10 +12,13 @@
 package abfab3d.grid;
 
 
-import abfab3d.util.Bounds;
+import abfab3d.core.Grid;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.VoxelData;
+import abfab3d.core.Bounds;
 
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
    grid array to represent on/off mask. Implemented as array of int 

@@ -18,6 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.vecmath.Point3d;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.grid.*;
 
 import abfab3d.grid.util.ExecutionStoppedException;
@@ -25,15 +27,14 @@ import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.PointSet;
 import abfab3d.util.PointSetArray;
-import abfab3d.util.MathUtil;
+import abfab3d.core.MathUtil;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
 
-import static abfab3d.grid.Grid.OUTSIDE;
 import static java.lang.Math.max;
 import static java.lang.Math.round;
 

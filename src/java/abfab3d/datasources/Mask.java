@@ -12,15 +12,16 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNodeParameter;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.Vec;
+import abfab3d.core.DataSource;
+import abfab3d.core.Initializable;
+import abfab3d.core.Vec;
 
-import static abfab3d.util.MathUtil.step10;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.MathUtil.step10;
+import static abfab3d.core.Units.MM;
 
 
 /**
@@ -130,7 +131,7 @@ public class Mask extends TransformableDataSource {
         m_thickness2 = (mp_thickness.getValue()) / 2;
 
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 
@@ -148,7 +149,7 @@ public class Mask extends TransformableDataSource {
 
         data.v[0] = step10(data.v[0], m_threshold, m_thickness2);
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 

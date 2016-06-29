@@ -10,14 +10,14 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
+package abfab3d.core;
 
 import javax.vecmath.Tuple3d;
 import javax.vecmath.Matrix3d;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 
 /**

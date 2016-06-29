@@ -12,6 +12,8 @@
 
 package abfab3d.grid;
 
+import abfab3d.core.Grid;
+
 /**
  * Grid wrappers perform extra checks on top of the base grid operations.
  *

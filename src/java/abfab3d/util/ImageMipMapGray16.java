@@ -12,18 +12,11 @@
 
 package abfab3d.util;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferByte;
-import java.awt.image.DataBufferInt;
-
-import javax.imageio.ImageIO;
 import java.util.Vector;
-import java.io.File;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
 
 import static abfab3d.util.ImageUtil.us2i;
 

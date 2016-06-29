@@ -13,6 +13,12 @@
 package abfab3d.grid;
 
 // External Imports
+import abfab3d.core.ClassAttributeTraverser;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
+import abfab3d.core.VoxelData;
+
 import java.util.*;
 
 // Internal Imports

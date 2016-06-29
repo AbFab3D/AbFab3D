@@ -17,6 +17,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 
@@ -25,7 +27,7 @@ import junit.framework.TestSuite;
 
 // Internal Imports
 import abfab3d.grid.*;
-import abfab3d.grid.VoxelClasses;
+import abfab3d.core.VoxelClasses;
 import abfab3d.io.output.BoxesX3DExporter;
 
 /**

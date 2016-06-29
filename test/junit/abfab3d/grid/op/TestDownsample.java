@@ -15,6 +15,8 @@ package abfab3d.grid.op;
 // External Imports
 import java.util.List;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.grid.query.RegionFinder;
 
 import junit.framework.Test;

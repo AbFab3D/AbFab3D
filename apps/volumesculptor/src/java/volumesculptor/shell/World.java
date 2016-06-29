@@ -8,12 +8,9 @@
 
 package volumesculptor.shell;
 
-import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.RangeCheckAttributeWrapper;
 import abfab3d.grid.op.GridMaker;
 
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Units.MM;
 
 public class World {
     private GridMaker maker;

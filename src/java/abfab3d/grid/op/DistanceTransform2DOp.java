@@ -12,8 +12,8 @@
 
 package abfab3d.grid.op;
 
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.GridDataChannel;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DInt;
 import abfab3d.grid.Grid2DShort;
@@ -21,19 +21,19 @@ import abfab3d.grid.Grid2DByte;
 import abfab3d.grid.Operation2D;
 import abfab3d.grid.util.GridUtil;
 
-import abfab3d.util.MathUtil;
+import abfab3d.core.MathUtil;
 import abfab3d.util.PointMap;
-import abfab3d.util.Bounds;
+import abfab3d.core.Bounds;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
 
 import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.round;
-import static abfab3d.util.MathUtil.iround;
+import static abfab3d.core.MathUtil.iround;
 
 /**
  *

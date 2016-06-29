@@ -14,12 +14,13 @@ package abfab3d.datasources;
 
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNodeParameter;
 
-import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
+import abfab3d.core.Vec;
+import abfab3d.core.DataSource;
+import abfab3d.core.Initializable;
 
 
 /**
@@ -134,7 +135,7 @@ public class Mul extends TransformableDataSource {
         if(dataSource2 != null && dataSource2 instanceof Initializable){
             ((Initializable)dataSource2).initialize();
         }
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
     
@@ -155,7 +156,7 @@ public class Mul extends TransformableDataSource {
         
         data.v[0]*= d2;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 

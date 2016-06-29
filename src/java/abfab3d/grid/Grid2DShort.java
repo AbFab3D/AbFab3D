@@ -13,8 +13,9 @@
 package abfab3d.grid;
 
 
+import abfab3d.core.GridDataDesc;
 import abfab3d.util.ImageUtil;
-import abfab3d.util.Bounds;
+import abfab3d.core.Bounds;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -26,7 +27,7 @@ import abfab3d.util.ImageGray16;
 
 
 import static abfab3d.util.ImageUtil.us2i;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.fmt;
 
 /**
  * A 2D grid backed by arrays. 

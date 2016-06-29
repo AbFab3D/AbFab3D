@@ -4,7 +4,7 @@ import com.google.common.cache.*;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Caches parameters by value.  This is a singleton class meant to avoid expensive calculations when datasources are

@@ -12,28 +12,16 @@
 package abfab3d.param.editor;
 
 import java.util.Vector;
-import java.awt.event.*;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Component;
-import java.awt.GridLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 
-import javax.swing.JPanel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.SwingConstants;
-import javax.swing.plaf.basic.BasicArrowButton;
 
 import abfab3d.param.DoubleParameter;
 
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.Output.printf;
 
 
 public class DoubleEditorScroll extends BaseEditor { 

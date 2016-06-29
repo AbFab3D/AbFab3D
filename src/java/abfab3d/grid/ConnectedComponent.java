@@ -13,9 +13,11 @@
 package abfab3d.grid;
 
 
+import abfab3d.core.AttributeGrid;
+
 import java.util.LinkedList;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
 

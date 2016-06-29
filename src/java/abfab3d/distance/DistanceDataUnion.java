@@ -14,16 +14,10 @@ package abfab3d.distance;
 
 import java.util.Vector;
 
-import javax.vecmath.Vector3d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Quat4d;
-
-import static java.lang.Math.sqrt;
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
 import static java.lang.Math.max;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.fmt;
 
 /**
    returns the distance to union of several distance data sources

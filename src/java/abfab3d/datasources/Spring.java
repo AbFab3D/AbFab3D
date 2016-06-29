@@ -13,11 +13,12 @@
 package abfab3d.datasources;
 
 
-import abfab3d.util.Vec;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
 
 import javax.vecmath.Vector3d;
 
-import static abfab3d.util.MathUtil.step10;
+import static abfab3d.core.MathUtil.step10;
 import static java.lang.Math.floor;
 import static java.lang.Math.pow;
 import static java.lang.Math.abs;
@@ -129,7 +130,7 @@ public class Spring extends TransformableDataSource{
         this.rpower = pow(r, crossSectionPower);
         this.rpower1 = pow(r, crossSectionPower-1);
         
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -149,7 +150,7 @@ public class Spring extends TransformableDataSource{
 
         if (zmin != zmax && (z < zmin || z > zmax)){
             data.v[0] = 0;
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
         double period = springPeriod;
@@ -173,7 +174,7 @@ public class Spring extends TransformableDataSource{
         d0 = step10(d0, 0, pnt.getScaledVoxelSize());
         data.v[0] = d0;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 }  // class Spring
 

@@ -12,15 +12,14 @@
 
 package abfab3d.symmetry;
 
-import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import abfab3d.util.Vec;
-import abfab3d.util.ResultCodes;
+import static abfab3d.core.Output.printf;
+
+import abfab3d.core.Vec;
+import abfab3d.core.ResultCodes;
 
 import static abfab3d.symmetry.SymmetryUtil.toFundamentalDomain;
 

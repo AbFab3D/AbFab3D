@@ -10,12 +10,12 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
+package abfab3d.core;
 
 import javax.vecmath.Vector3d;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Units.MM;
 
 /**
  * Axis aligned bounds object.

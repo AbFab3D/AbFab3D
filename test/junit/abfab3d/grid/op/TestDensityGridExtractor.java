@@ -2,24 +2,23 @@ package abfab3d.grid.op;
 
 import abfab3d.datasources.*;
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Grid;
-import abfab3d.grid.GridShortIntervals;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.io.input.STLRasterizer;
 import abfab3d.io.input.STLReader;
 import abfab3d.io.input.WaveletRasterizer;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
 import abfab3d.util.BoundingBoxCalculator;
-import abfab3d.util.DataSource;
-import abfab3d.util.MathUtil;
+import abfab3d.core.DataSource;
+import abfab3d.core.MathUtil;
 
 import javax.vecmath.Vector3d;
 import java.io.IOException;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
 import static java.lang.Math.round;
 
 /**

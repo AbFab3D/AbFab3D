@@ -16,7 +16,6 @@ import abfab3d.param.SNodeParameter;
 
 import javax.swing.*;
 
-import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Dimension;
 import java.awt.Component;
@@ -24,11 +23,9 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 /**
  * Edits SNode Parameter

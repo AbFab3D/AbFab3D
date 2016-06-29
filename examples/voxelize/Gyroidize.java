@@ -1,12 +1,13 @@
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.*;
 import abfab3d.datasources.*;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.io.input.*;
 import abfab3d.io.output.*;
 import abfab3d.util.BoundingBoxCalculator;
-import abfab3d.util.MathUtil;
+import abfab3d.core.MathUtil;
 import java.io.IOException;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Units.MM;
 
 /**
  * Simple example showing how to volume sculpt an STL model with gyroid

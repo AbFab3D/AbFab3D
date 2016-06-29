@@ -12,11 +12,12 @@
 
 package abfab3d.distance;
 
-import abfab3d.util.Bounds;
-import abfab3d.util.DataSource;
-import abfab3d.util.Vec;
+import abfab3d.core.Bounds;
+import abfab3d.core.DataSource;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
 
-import static abfab3d.util.MathUtil.step10;
+import static abfab3d.core.MathUtil.step10;
 
 
 
@@ -44,7 +45,7 @@ public class DensityFromDistance implements DataSource {
 
         double d = distData.getDistance(pnt.v[0],pnt.v[1],pnt.v[2]);
         dataValue.v[0] = step10(d, surface, thickness);
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }   
 
     public int getChannelsCount(){

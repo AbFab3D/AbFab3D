@@ -26,11 +26,7 @@ import junit.framework.TestSuite;
 // Internal Imports
 import abfab3d.util.PointSetArray;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Units.MM;
-import static java.lang.Math.sin;
-import static java.lang.Math.cos;
-import static java.lang.Math.sqrt;
+import static abfab3d.core.Output.printf;
 
 
 /**

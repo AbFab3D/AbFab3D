@@ -13,6 +13,8 @@
 package abfab3d.grid.query;
 
 // External Imports
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 

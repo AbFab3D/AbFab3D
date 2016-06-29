@@ -12,9 +12,9 @@
 package abfab3d.mesh;
 
 import javax.vecmath.Vector3d;
-import abfab3d.util.TriangleCollector;
+import abfab3d.core.TriangleCollector;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
 /**

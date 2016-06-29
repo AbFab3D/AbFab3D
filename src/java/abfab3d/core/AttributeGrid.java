@@ -1,4 +1,4 @@
-package abfab3d.grid;
+package abfab3d.core;
 
 /**
  * A grid that can contain per-voxel attributes.  The state of the grid is INSIDE if the attribute

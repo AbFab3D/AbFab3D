@@ -14,7 +14,7 @@ package abfab3d.io.output;
 
 // External Imports
 import org.web3d.vrml.sav.BinaryContentHandler;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 // Internal Imports
 

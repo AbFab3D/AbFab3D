@@ -12,36 +12,21 @@
 
 package abfab3d.geom;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors; 
-import java.util.concurrent.TimeUnit;
+import javax.vecmath.Vector3d;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.vecmath.Vector3d; 
-
-import java.util.concurrent.ExecutorService; 
-import java.util.concurrent.Executors; 
-import java.util.concurrent.TimeUnit;
-
-import abfab3d.util.Bounds;
-import abfab3d.util.TriangleCollector;
+import abfab3d.core.Bounds;
+import abfab3d.core.TriangleCollector;
 import abfab3d.util.PointSet;
 import abfab3d.util.PointSetArray;
 import abfab3d.util.TriangleRenderer;
-import abfab3d.util.PointToTriangleDistance;
 
-import static java.lang.Math.sqrt;
 import static java.lang.Math.max;
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
 
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.MathUtil.L2S;
-import static abfab3d.util.MathUtil.iround;
-import static abfab3d.util.MathUtil.clamp;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.MathUtil.clamp;
 
 
 /**

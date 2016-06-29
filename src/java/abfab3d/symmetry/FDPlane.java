@@ -12,7 +12,7 @@
 
 package abfab3d.symmetry;
 
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 /**
    interface to represent single side of fundamental domain 
    it shall return positive distance for point outside of fundamentral domain and negative distance for points inside 

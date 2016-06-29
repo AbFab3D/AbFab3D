@@ -24,14 +24,14 @@ import java.awt.image.DataBufferInt;
 // Internal Imports
 import abfab3d.util.ColorMapper;
 
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridDataChannel;
 import abfab3d.grid.Grid2D;
 
 
-import static abfab3d.util.MathUtil.lerp2;
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.MathUtil.lerp2;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.Output.printf;
 
 public class GridUtil  {
 

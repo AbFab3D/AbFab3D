@@ -15,6 +15,10 @@ package abfab3d.grid.op;
 // External Imports
 
 // Internal Imports
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.VoxelData;
 import abfab3d.grid.*;
 import abfab3d.param.*;
 

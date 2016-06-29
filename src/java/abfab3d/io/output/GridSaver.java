@@ -24,10 +24,10 @@ import org.web3d.vrml.export.X3DXMLRetainedExporter;
 import org.web3d.util.ErrorReporter;
 
 
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.Grid;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.Grid;
+import abfab3d.core.GridDataChannel;
 import abfab3d.grid.DensityMaker;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.DensityMakerFromDensityChannel;
@@ -43,17 +43,15 @@ import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.MeshDecimator;
 
 import abfab3d.util.FileUtil;
-import abfab3d.util.Bounds;
-import abfab3d.util.Units;
-import abfab3d.util.LongConverter;
+import abfab3d.core.Bounds;
+import abfab3d.core.Units;
+import abfab3d.core.LongConverter;
 import abfab3d.util.DefaultLongConverter;
 
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.FileOutputStream;
-import java.io.File;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,13 +64,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import abfab3d.util.TriangleProducer;
-
-import static abfab3d.util.MathUtil.extendBounds;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.MathUtil.extendBounds;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 
 /**

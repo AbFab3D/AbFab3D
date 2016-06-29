@@ -12,7 +12,8 @@
 
 package abfab3d.grid;
 
-import abfab3d.util.Bounds;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.Bounds;
 
 
 /**

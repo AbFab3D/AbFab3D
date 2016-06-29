@@ -11,7 +11,7 @@
  ****************************************************************************/
 
 package abfab3d.symmetry;
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 
 /**
    interface to represent pairing transform which maps tile adjacent to fundamental domain into funfdamental domain  

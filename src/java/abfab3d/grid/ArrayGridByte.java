@@ -14,6 +14,9 @@ package abfab3d.grid;
 
 // External Imports
 
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelData;
+
 /**
  * A grid backed by arrays.
  *

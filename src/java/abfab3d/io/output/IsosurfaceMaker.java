@@ -12,21 +12,19 @@
 
 package abfab3d.io.output;
 
-import java.util.Vector;
 import java.util.Arrays;
 import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
 
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Grid;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.grid.DensityMaker;
 import abfab3d.grid.DensityMakerSubvoxel;
 
-import abfab3d.util.TriangleCollector;
+import abfab3d.core.TriangleCollector;
 
 //import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
 /**

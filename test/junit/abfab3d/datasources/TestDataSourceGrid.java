@@ -15,19 +15,6 @@ package abfab3d.datasources;
 // External Imports
 
 
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
-
-import java.awt.Font;
-import java.awt.Insets;
-
-
-import java.io.File;
-
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
-import javax.vecmath.Matrix4d;
-
 // external imports
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -35,44 +22,20 @@ import junit.framework.TestSuite;
 
 
 // Internal Imports
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.GridDataChannel;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.ArrayAttributeGridInt;
-import abfab3d.grid.GridShortIntervals;
 
-import abfab3d.util.Vec;
-import abfab3d.util.MathUtil;
-import abfab3d.util.TextUtil;
-import abfab3d.util.Symmetry;
-import abfab3d.util.VecTransform;
-import abfab3d.util.Bounds;
-
-import abfab3d.datasources.DataSourceGrid;
-
-import abfab3d.io.output.IsosurfaceMaker;
-import abfab3d.io.output.STLWriter;
-import abfab3d.io.output.MeshMakerMT;
-
-import abfab3d.util.ImageMipMap;
+        import abfab3d.core.Bounds;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.MathUtil.TORAD;
+        import static abfab3d.core.Output.printf;
 
-import static java.lang.System.currentTimeMillis;
-import static java.lang.Math.sin;
-import static java.lang.Math.cos;
-import static java.lang.Math.sqrt;
-import static java.lang.Math.PI;
-
-import static abfab3d.util.VecTransform.RESULT_OK;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
+        import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
 
 /**
  * Tests the functionality of DataSourceGrid

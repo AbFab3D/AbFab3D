@@ -13,9 +13,11 @@
 package abfab3d.grid;
 
 // External Imports
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.GridDataDesc;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 // Internal Imports
 

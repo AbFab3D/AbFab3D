@@ -21,6 +21,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassAttributeTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelData;
 import abfab3d.grid.*;
 import abfab3d.path.Path;
 

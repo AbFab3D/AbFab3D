@@ -12,6 +12,11 @@
 
 package abfab3d.grid;
 
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
+import abfab3d.core.VoxelData;
+
 /**
  * BlockArrayTwoBitGrid, a grid using ConstantBlocks for homogeneous
  * blocks and TwoBitBlocks for heterogeneous blocks.

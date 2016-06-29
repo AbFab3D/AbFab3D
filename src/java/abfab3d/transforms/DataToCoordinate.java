@@ -11,9 +11,14 @@
 
 package abfab3d.transforms;
 
+import abfab3d.core.Bounds;
+import abfab3d.core.DataSource;
+import abfab3d.core.Initializable;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
+import abfab3d.core.VecTransform;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNodeParameter;
-import abfab3d.util.*;
 
 
 /**
@@ -70,7 +75,7 @@ public class DataToCoordinate extends BaseTransform implements VecTransform, Ini
             int res = ((Initializable) m_source).initialize();
             return res;
         }
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -79,7 +84,7 @@ public class DataToCoordinate extends BaseTransform implements VecTransform, Ini
     public int transform(Vec in, Vec out) {
 
         m_source.getDataValue(in, out);
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -88,14 +93,14 @@ public class DataToCoordinate extends BaseTransform implements VecTransform, Ini
     public int inverse_transform(Vec in, Vec out) {
 
         m_source.getDataValue(in, out);
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 
     static class Zero implements DataSource {
         public int getDataValue(Vec pnt, Vec dataValue) {
             dataValue.v[0] = 0;
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
         public int getChannelsCount() {

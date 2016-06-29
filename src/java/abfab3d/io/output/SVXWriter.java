@@ -11,9 +11,9 @@
  ****************************************************************************/
 package abfab3d.io.output;
 
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.GridDataChannel;
 import org.apache.commons.io.IOUtils;
 
 
@@ -21,7 +21,7 @@ import java.io.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Writes a grid out in the svx format.

@@ -33,20 +33,20 @@ import junit.framework.TestSuite;
 
 // Internal Imports
 import abfab3d.grid.AttributePackerGeneral;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridLong;
 import abfab3d.grid.GridBitIntervals;
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.GridDataChannel;
-import abfab3d.util.Bounds;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.Bounds;
 
 
 import abfab3d.geom.TriangulatedModels;
 
-import abfab3d.util.MathUtil;
+import abfab3d.core.MathUtil;
 import abfab3d.util.ImageGray16;
-import abfab3d.util.LongConverter;
+import abfab3d.core.LongConverter;
 
 import abfab3d.distance.DistanceDataSphere;
 import abfab3d.distance.DistanceDataSegment;
@@ -68,8 +68,8 @@ import abfab3d.transforms.Rotation;
 import abfab3d.grid.op.GridMaker;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 import static java.lang.Math.sqrt;
 import static java.lang.Math.sin;

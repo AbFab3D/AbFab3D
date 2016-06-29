@@ -11,6 +11,8 @@
  ****************************************************************************/
 package abfab3d.util;
 
+import abfab3d.core.LongConverter;
+
 /**
  * Default conversion of unpacked longs to attribute data.
  *

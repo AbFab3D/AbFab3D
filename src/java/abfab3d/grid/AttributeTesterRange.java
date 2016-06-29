@@ -12,7 +12,7 @@
 
 package abfab3d.grid;
 
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.fmt;
 
 /**
    class to test attribute value agains specified range

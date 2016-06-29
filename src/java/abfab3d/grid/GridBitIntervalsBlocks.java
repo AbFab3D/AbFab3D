@@ -12,17 +12,9 @@
 
 package abfab3d.grid;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.VoxelData;
-import abfab3d.grid.VoxelDataByte;
-import abfab3d.grid.ClassTraverser;
-import abfab3d.grid.ClassAttributeTraverser;
-import abfab3d.grid.AttributeGrid;
-
 //import abfab3d.grid.util.BitIntervals;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 /**
    grid array to represent on/off mask. 

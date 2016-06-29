@@ -11,13 +11,12 @@
  ****************************************************************************/
 package abfab3d.mesh;
 
-import abfab3d.util.StructMixedData;
-import abfab3d.util.TriangleCollector;
+import abfab3d.core.TriangleCollector;
 
 import javax.vecmath.Tuple3d;
 import javax.vecmath.Vector3d;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
    Make point set from flat set of triangles

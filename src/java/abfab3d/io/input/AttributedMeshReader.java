@@ -12,20 +12,18 @@
 
 package abfab3d.io.input;
 
-import abfab3d.util.DataSource;
-import abfab3d.util.Transformer;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.AttributedTriangleCollector;
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.AttributedTriangleProducer;
-import abfab3d.util.VecTransform;
+import abfab3d.core.DataSource;
+import abfab3d.core.Transformer;
+import abfab3d.core.AttributedTriangleCollector;
+import abfab3d.core.AttributedTriangleProducer;
+import abfab3d.core.VecTransform;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.HashSet;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Reads triangle mesh from a file/stream into various formats.  Supports attribute loading of color and multimaterial

@@ -16,8 +16,10 @@ package abfab3d.grid.op;
 
 // Internal Imports
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.grid.*;
-import abfab3d.util.MathUtil;
+import abfab3d.core.MathUtil;
 
 /**
  * Dilate an object based on the dilation morphology technique.  The object should

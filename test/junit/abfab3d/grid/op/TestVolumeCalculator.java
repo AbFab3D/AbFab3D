@@ -18,17 +18,17 @@ import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.util.Bounds;
+import abfab3d.core.Bounds;
 
 import abfab3d.datasources.Sphere;
 
 
 import static java.lang.Math.round;
 import static java.lang.Math.abs;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Units.CM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Units.CM;
 
 /**
  * Test the VolumeCalculatorclass.

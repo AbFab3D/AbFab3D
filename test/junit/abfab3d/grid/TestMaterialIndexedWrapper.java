@@ -13,7 +13,11 @@
 package abfab3d.grid;
 
 // External Imports
-import abfab3d.util.Bounds;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassAttributeTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelData;
+import abfab3d.core.Bounds;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -184,7 +188,7 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
         for(int n=0; n < times; n++) {
             for(int i=0; i < numMaterials; i++) {
                 for(int j=0; j < matWidth; j++) {
-                    setX(grid2, matWidth * i + j,1,Grid.INSIDE, (byte) i);
+                    setX(grid2, matWidth * i + j,1, Grid.INSIDE, (byte) i);
                 }
             }
 

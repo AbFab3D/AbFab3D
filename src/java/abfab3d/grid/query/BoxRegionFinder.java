@@ -16,6 +16,7 @@ package abfab3d.grid.query;
 import java.util.*;
 
 // Internal Imports
+import abfab3d.core.Grid;
 import abfab3d.grid.*;
 
 /**

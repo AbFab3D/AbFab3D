@@ -12,14 +12,6 @@
 package abfab3d.util;
 
 
-import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
-
-
-import static abfab3d.util.Units.MM;
-
 /**
  * A speed-improved simplex noise algorithm for 2D, 3D and 4D in Java.
  *

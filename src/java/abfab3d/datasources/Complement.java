@@ -13,13 +13,13 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.Parameter;
-import abfab3d.param.SNode;
 import abfab3d.param.SNodeParameter;
 
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.Vec;
+import abfab3d.core.DataSource;
+import abfab3d.core.Initializable;
+import abfab3d.core.Vec;
 
 
 /**
@@ -79,7 +79,7 @@ public class Complement extends TransformableDataSource {
             ((Initializable) dataSource).initialize();
         }
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 
@@ -93,7 +93,7 @@ public class Complement extends TransformableDataSource {
         super.transform(pnt);
 
         int res = dataSource.getDataValue(pnt, data);
-        if (res != RESULT_OK) {
+        if (res != ResultCodes.RESULT_OK) {
             // bad result in source 
             data.v[0] = 1;
             return res;
@@ -101,7 +101,7 @@ public class Complement extends TransformableDataSource {
             // we have good result
             // make complement
             data.v[0] = 1 - data.v[0];
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
     }
 } // class Complement

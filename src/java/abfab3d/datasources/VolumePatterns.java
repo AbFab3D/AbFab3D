@@ -13,24 +13,23 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 
 
 import javax.vecmath.Vector3d;
 
-import static java.lang.Math.floor;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
-import static java.lang.Math.sinh;
 
-import static abfab3d.util.MathUtil.step10;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.MathUtil.step10;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Units.MM;
 
 
 public class VolumePatterns {
@@ -134,7 +133,7 @@ public class VolumePatterns {
             m_level = (Double)mp_level.getValue();
             m_thickness = mp_thickness.getValue();
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
         /**
@@ -161,7 +160,7 @@ public class VolumePatterns {
 
             super.getMaterialDataValue(pnt, data);
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
         
     } // Gyroid 
@@ -210,7 +209,7 @@ public class VolumePatterns {
             m_level = (Double)mp_level.getValue();
             m_thickness = mp_thickness.getValue();
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
         /**
@@ -252,7 +251,7 @@ public class VolumePatterns {
             data.v[0] = step10(d, 0, (vs));
 
             super.getMaterialDataValue(pnt, data);
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
     } // Lidinoid
@@ -304,7 +303,7 @@ public class VolumePatterns {
             m_level = (Double)mp_level.getValue();
             m_thickness = mp_thickness.getValue();
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
         /**
@@ -328,7 +327,7 @@ public class VolumePatterns {
 
             super.getMaterialDataValue(pnt, data);
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
     }
 
@@ -377,7 +376,7 @@ public class VolumePatterns {
             m_level = mp_level.getValue();
             m_thickness = mp_thickness.getValue();
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
         /**
@@ -400,7 +399,7 @@ public class VolumePatterns {
             data.v[0] = step10(d, 0, (vs));
             super.getMaterialDataValue(pnt, data);
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
     }
 
@@ -448,7 +447,7 @@ public class VolumePatterns {
             m_level = mp_level.getValue();
             m_thickness = mp_thickness.getValue();
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
          @noRefGuide
@@ -469,7 +468,7 @@ public class VolumePatterns {
 
             super.getMaterialDataValue(pnt, data);
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
     }
     */
@@ -520,7 +519,7 @@ public class VolumePatterns {
             m_level = mp_level.getValue();
             m_thickness = mp_thickness.getValue();
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
          @noRefGuide
@@ -557,7 +556,7 @@ public class VolumePatterns {
 
             super.getMaterialDataValue(pnt, data);
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
     }
     */

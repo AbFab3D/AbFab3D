@@ -16,19 +16,16 @@ package abfab3d.grid.op;
 
 // Internal Imports
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.grid.*;
 import abfab3d.util.AbFab3DGlobals;
-import abfab3d.util.Long2Short;
-import abfab3d.util.LongConverter;
-import abfab3d.util.Units;
-
-import javax.vecmath.Vector3d;
+import abfab3d.core.LongConverter;
 
 import static abfab3d.util.ImageUtil.MAXC;
 import static abfab3d.util.ImageUtil.makeRGB;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Output.printf;
 
 /**
  * Erode an object based on using a DistanceTransform.
@@ -158,7 +155,7 @@ public class ErosionDistance implements Operation, AttributeOperation {
                         dest_att = (short) subvoxelResolution;
                         dest.setData(x,y,z, Grid.INSIDE,dest_att);
                     } else if (att < inDistanceMinus) {
-                        dest.setData(x,y,z,Grid.OUTSIDE,0);
+                        dest.setData(x,y,z, Grid.OUTSIDE,0);
                         out_cnt++;
                     } else if (att >= inDistanceMinus && att < inDistancePlus) {
                         dest_att = (short) (att - inDistanceMinus);

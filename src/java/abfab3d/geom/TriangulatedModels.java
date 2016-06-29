@@ -14,7 +14,6 @@ package abfab3d.geom;
 
 // External Imports
 import java.util.*;
-import java.io.*;
 
 
 import javax.vecmath.Vector3d;
@@ -22,20 +21,20 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.AxisAngle4d;
 
 
-import abfab3d.util.Vec;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.Transformer;
-import abfab3d.util.Initializable;
-import abfab3d.util.ResultCodes;
+import abfab3d.core.Vec;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.Transformer;
+import abfab3d.core.Initializable;
+import abfab3d.core.ResultCodes;
 import abfab3d.util.ImageGray16;
-import abfab3d.util.VecTransform;
+import abfab3d.core.VecTransform;
 
 import abfab3d.transforms.Identity;
 
-import static abfab3d.util.MathUtil.distance;
-import static abfab3d.util.MathUtil.midPoint;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.MathUtil.distance;
+import static abfab3d.core.MathUtil.midPoint;
+import static abfab3d.core.Units.MM;
 
 import static java.lang.Math.sqrt;
 import static java.lang.Math.max;

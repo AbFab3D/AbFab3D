@@ -14,21 +14,16 @@ package abfab3d.io.input;
 
 import java.io.IOException;
 
-import javax.vecmath.Vector3d;
-
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Grid;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 //import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.ArrayAttributeGridByte;
-
-
-import abfab3d.util.TriangleCollector;
 
 
 import static java.lang.Math.floor;
 import static java.lang.Math.ceil;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
    class to load STL file and return rasterized grid

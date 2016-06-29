@@ -12,8 +12,8 @@
 
 package abfab3d.grid.op;
 
-import abfab3d.grid.GridDataChannel;
-import abfab3d.grid.GridDataDesc;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.GridDataDesc;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
 
@@ -34,11 +34,11 @@ import static java.lang.Math.max;
 import static java.lang.Math.abs;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Units.MM;
 
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.lerp2;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.MathUtil.lerp2;
 import static abfab3d.util.ImageUtil.lerpColors;
 
 

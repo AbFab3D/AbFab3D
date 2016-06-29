@@ -15,9 +15,9 @@ package abfab3d.grid.op;
 // External Imports
 
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.GridDataChannel;
 import abfab3d.grid.BaseTestAttributeGrid;
 
 import abfab3d.io.output.SVXWriter;
@@ -25,8 +25,8 @@ import abfab3d.io.output.SVXWriter;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 // Internal Imports
 

@@ -15,10 +15,8 @@ package abfab3d.symmetry;
 import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 
-import static java.lang.Math.sqrt;
-
 import static abfab3d.symmetry.ETransform.getReflectionMatrix;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
    contains code for 7 frieze groups

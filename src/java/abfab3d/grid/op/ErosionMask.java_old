@@ -19,8 +19,8 @@ import abfab3d.grid.*;
 
 import static java.lang.System.currentTimeMillis;
 import static abfab3d.util.Output.printf;
-import static abfab3d.grid.Grid.OUTSIDE;
-import static abfab3d.grid.Grid.INTERIOR;
+import static abfab3d.core.Grid.OUTSIDE;
+import static abfab3d.core.Grid.INTERIOR;
 
 /**
  * Erodes the grid one layer per iteration. Repeats given numbers of iterations.

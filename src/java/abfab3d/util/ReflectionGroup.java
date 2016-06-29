@@ -12,11 +12,13 @@
 
 package abfab3d.util;
 
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
+
 import javax.vecmath.Vector3d;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 
 /**
@@ -118,7 +120,7 @@ public class ReflectionGroup {
                     if(DEBUG && debugCount-- > 0)
                         printf("plane reflect vs: %5.3f mm\n", pnt.getScaledVoxelSize()*1000);
 
-                    return RESULT_OK;
+                    return ResultCodes.RESULT_OK;
                 }
             }
             

@@ -11,19 +11,13 @@
  ****************************************************************************/
 package abfab3d.io.output;
 
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector2d;
+import abfab3d.core.AttributeGrid;
+import abfab3d.util.TriangleRenderer;
+import abfab3d.core.LongConverter;
+import abfab3d.core.Bounds;
 
-import abfab3d.grid.AttributeGrid;
-import abfab3d.util.TriangleRenderer; 
-import abfab3d.util.MathUtil;
-import abfab3d.util.LongConverter;
-import abfab3d.util.Bounds;
-
-import static java.lang.Math.sqrt;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.MathUtil.extendTriangle;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.MathUtil.extendTriangle;
 
 
 /**

@@ -11,7 +11,7 @@
  ****************************************************************************/
 package abfab3d.io.output;
 
-import abfab3d.util.MathUtil;
+import abfab3d.core.MathUtil;
 /**
    implements linear transformation which maps 2D triangle into 3D triangle 
 */

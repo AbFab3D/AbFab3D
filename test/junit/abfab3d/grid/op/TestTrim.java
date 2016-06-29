@@ -13,8 +13,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
 
 /**
  * Test Trim operation

@@ -13,19 +13,17 @@
 package abfab3d.io.input;
 
 import abfab3d.datasources.Constant;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.io.output.GridSaver;
 import abfab3d.util.BoundingBoxCalculator;
-import abfab3d.util.DataSource;
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.AttributedTriangleProducerConverter;
-import abfab3d.util.Vec;
+import abfab3d.core.DataSource;
+import abfab3d.core.Vec;
 import junit.framework.TestCase;
 
 import java.io.IOException;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Units.MM;
 
 
 /**

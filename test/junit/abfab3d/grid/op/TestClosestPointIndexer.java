@@ -26,10 +26,10 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridInt;
 
-import abfab3d.util.Bounds;
+import abfab3d.core.Bounds;
 
 
 import static java.lang.Math.round;
@@ -38,12 +38,11 @@ import static java.lang.Math.sin;
 import static java.lang.Math.cos;
 import static java.lang.Math.PI ;
 import static java.lang.Math.sqrt;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Output.nanoTime;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.MathUtil.iround;
+import static abfab3d.core.Output.nanoTime;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.MathUtil.iround;
 
 /**
  * Test the ClosestPointIndexer class.

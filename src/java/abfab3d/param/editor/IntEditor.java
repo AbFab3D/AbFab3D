@@ -11,8 +11,6 @@
 package abfab3d.param.editor;
 
 import abfab3d.param.IntParameter;
-import abfab3d.util.Unit;
-import abfab3d.util.Units;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;

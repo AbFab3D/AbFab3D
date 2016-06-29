@@ -13,9 +13,6 @@
 package abfab3d.util;
 
 // External Imports
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Random;
 
 import junit.framework.Test;
@@ -26,16 +23,10 @@ import javax.vecmath.Vector3d;
 
 
 // Internal Imports
-import abfab3d.util.TrianglePrinter;
-import abfab3d.io.output.STLWriter;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Units.MM;
-import static java.lang.Math.sin;
-import static java.lang.Math.cos;
-import static java.lang.Math.sqrt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Output.fmt;
 import static java.lang.Math.abs;
 
 

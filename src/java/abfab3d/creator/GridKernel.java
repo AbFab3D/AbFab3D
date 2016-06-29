@@ -1,9 +1,8 @@
 package abfab3d.creator;
 
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Map;
 
 /**

@@ -12,6 +12,8 @@
 
 package abfab3d.grid;
 
+import abfab3d.core.VoxelData;
+
 /**
  * Contains the data portion of a voxel.
  *

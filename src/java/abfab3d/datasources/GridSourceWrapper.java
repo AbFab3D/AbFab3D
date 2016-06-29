@@ -1,8 +1,12 @@
 package abfab3d.datasources;
 
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
+import abfab3d.core.VoxelData;
 import abfab3d.grid.*;
 import abfab3d.param.SourceWrapper;
-import abfab3d.util.Bounds;
+import abfab3d.core.Bounds;
 
 /**
  * Wraps a grid and keep tracks of the source used.  Will clear out the source if any setters are used

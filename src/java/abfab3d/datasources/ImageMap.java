@@ -21,13 +21,13 @@ import java.io.File;
 import java.io.IOException;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.GridDataChannel;
 import abfab3d.param.*;
 
-import abfab3d.util.ImageUtil;
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 import abfab3d.util.ImageGray16;
 
 
@@ -35,15 +35,12 @@ import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-import static abfab3d.util.ImageMipMapGray16.getScaledDownDataBlack;
-import static abfab3d.util.MathUtil.intervalCap;
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.step01;
-import static abfab3d.util.MathUtil.step10;
-import static abfab3d.util.MathUtil.step;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.MathUtil.step01;
+import static abfab3d.core.MathUtil.step10;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 
 /**
@@ -358,7 +355,7 @@ public class ImageMap extends TransformableDataSource {
         Object co = ParamCache.getInstance().get(vhash);
         if (co == null) {
             int res = prepareImage();
-            if(res != RESULT_OK){
+            if(res != ResultCodes.RESULT_OK){
                 // something wrong with the image
                 throw new IllegalArgumentException("undefined image");
             }
@@ -374,7 +371,7 @@ public class ImageMap extends TransformableDataSource {
         m_imageSizeX  = m_imageGrid.getWidth();
         m_imageSizeY  = m_imageGrid.getHeight();
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
 
@@ -486,7 +483,7 @@ public class ImageMap extends TransformableDataSource {
         m_imageGrid = Grid2DShort.convertImageToGrid(imageData, false, imagePixelSize);
         m_dataChannel = m_imageGrid.getAttributeDesc().getChannel(0);
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -566,7 +563,7 @@ public class ImageMap extends TransformableDataSource {
 
         dataValue.v[0] = v*m_valueFactor + m_valueOffset;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
     
 }

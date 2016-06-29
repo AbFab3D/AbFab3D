@@ -17,6 +17,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 
@@ -28,9 +30,9 @@ import junit.framework.TestCase;
 import abfab3d.grid.*;
 import abfab3d.io.output.BoxesX3DExporter;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
 
 /**
  * Tests the functionality of DilationShape Operation

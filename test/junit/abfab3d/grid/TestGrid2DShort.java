@@ -14,8 +14,6 @@ package abfab3d.grid;
 
 // External Imports
 
-import abfab3d.util.ImageGray16;
-import abfab3d.util.ImageUtil;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -25,8 +23,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Units.MM;
 
 // Internal Imports
 

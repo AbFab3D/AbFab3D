@@ -11,11 +11,12 @@
 
 package abfab3d.transforms;
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
-import abfab3d.util.Initializable;
-import abfab3d.util.Vec;
-import abfab3d.util.VecTransform;
+import abfab3d.core.Initializable;
+import abfab3d.core.Vec;
+import abfab3d.core.VecTransform;
 
 import javax.vecmath.Vector3d;
 
@@ -120,7 +121,7 @@ public class Scale extends BaseTransform implements VecTransform, Initializable 
         this.cz = center.z;
 
         this.averageScale = Math.pow(Math.abs(sx * sy * sz), 1. / 3);
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -136,7 +137,7 @@ public class Scale extends BaseTransform implements VecTransform, Initializable 
 
         out.mulScale(averageScale);
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -168,7 +169,7 @@ public class Scale extends BaseTransform implements VecTransform, Initializable 
 
         out.mulScale(1 / averageScale);
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 } // class Scale

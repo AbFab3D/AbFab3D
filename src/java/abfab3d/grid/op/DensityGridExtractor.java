@@ -1,11 +1,10 @@
 package abfab3d.grid.op;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.Grid;
 
 import static java.lang.Math.round;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Creates a density grid from a distance grid.  The density grid is useful for further boolean operations.

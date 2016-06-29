@@ -17,8 +17,8 @@ import junit.framework.TestCase;
 
 import java.io.IOException;
 
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
 
 
 /**

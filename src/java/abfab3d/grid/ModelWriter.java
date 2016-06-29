@@ -1,5 +1,6 @@
 package abfab3d.grid;
 
+import abfab3d.core.AttributeGrid;
 import abfab3d.util.TriangleMesh;
 
 import java.io.IOException;

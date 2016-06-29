@@ -22,15 +22,15 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.abs;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 
-import abfab3d.util.Bounds;
+import abfab3d.core.Bounds;
 import abfab3d.util.SliceManager;
 import abfab3d.util.Slice;
-import abfab3d.util.DataSource;
+import abfab3d.core.DataSource;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepX_bounded;
 import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepY_bounded;

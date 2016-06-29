@@ -12,7 +12,7 @@
 
 package abfab3d.util;
 
-import javax.vecmath.Tuple3d;
+import abfab3d.core.Vec;
 
 /**
    interface represents unstructured set of points with data represented as Vec 

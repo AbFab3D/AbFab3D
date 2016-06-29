@@ -16,6 +16,9 @@ package abfab3d.grid.op;
 import javax.vecmath.*;
 
 // Internal Imports
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
 import abfab3d.grid.*;
 
 /**

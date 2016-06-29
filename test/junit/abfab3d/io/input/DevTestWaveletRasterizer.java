@@ -15,10 +15,10 @@ package abfab3d.io.input;
 import javax.vecmath.Vector3d;
 
 import abfab3d.util.BoundingBoxCalculator;
-import abfab3d.util.MathUtil;
-import abfab3d.util.TriangleProducer;
+import abfab3d.core.MathUtil;
+import abfab3d.core.TriangleProducer;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.io.output.SlicesWriter;
 import abfab3d.io.output.MeshMakerMT;
@@ -31,10 +31,9 @@ import abfab3d.mesh.MeshDistance;
 
 import abfab3d.geom.TriangulatedModels;
 
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 
 public class DevTestWaveletRasterizer {

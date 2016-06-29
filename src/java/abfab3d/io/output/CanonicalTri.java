@@ -13,8 +13,8 @@
 package abfab3d.io.output;
 
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.MathUtil.extendTriangle;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.MathUtil.extendTriangle;
 
 
 /**

@@ -1,8 +1,8 @@
 package abfab3d.geom;
 
 import abfab3d.grid.ArrayInt;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Grid;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.grid.GridIntervals;
 import abfab3d.util.BoundingBoxUtilsFloat;
 import abfab3d.util.MatrixUtil;
@@ -12,7 +12,7 @@ import javax.vecmath.Matrix4d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * TODO: Add docs

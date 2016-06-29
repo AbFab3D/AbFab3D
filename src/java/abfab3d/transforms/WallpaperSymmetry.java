@@ -12,16 +12,9 @@
 
 package abfab3d.transforms;
 
-import java.util.Vector;
-
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.AxisAngle4d;
-
-import abfab3d.util.Vec;
-import abfab3d.util.Initializable;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
+import abfab3d.core.Initializable;
 
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.EnumParameter;
@@ -32,11 +25,8 @@ import abfab3d.param.Parameter;
 
 import abfab3d.symmetry.SymmetryGroup;
 import abfab3d.symmetry.WallpaperSymmetries;
-import abfab3d.util.VecTransform;
 
-import net.jafama.FastMath;
-
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
 /**
@@ -253,7 +243,7 @@ public class WallpaperSymmetry  extends BaseTransform implements Initializable {
         mp_domainHeight.setValue(height);
     }
     /**
-       @param maxCont maximal count of tranformations to use to generate patterns
+       @param maxCount maximal count of tranformations to use to generate patterns
        <p>
        if maxCount = 0 - no transformation is used and only the content of fundamntal domain will be shown 
        </p>
@@ -295,7 +285,7 @@ public class WallpaperSymmetry  extends BaseTransform implements Initializable {
         //if(m_group != UNDEFINED) {
         //    // group is already defined explicitly 
         //    m_group.setMaxIterations(maxCount);
-        //    return RESULT_OK;
+        //    return ResultCodes.RESULT_OK;
         //}
 
 
@@ -329,7 +319,7 @@ public class WallpaperSymmetry  extends BaseTransform implements Initializable {
         m_group.setMaxIterations(maxCount);
 
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
     
@@ -349,7 +339,7 @@ public class WallpaperSymmetry  extends BaseTransform implements Initializable {
         out.v[1] = y;
         out.v[2] = z;
         
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }                
 
     /**

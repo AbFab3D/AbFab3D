@@ -1,6 +1,6 @@
 package abfab3d.grid.op;
 
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.GridDataChannel;
 import abfab3d.grid.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.Operation2D;
@@ -12,8 +12,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Units.MM;
 
 /**
  * Test Invert operation

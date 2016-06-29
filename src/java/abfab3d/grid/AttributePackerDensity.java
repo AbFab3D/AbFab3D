@@ -12,7 +12,8 @@
 
 package abfab3d.grid;
 
-import abfab3d.util.Vec;
+import abfab3d.core.AttributePacker;
+import abfab3d.core.Vec;
 
 /**
    converts first component of Vec into long voxel attribute 

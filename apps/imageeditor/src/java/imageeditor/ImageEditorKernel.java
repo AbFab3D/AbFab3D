@@ -18,6 +18,7 @@ import java.util.*;
 import javax.imageio.*;
 import java.awt.image.BufferedImage;
 
+import abfab3d.core.Grid;
 import abfab3d.io.output.EdgeCollapseSimplifier;
 import abfab3d.io.output.MarchingCubesX3DExporter;
 import org.j3d.geom.GeometryData;

@@ -13,11 +13,9 @@
 package abfab3d.geom;
 
 // External Imports
-import java.util.*;
-import java.io.*;
 
 // Internal Imports
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 
 /**
  * Creator of 3D geometry.

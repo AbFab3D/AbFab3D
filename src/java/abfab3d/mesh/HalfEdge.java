@@ -14,8 +14,6 @@ package abfab3d.mesh;
 import abfab3d.util.StructDataDefinition;
 import abfab3d.util.StructMixedData;
 
-import static abfab3d.util.Output.fmt;
-
 /**
  * Representation of half an edge.
  * <p/>

@@ -10,21 +10,31 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
-
-import javax.vecmath.Vector3d;
+package abfab3d.core;
 
 /**
-   interface which generates a raw mesh of triangles
-   
+   interface to convert vector of double into long voxel attribute 
+
+   @author Vladimir Bulatov
  */
-public interface TriangleProducer {
+
+public interface AttributePacker {
+    
+    /**
+       convert vector of double into long voxel attribute 
+     */
+    public long makeAttribute(Vec data);
 
     /**
-       feeds all triangles into supplied TriangleCollector 
-
-       returns true if success, false if faiure        
+       converts attribute into vector of double data 
+       @param attribute 
+       @param data values of data stored in attribute 
      */
-    public boolean getTriangles(TriangleCollector tc);
-    
+    public void getData(long attribute, Vec data);
+
+    /**
+       bit count used by this packer to pack attribute 
+     */
+    public int getBitCount();
+
 }

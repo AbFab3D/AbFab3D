@@ -13,25 +13,27 @@
 package abfab3d.datasources;
 
 
-import abfab3d.util.Vec;
+import abfab3d.core.GridProducer;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
 
-import abfab3d.util.Bounds;
+import abfab3d.core.Bounds;
 
-import abfab3d.grid.GridDataChannel;
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridInt;
-import abfab3d.grid.AttributePacker;
+import abfab3d.core.AttributePacker;
 
 import abfab3d.param.IntParameter;
 import abfab3d.param.ObjectParameter;
 import abfab3d.param.Parameter;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.lerp3;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.MathUtil.lerp3;
 
 
 /**
@@ -131,9 +133,13 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         }
     }
 
+    public DataSourceGrid(GridProducer prod)  {
+        this(prod.getGrid(),null,1);
+    }
+
     public void setGrid(AttributeGrid grid){
 
-        printf("setGrid(%d x %d x %d) \n", grid.getWidth(),grid.getHeight(),grid.getDepth());
+        printf("setGrid(%d x %d x %d) \n", grid.getWidth(), grid.getHeight(), grid.getDepth());
 
         mp_grid.setValue(grid);
         
@@ -482,7 +488,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
             m_dataChannels[i] = gridDataDesc.getChannel(i);
             if(DEBUG)printf("m_dataChannels[%d]:%s\n",i, m_dataChannels[i]);
         }
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 
@@ -498,7 +504,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         getLinearInterpolatedValue(pnt, data);
 
         super.getMaterialDataValue(pnt, data);        
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
     /*
@@ -522,7 +528,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
         data.v[0] = getGridValue(ix, iy, iz);
         
-        return RESULT_OK; 
+        return ResultCodes.RESULT_OK;
             
     }
     */
@@ -543,14 +549,14 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         if(ix < 0 || iy < 0 || iz < 0 || ix >= m_nx || iy >= m_ny || iz >= m_nz) {
             //TODO something better 
             data.v[0] = 0;
-            return RESULT_OUTSIDE; 
+            return ResultCodes.RESULT_OUTSIDE;
         }
         int ix1 = (ix + 1);
         int iy1 = (iy + 1);
         int iz1 = (iz + 1);
         if(ix1 >= m_nx || iy1 >= m_ny || iz1 >= m_nz ) {
             data.v[0] = 0;
-            return RESULT_OUTSIDE; 
+            return ResultCodes.RESULT_OUTSIDE;
         }
 
         double 
@@ -587,7 +593,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         }
         //if(DEBUG && debugCount-- > 0) printf("\n");
         
-        return RESULT_OK; 
+        return ResultCodes.RESULT_OK;
         
     }
     

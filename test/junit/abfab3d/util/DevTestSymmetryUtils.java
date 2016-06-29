@@ -13,8 +13,6 @@
 package abfab3d.util;
 
 import java.awt.Color;
-import java.awt.Rectangle;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.BasicStroke;
@@ -25,8 +23,8 @@ import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 
 import static java.lang.Math.PI;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 
 public class DevTestSymmetryUtils {

@@ -12,13 +12,13 @@
 
 package abfab3d.io.input;
 
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.AttributedTriangleCollector;
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.AttributedTriangleProducer;
-import abfab3d.util.Vec;
-import abfab3d.util.VecTransform;
-import abfab3d.util.Transformer;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.AttributedTriangleCollector;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.AttributedTriangleProducer;
+import abfab3d.core.Vec;
+import abfab3d.core.VecTransform;
+import abfab3d.core.Transformer;
 
 import org.j3d.loaders.InvalidFormatException;
 import org.j3d.loaders.stl.STLFileReader;
@@ -29,8 +29,8 @@ import java.io.*;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 import static java.lang.System.currentTimeMillis;
 
 /**

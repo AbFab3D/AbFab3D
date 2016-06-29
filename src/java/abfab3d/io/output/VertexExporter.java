@@ -11,18 +11,11 @@
  ****************************************************************************/
 package abfab3d.io.output;
 
-import java.util.Set;
-import javax.vecmath.Vector3d;
 import javax.vecmath.Point3d;
 
-import abfab3d.util.TriangleCollector;
 
-import abfab3d.mesh.Vertex;
-import abfab3d.mesh.HalfEdge;
-
-
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 
 /**

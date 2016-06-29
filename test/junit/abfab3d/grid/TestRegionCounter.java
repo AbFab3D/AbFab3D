@@ -16,7 +16,9 @@ package abfab3d.grid;
 import java.util.List;
 import java.util.Vector;
 
-import abfab3d.util.Bounds;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.Bounds;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -29,15 +31,15 @@ import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Cylinder;
 import abfab3d.datasources.Subtraction;
 import abfab3d.datasources.Union;
-import abfab3d.util.DataSource;
+import abfab3d.core.DataSource;
 import abfab3d.distance.DistanceData;
 import abfab3d.distance.DistanceDataHalfSpace;
 
 import abfab3d.io.output.SVXWriter;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Units.MM;
 
 /**
  * Tests the functionality of a RegionCounter

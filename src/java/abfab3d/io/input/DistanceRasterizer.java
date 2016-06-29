@@ -15,13 +15,14 @@ package abfab3d.io.input;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.Bounds;
-import abfab3d.util.DataSource;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.Bounds;
+import abfab3d.core.DataSource;
 
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridDataChannel;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.GridMask;
 
@@ -33,10 +34,10 @@ import abfab3d.grid.util.GridUtil;
 import abfab3d.geom.TriangleMeshShellBuilder;
 
 
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.MathUtil.step10;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.MathUtil.step10;
 
 
 /**
@@ -119,7 +120,7 @@ public class DistanceRasterizer implements TriangleCollector {
         printf("calling m_shellBuilder.initialize()\n");
         m_shellBuilder.initialize();
 
-        return DataSource.RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
 

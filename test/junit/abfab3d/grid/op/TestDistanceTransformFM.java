@@ -15,22 +15,11 @@ package abfab3d.grid.op;
 
 // External Imports
 
-import abfab3d.datasources.Box;
-import abfab3d.datasources.Sphere;
-import abfab3d.datasources.Torus;
-import abfab3d.grid.*;
-import abfab3d.io.output.SlicesWriter;
-import abfab3d.transforms.Rotation;
-import abfab3d.util.Long2Short;
-import abfab3d.util.LongConverter;
-import junit.framework.TestCase;
+import abfab3d.core.AttributeGrid;
 
-import java.util.Random;
-
-import static abfab3d.util.ImageUtil.*;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
 import static java.lang.Math.round;
 
 // Internal Imports
