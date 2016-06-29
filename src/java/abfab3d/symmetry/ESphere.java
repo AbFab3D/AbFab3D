@@ -13,13 +13,13 @@
 package abfab3d.symmetry;
 
 import javax.vecmath.Vector3d;
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 
 import static abfab3d.symmetry.SymmetryUtil.len2; 
 import static abfab3d.symmetry.SymmetryUtil.subSet;
 import static abfab3d.symmetry.SymmetryUtil.mulSet;
 import static abfab3d.symmetry.SymmetryUtil.addSet;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
  
 /**
  * class to represent fundamental domain side which is euclidean sphere

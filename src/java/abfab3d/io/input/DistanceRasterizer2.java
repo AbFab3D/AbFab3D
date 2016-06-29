@@ -15,13 +15,14 @@ package abfab3d.io.input;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.Bounds;
-import abfab3d.util.DataSource;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.Bounds;
+import abfab3d.core.DataSource;
 import abfab3d.util.PointSetCoordArrays;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.GridMask;
 
@@ -34,10 +35,10 @@ import abfab3d.geom.TriangleMeshSurfaceBuilder;
 import abfab3d.grid.op.PointSetShellBuilder;
 
 
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.MathUtil.step10;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.MathUtil.step10;
 
 
 /**
@@ -171,7 +172,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
         if(m_useDistanceRange) m_maxDistanceVoxels = Math.max(m_maxInDistance, m_maxOutDistance)/m_bounds.getVoxelSize();
         else m_maxDistanceVoxels = 0.;
 
-        return DataSource.RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
 

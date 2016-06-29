@@ -13,7 +13,7 @@ package abfab3d.param;
 
 // External Imports
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * A pointer to another node

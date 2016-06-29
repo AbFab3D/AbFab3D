@@ -22,11 +22,10 @@ import java.util.Vector;
 import javax.swing.SwingConstants;
 import javax.swing.JPanel;
 import javax.swing.JButton;
-import javax.swing.JTextField;
 
 import javax.swing.plaf.basic.BasicArrowButton;
 
-import static abfab3d.util.MathUtil.clamp;
+import static abfab3d.core.MathUtil.clamp;
 
 
 /**

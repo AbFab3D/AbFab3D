@@ -1,9 +1,9 @@
 package abfab3d.io.input;
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.util.AbFab3DGlobals;
 
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Units.MM;
 
 /**
  * Rasterize an attributed mesh

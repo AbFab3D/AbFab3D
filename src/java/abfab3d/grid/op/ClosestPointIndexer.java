@@ -15,17 +15,17 @@ package abfab3d.grid.op;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.AttributePacker;
-import abfab3d.grid.GridDataChannel;
-import abfab3d.grid.GridDataDesc;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.AttributePacker;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.GridDataDesc;
 
 import abfab3d.grid.ArrayAttributeGridShort;
-import abfab3d.grid.Grid2D;
+import abfab3d.core.Grid2D;
 
-import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Bounds;
+import abfab3d.core.Vec;
+import abfab3d.core.DataSource;
+import abfab3d.core.Bounds;
 import abfab3d.util.PointSet;
 
 import static java.lang.Math.max;
@@ -33,9 +33,9 @@ import static java.lang.Math.min;
 import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.MathUtil.step10;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.MathUtil.step10;
 
 /**
    methods to find index of closest point for each point on grid 

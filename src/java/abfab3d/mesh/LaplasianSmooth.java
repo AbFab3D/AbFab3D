@@ -14,7 +14,7 @@ package abfab3d.mesh;
 import abfab3d.util.StructMixedData;
 import abfab3d.util.TriangleMesh;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
    performs smoothing operation on WingedEdgeTriangeMesh

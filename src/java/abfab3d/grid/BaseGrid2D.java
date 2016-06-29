@@ -14,10 +14,12 @@ package abfab3d.grid;
 
 // External Imports
 
-import abfab3d.util.Bounds;
+import abfab3d.core.Grid2D;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.Bounds;
 
 import java.io.Serializable;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Base class implementation of Grids.  Includes common code that

@@ -15,15 +15,16 @@ package abfab3d.datasources;
 
 import javax.vecmath.Vector3d;
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.Parameter;
-import abfab3d.util.Bounds;
-import abfab3d.util.Vec;
-import static java.lang.Math.sqrt;
-import static abfab3d.util.MathUtil.step10;
+import abfab3d.core.Bounds;
+import abfab3d.core.Vec;
 
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.MathUtil.step10;
+
+import static abfab3d.core.Units.MM;
 
 
 /**
@@ -203,7 +204,7 @@ public class Torus extends TransformableDataSource {
         ay = a.y;
         az = a.z;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -241,7 +242,7 @@ public class Torus extends TransformableDataSource {
         //data.v[0] = step10(((rxy*rxy + z*z) - r*r)/(2*r), 0, pnt.getScaledVoxelSize());
         
         super.getMaterialDataValue(pnt, data);        
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 }  // class Torus
 

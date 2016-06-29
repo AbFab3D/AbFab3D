@@ -13,11 +13,9 @@
 package abfab3d.geom;
 
 // External Imports
-import java.util.*;
-import java.io.*;
 
-import abfab3d.util.BoundingBoxUtilsFloat;
-import org.web3d.vrml.sav.ContentHandler;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import org.j3d.geom.*;
 import org.web3d.util.spatial.Triangle;
 import javax.vecmath.*;
@@ -26,9 +24,6 @@ import javax.vecmath.*;
 import abfab3d.grid.*;
 import abfab3d.grid.op.*;
 import abfab3d.util.MatrixUtil;
-import toxi.geom.mesh.Face;
-import toxi.geom.mesh.TriangleMesh;
-import toxi.geom.mesh.Vertex;
 
 /**
  * Creates a model from a 3D Triangle model.

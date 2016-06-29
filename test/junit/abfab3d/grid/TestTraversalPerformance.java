@@ -14,24 +14,24 @@ package abfab3d.grid;
 
 // External Imports
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
 import abfab3d.datasources.*;
 import abfab3d.grid.op.GridMaker;
-import abfab3d.util.MathUtil;
-import static abfab3d.util.Units.MM;
+
+import static abfab3d.core.Units.MM;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-import javax.vecmath.Vector3d;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
-import static java.lang.Math.sqrt;
+import static abfab3d.core.Output.printf;
 
 // Internal Imports
 

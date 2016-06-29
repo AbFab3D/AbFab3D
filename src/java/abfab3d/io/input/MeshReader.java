@@ -12,10 +12,10 @@
 
 package abfab3d.io.input;
 
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.VecTransform;
-import abfab3d.util.Transformer;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.VecTransform;
+import abfab3d.core.Transformer;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.InputStream;

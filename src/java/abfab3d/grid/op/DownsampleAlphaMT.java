@@ -11,19 +11,20 @@
  ****************************************************************************/
 package abfab3d.grid.op;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.grid.*;
 import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.DefaultLongConverter;
-import abfab3d.util.LongConverter;
+import abfab3d.core.LongConverter;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 /**
  * Downsample alpha operation.   Multithreaded version.

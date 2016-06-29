@@ -11,14 +11,13 @@
  ****************************************************************************/
 package abfab3d.mesh;
 
-import abfab3d.util.MathUtil;
 import abfab3d.util.StructDataDefinition;
 import abfab3d.util.StructMixedData;
 
 import javax.vecmath.*;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 /**
  * Reimpl of Quadric.

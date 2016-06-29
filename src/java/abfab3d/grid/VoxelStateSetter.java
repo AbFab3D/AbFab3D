@@ -13,10 +13,8 @@
 package abfab3d.grid;
 
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.ClassTraverser;
-
-
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
 
 
 /**

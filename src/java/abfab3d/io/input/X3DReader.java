@@ -12,30 +12,23 @@
 
 package abfab3d.io.input;
 
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.Vec;
-import abfab3d.util.VecTransform;
-import abfab3d.util.Transformer;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.Vec;
+import abfab3d.core.VecTransform;
+import abfab3d.core.Transformer;
 import abfab3d.util.SysErrorReporter;
-
-import org.web3d.vrml.lang.VRMLException;
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.sav.ErrorHandler;
 
 import xj3d.filter.node.CommonEncodable;
 import xj3d.filter.node.ArrayData;
 
 import javax.vecmath.Vector3d;
 import java.io.*;
-import java.net.URL;
 import java.util.Iterator;
-import java.util.zip.GZIPInputStream;
 import java.util.List;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
-import static java.lang.System.currentTimeMillis;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 
 /**

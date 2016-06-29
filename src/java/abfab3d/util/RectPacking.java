@@ -19,9 +19,9 @@ import java.util.Comparator;
 
 import javax.vecmath.Vector2d;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
 
 
 /**

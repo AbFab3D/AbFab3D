@@ -12,7 +12,7 @@
 
 package abfab3d.grid;
 
-import abfab3d.util.Vec;
+import abfab3d.core.GridDataChannel;
 
 /**
    class converts data grid data channel into density value 

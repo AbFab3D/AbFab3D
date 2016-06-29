@@ -14,20 +14,17 @@ package abfab3d.grid;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.LinkedList;
-import java.util.ArrayDeque;
 import java.util.Vector;
 
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Grid;
-import abfab3d.grid.ClassTraverser;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
 
-import abfab3d.grid.Region;
-import abfab3d.util.Units;
+import abfab3d.core.VoxelClasses;
+import abfab3d.core.Units;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
 /**

@@ -20,7 +20,7 @@ import abfab3d.util.StructDataDefinition;
 import abfab3d.util.StructMap;
 import abfab3d.util.StructMixedData;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Implementation of VectorIndexer as StructMap.  This implementation should

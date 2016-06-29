@@ -17,9 +17,9 @@ import java.util.Random;
 
 import static java.lang.Math.floor;
 import static java.lang.Math.abs;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.MathUtil.toInterval;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.MathUtil.toInterval;
 
 /**
  *

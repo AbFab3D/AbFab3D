@@ -13,13 +13,15 @@
 package abfab3d.grid.op;
 
 // External Imports
-import java.util.Iterator;
 
 // Internal Imports
+import abfab3d.core.ClassTraverser;
+        import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
 import abfab3d.grid.*;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 /**
  * Subtraction operation.

@@ -13,10 +13,12 @@
 package abfab3d.util;
 
 
+import abfab3d.core.LongConverter;
+
 /**
    returns signed int stored in long
  */
-public class Long2Int implements LongConverter  {
+public class Long2Int implements LongConverter {
 
     /**
        return data custom data component stored in long attribute

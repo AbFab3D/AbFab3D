@@ -14,24 +14,20 @@ package abfab3d.grid.op;
 
 // External Imports
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.datasources.Sphere;
-import abfab3d.datasources.Torus;
-import abfab3d.datasources.VolumePatterns;
 import abfab3d.grid.*;
-import abfab3d.grid.query.RegionFinder;
 import abfab3d.io.output.SlicesWriter;
-import abfab3d.transforms.Rotation;
-import abfab3d.util.Units;
+import abfab3d.core.Units;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import org.apache.commons.io.FileUtils;
 
-import javax.vecmath.Vector3d;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 // Internal Imports
 
@@ -185,7 +181,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         for(int i=0; i < size; i++) {
-            grid.setData(0,i,0,Grid.INSIDE, a);
+            grid.setData(0,i,0, Grid.INSIDE, a);
             grid.setData(0,i,1,Grid.INSIDE, a);
             grid.setData(1,i,1,Grid.INSIDE, a);
             grid.setData(0,i,2,Grid.INSIDE, a);

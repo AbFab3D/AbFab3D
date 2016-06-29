@@ -18,25 +18,24 @@ import java.awt.image.BufferedImage;
 import java.awt.Font;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.*;
 
 
-import abfab3d.util.DataSource;
+import abfab3d.core.DataSource;
 import abfab3d.util.TextUtil;
 import abfab3d.util.Insets2;
 
-import javax.vecmath.Vector3d;
-
 import static java.lang.Math.abs;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.step10;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.MathUtil.step10;
 
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.fmt;
 
 
 /**
@@ -412,7 +411,7 @@ public class Text2D extends BaseParameterizable {
 
         if(DEBUG)printf("Text2D bitmap height: %d x %d\n", m_bitmap.getWidth(), m_bitmap.getHeight());
         
-        return DataSource.RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
     

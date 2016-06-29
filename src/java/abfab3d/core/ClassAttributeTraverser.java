@@ -10,16 +10,17 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid;
+package abfab3d.core;
 
 // External Imports
+
 
 /**
  * Notification of a voxel with the requested class.
  *
  * @author Alan Hudson
  */
-public interface ClassTraverser {
+public interface ClassAttributeTraverser {
     /**
      * A voxel of the class requested has been found.
      * VoxelData classes may be reused so clone the object
@@ -28,9 +29,9 @@ public interface ClassTraverser {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param state The voxel state
+     * @param vd The voxel data
      */
-    public void found(int x, int y, int z, byte state);
+    public void found(int x, int y, int z, VoxelData vd);
 
     /**
      * A voxel of the class requested has been found.
@@ -40,9 +41,9 @@ public interface ClassTraverser {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param state The voxel state
+     * @param vd The voxel data
      *
      * @return True to continue, false stops the traversal.
      */
-    public boolean foundInterruptible(int x, int y, int z, byte state);
+    public boolean foundInterruptible(int x, int y, int z, VoxelData vd);
 }

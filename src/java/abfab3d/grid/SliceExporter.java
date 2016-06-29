@@ -1,6 +1,7 @@
 package abfab3d.grid;
 
-import abfab3d.util.LongConverter; 
+import abfab3d.core.Grid;
+import abfab3d.core.LongConverter;
 
 /**
  * Interface for Slice Exporter

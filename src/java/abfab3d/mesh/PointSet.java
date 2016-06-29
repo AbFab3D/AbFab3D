@@ -16,7 +16,7 @@ import abfab3d.util.StructMixedData;
 
 import java.util.Arrays;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * A set like interface for making points unique given some epsilon.

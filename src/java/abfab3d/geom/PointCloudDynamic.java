@@ -13,17 +13,16 @@
 package abfab3d.geom;
 
 import abfab3d.util.PointSet;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducer;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
 
 import javax.vecmath.Tuple3d;
 import javax.vecmath.Vector3d;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Units.MM;
 
 /**
  * A cloud of small objects to represent unstructured cloud of 3D points.

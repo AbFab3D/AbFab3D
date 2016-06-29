@@ -12,17 +12,18 @@
 
 package abfab3d.mesh;
 
+import abfab3d.core.ResultCodes;
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
-import abfab3d.util.Bounds;
-import abfab3d.util.DataSource;
-import abfab3d.util.MathUtil;
-import abfab3d.util.Vec;
+import abfab3d.core.Bounds;
+import abfab3d.core.DataSource;
+import abfab3d.core.MathUtil;
+import abfab3d.core.Vec;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -35,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import static abfab3d.mesh.TestMeshDecimator.loadMesh;
-import static abfab3d.util.Output.*;
+import static abfab3d.core.Output.*;
 import static java.lang.System.nanoTime;
 
 // External Imports
@@ -439,7 +440,7 @@ public class TestMeshDecimatorMT extends TestCase {
             // x, y, z are in [-1,1]
             data.v[0] = 10 * (r2 - (x * x + y * y + z * z));
 
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
 
         }
         public int getChannelsCount() {

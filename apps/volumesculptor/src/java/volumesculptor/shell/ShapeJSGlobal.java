@@ -10,9 +10,9 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Grid;
-import abfab3d.util.Bounds;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.Bounds;
 import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.grid.op.GridMaker;
@@ -31,9 +31,9 @@ import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 
 import abfab3d.util.BoundingBoxCalculator;
-import abfab3d.util.MathUtil;
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.Units;
+import abfab3d.core.MathUtil;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.Units;
 
 import abfab3d.datasources.ImageWrapper;
 
@@ -42,15 +42,15 @@ import org.mozilla.javascript.*;
 import org.web3d.vrml.export.*;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Units.MM;
 
 import java.io.*;
 import java.lang.IllegalArgumentException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 /**
  * This class provides for sharing functions across multiple threads.

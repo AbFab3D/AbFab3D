@@ -14,9 +14,9 @@ package abfab3d.grid.op;
 
 // External Imports
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 import abfab3d.grid.Operation;
 import abfab3d.util.AbFab3DGlobals;
 
@@ -25,8 +25,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 // Internal Imports
 

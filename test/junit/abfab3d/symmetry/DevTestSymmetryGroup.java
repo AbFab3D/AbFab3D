@@ -13,18 +13,15 @@
 package abfab3d.symmetry;
 
 import javax.vecmath.Vector3d;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.GridDataWriter;
 import abfab3d.grid.op.GridMaker;
 
-import abfab3d.util.Bounds;
-import abfab3d.util.DataSource;
-import abfab3d.util.VecTransform;
+import abfab3d.core.Bounds;
 
 import abfab3d.transforms.FriezeSymmetry;
 import abfab3d.transforms.WallpaperSymmetry;
-import abfab3d.transforms.SymmetryTransform;
 import abfab3d.transforms.Rotation;
 import abfab3d.transforms.BaseTransform;
 
@@ -34,10 +31,10 @@ import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Box;
 
 
-import abfab3d.util.Vec;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
+import abfab3d.core.Vec;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
 
 public class DevTestSymmetryGroup {
     

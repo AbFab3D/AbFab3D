@@ -15,9 +15,9 @@ package abfab3d.grid.op;
 // External Imports
 
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.BaseTestAttributeGrid;
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 import abfab3d.io.output.BoxesX3DExporter;
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -33,7 +33,7 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.util.HashMap;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * Tests the functionality of the RingSpaceWarp

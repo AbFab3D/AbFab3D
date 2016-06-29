@@ -12,31 +12,19 @@
 
 package abfab3d.transforms;
 
-import java.util.Vector;
-
-import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.AxisAngle4d;
 
-import abfab3d.param.AxisAngle4dParameter;
-import abfab3d.param.DoubleParameter;
+import abfab3d.core.ResultCodes;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
-import abfab3d.util.Vec;
-import abfab3d.util.Initializable;
-import abfab3d.util.Symmetry;
-import abfab3d.util.ReflectionGroup;
-import abfab3d.util.VecTransform;
-import abfab3d.util.MathUtil;
-
-import net.jafama.FastMath;
+import abfab3d.core.Vec;
+import abfab3d.core.Initializable;
+import abfab3d.core.MathUtil;
 
 import static java.lang.Math.floor;
 
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
 
 /**
    Periodic tiling of space with copies of interor of a single tile - fundamental domain. 
@@ -235,7 +223,7 @@ public class PeriodicWrap extends BaseTransform implements Initializable {
             printf("d3: (%7.5f,%7.5f,%7.5f)\n", m_d3.x,m_d3.y,m_d3.z);
         }
             
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
     
     /**
@@ -244,7 +232,7 @@ public class PeriodicWrap extends BaseTransform implements Initializable {
     public int transform(Vec in, Vec out) {
         
         out.set(in);               
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
     
     /**
@@ -281,7 +269,7 @@ public class PeriodicWrap extends BaseTransform implements Initializable {
         v[1] = c1*m_a1.y + c2*m_a2.y + c3*m_a3.y + m_origin.y;
         v[2] = c1*m_a1.z + c2*m_a2.z + c3*m_a3.z + m_origin.z;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
     

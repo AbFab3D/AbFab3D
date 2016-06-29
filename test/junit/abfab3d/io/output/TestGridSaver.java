@@ -19,9 +19,6 @@ import javax.vecmath.Vector3d;
 
 
 import java.io.File;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
 import java.io.IOException;
 
 
@@ -32,65 +29,42 @@ import junit.framework.TestSuite;
 
 
 // Internal Imports
-import abfab3d.grid.AttributePacker;
-import abfab3d.grid.AttributePackerGeneral;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributePacker;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridInt;
-import abfab3d.grid.ArrayAttributeGridLong;
-import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.GridIntIntervals;
 import abfab3d.grid.GridShortIntervals;
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.GridDataChannel;
 
-import abfab3d.util.Bounds;
-import abfab3d.util.Initializable;
-import abfab3d.util.Vec;
+import abfab3d.core.Bounds;
+import abfab3d.core.Initializable;
+import abfab3d.core.Vec;
 
-
-import abfab3d.geom.TriangulatedModels;
-
-import abfab3d.util.MathUtil;
-import abfab3d.util.ImageGray16;
-import abfab3d.util.LongConverter;
 
 import abfab3d.distance.DistanceDataSphere;
-import abfab3d.distance.DistanceDataSegment;
 import abfab3d.distance.DistanceDataUnion;
-import abfab3d.distance.DensityFromDistance;
 import abfab3d.distance.DataSourceFromDistance;
 
-import abfab3d.util.DataSource;
+import abfab3d.core.DataSource;
 import abfab3d.datasources.DataSourceMixer;
 import abfab3d.datasources.Intersection;
-import abfab3d.datasources.SolidColor;
-import abfab3d.datasources.Box;
-import abfab3d.datasources.Noise;
-import abfab3d.datasources.Cone;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Plane;
 import abfab3d.datasources.Torus;
-import abfab3d.datasources.Composition;
 import abfab3d.datasources.VolumePatterns;
 import abfab3d.datasources.Complement;
-import abfab3d.datasources.Mask;
-import abfab3d.datasources.Mul;
 import abfab3d.datasources.Constant;
 import abfab3d.datasources.Union;
 
-import abfab3d.transforms.Rotation;
 import abfab3d.transforms.PeriodicWrap;
 
 import abfab3d.grid.op.GridMaker;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-
-import static java.lang.Math.sqrt;
-import static java.lang.Math.sin;
-import static java.lang.Math.cos;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 /**
  * Tests the functionality of GridSaver

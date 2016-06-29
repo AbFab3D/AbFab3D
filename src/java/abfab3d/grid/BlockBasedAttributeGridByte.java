@@ -14,6 +14,12 @@ package abfab3d.grid;
 
 // External Imports
 
+import abfab3d.core.ClassAttributeTraverser;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
+import abfab3d.core.VoxelData;
+
 /**
  * A grid backed by blocked tiles.  Inspired by Field3D.  Later may
  * include optimizations done by db+grid

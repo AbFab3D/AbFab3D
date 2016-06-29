@@ -12,28 +12,16 @@
 
 package abfab3d.transforms;
 
-import java.util.Vector;
-
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.AxisAngle4d;
-
+import abfab3d.core.ResultCodes;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
-import abfab3d.util.Vec;
-import abfab3d.util.Initializable;
-import abfab3d.util.Symmetry;
-import abfab3d.util.ReflectionGroup;
-import abfab3d.util.VecTransform;
-
-import net.jafama.FastMath;
+import abfab3d.core.Vec;
+import abfab3d.core.Initializable;
+import abfab3d.core.VecTransform;
 
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Symmetry.getReflection;
+import static abfab3d.core.Output.printf;
 import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 /**
@@ -70,7 +58,7 @@ public class Twist extends BaseTransform implements VecTransform, Initializable 
        @noRefGuide
      */
     public int initialize(){
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
     
     /**
@@ -81,7 +69,7 @@ public class Twist extends BaseTransform implements VecTransform, Initializable 
         out.set(in);
         twistXY(out.v, (m_twistSpeed*out.v[2]));
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
     
     /**
@@ -93,7 +81,7 @@ public class Twist extends BaseTransform implements VecTransform, Initializable 
         
         twistXY(out.v, -(m_twistSpeed*out.v[2]));
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
 

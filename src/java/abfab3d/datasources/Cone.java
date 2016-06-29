@@ -13,17 +13,18 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
 
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 
 import javax.vecmath.AxisAngle4d;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
 
-import static abfab3d.util.MathUtil.step10;
+import static abfab3d.core.MathUtil.step10;
 import static java.lang.Math.*;
 
 
@@ -200,7 +201,7 @@ public class Cone extends TransformableDataSource {
         this.m_normalY = -sin(angle);
         this.m_normalR = cos(angle);
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     public double getDistance(Vec pnt){
@@ -238,7 +239,7 @@ public class Cone extends TransformableDataSource {
         data.v[0] = step10(dist, 0., vs);
 
         super.getMaterialDataValue(pnt, data);        
-        return RESULT_OK;        
+        return ResultCodes.RESULT_OK;
 
     }
 

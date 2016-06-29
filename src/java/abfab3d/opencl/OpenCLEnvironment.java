@@ -11,7 +11,6 @@
  ****************************************************************************/
 package abfab3d.opencl;
 
-import com.jogamp.opencl.CLResource;
 import com.jogamp.opencl.CLDevice;
 import com.jogamp.opencl.CLContext;
 import com.jogamp.opencl.CLCommandQueue;
@@ -20,8 +19,8 @@ import com.jogamp.opencl.CLPlatform;
 import static com.jogamp.opencl.CLDevice.Type.GPU;
 import static com.jogamp.opencl.util.CLPlatformFilters.type;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 
 /**

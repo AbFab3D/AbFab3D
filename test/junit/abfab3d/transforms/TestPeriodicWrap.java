@@ -15,42 +15,16 @@ package abfab3d.transforms;
 // External Imports
 
 
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
-
-import java.awt.Font;
-import java.awt.Insets;
-
-
-import java.io.File;
-
 import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
-import javax.vecmath.Matrix4d;
 
 // external imports
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import abfab3d.util.Vec;
-import abfab3d.util.MathUtil;
-import abfab3d.util.TextUtil;
-import abfab3d.util.Symmetry;
-import abfab3d.util.VecTransform;
+import abfab3d.core.Vec;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.MathUtil.TORAD;
-
-import static java.lang.System.currentTimeMillis;
-import static java.lang.Math.sin;
-import static java.lang.Math.cos;
-import static java.lang.Math.sqrt;
-import static java.lang.Math.PI;
-
-import static abfab3d.util.VecTransform.RESULT_OK;
+import static abfab3d.core.Output.printf;
 
 /**
  * Tests the functionality of PeriodicWrap

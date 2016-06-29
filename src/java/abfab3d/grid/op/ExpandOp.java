@@ -11,15 +11,14 @@
  ****************************************************************************/
 
 package abfab3d.grid.op;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.Grid2D;
 import abfab3d.grid.*;
 import abfab3d.param.*;
 import abfab3d.util.ImageGray16;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
 // External Imports

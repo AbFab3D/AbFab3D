@@ -13,14 +13,15 @@
 package abfab3d.grid;
 
 // External Imports
+import abfab3d.core.Grid2D;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
 // Internal Imports
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 /**
  * Tests the functionality of a Grid2DByte

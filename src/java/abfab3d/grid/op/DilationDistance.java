@@ -16,15 +16,14 @@ package abfab3d.grid.op;
 
 // Internal Imports
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 import abfab3d.grid.Operation;
 import abfab3d.util.AbFab3DGlobals;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 /**
  * Dilate an object based on using a DistanceTransform.

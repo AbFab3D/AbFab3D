@@ -14,55 +14,30 @@
 package abfab3d.grid.op;
 
 // External Imports
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Random;
 
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.PlainTextErrorReporter;
-
-import junit.framework.Test;
-import junit.framework.TestSuite;
-import junit.framework.TestCase;
-
 // Internal Imports
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Grid;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.grid.SliceExporter;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.io.output.SlicesWriter;
 
-import abfab3d.datasources.Sphere;
-import abfab3d.datasources.Cone;
-import abfab3d.datasources.Cylinder;
 import abfab3d.datasources.Box;
-import abfab3d.datasources.Intersection;
-import abfab3d.datasources.Subtraction;
-import abfab3d.datasources.Union;
-import abfab3d.datasources.Plane;
 import abfab3d.transforms.Rotation;
 
-import abfab3d.util.DataSource;
-import abfab3d.util.Vec;
-import abfab3d.util.VecTransform;
 import abfab3d.util.Long2Short;
-import abfab3d.util.LongConverter;
+import abfab3d.core.LongConverter;
 
 
-import abfab3d.datasources.GridMipMap;
-
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
 import static abfab3d.util.ImageUtil.makeRGB;
 import static abfab3d.util.ImageUtil.makeARGB;
 import static abfab3d.util.ImageUtil.MAXC;
 
-import static java.lang.Math.sin;
 import static java.lang.Math.round;
-import static java.lang.Math.PI;
 
 /**
  *

@@ -14,19 +14,15 @@ package abfab3d.util;
 
 // External Imports
 
+import abfab3d.core.MathUtil;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import java.util.Random;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-
 import static java.lang.Math.abs;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 /**
  */
@@ -44,7 +40,7 @@ public class TestPerlinNoise3D extends TestCase {
         double x1 = 11.5;
         double x2 = -11.5;
         int n = 10;
-        double r1 = MathUtil.toInterval(x1,n);
+        double r1 = MathUtil.toInterval(x1, n);
         double r2 = MathUtil.toInterval(x2,n);
 
         printf("%f %% %d = %f\n", x1,n,r1);

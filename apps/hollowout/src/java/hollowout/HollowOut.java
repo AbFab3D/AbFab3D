@@ -16,6 +16,7 @@ package hollowout;
 import java.util.*;
 import java.io.*;
 
+import abfab3d.core.Grid;
 import org.web3d.vrml.export.*;
 import org.web3d.util.ErrorReporter;
 import org.j3d.geom.*;

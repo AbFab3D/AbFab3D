@@ -12,14 +12,14 @@
 
 package abfab3d.datasources;
 
-import abfab3d.grid.Grid2D;
+import abfab3d.core.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.param.SourceWrapper;
 
 
 import java.awt.image.BufferedImage;
 
-import static abfab3d.util.Units.MM;
+import static abfab3d.core.Units.MM;
 
 public class ImageWrapper implements SourceWrapper {
     

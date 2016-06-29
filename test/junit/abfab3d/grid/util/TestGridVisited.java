@@ -13,6 +13,8 @@
 package abfab3d.grid.util;
 
 // External Imports
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -151,7 +153,7 @@ public class TestGridVisited extends TestCase {
 
         AttributeGrid grid = new ArrayAttributeGridByte(w,h,d,0.1,0.1);
         grid.setData(0,0,0,Grid.INSIDE,1);
-        grid.setData(0,0,1,Grid.INSIDE,1);
+        grid.setData(0,0,1, Grid.INSIDE,1);
 
         // Force to array
         GridVisited gv = new GridVisited(w,h,d,0);

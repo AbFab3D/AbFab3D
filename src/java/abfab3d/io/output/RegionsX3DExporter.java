@@ -15,8 +15,9 @@ package abfab3d.io.output;
 // External Imports
 import java.util.*;
 import java.io.*;
+
+import abfab3d.core.Grid;
 import org.web3d.vrml.sav.BinaryContentHandler;
-import org.web3d.vrml.sav.ContentHandler;
 import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
 import org.web3d.vrml.export.X3DClassicRetainedExporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;

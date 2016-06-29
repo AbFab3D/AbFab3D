@@ -21,8 +21,8 @@ import javax.imageio.ImageIO;
 import java.util.Vector;
 import java.io.File;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 import static abfab3d.util.ImageUtil.getRed;
 import static abfab3d.util.ImageUtil.getGreen;

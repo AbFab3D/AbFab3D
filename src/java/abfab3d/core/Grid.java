@@ -10,14 +10,11 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid;
+package abfab3d.core;
 
 // External Imports
 
-import abfab3d.util.Bounds;
-
 import javax.vecmath.Tuple3d;
-import javax.vecmath.Tuple3i;
 
 /**
  * A voxel grid.  Grids can either be uniform or

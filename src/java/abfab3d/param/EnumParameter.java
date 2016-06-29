@@ -13,7 +13,7 @@ package abfab3d.param;
 
 // External Imports
 
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.fmt;
 
 /**
  * A enum parameter.

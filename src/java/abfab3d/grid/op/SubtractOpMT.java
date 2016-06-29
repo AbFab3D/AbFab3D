@@ -11,6 +11,10 @@
  ****************************************************************************/
 package abfab3d.grid.op;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
 import abfab3d.grid.*;
 import abfab3d.util.AbFab3DGlobals;
 
@@ -19,7 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static abfab3d.util.Output.*;
+import static abfab3d.core.Output.*;
 
 /**
  * Subtraction operation.   Multithreaded version.
@@ -221,7 +225,7 @@ public class SubtractOpMT implements Operation {
          * @return True to continue, false stops the traversal.
          */
         public boolean foundInterruptible(int x, int y, int z, byte state) {
-            dest.setState(x,y,z,Grid.OUTSIDE);
+            dest.setState(x,y,z, Grid.OUTSIDE);
             return true;
         }
 

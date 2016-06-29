@@ -12,16 +12,7 @@
 
 package abfab3d.util;
 
-import javax.vecmath.Vector3d;
 import javax.vecmath.Tuple3d;
-
-import java.util.Vector;
-
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.PointSet;
-
-import static abfab3d.util.Units.MM;
 
 /**
    

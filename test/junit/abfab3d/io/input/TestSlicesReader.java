@@ -15,11 +15,7 @@ package abfab3d.io.input;
 // External Imports
 
 
-import java.util.Map;
-
-
 // external imports
-import abfab3d.grid.query.CountStates;
 import abfab3d.util.*;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -27,24 +23,14 @@ import junit.framework.TestSuite;
 
 
 // Internal Imports
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
+        import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.GridShortIntervals;
 
-import abfab3d.geom.TriangulatedModels;
-
-import abfab3d.io.output.STLWriter;
-import abfab3d.io.output.MeshMakerMT;
-import abfab3d.io.output.SlicesWriter;
-
-import abfab3d.util.MathUtil;
+        import abfab3d.io.output.SlicesWriter;
 
 
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
+        import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
 
 /**
  * Tests the functionality of SlicesReader

@@ -17,10 +17,9 @@ import javax.vecmath.Vector3d;
 import java.util.Arrays;
 
 import static java.lang.Math.round;
-import static java.lang.Math.floor;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 
 /**

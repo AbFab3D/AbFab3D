@@ -15,28 +15,27 @@ package abfab3d.io.input;
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.BoundingBoxCalculator;
-import abfab3d.util.Bounds;
-import abfab3d.util.TriangleProducer;
-import abfab3d.util.AttributedTriangleProducer;
-import abfab3d.util.AttributedTriangleCollector;
+import abfab3d.core.Bounds;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.AttributedTriangleProducer;
 import abfab3d.util.AttributedTriangleProducerConverter;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
+import abfab3d.core.DataSource;
+import abfab3d.core.Initializable;
 
 import abfab3d.grid.op.DistanceTransformLayered;
 
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.GridDataChannel;
-import abfab3d.grid.GridDataDesc;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.GridDataDesc;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridShort;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.MathUtil.getMaxValue;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.MathUtil.getMaxValue;
 
 /**
    class to load mesh or grid from a file into a grid 

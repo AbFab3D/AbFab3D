@@ -12,12 +12,10 @@
 
 package abfab3d.io.input;
 
-import abfab3d.util.AttributedTriangleProducer;
-import abfab3d.util.AttributedTriangleCollector;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.Vec;
-
-import javax.vecmath.Vector3d;
+import abfab3d.core.AttributedTriangleProducer;
+import abfab3d.core.AttributedTriangleCollector;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.Vec;
 
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;

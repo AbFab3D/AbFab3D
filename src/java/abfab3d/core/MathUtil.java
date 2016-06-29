@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
+package abfab3d.core;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
@@ -27,7 +27,7 @@ import javax.vecmath.SingularMatrixException;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.fmt;
 
 /**
  * Math utilities.

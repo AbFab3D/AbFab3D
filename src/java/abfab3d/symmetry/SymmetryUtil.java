@@ -13,10 +13,10 @@
 package abfab3d.symmetry;
 import javax.vecmath.Vector3d;
 
-import abfab3d.util.Vec;
-import abfab3d.util.ResultCodes;
+import abfab3d.core.Vec;
+import abfab3d.core.ResultCodes;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  *  utils for symmetry package 

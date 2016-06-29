@@ -12,12 +12,16 @@
 
 package abfab3d.grid.op;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
 import abfab3d.grid.*;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
-import static abfab3d.grid.Grid.OUTSIDE;
-import static abfab3d.grid.Grid.INSIDE;
+import static abfab3d.core.Grid.OUTSIDE;
+import static abfab3d.core.Grid.INSIDE;
 
 /**
  * Dilate an object one layer per iteration. Repeat given numbers of iterations.

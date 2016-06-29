@@ -17,7 +17,7 @@ import java.io.*;
 import java.util.*;
 
 // Internal Imports
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 
 /**
  * A voxel enhanced version of a Geometry Kernel.  All kernels

@@ -14,16 +14,20 @@ package abfab3d.grid;
 
 // External Imports
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
 import abfab3d.datasources.Sphere;
 import abfab3d.grid.op.GridMaker;
-import abfab3d.util.Bounds;
-import abfab3d.util.Units;
+import abfab3d.core.Bounds;
+import abfab3d.core.Units;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import java.util.HashSet;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Output.printf;
 
 // Internal Imports
 

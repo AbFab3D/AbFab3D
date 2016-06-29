@@ -13,7 +13,7 @@
 package app.common;
 
 
-import abfab3d.grid.Grid;
+import abfab3d.core.Grid;
 import abfab3d.grid.Region;
 import abfab3d.grid.RegionTraverser;
 import abfab3d.grid.query.RegionFinder;
@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 import static java.lang.System.currentTimeMillis;
 
 /**

@@ -12,16 +12,17 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.ResultCodes;
 import abfab3d.param.Parameter;
 import abfab3d.param.Parameterizable;
 import abfab3d.param.SNodeListParameter;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.Vec;
+import abfab3d.core.DataSource;
+import abfab3d.core.Initializable;
+import abfab3d.core.Vec;
 
 import java.util.List;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
 
@@ -154,7 +155,7 @@ public class DataSourceMixer extends TransformableDataSource {
                 printf("source %d, dim: %d: %s\n", i, m_channelsCounts[i],m_sources[i]); 
             }
         }
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     /**
@@ -199,7 +200,7 @@ public class DataSourceMixer extends TransformableDataSource {
                     break;
             }
         }
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 }  
 

@@ -16,6 +16,7 @@ package insides;
 import java.util.*;
 import java.io.*;
 
+import abfab3d.core.Grid;
 import abfab3d.grid.op.InteriorFinderTriangleBased;
 import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.util.BoundingBoxUtilsFloat;

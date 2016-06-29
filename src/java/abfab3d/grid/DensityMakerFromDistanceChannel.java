@@ -12,10 +12,10 @@
 
 package abfab3d.grid;
 
-import abfab3d.util.Vec;
+import abfab3d.core.GridDataChannel;
 
-import static abfab3d.util.MathUtil.step10;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.MathUtil.step10;
+import static abfab3d.core.Output.printf;
 
 /**
    class converts grid data channel into density value 

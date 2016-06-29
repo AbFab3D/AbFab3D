@@ -18,13 +18,13 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import abfab3d.util.TriangleCollector;
+import abfab3d.core.TriangleCollector;
 
 import javax.vecmath.Vector3f;
 import javax.vecmath.Vector3d;
 
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
 /**

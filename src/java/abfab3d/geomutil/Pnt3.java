@@ -12,7 +12,7 @@
 
 package abfab3d.geomutil;
 
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.fmt;
 
 
 /**

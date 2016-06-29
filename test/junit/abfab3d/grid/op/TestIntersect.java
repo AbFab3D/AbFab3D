@@ -14,6 +14,9 @@ package abfab3d.grid.op;
 
 // External Imports
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
 import abfab3d.grid.*;
 import junit.framework.Test;
 import junit.framework.TestSuite;

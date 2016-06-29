@@ -10,11 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
-
-import abfab3d.util.Vec;
-
-import abfab3d.util.ResultCodes;
+package abfab3d.core;
 
 /**
    interface to implements general transformation of one vector into another vector
@@ -23,7 +19,7 @@ import abfab3d.util.ResultCodes;
 public interface VecTransform {
 
     public static final int 
-        RESULT_OK = ResultCodes.RESULT_OK,     // transform was successfull 
+        RESULT_OK = ResultCodes.RESULT_OK,     // transform was successfull
         RESULT_ERROR = ResultCodes.RESULT_ERROR,  // error occurs during transform 
         RESULT_OUTSIDE = ResultCodes.RESULT_OUTSIDE; // argument is outside of domain of definition 
 

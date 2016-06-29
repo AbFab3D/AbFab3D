@@ -17,6 +17,10 @@ package abfab3d.grid.query;
 // Internal Imports
 import java.util.HashSet;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassAttributeTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelData;
 import abfab3d.grid.*;
 import abfab3d.path.Path;
 

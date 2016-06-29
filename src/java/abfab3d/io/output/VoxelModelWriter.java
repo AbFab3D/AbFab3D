@@ -1,8 +1,8 @@
 package abfab3d.io.output;
 
-import abfab3d.grid.GridDataChannel;
-import abfab3d.grid.GridDataDesc;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ModelWriter;
 import abfab3d.util.TriangleMesh;
 

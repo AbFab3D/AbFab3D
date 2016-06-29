@@ -12,18 +12,20 @@
 
 package abfab3d.geom;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.grid.*;
 
 import abfab3d.grid.op.ClosestPointIndexerMT;
 import abfab3d.grid.op.ClosestPointIndexer;
 
 import abfab3d.util.AbFab3DGlobals;
-import abfab3d.util.Bounds;
-import abfab3d.util.TriangleProducer;
+import abfab3d.core.Bounds;
+import abfab3d.core.TriangleProducer;
 
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 
 /**
@@ -33,7 +35,7 @@ import static abfab3d.util.Output.printf;
  */
 public class DistanceToTriangleSetMT implements Operation, AttributeOperation {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     static final int DEFAULT_SVR = 100;
 

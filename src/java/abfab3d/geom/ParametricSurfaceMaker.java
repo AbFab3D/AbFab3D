@@ -14,15 +14,14 @@ package abfab3d.geom;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.util.Vec; 
+import abfab3d.core.Vec;
 
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducer;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
 
-import static abfab3d.util.MathUtil.distance;
-import static abfab3d.util.MathUtil.midPoint;
-import static java.lang.Math.sqrt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.MathUtil.distance;
+import static abfab3d.core.MathUtil.midPoint;
+import static abfab3d.core.Output.printf;
 
 
 /**

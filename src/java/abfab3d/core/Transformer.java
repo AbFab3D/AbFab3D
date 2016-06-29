@@ -10,22 +10,19 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
-
-import javax.vecmath.Vector3d;
+package abfab3d.core;
 
 /**
-   interface accepts a collection of triangles with possible extra information (texture, color, etc)
+   interface to supply object with VecTransform 
    
  */
-public interface AttributedTriangleCollector {
+public interface Transformer {
 
     /**
-       add triangle 
-       vertices are copied into internal structure and can be reused after return       
+       feeds all triangles into supplied TriangleCollector 
 
        returns true if success, false if faiure        
      */
-    public boolean addAttTri(Vec v0,Vec v1,Vec v2);
+    public void setTransform(VecTransform vt);
     
 }

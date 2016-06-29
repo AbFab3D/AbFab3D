@@ -11,18 +11,14 @@
  ****************************************************************************/
 package abfab3d.mesh;
 
-import abfab3d.util.StructDataDefinition;
 import abfab3d.util.StructMixedData;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducer;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
 
-import javax.vecmath.Point3d;
 import javax.vecmath.Tuple3d;
 import javax.vecmath.Vector3d;
-import java.util.ArrayList;
-import java.util.HashMap;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
    class to make indexed triangle set from flat set of triangles

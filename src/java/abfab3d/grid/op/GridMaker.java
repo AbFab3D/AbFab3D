@@ -19,15 +19,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors; 
 import java.util.concurrent.TimeUnit;
 
+import abfab3d.core.*;
 import abfab3d.grid.*;
 
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.util.*;
 import abfab3d.transforms.Identity;
 
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 /**
    class accept Grid , VecTransform, DataSource and AttributePacker and fills voxel attributes of the grid. 
@@ -64,7 +65,7 @@ public class GridMaker implements Operation, AttributeOperation {
     private int m_slizeSize = 2;
 
     // custom converter of Vec into long attribute
-    AttributePacker m_attributePacker; 
+    AttributePacker m_attributePacker;
     // dimension of the data channel 
     int m_dataChannelsCount = 1;
     // number of gray levels in the calculations this is being replaces by universal m_attributePacker
@@ -234,7 +235,7 @@ public class GridMaker implements Operation, AttributeOperation {
         }
         
         voxelSize = grid.getVoxelSize() * voxelScale;
-        if(DEBUG)printf("gridMaker voxelSize: %7.3f mm\n", voxelSize/Units.MM);
+        if(DEBUG)printf("gridMaker voxelSize: %7.3f mm\n", voxelSize/ Units.MM);
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();
         }
@@ -313,7 +314,7 @@ public class GridMaker implements Operation, AttributeOperation {
      */
     void makeGridST(){
         
-        Vec 
+        Vec
             pntGrid = new Vec(POINT_DIMENSION),
             pntWorld = new Vec(POINT_DIMENSION),            
             pntData = new Vec(POINT_DIMENSION),

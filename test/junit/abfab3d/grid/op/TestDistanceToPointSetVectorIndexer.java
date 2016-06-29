@@ -18,16 +18,16 @@ import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
 
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.VectorIndexerArray;
 
 import abfab3d.geom.PointCloud;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.MathUtil.L2S;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.MathUtil.L2S;
 
 /**
  * Test the DistanceToPointSet class using different VectorIndexer.

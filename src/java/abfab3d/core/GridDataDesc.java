@@ -11,14 +11,12 @@
  ****************************************************************************/
 
 
-package abfab3d.grid;
+package abfab3d.core;
 
 import java.util.Vector;
 
-import abfab3d.util.Vec;
-
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 /**
  * A description of a grid attribute with multiple data channels
@@ -30,7 +28,7 @@ public class GridDataDesc {
     static final boolean DEBUG = false;
     static int debugCount = 20;
 
-    AttributePacker m_attributePacker; 
+    AttributePacker m_attributePacker;
 
     /**
        constructor with no data channels

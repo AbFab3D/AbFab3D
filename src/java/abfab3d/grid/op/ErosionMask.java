@@ -12,12 +12,16 @@
 package abfab3d.grid.op;
 
 // External Imports
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
 import abfab3d.grid.*;
 
 // Internal Imports
 
-        import static abfab3d.util.Output.printf;
-import static abfab3d.grid.Grid.OUTSIDE;
+        import static abfab3d.core.Output.printf;
+import static abfab3d.core.Grid.OUTSIDE;
 
 /**
  * Erode an object one layer per iteration. Repeat given numbers of iterations.

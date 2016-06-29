@@ -12,6 +12,8 @@
 package abfab3d.grid;
 
 
+import abfab3d.core.AttributeGrid;
+
 /**
  * An operation that can be performed on a grid.  Requires an attributed grid.
  *

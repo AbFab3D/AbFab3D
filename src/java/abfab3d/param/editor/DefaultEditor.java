@@ -18,7 +18,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
 /**

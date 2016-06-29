@@ -1,6 +1,12 @@
 package abfab3d.io.output;
 
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassAttributeTraverser;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.VoxelClasses;
+import abfab3d.core.VoxelData;
 import abfab3d.grid.*;
 
 /**

@@ -13,12 +13,14 @@
 package abfab3d.grid.op;
 
 // External Imports
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
 // Internal Imports
 import abfab3d.grid.*;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
 /**

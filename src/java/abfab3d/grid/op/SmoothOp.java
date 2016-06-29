@@ -16,12 +16,12 @@ package abfab3d.grid.op;
 
 // Internal Imports
 
-import abfab3d.grid.GridDataChannel;
-import abfab3d.grid.Grid2D;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.Grid2D;
 import abfab3d.grid.Operation2D;
-import abfab3d.util.MathUtil;
+import abfab3d.core.MathUtil;
 
-import static abfab3d.util.MathUtil.clamp;
+import static abfab3d.core.MathUtil.clamp;
 
 /**
  * Smooth a grid

@@ -6,8 +6,8 @@
 
 package volumesculptor.shell;
 
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Grid;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.grid.Model;
 import abfab3d.grid.ModelWriter;
 import abfab3d.io.output.*;
@@ -35,7 +35,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * The shell program.

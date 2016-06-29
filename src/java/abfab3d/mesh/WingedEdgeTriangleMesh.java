@@ -17,7 +17,7 @@ import abfab3d.util.StructMixedData;
 import abfab3d.util.StructMap;
 import abfab3d.util.EdgeCollapseParams;
 import abfab3d.util.EdgeCollapseResult;
-import abfab3d.util.TriangleCollector;
+import abfab3d.core.TriangleCollector;
 import abfab3d.util.StructSet;
 import abfab3d.util.FaceFlipChecker;
 
@@ -25,7 +25,7 @@ import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import java.io.PrintStream;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
  * 3D Triangle Mesh structure implemented using a WingedEdge datastructure.  Made for easy traversal of edges and dynamic in

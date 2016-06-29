@@ -12,6 +12,8 @@
 package abfab3d.grid;
 
 
+import abfab3d.core.Grid;
+
 /**
  * An operation that can be performed on a grid.
  *

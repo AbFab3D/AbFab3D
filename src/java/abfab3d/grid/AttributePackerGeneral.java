@@ -12,8 +12,9 @@
 
 package abfab3d.grid;
 
-import abfab3d.util.Vec;
-import abfab3d.util.MathUtil;
+import abfab3d.core.AttributePacker;
+import abfab3d.core.Vec;
+import abfab3d.core.MathUtil;
 
 /**
    converts multiple components of Vec into single long attribute 

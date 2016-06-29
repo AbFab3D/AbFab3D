@@ -15,7 +15,7 @@ package abfab3d.grid;
 // External Imports
 
 
-import static abfab3d.util.Output.fmt;
+import static abfab3d.core.Output.fmt;
 
 /**
  * implementation of VectorIndexer as uncompressed array of int

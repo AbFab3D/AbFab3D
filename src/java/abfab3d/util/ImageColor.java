@@ -14,21 +14,15 @@ package abfab3d.util;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferByte;
 
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import java.util.Arrays;
+import static abfab3d.core.MathUtil.clamp;
 
-import static abfab3d.util.ImageUtil.us2i; 
-import static abfab3d.util.ImageUtil.ub2i; 
-import static abfab3d.util.MathUtil.clamp;
-
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 /**
    color ARGB image as array of int

@@ -16,6 +16,7 @@ package dla;
 import java.io.*;
 import java.util.*;
 
+import abfab3d.core.Grid;
 import abfab3d.io.output.*;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.*;

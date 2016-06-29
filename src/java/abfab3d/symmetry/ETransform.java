@@ -15,14 +15,11 @@ package abfab3d.symmetry;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
-import abfab3d.util.Vec;
+import abfab3d.core.Vec;
 
-import static abfab3d.symmetry.SymmetryUtil.len2; 
-import static abfab3d.symmetry.SymmetryUtil.subSet;
-import static abfab3d.symmetry.SymmetryUtil.mulSet;
-import static abfab3d.symmetry.SymmetryUtil.addSet;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
+import static abfab3d.symmetry.SymmetryUtil.len2;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
  
 /**
  * class to represent 3d euclidean transforms which can be represented as 4d matrix 

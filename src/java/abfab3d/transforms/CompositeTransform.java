@@ -12,25 +12,17 @@
 
 package abfab3d.transforms;
 
-import java.util.Vector;
 import java.util.List;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.AxisAngle4d;
-
+import abfab3d.core.Initializable;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
+import abfab3d.core.VecTransform;
 import abfab3d.param.Parameter;
-import abfab3d.param.Parameterizable;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeListParameter;
-import abfab3d.util.*;
 
-import net.jafama.FastMath;
-
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Symmetry.getReflection;
+import static abfab3d.core.Output.printf;
 import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 
@@ -125,7 +117,7 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
             }
         }
         
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
     public VecTransform [] getTransformsArray(){
@@ -149,7 +141,7 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
         if(len < 1){
             // copy input to output                 
             out.set(in);
-            return RESULT_OK;                
+            return ResultCodes.RESULT_OK;
         }
         
         //TODO garbage generation 
@@ -165,7 +157,7 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
                 in.set(out);
         }
         
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }                
     
     /**
@@ -177,7 +169,7 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
         if(len < 1){
             // copy input to output                 
             out.set(in);
-            return RESULT_OK;                
+            return ResultCodes.RESULT_OK;
         }
         
         //TODO garbage generation 
@@ -193,7 +185,7 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
             vin.set(out);
         }
         
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
     }
 

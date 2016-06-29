@@ -13,9 +13,12 @@
 package abfab3d.datasources;
 
 
-import abfab3d.grid.Grid2D;
+import abfab3d.core.Output;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Vec;
+import abfab3d.core.Grid2D;
 import abfab3d.grid.Grid2DShort;
-import abfab3d.grid.GridDataChannel;
+import abfab3d.core.GridDataChannel;
 import abfab3d.grid.op.DistanceTransform2DOp;
 import abfab3d.param.*;
 import abfab3d.util.*;
@@ -29,14 +32,14 @@ import javax.vecmath.Vector3d;
 
 
 import static abfab3d.util.ImageMipMapGray16.getScaledDownDataBlack;
-import static abfab3d.util.MathUtil.intervalCap;
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.step01;
-import static abfab3d.util.MathUtil.step10;
-import static abfab3d.util.MathUtil.step;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.MathUtil.intervalCap;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.MathUtil.step01;
+import static abfab3d.core.MathUtil.step10;
+import static abfab3d.core.MathUtil.step;
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 
 /**
@@ -525,7 +528,6 @@ public class Image3D extends TransformableDataSource {
     }
 
     public void setImage(Object val) {
-        printf("Image3D setImage:  %s  class: %s\n",val.toString(),val.getClass());
         mp_image.setValue(val);
     }
 
@@ -690,7 +692,7 @@ public class Image3D extends TransformableDataSource {
         Object co = ParamCache.getInstance().get(vhash);
         if (co == null) {
             int res = prepareImage();
-            if(res != RESULT_OK){
+            if(res != ResultCodes.RESULT_OK){
                 // something wrong with the image
                 imageWidth = 2;
                 imageHeight = 2;
@@ -750,7 +752,7 @@ public class Image3D extends TransformableDataSource {
 
         imageZScale = (zmax - imageZmin);
         
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
 
@@ -769,7 +771,7 @@ public class Image3D extends TransformableDataSource {
         //printf("Image3D.  buff_image: %s\n",image);
 
         if (oimage == null) {
-            return RESULT_ERROR;
+            return ResultCodes.RESULT_ERROR;
             
         }
 
@@ -802,7 +804,7 @@ public class Image3D extends TransformableDataSource {
 
         if (image == null) {
             printf("Image is null.  source: %s  class: %s\n",oimage,oimage.getClass());
-            return RESULT_ERROR;
+            return ResultCodes.RESULT_ERROR;
         }
         if(DEBUG)printf("image %s [%d x %d ] reading done in %d ms\n", oimage, image.getWidth(), image.getHeight(), (time() - t0));
 
@@ -927,7 +929,7 @@ public class Image3D extends TransformableDataSource {
 
         if(DEBUG)printf("makeImageBlack() done %d ms\n", time() -t0);
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
         
         
     }
@@ -958,7 +960,7 @@ public class Image3D extends TransformableDataSource {
 
         if(DEBUG)printf("makeImageGray() done %d ms\n", time() -t0);
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
                 
     }
 
@@ -979,7 +981,7 @@ public class Image3D extends TransformableDataSource {
             getDataValueFiniteVoxel(pnt, data, vs);
 
         super.getMaterialDataValue(pnt, data);        
-        return RESULT_OK;        
+        return ResultCodes.RESULT_OK;
         
     }
 
@@ -1002,7 +1004,7 @@ public class Image3D extends TransformableDataSource {
                 y <= ymin - vs || y >= ymax + vs ||
                 z <= zmin - vs || z >= zmax + vs) {
             data.v[0] = 0.;
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
         switch (m_imagePlace) {
@@ -1138,7 +1140,7 @@ public class Image3D extends TransformableDataSource {
 
         data.v[0] = finalValue;
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
 
     }
 
@@ -1220,7 +1222,7 @@ public class Image3D extends TransformableDataSource {
             y < 0. || y > 1. ||
             z < 0. || z > 1.) {
             data.v[0] = 0;
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
         // z is in range [0, 1]
         switch (m_imagePlace) {
@@ -1243,7 +1245,7 @@ public class Image3D extends TransformableDataSource {
 
         if (z < 0.0) {
             data.v[0] = 1;
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
         if (m_xTilesCount > 1) {
@@ -1284,7 +1286,7 @@ public class Image3D extends TransformableDataSource {
                 data.v[0] = 0;
         }
 
-        return RESULT_OK;
+        return ResultCodes.RESULT_OK;
     }
 
 

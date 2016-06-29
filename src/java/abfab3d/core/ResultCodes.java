@@ -10,24 +10,13 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
+package abfab3d.core;
 
-import javax.vecmath.Vector3d;
 
-/**
-   interface accepts a collection of triangles
-   may be used to construct geometry or to write to files etc. 
-   
- */
-public interface TriangleCollector {
-
-    /**
-       add triangle 
-       vertices are copied into internal structure and can be reused after return       
-
-       returns true if success, false if faiure 
-       
-     */
-    public boolean addTri(Vector3d v0,Vector3d v1,Vector3d v2);
+public class ResultCodes {
     
+    public final static int 
+        RESULT_OK = 0,     // successfull 
+        RESULT_ERROR = 1,  // error occurs 
+        RESULT_OUTSIDE = 2; // argument is outside of domain of definition 
 }

@@ -19,6 +19,7 @@ import java.util.Map;
 
 
 // external imports
+import abfab3d.core.Units;
 import abfab3d.grid.query.CountMaterials;
 import abfab3d.grid.query.CountStates;
 import abfab3d.util.*;
@@ -28,8 +29,8 @@ import junit.framework.TestSuite;
 
 
 // Internal Imports
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.GridShortIntervals;
 
@@ -39,12 +40,12 @@ import abfab3d.io.output.STLWriter;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.SlicesWriter;
 
-import abfab3d.util.MathUtil;
+import abfab3d.core.MathUtil;
 
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
 
 /**
  * Tests the functionality of WaveletRasterizer
@@ -370,7 +371,7 @@ public class TestWaveletRasterizer extends TestCase {
         MathUtil.roundBounds(bounds, voxelSize);
         printf("rbounds:[(%7.2f %7.2f) (%7.2f %7.2f) (%7.2f %7.2f)] Units.MM \n", bounds[0]/Units.MM,bounds[1]/Units.MM,bounds[2]/Units.MM,bounds[3]/Units.MM,bounds[4]/Units.MM,bounds[5]/Units.MM);
         bounds = MathUtil.extendBounds(bounds, 1*voxelSize);
-        printf("ebounds:[(%7.2f %7.2f) (%7.2f %7.2f) (%7.2f %7.2f)] Units.MM \n", bounds[0]/Units.MM,bounds[1]/Units.MM,bounds[2]/Units.MM,bounds[3]/Units.MM,bounds[4]/Units.MM,bounds[5]/Units.MM);
+        printf("ebounds:[(%7.2f %7.2f) (%7.2f %7.2f) (%7.2f %7.2f)] Units.MM \n", bounds[0]/Units.MM,bounds[1]/Units.MM,bounds[2]/Units.MM,bounds[3]/Units.MM,bounds[4]/ Units.MM,bounds[5]/Units.MM);
         int nx = (int)Math.round((bounds[1] - bounds[0])/voxelSize);
         int ny = (int)Math.round((bounds[3] - bounds[2])/voxelSize);
         int nz = (int)Math.round((bounds[5] - bounds[4])/voxelSize);

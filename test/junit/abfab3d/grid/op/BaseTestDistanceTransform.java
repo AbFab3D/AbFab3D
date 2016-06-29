@@ -1,12 +1,14 @@
 package abfab3d.grid.op;
 
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid;
 import abfab3d.datasources.*;
 import abfab3d.grid.*;
 import abfab3d.io.output.SlicesWriter;
 import abfab3d.transforms.Rotation;
 import abfab3d.util.ImageUtil;
 import abfab3d.util.Long2Short;
-import abfab3d.util.LongConverter;
+import abfab3d.core.LongConverter;
 import junit.framework.TestCase;
 
 import static java.lang.Math.abs;
@@ -14,9 +16,8 @@ import static java.lang.Math.abs;
 import static abfab3d.util.ImageUtil.MAXC;
 import static abfab3d.util.ImageUtil.makeRGB;
 import static abfab3d.util.ImageUtil.makeARGB;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Units.MM;
-import static abfab3d.util.MathUtil.L2S;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.MathUtil.L2S;
 
 /**
  * Common code for testing distance transforms

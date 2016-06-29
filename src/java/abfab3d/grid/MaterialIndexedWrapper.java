@@ -13,7 +13,14 @@
 package abfab3d.grid;
 
 // External Imports
-import abfab3d.util.Bounds;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.ClassAttributeTraverser;
+import abfab3d.core.ClassTraverser;
+import abfab3d.core.Grid;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.VoxelClasses;
+import abfab3d.core.VoxelData;
+import abfab3d.core.Bounds;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

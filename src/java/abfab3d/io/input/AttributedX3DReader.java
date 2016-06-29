@@ -12,9 +12,16 @@
 
 package abfab3d.io.input;
 
+import abfab3d.core.AttributedTriangleCollector;
+import abfab3d.core.AttributedTriangleProducer;
+import abfab3d.core.Bounds;
+import abfab3d.core.DataSource;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Transformer;
+import abfab3d.core.Vec;
+import abfab3d.core.VecTransform;
 import abfab3d.datasources.ImageColorMap;
 import abfab3d.util.*;
-import org.apache.commons.io.FilenameUtils;
 import xj3d.filter.node.ArrayData;
 import xj3d.filter.node.CommonEncodable;
 import xj3d.filter.node.TextureTransformMatrix;
@@ -22,15 +29,14 @@ import xj3d.filter.node.TextureTransformMatrix;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3d;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 
 /**
@@ -38,7 +44,7 @@ import static abfab3d.util.Output.printf;
  *
  * @author Alan Hudson
  */
-public class AttributedX3DReader implements AttributedTriangleProducer, Transformer{
+public class AttributedX3DReader implements AttributedTriangleProducer, Transformer {
 
     static final boolean DEBUG = true;
 
@@ -465,7 +471,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
 
             if (tz > textures.length - 1 || textures[tz] == null) {
                 dataValue.set(pnt);
-                return RESULT_OK;
+                return ResultCodes.RESULT_OK;
             }
 
             ImageColorMap icm = textures[tz];
@@ -478,7 +484,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
                     }
                 }
             }
-            return RESULT_OK;
+            return ResultCodes.RESULT_OK;
         }
 
         /**

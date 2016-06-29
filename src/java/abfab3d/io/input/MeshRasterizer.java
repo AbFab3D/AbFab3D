@@ -16,13 +16,13 @@ package abfab3d.io.input;
 import javax.vecmath.Vector3d;
 
 import abfab3d.geom.ZBuffer;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.Bounds;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.Bounds;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
+import abfab3d.core.Grid;
+import abfab3d.core.AttributeGrid;
 
-import static abfab3d.util.Output.printf;
+import static abfab3d.core.Output.printf;
 
 
 /**

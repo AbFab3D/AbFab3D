@@ -16,6 +16,7 @@ package linkedcubes;
 import java.util.*;
 import java.io.*;
 
+import abfab3d.core.Grid;
 import abfab3d.grid.BlockBasedAttributeGridByte;
 import org.web3d.vrml.export.*;
 import org.web3d.util.ErrorReporter;
@@ -24,7 +25,6 @@ import org.web3d.util.ErrorReporter;
 import abfab3d.util.ApplicationParams;
 import abfab3d.geom.*;
 import abfab3d.geom.CubeCreator.Style;
-import abfab3d.grid.*;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.shapeways.*;
 
