@@ -37,7 +37,7 @@ public class ModelLoader {
     private AttributedMeshReader m_reader;
     private abfab3d.shapejs.MaterialType m_materialType;
     private long m_maxGridSize = 1000l * 1000 * 1000;
-
+    private long m_minGridSize = 0;
 
     public ModelLoader(String path) {
         m_path = path;
@@ -109,11 +109,16 @@ public class ModelLoader {
         m_maxGridSize = val;
     }
 
+    public void setMinGridSize(long val) {
+        m_minGridSize = val;
+    }
+
     public AttributeGrid getGrid() {
         if (m_grid != null) return m_grid;
 
         GridLoader loader = new GridLoader();
         loader.setMaxGridSize(m_maxGridSize);
+        loader.setMinGridSize(m_minGridSize);
         loader.setDensityBitCount(m_densityBitCount);
         loader.setDistanceBitCount(m_distanceBitCount);
         loader.setPreferredVoxelSize(m_vs);

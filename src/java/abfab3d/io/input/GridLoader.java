@@ -55,6 +55,7 @@ public class GridLoader {
     protected double m_margins = 1*MM;
 
     protected long m_maxGridSize = 1000L*1000L*1000L;
+    protected long m_minGridSize = 0;
 
     protected AttributeGrid m_densityGridTemplate = new ArrayAttributeGridByte(1,1,1, 10*MM, 10*MM);
     protected AttributeGrid m_distanceGridTemplate = new ArrayAttributeGridShort(1,1,1, 10*MM, 10*MM);
@@ -105,9 +106,11 @@ public class GridLoader {
     }
 
     public void setMaxGridSize(long maxGridSize){
-
         m_maxGridSize = maxGridSize;
+    }
 
+    public void setMinGridSize(long minGridSize){
+        m_minGridSize = minGridSize;
     }
 
     public void setPreferredVoxelSize(double voxelSize){
@@ -370,8 +373,13 @@ public class GridLoader {
         gridBounds.roundBounds();
         
         int ng[] = gridBounds.getGridSize();
-        if((long) ng[0] * ng[1]*ng[2] > m_maxGridSize) {                
+        long voxels = (long) ng[0] * ng[1]*ng[2];
+        if(voxels > m_maxGridSize) {
             voxelSize = Math.pow(gridBounds.getVolume()/m_maxGridSize, 1./3);
+            gridBounds.setVoxelSize(voxelSize);
+            gridBounds.roundBounds();
+        } else if (voxels < m_minGridSize){
+            voxelSize = Math.pow(gridBounds.getVolume()/m_minGridSize, 1./3);
             gridBounds.setVoxelSize(voxelSize);
             gridBounds.roundBounds();
         }
