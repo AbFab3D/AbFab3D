@@ -80,6 +80,7 @@ public class Text2D extends BaseParameterizable {
     final int SCALING = 5;// scaling factor for text bitmap 
 
     // public params of the image 
+    // NOTE: Should expose one of mp_fontName or mp_font to set Text2D font. May not work well mixing them 
     EnumParameter mp_horizAlign = new EnumParameter("horizAlign","horizontal text alignment (left, right, center)",
             EnumParameter.enumArray(HorizAlign.values()), HorizAlign.LEFT.toString());
     EnumParameter mp_vertAlign = new EnumParameter("vertAlign","vertical text alignment (top, bottom, center)",
@@ -181,6 +182,7 @@ public class Text2D extends BaseParameterizable {
      */
     public void setFont(Font font) {
         mp_font.setValue(font);
+        
     }
 
     /**
@@ -346,16 +348,18 @@ public class Text2D extends BaseParameterizable {
      @noRefGuide
      */
     public double getPreferredWidth(){
-
-        String fontName = mp_fontName.getValue();
-        validateFontName(fontName);
-
         double voxelSize = mp_voxelSize.getValue();
-
         double inset = (mp_inset.getValue()/voxelSize);
         int fontStyle = mp_fontStyle.getValue();
 
-        Font font = new Font(fontName, fontStyle, m_fontSize);
+        Font font = getFont();
+
+        if (font == null) {
+			String fontName = mp_fontName.getValue();
+			validateFontName(fontName);
+			font = new Font(fontName, fontStyle, m_fontSize);
+        }
+        
         String text = mp_text.getValue();
 
         double spacing = mp_spacing.getValue();
@@ -376,14 +380,29 @@ public class Text2D extends BaseParameterizable {
         double voxelSize = mp_voxelSize.getValue();
         if(DEBUG) printf("  voxelSize:%7.5f\n", voxelSize);
         String fontName = mp_fontName.getValue();
+        
+        // No need to validate font name if font is already set
+        Font font = getFont();
+        if (font == null) {
+	        try {
+	        	validateFontName(fontName);
+	        } catch (IllegalArgumentException iae) {
+	        	printf("%s\n", iae.getMessage());
+	        }
+        } else {
+        	fontName = font.getFontName();
+        }
+
         if(DEBUG) printf("  fontName:%s\n", fontName);
         
-        validateFontName(fontName);
-
         int height = (int)Math.round(mp_height.getValue()/voxelSize);
         if(DEBUG) printf("  text height:%d pixels\n", height);
 
-        if(mp_width.getValue() <= 0.) mp_width.setValue(getPreferredWidth());
+        try {
+	        if(mp_width.getValue() <= 0.) mp_width.setValue(getPreferredWidth());
+        } catch (IllegalArgumentException iae) {
+        	printf("%s\n", iae.getMessage());
+        }
 
         int width = (int)Math.round(mp_width.getValue()/voxelSize);         
         if(DEBUG) printf("  text width:%d pixels\n", width);
@@ -401,7 +420,6 @@ public class Text2D extends BaseParameterizable {
         int halign = m_hAlignValues[mp_horizAlign.getIndex()];
         int valign = m_vAlignValues[mp_vertAlign.getIndex()];
 
-        Font font = (Font) mp_font.getValue();
         if (font != null) {
             font = font.deriveFont(fontStyle,m_fontSize);
             m_bitmap = TextUtil.createTextImage(width, height, text, font, mp_spacing.getValue().doubleValue(),insets, aspect, fit, halign, valign);
