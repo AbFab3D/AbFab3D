@@ -34,7 +34,8 @@ import abfab3d.grid.ArrayAttributeGridInt;
 
         import static abfab3d.core.Output.printf;
 
-        import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.time;
+import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.printf;
 
 /**
@@ -56,12 +57,43 @@ public class TestDataSourceGrid extends TestCase {
     
     public void devTestBytePacking(){
         
-        testGrid( makeGridByte());
-        testGrid( makeGridShort());
-        testGrid( makeGridInt());
+        testGrid( makeGridByte(2));
+        testGrid( makeGridShort(2));
+        testGrid( makeGridInt(2));
 
     }
-    
+
+    public void devTestPerf() {
+        AttributeGrid grid = makeGridByte(400);
+//        AttributeGrid grid = makeGridInt(400);
+
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                for(int z = 0; z < nz; z++){
+                    grid.setAttribute(x,y,z,(z+1) | ((x+1) << 4) | ((y+1) << 8));
+                }
+            }
+        }
+
+        DataSourceGrid dsg = new DataSourceGrid(grid);
+        dsg.initialize();
+
+        int data[] = new int[dsg.getBufferSize()];
+
+        int TIMES = 5;
+
+        for(int i=0; i < TIMES; i++) {
+            long t0 = time();
+            dsg.getBuffer(data);
+            printf("time: %d ms\n", time() - t0);
+        }
+    }
+
+
     void testGrid(AttributeGrid grid){
         printf("test grid: %s\n", grid);
     
@@ -85,30 +117,30 @@ public class TestDataSourceGrid extends TestCase {
         }
     }
 
-    AttributeGrid makeGridByte(){
+    AttributeGrid makeGridByte(int scale){
 
         double vs = 1*MM;
-        double s = 2*vs;
+        double s = scale*vs;
         ArrayAttributeGridByte grid = new ArrayAttributeGridByte(new Bounds(-s,s,-s,s,-s,s), vs, vs);
         grid.setDataDesc(new GridDataDesc(new GridDataChannel(GridDataChannel.DISTANCE, "dist", 8,0,-1*MM, 1*MM)));
         return grid;
 
     }
 
-    AttributeGrid makeGridShort(){
+    AttributeGrid makeGridShort(int scale){
 
         double vs = 1*MM;
-        double s = 2*vs;
+        double s = scale*vs;
         ArrayAttributeGridShort grid = new ArrayAttributeGridShort(new Bounds(-s,s,-s,s,-s,s), vs, vs);
         grid.setDataDesc(new GridDataDesc(new GridDataChannel(GridDataChannel.DISTANCE, "dist", 16,0,-1*MM, 1*MM)));
         return grid;
 
     }
 
-    AttributeGrid makeGridInt(){
+    AttributeGrid makeGridInt(int scale){
 
         double vs = 1*MM;
-        double s = 2*vs;
+        double s = scale*vs;
         ArrayAttributeGridInt grid = new ArrayAttributeGridInt(new Bounds(-s,s,-s,s,-s,s), vs, vs);
         grid.setDataDesc(GridDataDesc.getDistBGR(2*vs));
         return grid;
@@ -116,6 +148,6 @@ public class TestDataSourceGrid extends TestCase {
     }
 
    public static void main(String[] args) {
-        new TestDataSourceGrid().devTestBytePacking();
+        new TestDataSourceGrid().devTestPerf();
     }
 }

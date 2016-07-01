@@ -44,7 +44,7 @@ import static abfab3d.core.MathUtil.lerp3;
  */
 public class DataSourceGrid extends TransformableDataSource implements Cloneable {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static int debugCount = 1000;
     //static final int MAX_SHORT = 0xFFFF;
     //static final int MAX_BYTE = 0xFF;
@@ -255,7 +255,10 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
         //int dds = getGridDataTypeSize();
         GridDataDesc gdd = m_grid.getDataDesc();
-        // make new GridDataDesc which will be used to make buffer data                
+
+        return gdd;
+/*
+        // make new GridDataDesc which will be used to make buffer data
         GridDataDesc bdd = new GridDataDesc();
         int cc = gdd.size();        
         int bitOffset = 0;
@@ -269,7 +272,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         }
 
         return bdd;
-
+        */
     }
 
     /**
@@ -386,26 +389,38 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
      */
     protected void getGridDataUByte(int data[], AttributePacker unpacker, AttributePacker packer){
         
-        if(DEBUG)printf("getGridDataUByte()\n");
+        if(DEBUG)printf("getGridDataUByte()  packer: %s  unpacker: %s\n",packer,unpacker);
         final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = m_nx*m_nz;
         Vec value = new Vec(MAX_DATA_DIMENSION);
-        
-        for(int y = 0; y < ny; y++){
-            for(int x = 0; x < nx; x++){
-                for(int z = 0; z < nz; z++){
-                    long att = m_grid.getAttribute(x, y, z); 
-                    long outAtt = att;
-                    if(unpacker != packer){
+
+        if (unpacker != packer) {
+            for (int y = 0; y < ny; y++) {
+                for (int x = 0; x < nx; x++) {
+                    for (int z = 0; z < nz; z++) {
+                        long att = m_grid.getAttribute(x, y, z);
+                        long outAtt = att;
                         unpacker.getData(att, value);
                         outAtt = packer.makeAttribute(value);
+                        int ind = (x * nz + y * nxz + z);
+                        int wordInd = ind >> 2;
+                        int byteInWord = ind & 3;
+                        data[wordInd] = (int) ((data[wordInd] & BYTE_COMPLEMENT[byteInWord]) | (outAtt << BYTE_SHIFT[byteInWord]));
                     }
-                    int ind = (x*nz + y * nxz + z); 
-                    int wordInd = ind >> 2;
-                    int byteInWord = ind  & 3;
-                    data[wordInd] = (int)((data[wordInd] & BYTE_COMPLEMENT[byteInWord]) | (outAtt << BYTE_SHIFT[byteInWord]));
                 }
-            }            
-        }        
+            }
+        }  else {
+            for (int y = 0; y < ny; y++) {
+                for (int x = 0; x < nx; x++) {
+                    for (int z = 0; z < nz; z++) {
+                        long outAtt = m_grid.getAttribute(x, y, z);
+                        int ind = (x * nz + y * nxz + z);
+                        int wordInd = ind >> 2;
+                        int byteInWord = ind & 3;
+                        data[wordInd] = (int) ((data[wordInd] & BYTE_COMPLEMENT[byteInWord]) | (outAtt << BYTE_SHIFT[byteInWord]));
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -547,7 +562,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         int iz = (int)z;
 
         if(ix < 0 || iy < 0 || iz < 0 || ix >= m_nx || iy >= m_ny || iz >= m_nz) {
-            //TODO something better 
+            //TODO something better.  use value from 0,0,0 to align with GPU
             data.v[0] = 0;
             return ResultCodes.RESULT_OUTSIDE;
         }
