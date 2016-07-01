@@ -248,7 +248,8 @@ public class Embossing extends TransformableDataSource implements SNode {
         double dist = embData.v[0]*m_factor + m_offset;
         dist = clamp(dist, m_minValue, m_maxValue);
         data.v[0] -= dist; // emboss 
-        double mix = ((dist-m_minValue) - m_mixThreshold)*m_mixFactor;
+        // mixing depends on abs(dist) 
+        double mix = ((abs(dist)-m_minValue) - m_mixThreshold)*m_mixFactor;
         mix = m_mixAmount*clamp(mix,0.,1.);
         lerp(data.v,embData.v, mix, data.v, 1,m_baseChannelsCount-1);                       
         return ResultCodes.RESULT_OK;
