@@ -12,6 +12,19 @@
 package abfab3d.io.input;
 
 import abfab3d.core.AttributeGrid;
+import abfab3d.core.GridProducer;
+import abfab3d.param.BaseParameterizable;
+import abfab3d.param.BooleanParameter;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.IntParameter;
+import abfab3d.param.LongParameter;
+import abfab3d.param.ObjectParameter;
+import abfab3d.param.ParamCache;
+import abfab3d.param.Parameter;
+import abfab3d.param.Parameterizable;
+import abfab3d.shapejs.MaterialType;
+
+import java.util.HashMap;
 
 import static abfab3d.core.Units.*;
 import static abfab3d.core.Output.printf;
@@ -21,54 +34,97 @@ import static abfab3d.core.Output.printf;
  *
  * @author Alan Hudson
  */
-public class ModelLoader {
+public class ModelLoader extends BaseParameterizable implements GridProducer, Parameterizable {
     private static final boolean DEBUG = true;
 
-    private double m_vs = 0.2*MM;
-    private String m_path;
-    private double m_margins =  2*MM;
-    private boolean m_attributeLoading = false;
-    private int m_densityBitCount = 8;
-    private int m_distanceBitCount = 8;
-    private double m_maxInDistance = 2*MM;
-    private double m_maxOutDistance = 2*MM;
-    private AttributedMesh m_mesh;
-    private AttributeGrid m_grid;
-    private AttributedMeshReader m_reader;
-    private abfab3d.shapejs.MaterialType m_materialType;
-    private long m_maxGridSize = 1000l * 1000 * 1000;
-    private long m_minGridSize = 0;
+
+    DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize","size of voxels", 0.1*MM);
+    ObjectParameter mp_source = new ObjectParameter("source","model source",null);
+    DoubleParameter mp_margins = new DoubleParameter("margins","size of margins", 2*MM);
+    BooleanParameter mp_attributeLoading = new BooleanParameter("attributeLoading", "Load attribute data",false);
+    IntParameter mp_densityBitCount = new IntParameter("densityBitCount","Density Bit Count", 8);
+    IntParameter mp_distanceBitCount = new IntParameter("distanceBitCount","Distance Bit Count", 8);
+    DoubleParameter mp_maxInDistance = new DoubleParameter("maxInDistance","Maximum in distance", 2*MM);
+    DoubleParameter mp_maxOutDistance = new DoubleParameter("maxOutDistance","Maximum out distance", 2*MM);
+    LongParameter mp_maxGridSize = new LongParameter("maxGridSize","Max grid size", 1000l * 1000 * 1000);
+    LongParameter mp_minGridSize = new LongParameter("minGridSize","Min grid size", 0);
+
+    protected String m_path;
+    protected AttributedMeshReader m_reader;
+    protected abfab3d.shapejs.MaterialType m_materialType = MaterialType.SINGLE_MATERIAL;
+    protected String m_vhash;
+
+    Parameter m_aparam[] = new Parameter[]{
+            mp_source,
+            mp_voxelSize,
+            mp_margins,
+            mp_attributeLoading,
+            mp_densityBitCount,
+            mp_distanceBitCount,
+            mp_maxInDistance,
+            mp_maxOutDistance,
+            mp_maxGridSize,
+            mp_minGridSize
+    };
 
     public ModelLoader(String path) {
-        m_path = path;
+        initParams();
+
+        setSource(path);
     }
 
     public ModelLoader(String path, double vs, double margins) {
+        initParams();
+
+        setSource(path);
+        setVoxelSize(vs);
+        setMargins(margins);
+    }
+
+    /**
+     * @noRefGuide
+     */
+    protected void initParams(){
+        super.addParams(m_aparam);
+    }
+
+    public void setSource(String path) {
+        mp_source.setValue(path);
         m_path = path;
-        m_vs = vs;
-        m_margins = margins;
+        m_vhash = null;
     }
 
     public void setVoxelSize(double vs) {
-        m_vs = vs;
+        mp_voxelSize.setValue(vs);
+        m_vhash = null;
     }
 
     public void setMargins(double margins) {
-        m_margins = margins;
+        mp_margins.setValue(margins);
+        m_vhash = null;
     }
 
     public void setAttributeLoading(boolean val) {
-        m_attributeLoading = val;
+        mp_attributeLoading.setValue(val);
+        m_vhash = null;
     }
 
     public AttributedMesh getMesh() {
-        if (m_mesh != null) return null;
+        ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(getValueHash());
+        AttributedMesh mesh = null;
+
+        if (co != null) {
+            if (co.mesh != null) {
+                m_materialType = co.materialType;
+                return co.mesh;
+            }
+        }
 
         m_reader = new AttributedMeshReader(m_path);
-        m_mesh = new AttributedMesh();
-        m_reader.getAttTriangles(m_mesh);
+        mesh = new AttributedMesh();
+        m_reader.getAttTriangles(mesh);
 
-        m_mesh.setDataDimension(m_reader.getDataDimension());
+        mesh.setDataDimension(m_reader.getDataDimension());
 
         int dim = m_reader.getDataDimension();
 
@@ -86,67 +142,89 @@ public class ModelLoader {
                 m_materialType = abfab3d.shapejs.MaterialType.COLOR_MATERIAL;
         }
 
-        return m_mesh;
+        ParamCache.getInstance().put(getValueHash(),new ModelCacheEntry(null,mesh,m_materialType));
+
+        return mesh;
     }
 
     public void setDensityBitCount(int val) {
-        m_densityBitCount = val;
+        mp_densityBitCount.setValue(val);
+        m_vhash = null;
     }
 
     public void setDistanceBitCount(int val) {
-        m_distanceBitCount = val;
+        mp_distanceBitCount.setValue(val);
+        m_vhash = null;
     }
 
     public void setMaxInDistance(double val) {
-        m_maxInDistance = val;
+        mp_maxInDistance.setValue(val);
+        m_vhash = null;
     }
 
     public void setMaxOutDistance(double val) {
-        m_maxOutDistance = val;
+        mp_maxOutDistance.setValue(val);
+        m_vhash = null;
     }
 
     public void setMaxGridSize(long val) {
-        m_maxGridSize = val;
+        mp_maxGridSize.setValue(val);
+        m_vhash = null;
     }
 
     public void setMinGridSize(long val) {
-        m_minGridSize = val;
+        mp_minGridSize.setValue(val);
+        m_vhash = null;
     }
 
     public AttributeGrid getGrid() {
-        if (m_grid != null) return m_grid;
+        ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(getValueHash());
+        AttributedMesh mesh = null;
+        AttributeGrid grid = null;
+
+        if (co != null) {
+            if (co.grid != null) {
+                if (DEBUG) printf("Found cached grid: %s\n",getValueHash());
+                m_materialType = co.materialType;
+                return co.grid;
+            } else if (co.mesh != null) {
+                mesh = co.mesh;
+            }
+        } else {
+            if (DEBUG) printf("No cache for grid: %s\n",getValueHash());
+        }
 
         GridLoader loader = new GridLoader();
-        loader.setMaxGridSize(m_maxGridSize);
-        loader.setMinGridSize(m_minGridSize);
-        loader.setDensityBitCount(m_densityBitCount);
-        loader.setDistanceBitCount(m_distanceBitCount);
-        loader.setPreferredVoxelSize(m_vs);
+        loader.setMaxGridSize(mp_maxGridSize.getValue());
+        loader.setMinGridSize(mp_minGridSize.getValue());
+        loader.setDensityBitCount(mp_densityBitCount.getValue());
+        loader.setDistanceBitCount(mp_distanceBitCount.getValue());
+        loader.setPreferredVoxelSize(mp_voxelSize.getValue());
         loader.setDensityAlgorithm(GridLoader.RASTERIZER_DISTANCE2);
-        loader.setMaxInDistance(m_maxInDistance);
-        loader.setMaxOutDistance(m_maxOutDistance);
-        loader.setMargins(m_margins);
+        loader.setMaxInDistance(mp_maxInDistance.getValue());
+        loader.setMaxOutDistance(mp_maxOutDistance.getValue());
+        loader.setMargins(mp_margins.getValue());
         loader.setShellHalfThickness(2);
         loader.setThreadCount(0);
 
         int dim;
 
-        if (DEBUG) printf("Getting grid: %s  attributed: %b\n",m_path,m_attributeLoading);
-        if (m_attributeLoading) {
-            if (m_mesh != null) {
-                m_grid = loader.rasterizeAttributedTriangles(m_mesh, m_reader.getAttributeCalculator());
+        if (DEBUG) printf("Getting grid: %s  attributed: %b\n",m_path,mp_attributeLoading.getValue());
+        if (mp_attributeLoading.getValue()) {
+            if (mesh != null) {
+                grid = loader.rasterizeAttributedTriangles(mesh, m_reader.getAttributeCalculator());
                 dim = m_reader.getDataDimension();
             } else {
                 AttributedMeshReader reader = new AttributedMeshReader(m_path);
-                m_grid = loader.rasterizeAttributedTriangles(reader);
+                grid = loader.rasterizeAttributedTriangles(reader);
                 dim = reader.getDataDimension();
             }
         } else {
             dim = 3;
-            if (m_mesh != null) {
-                m_grid = loader.loadDistanceGrid(m_mesh);
+            if (mesh != null) {
+                grid = loader.loadDistanceGrid(mesh);
             } else {
-                m_grid = loader.loadDistanceGrid(m_path);
+                grid = loader.loadDistanceGrid(m_path);
             }
         }
 
@@ -165,11 +243,33 @@ public class ModelLoader {
         }
 
         if (DEBUG) printf("Dim: %d\n",dim);
-        return m_grid;
+
+        ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(grid,mesh,m_materialType));
+
+        return grid;
     }
 
     public abfab3d.shapejs.MaterialType getMaterialType() {
         if (DEBUG) printf("MaterialType: %s\n",m_materialType);
         return m_materialType;
+    }
+
+    protected String getValueHash() {
+        if (m_vhash != null) return m_vhash;
+
+        m_vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparam);
+        return m_vhash;
+    }
+
+    static class ModelCacheEntry {
+        AttributeGrid grid;
+        AttributedMesh mesh;
+        MaterialType materialType;
+
+        public ModelCacheEntry(AttributeGrid grid, AttributedMesh mesh, MaterialType materialType) {
+            this.grid = grid;
+            this.mesh = mesh;
+            this.materialType = materialType;
+        }
     }
 }
