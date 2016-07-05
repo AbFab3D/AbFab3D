@@ -41,6 +41,9 @@ public class Color implements Cloneable {
     public static final Color cyan = new Color(0,1,1);
     public static final Color CYAN = cyan;
 
+    public static final Color purple = new Color(1,0,1);
+    public static final Color PURPLE = purple;
+
     private double r;
     private double g;
     private double b;
