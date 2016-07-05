@@ -49,7 +49,8 @@ public class GridMaker implements Operation, AttributeOperation {
 
     static final boolean DEBUG = true;
     static int debugCount = 0;
-    
+    static final int MAX_DATA_CHANNELS_COUNT = 4;
+
     protected VecTransform m_transform;
     protected DataSource m_dataSource;
 
@@ -67,7 +68,7 @@ public class GridMaker implements Operation, AttributeOperation {
     // custom converter of Vec into long attribute
     AttributePacker m_attributePacker;
     // dimension of the data channel 
-    int m_dataChannelsCount = 1;
+    int m_dataChannelsCount = MAX_DATA_CHANNELS_COUNT;
     // number of gray levels in the calculations this is being replaces by universal m_attributePacker
     long m_subvoxelResolution = 255;
 
@@ -272,7 +273,9 @@ public class GridMaker implements Operation, AttributeOperation {
             ((Initializable)m_dataSource).initialize();
         }
 
-        m_dataChannelsCount = m_dataSource.getChannelsCount();
+        //m_dataChannelsCount = m_dataSource.getChannelsCount();
+        m_dataChannelsCount = MAX_DATA_CHANNELS_COUNT;
+
         printf("GridMaker m_dataChannelsCount: %d\n",m_dataChannelsCount);
         if(DEBUG) printf("GridMaker data initialization %d ms\n", (time() - t0));
 

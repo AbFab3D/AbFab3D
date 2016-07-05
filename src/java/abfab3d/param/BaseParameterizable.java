@@ -71,6 +71,13 @@ public class BaseParameterizable implements Parameterizable, SNode {
     }
 
     /**
+       remove all existng params 
+     */
+    public void clearParams(){
+        params.clear();
+    }
+
+    /**
      * Set the current value of a parameter.
      * @param paramName The name
      * @param value the value 

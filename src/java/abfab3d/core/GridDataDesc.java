@@ -217,6 +217,14 @@ public class GridDataDesc {
 
     }
 
+    public static GridDataDesc getDensity(int bitCount){
+
+        GridDataDesc gdd = new GridDataDesc();
+        gdd.addChannel(new GridDataChannel(GridDataChannel.DENSITY,     "0_density", bitCount,  0,  0., 1.));
+        return gdd;
+    }
+
+
     /**
        creates data description for multichannel grid with distance and color 
      */

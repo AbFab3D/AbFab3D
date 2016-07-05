@@ -16,7 +16,7 @@ package abfab3d.util;
 import abfab3d.core.DataSource;
 
 /**
-   the interface to be used by classes whcih can make shapes
+   the interface to be used by classes which can make shapes
    
  */
 public interface ShapeProducer {
