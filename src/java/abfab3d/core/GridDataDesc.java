@@ -132,9 +132,11 @@ public class GridDataDesc {
     public AttributePacker getAttributePacker(){
 
         if(m_attributePacker == null) {
-
-            m_attributePacker = new DefaultAttributePacker(this);
-
+            if (m_channels.size() == 1) {
+                m_attributePacker = new SingleChannelAttributePacker(this);
+            } else {
+                m_attributePacker = new DefaultAttributePacker(this);
+            }
         }
 
         return m_attributePacker;
@@ -279,12 +281,47 @@ public class GridDataDesc {
         public int getBitCount(){
             return bitCount;
         }
+
         public String toString(){
             StringBuffer sb = new StringBuffer();
             sb.append("DefaultAttributePacker(\n");
             for(int i = 0; i < channels.length; i++){
                 sb.append(fmt("\t[%s]\n",channels[i].toString()));
             }
+            sb.append(")");
+            return sb.toString();
+        }
+    } //static class DefaultAttributeMaker
+
+    /**
+     * Convert single component data into grid attribute
+     */
+    public static class SingleChannelAttributePacker implements AttributePacker {
+
+        GridDataChannel channel;
+        int bitCount;
+        public SingleChannelAttributePacker(GridDataDesc dataDesc){
+            channel = dataDesc.getDefaultChannel();
+            bitCount += channel.getBitCount();
+        }
+
+        public long makeAttribute(Vec vec){
+
+            return channel.makeAtt(vec.v[0]);
+        }
+
+        public void getData(long attribute, Vec data){
+            data.v[0] = channel.getValue(attribute);
+        }
+
+        public int getBitCount(){
+            return bitCount;
+        }
+
+        public String toString(){
+            StringBuffer sb = new StringBuffer();
+            sb.append("SingleChannelAttributePacker(\n");
+            sb.append(fmt("\t[%s]\n", channel.toString()));
             sb.append(")");
             return sb.toString();
         }

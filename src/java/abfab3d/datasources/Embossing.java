@@ -190,6 +190,48 @@ public class Embossing extends TransformableDataSource implements SNode {
         return mp_blendWidth.getValue();
     }
 
+    /**
+     * Amount of attributes mixing
+     * @param val
+     */
+    public void setMixAmount(double val) {
+        mp_mixAmount.setValue(val);
+    }
+
+    public double getMixAmount() {
+        return mp_mixAmount.getValue();
+    }
+
+    /**
+     * Threshold for embosser value for attributes mixing
+     * @param val
+     */
+    public void setMixThreshold(double val) {
+        mp_mixThreshold.setValue(val);
+    }
+
+    /**
+     * Threshold for embosser value for attributes mixing
+     */
+    public double getMixThreshold() {
+        return mp_mixThreshold.getValue();
+    }
+
+    /**
+     * Width of attributes mixing transition
+     * @param val
+     */
+    public void setMixBlend(double val) {
+        mp_mixBlend.setValue(val);
+    }
+
+    /**
+     * Width of attributes mixing transition
+     */
+    public double getMixBlend() {
+        return mp_mixBlend.getValue();
+    }
+
     // private variables for used in calculation 
     
     private TransformableDataSource m_baseShape;
