@@ -12,6 +12,7 @@
 package abfab3d.core;
 
 import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 /**
  * Color data type, 0-1 range.
@@ -19,11 +20,33 @@ import static abfab3d.core.Output.fmt;
  * @author Alan Hudson
  */
 public class Color implements Cloneable {
+    public static final Color black = new Color(0,0,0);
+    public static final Color BLACK = black;
+
+    public static final Color white = new Color(1,1,1);
+    public static final Color WHITE = white;
+
+    public static final Color red = new Color(1,0,0);
+    public static final Color RED = red;
+
+    public static final Color blue = new Color(0,0,1);
+    public static final Color BLUE = blue;
+
+    public static final Color green = new Color(0,1,0);
+    public static final Color GREEN = green;
+
+    public static final Color yellow = new Color(1,1,0);
+    public static final Color YELLOW = yellow;
+
+    public static final Color cyan = new Color(0,1,1);
+    public static final Color CYAN = cyan;
+
     private double r;
     private double g;
     private double b;
 
     public Color(double r, double g, double b) {
+        printf("new color: %f %f %f\n",r,g,b);
         this.r = r;
         this.g = g;
         this.b = b;
@@ -33,12 +56,24 @@ public class Color implements Cloneable {
         return r;
     }
 
+    public void setRed(double val) {
+        r = val;
+    }
+
     public double getGreen() {
         return g;
     }
 
+    public void setGreen(double val) {
+        g = val;
+    }
+
     public double getBlue() {
         return b;
+    }
+
+    public void setBlue(double val)  {
+        b = val;
     }
 
     /**
