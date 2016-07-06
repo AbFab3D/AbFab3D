@@ -381,6 +381,15 @@ public class Text2D extends BaseParameterizable {
         if(DEBUG) printf("  voxelSize:%7.5f\n", voxelSize);
         String fontName = mp_fontName.getValue();
         
+        int fontStyle = mp_fontStyle.getValue();
+        double inset = (mp_inset.getValue()/voxelSize);        
+        Insets2 insets = new Insets2(inset,inset,inset,inset);
+        boolean aspect = mp_aspect.getValue();
+
+        int fit = m_fitValues[mp_fit.getIndex()];
+        int halign = m_hAlignValues[mp_horizAlign.getIndex()];
+        int valign = m_vAlignValues[mp_vertAlign.getIndex()];
+        
         // No need to validate font name if font is already set
         Font font = getFont();
         if (font == null) {
@@ -388,6 +397,10 @@ public class Text2D extends BaseParameterizable {
 	        	validateFontName(fontName);
 	        } catch (IllegalArgumentException iae) {
 	        	printf("%s\n", iae.getMessage());
+	        } finally {
+	        	// Set a font closest to the name specified by fontName
+	        	font = new Font(fontName, fontStyle, m_fontSize);
+	        	setFont(font);
 	        }
         } else {
         	fontName = font.getFontName();
@@ -411,26 +424,12 @@ public class Text2D extends BaseParameterizable {
 
         if(DEBUG) printf("  text:\"%s\"\n", text);
 
-        int fontStyle = mp_fontStyle.getValue();
-        double inset = (mp_inset.getValue()/voxelSize);        
-        Insets2 insets = new Insets2(inset,inset,inset,inset);
-        boolean aspect = mp_aspect.getValue();
-
-        int fit = m_fitValues[mp_fit.getIndex()];
-        int halign = m_hAlignValues[mp_horizAlign.getIndex()];
-        int valign = m_vAlignValues[mp_vertAlign.getIndex()];
-
-        if (font != null) {
-            font = font.deriveFont(fontStyle,m_fontSize);
-            m_bitmap = TextUtil.createTextImage(width, height, text, font, mp_spacing.getValue().doubleValue(),insets, aspect, fit, halign, valign);
-        } else {
-            m_bitmap = TextUtil.createTextImage(width, height, text, new Font(fontName, fontStyle, m_fontSize),mp_spacing.getValue().doubleValue(),insets, aspect, fit, halign, valign);
-        }
+        font = font.deriveFont(fontStyle,m_fontSize);
+        m_bitmap = TextUtil.createTextImage(width, height, text, font, mp_spacing.getValue().doubleValue(),insets, aspect, fit, halign, valign);
 
         if(DEBUG)printf("Text2D bitmap height: %d x %d\n", m_bitmap.getWidth(), m_bitmap.getHeight());
         
         return ResultCodes.RESULT_OK;
         
     }
-    
 }  // class Text2D 
