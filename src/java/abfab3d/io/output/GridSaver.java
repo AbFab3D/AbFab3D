@@ -197,7 +197,7 @@ public class GridSaver {
         m_minShellVolume = value;
     }
 
-    static int getOutputType(String fname) {
+    public static int getOutputType(String fname) {
 
         fname = fname.toLowerCase();
         
