@@ -49,38 +49,37 @@ public class Color implements Cloneable {
     private double b;
 
     public Color(double r, double g, double b) {
-        printf("new color: %f %f %f\n",r,g,b);
         this.r = r;
         this.g = g;
         this.b = b;
     }
 
-    public double getRed() {
+    public double getr() {
         return r;
     }
 
-    public void setRed(double val) {
+    public void setr(double val) {
         r = val;
     }
 
-    public double getGreen() {
+    public double getg() {
         return g;
     }
 
-    public void setGreen(double val) {
+    public void setg(double val) {
         g = val;
     }
 
-    public double getBlue() {
+    public double getb() {
         return b;
     }
 
-    public void setBlue(double val)  {
+    public void setb(double val)  {
         b = val;
     }
 
     /**
-     * Convert a hex encoded value to a color.  Null/empty values will be black(0,0,0).
+     * Convert a hex encoded value to a color.  Use HTML hex form #FF00FF.  Null/empty values will be black(0,0,0).
      *
      * @param val
      * @return
@@ -97,6 +96,7 @@ public class Color implements Cloneable {
 
         return new Color(r,g,b);
     }
+
 
     /**
      * Create a color from an HSV value.
@@ -164,11 +164,11 @@ public class Color implements Cloneable {
         int gi = (int) Math.round(255 * g);
         int bi = (int) Math.round(255 * b);
 
-        return fmt("0x%02X%02X%02X",ri,gi,bi);
+        return fmt("#%02X%02X%02X",ri,gi,bi);
     }
 
     public static String toString(Color c) {
-        return fmt("Color(%f,%f,%f)",c.getRed(),c.getGreen(),c.getBlue());
+        return fmt("Color(%f,%f,%f)",c.getr(),c.getg(),c.getb());
     }
 
     public Color clone() {
