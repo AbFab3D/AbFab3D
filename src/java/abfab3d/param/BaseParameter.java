@@ -176,6 +176,24 @@ public abstract class BaseParameter implements Parameter {
         return null;
     }
 
+    /**
+     * Get the string value to use for parameter hashes, append value to existing string builder to lower garbage
+     * @return
+     */
+    public void getParamString(StringBuilder sb) {
+        if (value == null) {
+            sb.append("null");
+            return;
+        }
+
+        if (value instanceof String) {
+            sb.append((String) value);
+            return;
+        }
+
+        sb.append(value.toString());
+    }
+
     public String getParamString() {
         if (value == null) return "null";
 

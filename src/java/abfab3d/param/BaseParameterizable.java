@@ -57,6 +57,14 @@ public class BaseParameterizable implements Parameterizable, SNode {
     }
 
     /**
+     * Return the underlying map.  This is a live map used for performance, be careful.
+     * @return
+     */
+    public Map<String,Parameter> getParamMap() {
+        return params;
+    }
+
+    /**
        adds parameters from the array to the params table 
        @param aparam  - array of parameters to add 
      */
@@ -101,14 +109,12 @@ public class BaseParameterizable implements Parameterizable, SNode {
         return null;
     }
 
-    /**
-     *  return param string for given params 
-     * @noRefGuide
-     */
-    public String getParamString(Parameter aparam[]){
+    public String getParamString(Parameterizable pnode){
+        return getParamString(getClass().getSimpleName(),pnode);
+    }
 
+    public String getParamString(Parameter[] aparam){
         return getParamString(getClass().getSimpleName(),aparam);
-
     }
 
     /**
@@ -116,11 +122,30 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * @noRefGuide
      */
     public static String getParamString(String name,Parameter aparam[]){
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(name);
         sb.append(":");
         for(int i = 0; i < aparam.length; i++){
             Parameter p = aparam[i];
+            sb.append(p.getName());
+            sb.append("=\"");
+            p.getParamString(sb);
+            sb.append("\";");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * saves array of parameters into a string
+     * @noRefGuide
+     */
+    public static String getParamString(String name,Parameterizable pnode){
+        StringBuilder sb = new StringBuilder();
+        sb.append(name);
+        sb.append(":");
+
+        Map<String,Parameter> map = pnode.getParamMap();
+        for(Parameter p : map.values()){
             sb.append(p.getName());
             sb.append("=\"");
             String ps = p.getParamString();
@@ -135,7 +160,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * @noRefGuide
      */
     public static String getParamString(String name, Object src,Parameter aparam[]){
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(name);
         sb.append("[");
 
@@ -165,7 +190,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * @noRefGuide
      */
     public static String getParamString(String name, Map<String,Parameter> params){
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(name);
         sb.append("[");
         for(Parameter p : params.values()) {
@@ -186,7 +211,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * @return
      */
     public static String getParamObjString(String name,Map<String,Object> params) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(name);
         sb.append("[");
         for(Map.Entry<String,Object> p : params.entrySet()) {

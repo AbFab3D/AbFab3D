@@ -95,6 +95,12 @@ public interface Parameter extends Cloneable {
     public String getParamString();
 
     /**
+     * Get the string value to use for parameter hashes, append value to existing string builder to lower garbage
+     * @return
+     */
+    public void getParamString(StringBuilder sb);
+
+    /**
      * Has the value changed since the last call.  This method will clear the changed state.
      * @return
      */

@@ -1,5 +1,7 @@
 package abfab3d.param;
 
+import java.util.Map;
+
 /**
  * Can have parameters.
  */
@@ -14,12 +16,21 @@ public interface Parameterizable {
 
     /**
      * Get the parameters for the datasource.
+     *
      * @return The array of parameters
      */
     public Parameter[] getParams();
 
     /**
+     * Returns the underlying parameter list, this is a live list.
+     *
+     * @return
+     */
+    public Map<String, Parameter> getParamMap();
+
+    /**
      * Get the current value of a parameter.
+     *
      * @param param The name
      * @return The value or IllegalArgumentException if not found
      */
@@ -28,6 +39,7 @@ public interface Parameterizable {
 
     /**
      * Set the current value of a parameter.
+     *
      * @param param The name
      * @param value the value to set to param
      */

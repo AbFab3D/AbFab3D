@@ -45,7 +45,7 @@ import static abfab3d.core.Output.fmt;
    @author Vladimir Bulatov
 
  */
-public class Text2D extends BaseParameterizable {
+public class Text2D extends BaseParameterizable implements ExpensiveInitializable {
     static final boolean DEBUG = false;
 
     public enum Fit {VERTICAL, HORIZONTAL, BOTH}
@@ -432,4 +432,13 @@ public class Text2D extends BaseParameterizable {
         return ResultCodes.RESULT_OK;
         
     }
+
+    /**
+     * Implement this as a value
+     * @return
+     */
+    public String getParamString() {
+        return BaseParameterizable.getParamString("Text2D",getParams());
+    }
+
 }  // class Text2D 

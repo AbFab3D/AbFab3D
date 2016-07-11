@@ -42,18 +42,18 @@ public class TestColor extends BaseTestCase  {
         Color c = Color.fromHEX("0xFF00FF");
 
         double EPS = 1e-6;
-        assertTrue("red channel", Math.abs(c.getRed() - 1.0) < EPS);
-        assertTrue("green channel", Math.abs(c.getGreen() - 0) < EPS);
-        assertTrue("blue channel", Math.abs(c.getBlue() - 1.0) < EPS);
+        assertTrue("red channel", Math.abs(c.getr() - 1.0) < EPS);
+        assertTrue("green channel", Math.abs(c.getg() - 0) < EPS);
+        assertTrue("blue channel", Math.abs(c.getb() - 1.0) < EPS);
     }
 
     public void testHSVConversionWhite() {
         Color c = Color.fromHSV(0f,0f,1.0f);
 
         double EPS = 1e-6;
-        assertTrue("red channel", Math.abs(c.getRed() - 1.0) < EPS);
-        assertTrue("green channel", Math.abs(c.getGreen() - 1.0) < EPS);
-        assertTrue("blue channel", Math.abs(c.getBlue() - 1.0) < EPS);
+        assertTrue("red channel", Math.abs(c.getr() - 1.0) < EPS);
+        assertTrue("green channel", Math.abs(c.getg() - 1.0) < EPS);
+        assertTrue("blue channel", Math.abs(c.getb() - 1.0) < EPS);
 
     }
 
@@ -62,9 +62,9 @@ public class TestColor extends BaseTestCase  {
 
         printf("Purple: %s\n",Color.toString(c));
         double EPS = 1e-6;
-        assertTrue("red channel", Math.abs(c.getRed() - 0.5) < EPS);
-        assertTrue("green channel", Math.abs(c.getGreen() - 0) < EPS);
-        assertTrue("blue channel", Math.abs(c.getBlue() - 0.5) < EPS);
+        assertTrue("red channel", Math.abs(c.getr() - 0.5) < EPS);
+        assertTrue("green channel", Math.abs(c.getg() - 0) < EPS);
+        assertTrue("blue channel", Math.abs(c.getb() - 0.5) < EPS);
 
     }
 
@@ -72,9 +72,9 @@ public class TestColor extends BaseTestCase  {
         Color c = Color.fromHEX(null);
 
         double EPS = 1e-6;
-        assertTrue("red channel", Math.abs(c.getRed() - 0) < EPS);
-        assertTrue("green channel", Math.abs(c.getGreen() - 0) < EPS);
-        assertTrue("blue channel", Math.abs(c.getBlue() - 0) < EPS);
+        assertTrue("red channel", Math.abs(c.getr() - 0) < EPS);
+        assertTrue("green channel", Math.abs(c.getg() - 0) < EPS);
+        assertTrue("blue channel", Math.abs(c.getb() - 0) < EPS);
     }
 
     public void testToHex() {

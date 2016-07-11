@@ -39,7 +39,8 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
         EXT_STL = "stl",
         EXT_X3DB = "x3db",
         EXT_X3D = "x3d",
-        EXT_X3DV = "x3dv";
+        EXT_X3DV = "x3dv",
+        EXT_WRL = "wrl";
 
     public static HashSet<String> supportedExt;
 
@@ -58,6 +59,7 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
         supportedExt.add(EXT_X3D);
         supportedExt.add(EXT_X3DB);
         supportedExt.add(EXT_X3DV);
+        supportedExt.add(EXT_WRL);
     }
 
     public AttributedMeshReader(String path) {
@@ -134,7 +136,7 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
             } else {
                 m_producer = new STLReader(m_path);
             }
-        } else if(m_format.equalsIgnoreCase(EXT_X3DB) || m_format.equalsIgnoreCase(EXT_X3D) || m_format.equalsIgnoreCase(EXT_X3DV)) {
+        } else if(m_format.equalsIgnoreCase(EXT_X3DB) || m_format.equalsIgnoreCase(EXT_X3D) || m_format.equalsIgnoreCase(EXT_X3DV) || m_format.equalsIgnoreCase(EXT_WRL)) {
 
             if (m_is != null) {
                 m_producer = new AttributedX3DReader(m_is,m_baseURL);

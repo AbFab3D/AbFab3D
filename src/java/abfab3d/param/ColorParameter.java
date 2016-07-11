@@ -54,16 +54,16 @@ public class ColorParameter extends BaseParameter {
         return (Color)value;
     }
 
-    public double getRed() {
-        return ((Color)value).getRed();
+    public double getr() {
+        return ((Color)value).getr();
     }
 
-    public double getGreen() {
-        return ((Color)value).getGreen();
+    public double getg() {
+        return ((Color)value).getg();
     }
 
     public double getBlue() {
-        return ((Color)value).getBlue();
+        return ((Color)value).getb();
     }
 
     public void setValue(Color vec) {

@@ -12,8 +12,10 @@
 package abfab3d.param;
 
 import abfab3d.util.Unit;
+import org.web3d.util.DoubleToString;
 
 // External Imports
+import static abfab3d.core.Output.fmt;
 
 /**
  * A Double parameter to a service.
@@ -199,4 +201,22 @@ public class DoubleParameter extends NumberParameter {
             throw new IllegalArgumentException("Double cannot be NaN. In param: " + getName());
         }
     }
+
+    public String getParamString() {
+        if (value == null) return "null";
+
+        return fmt("%gx",(Double)value);
+
+    }
+
+    /**
+     * Get the string value to use for parameter hashes, append value to existing string builder to lower garbage
+     * @return
+     */
+    public void getParamString(StringBuilder sb) {
+        if (value == null) sb.append("null");
+
+        DoubleToString.appendFormatted(sb,(Double)value,6);
+    }
+
 }
