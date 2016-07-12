@@ -21,6 +21,9 @@ import java.util.Iterator;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.io.FilenameUtils;
+import org.web3d.parser.vrml97.VRML97Reader;
+import org.web3d.vrml.parser.BaseReader;
 import xj3d.filter.AbstractFilter;
 
 import xj3d.filter.node.CommonEncodedBaseFilter;
@@ -84,7 +87,13 @@ public class X3DFileLoader extends CommonEncodedBaseFilter {
                                       export_minor_version,
                                       console);
 
-        X3DReader reader = new X3DReader();
+        BaseReader reader;
+
+        if (FilenameUtils.getExtension(input.getAbsolutePath()).equalsIgnoreCase("wrl")) {
+            reader = new VRML97Reader();
+        } else {
+            reader = new X3DReader();
+        }
 
         AbstractFilter filter = this;
 

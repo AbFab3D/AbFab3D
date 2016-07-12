@@ -58,6 +58,10 @@ public class ObjectParameter extends BaseParameter {
             return ((SourceWrapper)value).getParamString();
         }
 
+        if (value instanceof ExpensiveInitializable) {
+            return ((ExpensiveInitializable)value).getParamString();
+        }
+
         if (value == null) return "null";
 
         if (value instanceof String) {

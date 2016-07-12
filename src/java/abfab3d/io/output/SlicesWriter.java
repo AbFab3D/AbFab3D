@@ -26,6 +26,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
 import java.awt.RenderingHints;
 
+import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -51,7 +52,7 @@ import static abfab3d.core.Output.printf;
  */
 public class SlicesWriter {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     static int debugCount = 100;
     public static final int 
         AXIS_X=0,
@@ -69,11 +70,11 @@ public class SlicesWriter {
     static final IndexColorModel PALETTE2 = new IndexColorModel(2,4,GL2,GL2,GL2);
     static final IndexColorModel PALETTE4 = new IndexColorModel(4,16,GL4,GL4,GL4);
     static final IndexColorModel PALETTES[] = new IndexColorModel[]{PALETTE1, PALETTE2, PALETTE4 };
-    
 
-    String m_filePattern = "slice_%04d.png";
+
     String m_imageFileType = "png";
-    
+    String m_filePattern = "slice_%04d." + m_imageFileType;
+
     int imgCellSize = 1;  // size of grid cell to write to 
     int imgVoxelSize = 1; // 
     int m_subvoxelResolution=0;
@@ -105,6 +106,10 @@ public class SlicesWriter {
         this.xmax = xmax;
         this.ymax = ymax;
         this.zmax = zmax;
+    }
+
+    public void setImageFileType(String ending) {
+        m_imageFileType = ending;
     }
 
     public void setModSkip(int skip) {
@@ -185,10 +190,10 @@ public class SlicesWriter {
        @param grid to write from slices from 
        @param fileTemplate C style template used to make path for individual files (for example "/tmp/slice%03d.png")
        @param firstSlice  index of fist slice 
-       @param fisrtFile   index of fist file (file numbers can be different from slices numbers)
+       @param firstFile   index of fist file (file numbers can be different from slices numbers)
        @param sliceCount hoew many slices to write        
        @param orientation - axis orthogonal to the slices (AXIS_X, AXIS_Y, AXIS_Z)
-       @param bitCount - cont of bits to be used for each pixel 
+       @param voxelBitCount - cont of bits to be used for each pixel
        @param voxelDataConverter - converter to convert from gird attribute into pixel value       
      */
     public void writeSlices(AttributeGrid grid, 
@@ -230,12 +235,12 @@ public class SlicesWriter {
     /**
        write single pixel slices to zip 
      */
-    public void writeSlices(AttributeGrid grid, ZipOutputStream zipOut, String fileTemplate, 
+    public void writeSlices(AttributeGrid grid, OutputStream zipOut, String fileTemplate,
                             int firstSlice, int firstFile, int sliceCount) throws IOException {
         writeSlices(grid, zipOut, fileTemplate, firstSlice, firstFile, sliceCount, 1,8, new DefaultLongConverter());
     }
 
-    public void writeSlices(AttributeGrid grid, ZipOutputStream zipOut, String fileTemplate, 
+    public void writeSlices(AttributeGrid grid, OutputStream os, String fileTemplate,
                             int firstSlice, int firstFile, int sliceCount, int orientation, int voxelBitCount, LongConverter voxelDataConverter) throws IOException {
 
         if(DEBUG) printf("SlicesWriter.writeSlices(%s)\n",fileTemplate);
@@ -257,11 +262,14 @@ public class SlicesWriter {
             int findex = i + firstFile;
             String fname = fmt(fileTemplate, findex);
             makeSliceData(imgSize[0], imgSize[1], slice, orientation, grid, voxelBitCount, voxelDataConverter, sliceData, dataBitCount);
-            ZipEntry ze = new ZipEntry(fname);
-            zipOut.putNextEntry(ze);
-            ImageIO.write(outImage, m_imageFileType, zipOut);
-            zipOut.closeEntry();            
-
+            if (os instanceof ZipOutputStream) {
+                ZipEntry ze = new ZipEntry(fname);
+                ((ZipOutputStream)os).putNextEntry(ze);
+            }
+            ImageIO.write(outImage, m_imageFileType, os);
+            if (os instanceof ZipOutputStream) {
+                ((ZipOutputStream)os).closeEntry();
+            }
         }        
     }
    

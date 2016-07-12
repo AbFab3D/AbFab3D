@@ -49,6 +49,7 @@ import abfab3d.core.LongConverter;
 import abfab3d.util.DefaultLongConverter;
 
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
@@ -63,6 +64,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static abfab3d.core.MathUtil.extendBounds;
 import static abfab3d.core.Output.fmt;
@@ -122,8 +125,11 @@ public class GridSaver {
     public static final int TYPE_SVX = 5;
 
 
-    float m_avatarSize[] = new float[]{0.01f, 1.6f, 0.75f};// size of avatar for x3d output 
+    float m_avatarSize[] = new float[]{0.01f, 1.6f, 0.75f};// size of avatar for x3d output
+    private static final float[] WHITE_COLOR = new float[] {1,1,1};
     int m_savingType = TYPE_UNDEFINED;
+
+    String m_texType = "png";
 
     /**
        
@@ -197,7 +203,7 @@ public class GridSaver {
         m_minShellVolume = value;
     }
 
-    static int getOutputType(String fname) {
+    public static int getOutputType(String fname) {
 
         fname = fname.toLowerCase();
         
@@ -279,56 +285,35 @@ public class GridSaver {
                 printf("maxShells: %d minVol: %4.2f shells removed: %d\n", m_maxShellsCount, m_minShellVolume, regions_removed);
         }
 
-        STLWriter stl = new STLWriter(os, mesh.getTriangleCount());
-        mesh.getTriangles(stl);
-        stl.close();
-
-/*
-        // Write output to a file
-        switch(type){
-	        default: 
-	            throw new RuntimeException(fmt("unknow output file type: '%s'", type));
-	        case TYPE_STL:           
-	            {
-	                WingedEdgeTriangleMesh mesh = getMesh(grid);            
-	                STLWriter stl = new STLWriter(os, mesh.getTriangleCount());
-	                mesh.getTriangles(stl);
-	                stl.close();
-	            } 
-	            break;
-	        case TYPE_X3D:
-	        case TYPE_X3DB:
-	            {
-	                double[] bounds_min = new double[3];
-	                double[] bounds_max = new double[3];
-
-	                grid.getGridBounds(bounds_min,bounds_max);
-	                double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
-	                max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
-
-	                double z = 2 * max_axis / Math.tan(Math.PI / 4);
-	                float[] pos = new float[] {0,0,(float) z};
-
-	                if (x3dWriter == null) createX3DWriter();
-
-	                GridSaver.writeMesh(mesh, 10,x3dWriter,x3dParams,true);
-
-	                // TODO: not certain who should call this yet
-	                // TODO: and this makes the passed in x3dWriter invalid for future usage
-	                x3dWriter.endDocument();
-	                
-	                WingedEdgeTriangleMesh mesh = getMesh(grid);                        
-	                writeMesh(mesh, outFile);
-	            } 
-	            break;
-	        case TYPE_SVX:
-	            {
-	                SVXWriter writer = new SVXWriter();
-	                writer.write(grid, outFile);                
-	            }
-	            break;
-        	}
-*/
+        switch (type) {
+            case TYPE_STL:
+                STLWriter stl = new STLWriter(os, mesh.getTriangleCount());
+                mesh.getTriangles(stl);
+                stl.close();
+                break;
+            case TYPE_X3D:
+                mesh = getMesh(grid);
+                if (m_writeTexturedMesh)
+                    writeTexturedMesh(mesh, grid, makeDefaultColorMaker(grid), os,"x3d");
+                else
+                    writeMesh(mesh, os, "x3d");
+                break;
+            case TYPE_X3DV:
+                mesh = getMesh(grid);
+                if (m_writeTexturedMesh)
+                    writeTexturedMesh(mesh, grid, makeDefaultColorMaker(grid), os,"x3dv");
+                else
+                    writeMesh(mesh, os, "x3dv");
+                break;
+            case TYPE_X3DB:
+                mesh = getMesh(grid);
+                if (m_writeTexturedMesh)
+                    writeTexturedMesh(mesh, grid, makeDefaultColorMaker(grid), os,"x3db");
+                else
+                    writeMesh(mesh, os, "x3db");
+            default:
+                throw new IllegalArgumentException("Unhandled type: " + type);
+        }
     }
 
 
@@ -351,7 +336,7 @@ public class GridSaver {
 
         String baseDir = FileUtil.getFileDir(outFile);
         String fileName = FileUtil.getFileName(outFile);        
-        String texFileName = fileName + ".png";
+        String texFileName = fileName + "." + m_texType;
         String texFilePath = baseDir + "/" + texFileName;
         if(DEBUG){
             printf("baseDir:%s\n",baseDir);
@@ -387,6 +372,7 @@ public class GridSaver {
 
         // write single slice 
         SlicesWriter sw = new SlicesWriter();
+        sw.setImageFileType(m_texType);
         sw.writeSlices(texGrid, texFilePath, 0, 0, 1, SlicesWriter.AXIS_Y, 24, new DefaultLongConverter());
 
         double coord[] = tp.getCoord();
@@ -402,41 +388,152 @@ public class GridSaver {
         
     }  //writeTexturedMesh()
 
+    /**
+     writes mesh into 3d file with texture
+     */
+    public void writeTexturedMesh(WingedEdgeTriangleMesh mesh, AttributeGrid grid, LongConverter colorMaker, OutputStream zos, String encoding) throws IOException{
+
+        printf("writeAsMeshWithTexture()\n");
+
+        double vs = grid.getVoxelSize();
+
+        String fileName = "texture0";
+        String texFileName = fileName + "." + m_texType;
+        String texFilePath = texFileName;
+        if(DEBUG){
+            printf("fileName:%s\n",fileName);
+            printf("texFileName:%s\n",texFileName);
+            printf("texFilePath:%s\n",texFilePath);
+        }
+        // TriangleProducer mesh = getMesh(grid);
+
+        TrianglePacker tp = new TrianglePacker();
+        tp.setGap(m_texTriGap);
+        tp.setTexturePixelSize(vs*m_texPixelSize);
+
+        mesh.getTriangles(tp);
+
+        int rc = tp.getTriCount();
+        printf("tripacker count: %d\n", tp.getTriCount());
+        tp.packTriangles();
+
+        Vector2d area = tp.getPackedSize();
+
+        printf("texture packedSize: [%7.2f x %7.2f] \n", area.x, area.y);
+
+        int imgWidth = (int)(area.x+2*m_texTriGap);
+        int imgHeight = (int)(area.y+2*m_texTriGap);
+
+        Bounds texBounds = new Bounds(0, imgWidth, 0, 1, 0, imgHeight);
+        AttributeGrid texGrid = new ArrayAttributeGridInt(texBounds, 1., 1.);
+        texGrid.setGridBounds(texBounds);
+        texGrid.setDataDesc(new GridDataDesc(new GridDataChannel(GridDataChannel.COLOR, "color", 24, 0)));
+
+        tp.renderTexturedTriangles(grid, colorMaker, texGrid, m_texTriExt);
+
+        // write single slice
+        SlicesWriter sw = new SlicesWriter();
+        String template ="texture%d." + m_texType;
+        sw.writeSlices(texGrid, zos, template, 0, 0, 1, SlicesWriter.AXIS_Y, 24, new DefaultLongConverter());
+
+        double coord[] = tp.getCoord();
+        int coordIndex[] = tp.getCoordIndex();
+        double texCoord[] = tp.getTexCoord();
+        int texCoordIndex[] = tp.getTexCoordIndex();
+        for(int k = 0; k < texCoord.length; k += 2){
+            texCoord[k] /= imgWidth;
+            texCoord[k+1] = (imgHeight - texCoord[k+1])/imgHeight;
+        }
+
+        writeTexturedX3D(coord, coordIndex, texCoord, texCoordIndex, zos, "main." + encoding ,texFileName);
+
+    }
 
     /**
-       writes textured triangles into a X3D file.
-       texture file is already saved 
+     writes textured triangles into a X3D file.
+     texture file is already saved
+     */
+    public void writeTexturedX3D(double coord[], int coordIndex[], double texCoord[], int texCoordIndex[],
+                                 OutputStream os, String fileName, String texFileName) throws IOException {
+
+
+        if (os instanceof ZipOutputStream) {
+            ZipEntry ze = new ZipEntry(fileName);
+            ((ZipOutputStream)os).putNextEntry(ze);
+        }
+
+        int outType = getOutputType(fileName);
+        BinaryContentHandler writer = null;
+        ErrorReporter console = new PlainTextErrorReporter();
+
+        switch(outType){
+            case TYPE_X3DB:
+                writer = new X3DBinaryRetainedDirectExporter(os,3, 0, console,X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);
+                break;
+            case TYPE_X3DV:
+                if (m_decimalDigits > -1) writer = new X3DClassicRetainedExporter(os, 3, 0, console, m_decimalDigits);
+                else                      writer = new X3DClassicRetainedExporter(os, 3, 0, console);
+                break;
+            case TYPE_X3D:
+                if (m_decimalDigits > -1) writer = new X3DXMLRetainedExporter(os, 3, 0, console, m_decimalDigits);
+                else                writer = new X3DXMLRetainedExporter(os, 3, 0, console);
+                break;
+            default:
+                throw new IllegalArgumentException("Unhandled file format: '" + fileName + "'");
+        }
+
+        writeTexturedX3D(coord,coordIndex,texCoord,texCoordIndex,writer,texFileName);
+
+        if (os instanceof ZipOutputStream) {
+            ((ZipOutputStream)os).closeEntry();
+        }
+    }
+
+    /**
+     writes textured triangles into a X3D file.
+     texture file is already saved
      */
     public void writeTexturedX3D(double coord[], int coordIndex[], double texCoord[], int texCoordIndex[], String fileName, String texFileName) throws IOException {
+        FileOutputStream fos = new FileOutputStream(fileName);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        ErrorReporter console = new PlainTextErrorReporter();
+
+
+
+        int outType = getOutputType(fileName);
+        BinaryContentHandler writer = null;
+
+        switch(outType){
+            case TYPE_X3DB:
+                writer = new X3DBinaryRetainedDirectExporter(bos,3, 0, console,X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);
+                break;
+            case TYPE_X3DV:
+                if (m_decimalDigits > -1) writer = new X3DClassicRetainedExporter(bos, 3, 0, console, m_decimalDigits);
+                else                      writer = new X3DClassicRetainedExporter(bos, 3, 0, console);
+                break;
+            case TYPE_X3D:
+                if (m_decimalDigits > -1) writer = new X3DXMLRetainedExporter(bos, 3, 0, console, m_decimalDigits);
+                else                writer = new X3DXMLRetainedExporter(bos, 3, 0, console);
+                break;
+            default:
+                throw new IllegalArgumentException("Unhandled file format: '" + fileName + "'");
+        }
+
+        writeTexturedX3D(coord,coordIndex,texCoord,texCoordIndex,writer,texFileName);
+    }
+
+        /**
+           writes textured triangles into a X3D file.
+           texture file is already saved
+         */
+    public void writeTexturedX3D(double coord[], int coordIndex[], double texCoord[], int texCoordIndex[],
+                                 BinaryContentHandler writer,String texFileName) throws IOException {
         
         float fcoord[] = getFloatArray(coord);
         float ftexCoord[] = getFloatArray(texCoord);
         texCoordIndex = insertMinusOne(texCoordIndex);
         coordIndex = insertMinusOne(coordIndex);
 
-        FileOutputStream fos = null;
-        
-        BinaryContentHandler writer = null;
-        fos = new FileOutputStream(fileName);
-
-        ErrorReporter console = new PlainTextErrorReporter();
-        int outType = getOutputType(fileName);
-        switch(outType){
-        case TYPE_X3DB:
-            writer = new X3DBinaryRetainedDirectExporter(fos,3, 0, console,X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);
-            break;
-        case TYPE_X3DV:
-            if (m_decimalDigits > -1) writer = new X3DClassicRetainedExporter(fos, 3, 0, console, m_decimalDigits);
-            else                      writer = new X3DClassicRetainedExporter(fos, 3, 0, console);            
-            break;
-        case TYPE_X3D:
-            if (m_decimalDigits > -1) writer = new X3DXMLRetainedExporter(fos, 3, 0, console, m_decimalDigits);
-            else                writer = new X3DXMLRetainedExporter(fos, 3, 0, console);
-            break;
-        default: 
-            throw new IllegalArgumentException("Unhandled file format: '" + fileName + "'");
-        }
-        
         writer.startDocument("", "", "utf8", "#X3D", "V3.0", "");
         writer.profileDecl("Immersive");
         writer.startNode("NavigationInfo", null);
@@ -470,6 +567,11 @@ public class GridSaver {
 
         writer.startField("appearance");
         writer.startNode("Appearance", null);
+        writer.startField("material");
+        writer.startNode("Material",null);
+        writer.startField("specularColor");
+        writer.fieldValue(WHITE_COLOR, 3);
+        writer.endNode();   // Material
         writer.startField("texture");
         writer.startNode("ImageTexture", null);
         writer.startField("url");
@@ -477,7 +579,7 @@ public class GridSaver {
         
         writer.endNode();   //ImageTexture
         
-        writer.endNode();   // Apperance
+        writer.endNode();   // Appearance
         
         writer.endNode();   // Shape
         
@@ -653,6 +755,18 @@ public class GridSaver {
         
         MeshExporter.writeMesh(mesh, filename);
         
+        return;
+    }
+
+    /**
+     * Write a grid mesh into output
+     *
+     * @throws IOException
+     */
+    public static void writeMesh(WingedEdgeTriangleMesh mesh,OutputStream zos, String encoding) throws IOException {
+
+        MeshExporter.writeMesh(mesh, zos, encoding, null);
+
         return;
     }
 
