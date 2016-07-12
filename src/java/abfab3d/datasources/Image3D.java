@@ -970,9 +970,7 @@ public class Image3D extends TransformableDataSource {
      *
      * @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec data) {
-
-        super.transform(pnt);
+    public int getBaseValue(Vec pnt, Vec data) {
 
         double vs = pnt.getScaledVoxelSize();
         if (vs == 0.)
@@ -980,7 +978,6 @@ public class Image3D extends TransformableDataSource {
         else
             getDataValueFiniteVoxel(pnt, data, vs);
 
-        super.getMaterialDataValue(pnt, data);        
         return ResultCodes.RESULT_OK;
         
     }

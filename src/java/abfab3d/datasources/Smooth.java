@@ -157,9 +157,7 @@ public class Smooth extends TransformableDataSource {
      *
      * @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec data) {
-
-        super.transform(pnt);
+    public int getBaseValue(Vec pnt, Vec data) {
 
         // TODO: garbage, revisit if we care about CPU performance
         Vec spnt = new Vec(3);

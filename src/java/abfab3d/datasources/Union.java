@@ -34,6 +34,7 @@ import static abfab3d.core.Output.printf;
 
 import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.core.MathUtil.step10;
+import static abfab3d.core.MathUtil.blendMin;
 
 
 /**
@@ -49,8 +50,7 @@ import static abfab3d.core.MathUtil.step10;
 public class Union  extends TransformableDataSource implements SNode {
     
     Vector<DataSource> dataSources = new Vector<DataSource>();
-    // fixed vector for calculations
-    DataSource vDataSources[];
+
     DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
     SNodeListParameter mp_dataSources = new SNodeListParameter("sources", ShapesFactory.getInstance());
     
@@ -58,6 +58,10 @@ public class Union  extends TransformableDataSource implements SNode {
         mp_blendWidth,
         mp_dataSources
     };    
+
+    // internal variables 
+    private DataSource vDataSources[];
+    private double m_blendWidth = 0;
 
     /**
        Create empty union. Use add() method to add arbitrary number of shapes to the union. 
@@ -111,9 +115,7 @@ public class Union  extends TransformableDataSource implements SNode {
      * @noRefGuide
      */
     protected void initParams() {
-        for(int i = 0; i < m_aparam.length; i++){
-            params.put(m_aparam[i].getName(),m_aparam[i]);
-        }
+        super.addParams(m_aparam);
     }
 
     /**
@@ -147,10 +149,10 @@ public class Union  extends TransformableDataSource implements SNode {
     /**
      * Set the blending width
      *
-     * @param val The value in meters
+     * @param value The value in meters
      */
-    public void setBlend(double val){
-        mp_blendWidth.setValue(val);
+    public void setBlend(double value){
+        mp_blendWidth.setValue(value);
     }
 
     /**
@@ -169,7 +171,7 @@ public class Union  extends TransformableDataSource implements SNode {
     public int initialize(){
         super.initialize();
         vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
-
+        m_blendWidth = mp_blendWidth.getValue();
         for(int i = 0; i < vDataSources.length; i++){
             
             DataSource ds = vDataSources[i];
@@ -188,9 +190,20 @@ public class Union  extends TransformableDataSource implements SNode {
      * can be used to make union of few shapes
        @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec data) {
+    public int getBaseValue(Vec pnt, Vec data) {
+        switch(m_dataType){
+        default:
+        case DATA_TYPE_DENSITY:
+            getDensityData(pnt, data);
+            break;
+        case DATA_TYPE_DISTANCE:
+            getDistanceData(pnt, data);
+            break;
+        }
+        return ResultCodes.RESULT_OK;
+    }
 
-        super.transform(pnt);
+    public int getDensityData(Vec pnt, Vec data) {
 
         int len = vDataSources.length;
         DataSource dss[] = vDataSources;
@@ -221,18 +234,27 @@ public class Union  extends TransformableDataSource implements SNode {
         return ResultCodes.RESULT_OK;
     }
 
-    /**
-     * @override
-     * @noRefGuide
-     */
-    public SNode[] getChildren() {
-        vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
+    public int getDistanceData(Vec pnt, Vec data) {
 
-        // TODO: this is messy cleanup
-        SNode[] ret = new SNode[vDataSources.length];
-        for(int i=0; i < vDataSources.length; i++) {
-            ret[i] = (SNode)vDataSources[i];
+        int len = vDataSources.length;
+        DataSource dss[] = vDataSources;
+        
+        double value = Double.MAX_VALUE;
+
+        //TODO garbage collecton 
+        Vec pnt1 = new Vec(pnt);
+
+        for(int i = 0; i < len; i++){
+            
+            DataSource ds = dss[i];
+            pnt1.set(pnt);
+            ds.getDataValue(pnt1, data);
+            double v = data.v[0];
+            value = blendMin(value, data.v[0], m_blendWidth);            
         }
-        return ret;
-    }
+        
+        data.v[0] = value;
+        
+        return ResultCodes.RESULT_OK;
+    }   
 } // class Union

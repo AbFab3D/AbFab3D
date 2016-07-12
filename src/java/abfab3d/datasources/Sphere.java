@@ -49,9 +49,9 @@ public class Sphere extends TransformableDataSource {
     Vector3dParameter mp_center = new Vector3dParameter("center","Center",new Vector3d(0,0,0));
     private DoubleParameter  mp_radius = new DoubleParameter("radius","radius of the sphere", 1.*MM);
 
-    private double R, R2, RR;
-    private double x0,y0,z0;
-    private boolean sign = true; // inside (true) or outside (false) of the sphere
+    private double R; // radius 
+    private double x0,y0,z0; // center 
+    private double sign = 1; // 1- inside of sphere, -1 - outside of sphere
 
     Parameter m_aparam[] = new Parameter[]{
         mp_center,
@@ -87,7 +87,7 @@ public class Sphere extends TransformableDataSource {
      * sphere with given center and radius
      */
     public Sphere(double cx, double cy, double cz, double radius){
-        m_dataType = DATA_DISTANCE;
+
         initParams();
 
         setCenter(cx, cy, cz);
@@ -152,14 +152,12 @@ public class Sphere extends TransformableDataSource {
 
         if( r < 0){
             R = -r;
-            sign = false;
+            sign = -1;
         } else {
             R = r;
-            sign = true;
+            sign = 1;
         }
 
-        R2 = 2*r;
-        RR = r*r;
         Vector3d c = mp_center.getValue();
         x0 = c.x;
         y0 = c.y;
@@ -192,37 +190,19 @@ public class Sphere extends TransformableDataSource {
      *
      * @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec data) {
+    public final int getBaseValue(Vec pnt, Vec data) {
         
-        super.transform(pnt);
+        double v[] = pnt.v;
+        double 
+            x = v[0] - x0,
+            y = v[1] - y0,
+            z = v[2] - z0;
+        double dist = sign*(Math.sqrt(x*x + y*y + z*z)-R);
         
-        double res = 1.;
-        double
-            x = pnt.v[0]-x0,
-            y = pnt.v[1]-y0,
-            z = pnt.v[2]-z0;
-        
-        double vs = pnt.getScaledVoxelSize();
-        
-        //double rv = (R); // add slight growing with voxel size ? 
-            
-        // good approximation to the distance to the surface of the ball).x                             
-        //double dist = ((x*x + y*y + z*z) - rv*rv)/(2*rv);
-        double r = Math.sqrt(x*x + y*y + z*z);//)/(R2);
-        double dist = (sign)? (r - this.R): (this.R - r);
+        data.v[0] = getShapeValue(dist, pnt);
 
-        switch(m_dataType) {
-        default: 
-        case DATA_DENSITY: 
-            data.v[0] = step10(r, this.R, vs);
-            break;
-        case DATA_DISTANCE:            
-            data.v[0] = dist / pnt.getScaleFactor();
-            break;
-        }
-
-        super.getMaterialDataValue(pnt, data);
-        return ResultCodes.RESULT_OK;
+        return ResultCodes.RESULT_OK;        
+        
     }
     
 }  // class Sphere

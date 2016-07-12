@@ -337,9 +337,8 @@ public class ImageColorMap extends TransformableDataSource {
     /**
      * @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec dataValue) {
+    public int getBaseValue(Vec pnt, Vec dataValue) {
 
-        super.transform(pnt);
         //TODO repeatX,Y,Z implementation 
         double x = pnt.v[0];
         double y = pnt.v[1];

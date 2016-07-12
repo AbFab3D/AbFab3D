@@ -22,7 +22,10 @@ import abfab3d.core.Vec;
 
 import javax.vecmath.Vector3d;
 
+import static java.lang.Math.abs;
+
 import static abfab3d.core.MathUtil.intervalCap;
+import static abfab3d.core.MathUtil.blendMax;
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Units.MM;
 
@@ -43,10 +46,14 @@ public class Box extends TransformableDataSource {
     private static final Vector3d DEFAULT_SIZE = new Vector3d(DEFAULT_WIDTH,DEFAULT_HEIGHT,DEFAULT_DEPTH);
 
     private double
-            xmin,xmax,
-            ymin,ymax,
-            zmin,zmax;
-    
+        m_centerX,
+        m_centerY,
+        m_centerZ,
+        m_halfSizeX,
+        m_halfSizeY,
+        m_halfSizeZ,
+        m_rounding;
+        
     
     Vector3dParameter mp_center = new Vector3dParameter("center","Center of the box",new Vector3d(0.,0.,0.));
     Vector3dParameter mp_size = new Vector3dParameter("size","Size of the box",DEFAULT_SIZE);
@@ -283,38 +290,46 @@ public class Box extends TransformableDataSource {
 
         super.initialize();
         Vector3d c = mp_center.getValue();
-        double centerX = c.x;
-        double centerY = c.y;
-        double centerZ = c.z;
-
-        Vector3d s = mp_size.getValue();
-        double sizeX = s.x;
-        double sizeY = s.y;
-        double sizeZ = s.z;
+        m_centerX = c.x;
+        m_centerY = c.y;
+        m_centerZ = c.z;
         
-        xmin = centerX - sizeX / 2;
-        xmax = centerX + sizeX / 2;
+        Vector3d s = mp_size.getValue();
+        m_halfSizeX = s.x/2;
+        m_halfSizeY = s.y/2;
+        m_halfSizeZ = s.z/2;
 
-        ymin = centerY - sizeY / 2;
-        ymax = centerY + sizeY / 2;
-
-        zmin = centerZ - sizeZ / 2;
-        zmax = centerZ + sizeZ / 2;
-
+        m_rounding = mp_rounding.getValue();
         return ResultCodes.RESULT_OK;
 
     }
 
     /**
-     * Get the data value for a pnt
+     * Get the data value 
      *
      * @noRefGuide
      *
-     * @return 1 if pnt is inside of box of given size and center 0 otherwise
+     * 
      */
-    public int getDataValue(Vec pnt, Vec data) {
+    public int getBaseValue(Vec pnt, Vec data) {
 
-        super.transform(pnt);
+        double v[] = pnt.v;
+        double 
+            dx = abs(v[0] - m_centerX) - m_halfSizeX,
+            dy = abs(v[1] - m_centerY) - m_halfSizeY,
+            dz = abs(v[2] - m_centerZ) - m_halfSizeZ;
+        double dist = blendMax(dx, blendMax(dy, dz, m_rounding), m_rounding);
+        data.v[0] = getShapeValue(dist, pnt);
+        return ResultCodes.RESULT_OK;
+        
+    }
+
+    
+    /**
+       obsolete 
+     */
+    /*
+    public int getDensityData(Vec pnt, Vec data) {
 
         double res = 1.;
         double
@@ -352,10 +367,8 @@ public class Box extends TransformableDataSource {
 
             data.v[0] = finalValue;
         }
-
-        super.getMaterialDataValue(pnt, data);        
         return ResultCodes.RESULT_OK;
 
     }
-
+    */
 }  // class Box

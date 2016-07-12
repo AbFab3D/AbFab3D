@@ -142,9 +142,8 @@ public class VolumePatterns {
          * @param data
          * @return
          */
-        public int getDataValue(Vec pnt, Vec data){
+        public int getBaseValue(Vec pnt, Vec data){
             
-            super.transform(pnt);
             double x = pnt.v[0] - m_centerX;
             double y = pnt.v[1] - m_centerY;
             double z = pnt.v[2] - m_centerZ;
@@ -157,8 +156,6 @@ public class VolumePatterns {
             double d = abs(( sin(x)*cos(y) + sin(y)*cos(z) + sin(z) * cos(x) - m_level)/m_factor) - (m_thickness);
             
             data.v[0] = step10(d, 0, vs);
-
-            super.getMaterialDataValue(pnt, data);
 
             return ResultCodes.RESULT_OK;
         }
@@ -215,9 +212,7 @@ public class VolumePatterns {
         /**
          * @noRefGuide
          */
-        public int getDataValue(Vec pnt, Vec data){
-
-            super.transform(pnt);
+        public int getBaseValue(Vec pnt, Vec data){
 
             double x = pnt.v[0];
             double y = pnt.v[1];
@@ -250,7 +245,6 @@ public class VolumePatterns {
             
             data.v[0] = step10(d, 0, (vs));
 
-            super.getMaterialDataValue(pnt, data);
             return ResultCodes.RESULT_OK;
         }
 
@@ -309,9 +303,8 @@ public class VolumePatterns {
         /**
          * @noRefGuide
          */
-        public int getDataValue(Vec pnt, Vec data){
+        public int getBaseValue(Vec pnt, Vec data){
 
-            super.transform(pnt);
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
@@ -324,8 +317,6 @@ public class VolumePatterns {
             double d = abs(cos(x) + cos(y) + cos(z)-m_level)/m_factor - m_thickness;
 
             data.v[0] = step10(d, 0, (vs));
-
-            super.getMaterialDataValue(pnt, data);
 
             return ResultCodes.RESULT_OK;
         }
@@ -382,9 +373,8 @@ public class VolumePatterns {
         /**
          * @noRefGuide
          */
-        public int getDataValue(Vec pnt, Vec data){
+        public int getBaseValue(Vec pnt, Vec data){
 
-            super.transform(pnt);
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
@@ -397,7 +387,6 @@ public class VolumePatterns {
             double d = abs(sin(x) * sin(y) * sin(z) + sin(x) * cos(y) * cos(z) + cos(x) * sin(x) * cos(z) + cos(x) * cos(y) * sin(z) - m_level)/m_factor - m_thickness;
 
             data.v[0] = step10(d, 0, (vs));
-            super.getMaterialDataValue(pnt, data);
 
             return ResultCodes.RESULT_OK;
         }
@@ -451,9 +440,8 @@ public class VolumePatterns {
         }
 
          @noRefGuide
-        public int getDataValue(Vec pnt, Vec data){
+        public int getBaseValue(Vec pnt, Vec data){
 
-            super.transform(pnt);
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
@@ -466,7 +454,6 @@ public class VolumePatterns {
 
             data.v[0] = step10(d, 0, pnt.getScaledVoxelSize());
 
-            super.getMaterialDataValue(pnt, data);
 
             return ResultCodes.RESULT_OK;
         }
@@ -523,9 +510,8 @@ public class VolumePatterns {
         }
 
          @noRefGuide
-        public int getDataValue(Vec pnt, Vec data){
+        public int getBaseValue(Vec pnt, Vec data){
 
-            super.transform(pnt);
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
@@ -553,8 +539,6 @@ public class VolumePatterns {
             double vs = pnt.getScaledVoxelSize();
 
             data.v[0] = step10(d, 0, (vs));
-
-            super.getMaterialDataValue(pnt, data);
 
             return ResultCodes.RESULT_OK;
         }

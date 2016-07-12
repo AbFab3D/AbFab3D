@@ -34,6 +34,7 @@ import abfab3d.util.ShapeProducer;
 public class CompositeShape extends TransformableDataSource {
 
     DataSource m_source;
+    ShapeProducer m_shapeProducer;
 
     //SNodeParameter mp_source = new SNodeParameter("source");
 
@@ -45,13 +46,12 @@ public class CompositeShape extends TransformableDataSource {
     }
 
     
-    public CompositeShape(ShapeProducer shape) {        
+    public CompositeShape(ShapeProducer shapeProducer) {        
 
-        m_source = shape.getShape();
-        if(shape instanceof Parameterizable){
-            super.addParams(((Parameterizable)shape).getParams());
+        m_shapeProducer = shapeProducer;
+        if(shapeProducer instanceof Parameterizable){
+            super.addParams(((Parameterizable)shapeProducer).getParams());
         }
-        //mp_source.setValue(m_source);
     }
 
     /**
@@ -62,14 +62,14 @@ public class CompositeShape extends TransformableDataSource {
 
         super.initialize();
 
-        if (m_source != null && m_source instanceof Initializable) {
+        // we do it only here because the generated shape depends on actual values of parameters 
+        m_source = m_shapeProducer.getShape();
 
+        if (m_source != null && m_source instanceof Initializable) {
             ((Initializable) m_source).initialize();
             super.m_channelsCount = m_source.getChannelsCount();
-
         }
         
-
         return ResultCodes.RESULT_OK;
     }
 
@@ -78,16 +78,13 @@ public class CompositeShape extends TransformableDataSource {
      *
      * @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec data) {
-        
-        super.transform(pnt);
-        
+    public int getBaseValue(Vec pnt, Vec data) {
+                
         if (m_source != null) {
             m_source.getDataValue(pnt, data);
         } else {
             data.v[0] = 1.;
         }
-        super.getMaterialDataValue(pnt, data);        
         return ResultCodes.RESULT_OK;
     }
 

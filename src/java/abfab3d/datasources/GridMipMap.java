@@ -147,10 +147,9 @@ public class GridMipMap extends TransformableDataSource {
        returns interpolated mipmaped value at point (x,y,z) 
        point and voxelSize is given in world coordinates 
     */
-    public int getDataValue(Vec pnt, Vec dataValue){
+    public int getBaseValue(Vec pnt, Vec dataValue){
 
-        super.transform(pnt);
-           double 
+        double 
             x = pnt.v[0],
             y = pnt.v[1],
             z = pnt.v[2];

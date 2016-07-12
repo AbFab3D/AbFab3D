@@ -183,10 +183,8 @@ public class Mix extends TransformableDataSource{
      * calculates values of all data sources and return maximal value
      * can be used to make union of few shapes
      */
-    public int getDataValue(Vec pnt, Vec data) {
-        
-        super.transform(pnt);
-        
+    public int getBaseValue(Vec pnt, Vec data) {
+                
         m_mixer.getDataValue(pnt, data);
         double t = data.v[0];
 
@@ -198,7 +196,6 @@ public class Mix extends TransformableDataSource{
         
         data.v[0] *= d1 + (d2-d1)*t;
 
-        //TODO - material 
         return ResultCodes.RESULT_OK;
 
     }

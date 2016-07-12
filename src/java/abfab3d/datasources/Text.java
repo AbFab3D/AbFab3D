@@ -303,7 +303,7 @@ public class Text extends TransformableDataSource {
      * returns 0 otherwise
      * @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec data) {
+    public int getBaseValue(Vec pnt, Vec data) {
         
         return m_bitmap.getDataValue(pnt, data);
         

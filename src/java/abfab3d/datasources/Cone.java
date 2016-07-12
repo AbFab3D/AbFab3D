@@ -24,7 +24,9 @@ import javax.vecmath.AxisAngle4d;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
 
+import static abfab3d.core.Output.printf;
 import static abfab3d.core.MathUtil.step10;
+import static abfab3d.core.MathUtil.blendMax;
 import static java.lang.Math.*;
 
 
@@ -38,10 +40,6 @@ import static java.lang.Math.*;
 public class Cone extends TransformableDataSource {
 
 
-    private Vector3d m_apex;
-    private double m_normalY, m_normalR;
-    private Matrix3d m_rotation;
-    private double m_rounding;
 
     static final double EPSILON = 1.e-8;
 
@@ -116,45 +114,26 @@ public class Cone extends TransformableDataSource {
     }
 
     /**
-     * Get the cone angle
-     */
-    public double getAngle() {
-        return mp_angle.getValue();
-    }
-
-    /**
        set cone rounding
      */
     public void setRounding(double rounding){
         mp_rounding.setValue(rounding);
     } 
 
-    public double getRounding() {
-        return mp_rounding.getValue();
+    /**
+     * @noRefGuide
+     * @return
+     */
+    public double getNormalA(){
+        return m_normalA;
     }
 
     /**
      * @noRefGuide
      * @return
      */
-    public Matrix3d getRotation(){
-        return m_rotation;
-    }
-
-    /**
-     * @noRefGuide
-     * @return
-     */
-    public double getNormalY(){
-        return m_normalY;
-    }
-
-    /**
-     * @noRefGuide
-     * @return
-     */
-    public double getNormalR(){
-        return m_normalR;
+    public double getNormalO(){
+        return m_normalO;
     }
 
     /**
@@ -171,53 +150,57 @@ public class Cone extends TransformableDataSource {
 
         m_rounding = mp_rounding.getValue();
         Vector3d naxis = mp_axis.getValue();
+        
         naxis.normalize();
+        m_ax = naxis.x;
+        m_ay = naxis.y;
+        m_az = naxis.z;
 
-        // rotation axis 
-        Vector3d raxis = new Vector3d();
-        raxis.cross(naxis, Yaxis);
-        double sina = raxis.length();
-        double cosa = Yaxis.dot(naxis);
-        double aa = 0;
-        if (abs(sina) < EPSILON) {  // we are parallel to Y
-            raxis = new Vector3d(1, 0, 0); // axis of rotation orthogonal to the Y
-            if (cosa < 0)
-                aa = Math.PI;
-            else
-                aa = 0;
-        } else {
-
-            raxis.normalize();
-            aa = atan2(sina, cosa);
-        }
-
-        m_rotation = new Matrix3d();
-        m_rotation.set(new AxisAngle4d(raxis, aa));
-
-        m_apex = mp_apex.getValue();
+        Vector3d apex = mp_apex.getValue();
+        m_apx = apex.x;
+        m_apy = apex.y;
+        m_apz = apex.z;
 
         double angle = mp_angle.getValue();
 
-        this.m_normalY = -sin(angle);
-        this.m_normalR = cos(angle);
+        this.m_normalA = -sin(angle);
+        this.m_normalO = cos(angle);
+        printf("m_normalA: %7.5f m_normalO: %7.5f\n", m_normalA, m_normalO);
 
         return ResultCodes.RESULT_OK;
     }
 
-    public double getDistance(Vec pnt){
+    private double m_apx, m_apy, m_apz; // apex location 
+    private double m_ax, m_ay, m_az; // cone axis 
 
-        Vec pntc = new Vec(pnt);
-        canonicalTransform(pntc);
+    // 
+    private double 
+        m_normalA, // side normal projection on axis
+        m_normalO; // side normal projection on orthogonal plane
 
-        double x = pntc.v[0];
-        double y = pntc.v[1];
-        double z = pntc.v[2];
+    private double m_rounding;
 
-        // cone is in canonical orientation with apex at origin and axis along positive Y axis
-        double r = sqrt(x * x + z * z); // coordinate in orthogonal to Y axis 
-        double dist = y * m_normalY + r * m_normalR;
+    public double getDistanceValue(Vec pnt, Vec data){
 
-        return dist;
+        if(false)printf("pnt: %7.5f %7.5f %7.5f\n", pnt.v[0],pnt.v[1],pnt.v[2]);
+
+        double x = pnt.v[0] - m_apx;
+        double y = pnt.v[1] - m_apy;
+        double z = pnt.v[2] - m_apz;
+        if(false)printf("xyz: %7.5f %7.5f %7.5f\n", x, y, z);
+        // projection to axis
+        double pa = x*m_ax + y*m_ay + z*m_az; 
+        
+        // projection to orthogonal plane 
+        double po = sqrt(max(0,x*x + y*y + z*z - pa*pa));
+        if(false)printf("pa: %7.5f po: %7.5f\n", pa, po);
+
+        double dist1 = pa * m_normalA + po * m_normalO;
+        double dist2 = pa * m_normalA - po * m_normalO;
+        if(false)printf("dist1: %7.5f dist2: %7.5f\n", dist1, dist2);
+        
+        data.v[0] = blendMax(dist1, dist2, m_rounding);
+        return ResultCodes.RESULT_OK;
         
     }
     /**
@@ -228,29 +211,11 @@ public class Cone extends TransformableDataSource {
      * returns interpolated value on the boundary
      * returns 0 if pnt is outside of cone
      */
-    public int getDataValue(Vec pnt, Vec data) {
+    public int getBaseValue(Vec pnt, Vec data) {
 
-        super.transform(pnt);
-
-
-        double dist = getDistance(pnt);
-
-        double vs = pnt.getScaledVoxelSize();
-        data.v[0] = step10(dist, 0., vs);
-
-        super.getMaterialDataValue(pnt, data);        
+        getDistanceValue(pnt, data);
+        data.v[0] = getShapeValue(data.v[0], pnt);
         return ResultCodes.RESULT_OK;
-
-    }
-
-    /**
-     *  move cone into canonical position with apex at origin and axis aligned with Y-axis
-
-     @noRefGuide     
-     */
-    protected void canonicalTransform(Vec pnt) {
-        pnt.subSet(m_apex);
-        pnt.mulSetLeft(m_rotation);
     }
 
 }  // class Cone

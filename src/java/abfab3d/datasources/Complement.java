@@ -48,7 +48,6 @@ public class Complement extends TransformableDataSource {
     public Complement(DataSource source) {
         super.addParams(m_aparam);
         mp_data.setValue(source);
-        dataSource = source;
     }
 
     /**
@@ -74,7 +73,7 @@ public class Complement extends TransformableDataSource {
     public int initialize() {
 
         super.initialize();
-
+        dataSource = (DataSource)mp_data.getValue();
         if (dataSource instanceof Initializable) {
             ((Initializable) dataSource).initialize();
         }
@@ -88,21 +87,19 @@ public class Complement extends TransformableDataSource {
      *
      * @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec data) {
-
-        super.transform(pnt);
+    public int getBaseValue(Vec pnt, Vec data) {
 
         int res = dataSource.getDataValue(pnt, data);
-        if (res != ResultCodes.RESULT_OK) {
-            // bad result in source 
-            data.v[0] = 1;
-            return res;
-        } else {
-            // we have good result
-            // make complement
+        switch(m_dataType){
+        default:
+        case DATA_TYPE_DENSITY:
             data.v[0] = 1 - data.v[0];
-            return ResultCodes.RESULT_OK;
+            break;
+        case  DATA_TYPE_DISTANCE:
+            data.v[0] = - data.v[0];            
         }
+        return ResultCodes.RESULT_OK;
+        
     }
 } // class Complement
 

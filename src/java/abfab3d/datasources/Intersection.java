@@ -26,6 +26,7 @@ import abfab3d.core.Vec;
 import abfab3d.core.DataSource;
 import abfab3d.core.Initializable;
 
+import static abfab3d.core.MathUtil.blendMax;
 
 /**
 
@@ -38,8 +39,10 @@ import abfab3d.core.Initializable;
 public class Intersection extends TransformableDataSource implements SNode {
     
     Vector<DataSource> dataSources = new Vector<DataSource>();
-    // fixed vector for calculations
-    DataSource vDataSources[];
+
+    // internal variables 
+    private DataSource vDataSources[];
+    private double m_blendWidth = 0;
 
     DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
     SNodeListParameter mp_dataSources = new SNodeListParameter("sources", ShapesFactory.getInstance());
@@ -80,9 +83,7 @@ public class Intersection extends TransformableDataSource implements SNode {
      * @noRefGuide
      */
     protected void initParams() {
-        for(int i = 0; i < m_aparam.length; i++){
-            params.put(m_aparam[i].getName(),m_aparam[i]);
-        }
+        super.addParams(m_aparam);
     }
 
     /**
@@ -136,6 +137,9 @@ public class Intersection extends TransformableDataSource implements SNode {
     public int initialize(){
 
         super.initialize();
+
+        m_blendWidth = mp_blendWidth.getValue();
+
         vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
         
         for(int i = 0; i < vDataSources.length; i++){
@@ -157,10 +161,24 @@ public class Intersection extends TransformableDataSource implements SNode {
      * @noRefGuide
      *
      */
-    public int getDataValue(Vec pnt, Vec data) {
-        
-        super.transform(pnt);
+    public int getBaseValue(Vec pnt, Vec data) {
+        switch(m_dataType){
+        default:
+        case DATA_TYPE_DENSITY:
+            getDensityData(pnt, data);
+            break;
+        case DATA_TYPE_DISTANCE:
+            getDistanceData(pnt, data);
+            break;
+        }
+        return ResultCodes.RESULT_OK;        
+    }
 
+    /**
+     * @noRefGuide
+     */
+    public int getDensityData(Vec pnt, Vec data) {
+        
         DataSource dss[] = vDataSources;
         int len = dss.length;
         
@@ -169,21 +187,13 @@ public class Intersection extends TransformableDataSource implements SNode {
         for(int i = 0; i < len; i++){
             
             DataSource ds = dss[i];
-            //int res = ds.getDataValue(pnt, workPnt);
             int res = ds.getDataValue(new Vec(pnt), data);
-            if(res != ResultCodes.RESULT_OK){
-                data.v[0] = 0.;
-                return res;
-            }
-            
             double v = data.v[0];
             
             if(v <= 0.){
                 data.v[0] = 0;
                 return ResultCodes.RESULT_OK;
-            }
-            //value *= v;
-            
+            }            
             if(v < value)
                 value = v;
             
@@ -192,10 +202,38 @@ public class Intersection extends TransformableDataSource implements SNode {
         data.v[0] = value;
         return ResultCodes.RESULT_OK;
     }
+    
+    /**
+     * @noRefGuide
+     */
+    public int getDistanceData(Vec pnt, Vec data) {
+
+        int len = vDataSources.length;
+        DataSource dss[] = vDataSources;
+        
+        double value = -Double.MAX_VALUE;
+
+        //TODO garbage collecton 
+        Vec pnt1 = new Vec(pnt);
+
+        for(int i = 0; i < len; i++){
+            
+            DataSource ds = dss[i];
+            pnt1.set(pnt);
+            ds.getDataValue(pnt1, data);
+            double v = data.v[0];
+            value = blendMax(value, data.v[0], m_blendWidth);            
+        }
+        
+        data.v[0] = value;
+        
+        return ResultCodes.RESULT_OK;
+    }   
 
     /**
      * @noRefGuide
      */
+    /*
     public SNode[] getChildren() {
         vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
 
@@ -206,5 +244,5 @@ public class Intersection extends TransformableDataSource implements SNode {
         }
         return ret;
     }
-
+    */
 } // class Intersection

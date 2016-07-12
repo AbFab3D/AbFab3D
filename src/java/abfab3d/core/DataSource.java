@@ -22,6 +22,11 @@ import abfab3d.core.Vec;
    @author Vladimir Bulatov 
  */
 public interface DataSource {
+
+    // compilation flag to make shapes data source to use signed distance or density 
+    public static final int DATA_TYPE_DISTANCE = 1;
+    public static final int DATA_TYPE_DENSITY = 0;
+    
     /**
        data value at the given point 
        @param pnt Point where the data is calculated 

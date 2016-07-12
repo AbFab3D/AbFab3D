@@ -513,12 +513,10 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
      * returns interpolared value near the boundary 
       @noRefGuide            
      */
-    public int getDataValue(Vec pnt, Vec data) {
+    public int getBaseValue(Vec pnt, Vec data) {
 
-        super.transform(pnt);
         getLinearInterpolatedValue(pnt, data);
 
-        super.getMaterialDataValue(pnt, data);        
         return ResultCodes.RESULT_OK;
         
     }

@@ -79,9 +79,7 @@ public class DataTransformer extends TransformableDataSource {
      *
      * @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec data) {
-
-        super.transform(pnt);
+    public int getBaseValue(Vec pnt, Vec data) {
 
         if (m_source != null) {
             return m_source.getDataValue(pnt, data);

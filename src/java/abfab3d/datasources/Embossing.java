@@ -278,10 +278,8 @@ public class Embossing extends TransformableDataSource implements SNode {
      * @noRefGuide
        
      */
-    public int getDataValue(Vec pnt, Vec data) {
-        
-        super.transform(pnt);
-                
+    public int getBaseValue(Vec pnt, Vec data) {
+                        
         Vec embData = new Vec(m_embosserChannelsCount);
 
         m_baseShape.getDataValue(pnt, data);

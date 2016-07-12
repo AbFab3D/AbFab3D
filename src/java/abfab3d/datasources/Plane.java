@@ -210,18 +210,13 @@ public class Plane extends TransformableDataSource {
      * returns 0 if pnt is outside the half space
      * @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec data) {
-        
-        super.transform(pnt);
-        
-        double dist = getDistance(pnt);
-
-        double vs = pnt.getScaledVoxelSize();
+    public int getBaseValue(Vec pnt, Vec data) {
                 
-        data.v[0] = step10(dist, 0, vs);
+        double dist = getDistance(pnt);
         
-        super.getMaterialDataValue(pnt, data);        
-        return ResultCodes.RESULT_OK;
+        data.v[0] = getShapeValue(dist, pnt);
+
+        return ResultCodes.RESULT_OK;        
 
     }
     

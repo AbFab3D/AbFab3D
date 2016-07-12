@@ -21,6 +21,7 @@ import abfab3d.param.Parameter;
 import abfab3d.core.Vec;
 import abfab3d.core.Bounds;
 
+import static abfab3d.core.Output.printf;
 
 /**
  * Return constant data value with up to 4 components 
@@ -28,6 +29,9 @@ import abfab3d.core.Bounds;
  * @author Vladimir Bulatov
  */
 public class Constant extends TransformableDataSource {//BaseParameterizable implements DataSource {
+
+    static final boolean DEBUG = false;
+    int debugCount = 100;
 
     private double m_value0,m_value1,m_value2,m_value3;
     private int m_dimension = 1;
@@ -125,7 +129,7 @@ public class Constant extends TransformableDataSource {//BaseParameterizable imp
     /**
      * @noRefGuide 
      */
-    public int getDataValue(Vec pnt, Vec data) {
+    public int getBaseValue(Vec pnt, Vec data) {
         switch(m_dimension){
         case 4:
             data.v[3] = m_value3;
@@ -136,7 +140,8 @@ public class Constant extends TransformableDataSource {//BaseParameterizable imp
         case 1:
             data.v[0] = m_value0;
         }
-
+        //if(DEBUG && debugCount-- > 0) printf("constant: %7.5f %7.5f %7.5f %7.5f\n", m_value0, m_value1, m_value2, m_value3 );
+            
         return ResultCodes.RESULT_OK;
     }
 

@@ -104,26 +104,34 @@ public class TestCompositeShape extends TestCase {
         for(int i = 0; i < param.length; i++){
             printf("%s : %s\n", param[i].getName(),param[i].getValue());
         }
-        
-        
-        double vs = 0.1*MM;
+        pendant.set("distOffset", -0.2*MM);
+        pendant.set("torusAxis", new Vector3d(0,1,1));
+        pendant.set("showGens", true);
+        pendant.set("genThickness", 2*MM);
+
+        double vs = 0.025*MM;
         double bx = 15*MM;
         double bz = 3*MM;
         double maxDist  = 1*MM;
         double r = 0.5*MM;
         Bounds bounds = new Bounds(-bx,bx,-bx,bx,-bz,bz, vs);
         
-        AttributeGrid grid = makeDensityGrid(bounds);
-                
-        Torus ring = new Torus(11*MM, r);
-        Union pendantInRing = new Union(pendant, ring);
+        //AttributeGrid grid = makeDensityGrid(bounds);
+        AttributeGrid grid = makeDistanceGrid(bounds);
 
+        double RR = 12*MM;
+        Torus ring = new Torus(RR, r);
+        //Union pendantInRing = new Union(pendant, ring);
+        Union pendantInRing = new Union(new Intersection(new Sphere(0,0,0,RR),pendant), ring);
+        pendantInRing.set("blend", 0.1*MM);
+        
         GridMaker gm = new GridMaker();
         gm.setSource(pendantInRing);
+        //gm.setSource(ring);
         gm.makeGrid(grid);
         GridSaver saver = new GridSaver();
-        saver.setWriteTexturedMesh(true);
-        saver.write(grid,"/tmp/test/pendant.stl");
+        saver.setWriteTexturedMesh(false);
+        saver.write(grid,"/tmp/test/pendant_dist.stl");
         
     }
     
@@ -154,6 +162,21 @@ public class TestCompositeShape extends TestCase {
         grid = new ArrayAttributeGridByte(bounds, vs, vs);
         
         grid.setDataDesc(GridDataDesc.getDensity(8));
+
+        return grid;
+    }
+
+    static AttributeGrid makeDistanceGrid(Bounds bounds) {
+
+        double vs = bounds.getVoxelSize();
+        long nx = bounds.getWidthVoxels(vs);
+        long ny = bounds.getHeightVoxels(vs);
+        long nz = bounds.getDepthVoxels(vs);
+        AttributeGrid grid;
+
+        grid = new ArrayAttributeGridByte(bounds, vs, vs);
+        
+        grid.setDataDesc(GridDataDesc.getDistance(8, 2*vs));
 
         return grid;
     }

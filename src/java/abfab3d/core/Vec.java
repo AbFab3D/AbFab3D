@@ -30,10 +30,9 @@ public class Vec {
     static final boolean DEBUG = true;
     
     // holder for data
-    public double v[];
-    
-    private double voxelSize = 1; // size of voxel in the grid in physical units 
-    private double scaleFactor = 1;   // accumulated scale factor of all applied transform 
+    public double v[];    
+    public double voxelSize = 1; // size of voxel in the grid in physical units 
+    public double scaleFactor = 1;   // accumulated scale factor of all applied transform 
 
     public Vec(int size){
         this.v = new double[size];

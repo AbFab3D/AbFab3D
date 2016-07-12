@@ -208,23 +208,19 @@ public class Torus extends TransformableDataSource {
     }
 
     /**
-     * returns 1 if pnt is inside of Torus
-     * returns interpolated value if point is within voxel size distance from the boundary
-     * returns 0 if pnt is outside the Torus
+     * returns digned distance function or blurred density for torus
        @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec data) {
+    public final int getBaseValue(Vec pnt, Vec data) {
         
-        super.transform(pnt);
-
         double
                 x = pnt.v[0] - x0,
                 y = pnt.v[1] - y0,
                 z = pnt.v[2] - z0;
 
-        double u =  x*ax + y*ay + z*az; // projection on axis 
+        double u =  x*ax + y*ay + z*az; // projection of point on axis 
 
-        // coord of point in orthogonal plane 
+        // point is in plane via torus cener and orthogonal to torus axis 
         double 
             ppx = x - u*ax,
             ppy = y - u*ay,
@@ -234,15 +230,7 @@ public class Torus extends TransformableDataSource {
         v -= R;
         // distance to torus surface 
         double dist = Math.sqrt(v*v + u*u) - r;
-
-        // convert to density 
-        data.v[0] = step10(dist, 0, pnt.getScaledVoxelSize());
-
-        //double rxy = sqrt(x*x + y*y) - R;        
-        //data.v[0] = step10(((rxy*rxy + z*z) - r*r)/(2*r), 0, pnt.getScaledVoxelSize());
-        
-        super.getMaterialDataValue(pnt, data);        
-        return ResultCodes.RESULT_OK;
+        data.v[0] = getShapeValue(dist, pnt);        
+        return ResultCodes.RESULT_OK;        
     }
 }  // class Torus
-

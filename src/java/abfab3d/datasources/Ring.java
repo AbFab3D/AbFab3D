@@ -77,8 +77,8 @@ public class Ring  extends TransformableDataSource{
      * calculates values of all data sources and return maximal value
      * can be used to make union of few shapes
      */
-    public int getDataValue(Vec pnt, Vec data) {        
-        super.transform(pnt);
+    public int getBaseValue(Vec pnt, Vec data) {        
+
         double y = pnt.v[1];
         double vs = pnt.getScaledVoxelSize();
         //double w2 = width2 + vs;

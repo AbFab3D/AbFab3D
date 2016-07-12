@@ -489,9 +489,7 @@ public class ImageMap extends TransformableDataSource {
     /**
      * @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec dataValue){
-
-        super.transform(pnt);
+    public int getBaseValue(Vec pnt, Vec dataValue){
 
         double x = pnt.v[0];
         double y = pnt.v[1];

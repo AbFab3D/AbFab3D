@@ -65,7 +65,7 @@ import static abfab3d.core.Output.time;
 import static abfab3d.core.Units.MM;
 
 /**
-   makes fratal pendant using as ShapeProducer 
+   makes fractal pendant using as ShapeProducer 
  */
 public class FractalPendant extends BaseParameterizable implements ShapeProducer {
     
@@ -91,7 +91,7 @@ public class FractalPendant extends BaseParameterizable implements ShapeProducer
     DoubleParameter m_c4 = new DoubleParameter("center4",20.0*MM);
     DoubleParameter m_r3 = new DoubleParameter("radius3",6.7*MM);
     DoubleParameter m_hTrans = new DoubleParameter("hTrans",0.);
-    DoubleParameter m_distOffset = new DoubleParameter("distOffset",0.);
+    DoubleParameter m_distOffset = new DoubleParameter("distOffset",-0.00025);
     IntParameter m_n12 = new IntParameter("n12",3);
     BooleanParameter m_g1 = new BooleanParameter("gen1",true);
     BooleanParameter m_g2 = new BooleanParameter("gen2",true);
@@ -148,27 +148,6 @@ public class FractalPendant extends BaseParameterizable implements ShapeProducer
     
     public FractalPendant(){
         addParams(aparams);
-    }
-
-    public TransformableDataSource getGeneratorsShape(ReflectionGroup.SPlane[] splanes){
-        Union union = new Union();
-        Constant widthOffset = new Constant(-m_genWidth.getValue()/2);
-        for(int i = 0; i < splanes.length; i++){
-            if(m_gens[i].getValue()){
-                ReflectionGroup.SPlane sp = splanes[i];
-                if(sp instanceof ReflectionGroup.Plane){
-                    ReflectionGroup.Plane p = (ReflectionGroup.Plane)sp;
-                    union.add(new Add(new Abs(new Plane(p.nx,p.ny,p.nz,p.dist)), widthOffset));
-                } else if(sp instanceof ReflectionGroup.Sphere){
-                    ReflectionGroup.Sphere s = (ReflectionGroup.Sphere)sp;
-                    union.add(new Add(new Abs(new Sphere(s.cx,s.cy,s.cz,s.r)), widthOffset));                    
-                }
-            }
-        }
-
-        Intersection inter = new Intersection(union, new Add(new Abs(new Plane(0,0,1,0)),new Constant(-m_genThickness.getValue()/2)));
-        inter.set("blend", m_genWidth.getValue()/2);
-        return inter;
     }
 
     
@@ -297,7 +276,10 @@ public class FractalPendant extends BaseParameterizable implements ShapeProducer
             fdShapes.setTransform(symm);
 
         if(m_hasTorus.getValue()){
-            fdShapes.add(new Torus(m_torusCenter.getValue(), m_torusAxis.getValue(),m_torusRout.getValue(),m_torusRin.getValue()));
+            fdShapes.add(new Torus(m_torusCenter.getValue(), 
+                                   m_torusAxis.getValue(),
+                                   m_torusRout.getValue(),
+                                   m_torusRin.getValue()+m_distOffset.getValue()));
         }
         if(m_hasSphere.getValue()){
             double sr = abs(fp3 - fp4)/2;
@@ -320,26 +302,45 @@ public class FractalPendant extends BaseParameterizable implements ShapeProducer
         thickShape = new DataSourceMixer(thickShape, getColor(m_torusColor.getValue())); 
         TransformableDataSource shape;
         if(m_showGens.getValue()) {
-            //shape = new Union(shape, getGeneratorsShape(symGen.getFundamentalDomain()));
             TransformableDataSource gens = getGeneratorsShape(symGen.getFundamentalDomain());
             if(hyperTrans != null) {
                 gens.setTransform(hyperTrans);
-                //gens.initialize();
             }
             gens = new DataSourceMixer(gens, getColor(m_genColor.getValue()));            
-            shape = new Composition(Composition.BoverA, thickShape, gens);
+            //shape = new Composition(Composition.BoverA, thickShape, gens);
+            shape = new Union(thickShape, gens);
         } else {
             shape = thickShape;
         }
         // show fixed points 
         //fdShapes.add(new Sphere(new Vector3d(fp3,0,0), 1*MM));
         //fdShapes.add(new Sphere(new Vector3d(fp4,0,0), 0.5*MM));
-
-        // this should be done before rendering 
-        shape.initialize();
+        
         return shape;
     }
     
+
+    public TransformableDataSource getGeneratorsShape(ReflectionGroup.SPlane[] splanes){
+        Union union = new Union();
+        Constant widthOffset = new Constant(-m_genWidth.getValue()/2);
+        for(int i = 0; i < splanes.length; i++){
+            if(m_gens[i].getValue()){
+                ReflectionGroup.SPlane sp = splanes[i];
+                if(sp instanceof ReflectionGroup.Plane){
+                    ReflectionGroup.Plane p = (ReflectionGroup.Plane)sp;
+                    union.add(new Add(new Abs(new Plane(p.nx,p.ny,p.nz,p.dist)), widthOffset));
+                } else if(sp instanceof ReflectionGroup.Sphere){
+                    ReflectionGroup.Sphere s = (ReflectionGroup.Sphere)sp;
+                    union.add(new Add(new Abs(new Sphere(s.cx,s.cy,s.cz,s.r)), widthOffset));                    
+                }
+            }
+        }
+
+        Intersection inter = new Intersection(union, new Add(new Abs(new Plane(0,0,1,0)),new Constant(-0.5*m_genThickness.getValue())));
+        inter.set("blend", m_genWidth.getValue()/2);
+        return inter;
+    }
+
 
     DataSource getColor(Vector3d c){
         // something wrong with color

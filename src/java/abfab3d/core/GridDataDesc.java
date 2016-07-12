@@ -226,6 +226,14 @@ public class GridDataDesc {
         return gdd;
     }
 
+    public static GridDataDesc getDistance(int bitCount, double maxDist){
+
+        GridDataDesc gdd = new GridDataDesc();
+        // the interior of shape will be ((1 << bitCount)-1)
+        gdd.addChannel(new GridDataChannel(GridDataChannel.DISTANCE,     "0_distance", bitCount,  0,  maxDist, -maxDist));
+        return gdd;
+    }
+
 
     /**
        creates data description for multichannel grid with distance and color 

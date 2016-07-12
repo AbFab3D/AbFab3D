@@ -113,7 +113,7 @@ public class SolidColor  extends TransformableDataSource {
        @override 
        
      */
-    public final int getDataValue(Vec pnt, Vec dataValue){
+    public final int getBaseValue(Vec pnt, Vec dataValue){
         
         switch(m_channels){
         case 4: 

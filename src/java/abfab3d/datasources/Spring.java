@@ -139,10 +139,8 @@ public class Spring extends TransformableDataSource{
      * returns 0 if pnt is outside the Spring
        @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec data) {
+    public int getBaseValue(Vec pnt, Vec data) {
         
-        super.transform(pnt);
-
         double
                 x = pnt.v[0] - x0,
                 y = pnt.v[1] - y0,

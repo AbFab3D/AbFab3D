@@ -270,9 +270,7 @@ public class Composition extends TransformableDataSource {
      * can be used to make union of few shapes
      @noRefGuide
      */
-    public int getDataValue(Vec pnt, Vec data) {
-
-        super.transform(pnt);
+    public int getBaseValue(Vec pnt, Vec data) {
 
         int dataCount = vDataSources.length;
         DataSource dss[] = vDataSources;

@@ -1575,5 +1575,42 @@ public class MathUtil {
         
         
     }
+    
+    /**
+       quadratic blendng function to be used in blendMin and blendMax
+     */
+    public static final double blendQuadric(double x){
+        return (1. - x)*(1. - x) * 0.25;
+    }
+
+    /**
+       calculates min of two values with smooth blending 
+     */
+    public static final double blendMin(double a, double b, double w){
+        
+        double dd = Math.min(a,b);
+        if( w <= 0.) 
+            return dd;
+        double d = Math.abs(a-b);
+        if( d < w) 
+            return dd - w*blendQuadric(d/w);	
+        else 
+            return dd;
+    }
+    
+    /**
+       calculates max of two values with smooth blending 
+     */
+    public static final double blendMax(double a, double b, double w){
+
+        double dd = Math.max(a,b);
+        if( w <= 0.) 
+            return dd;
+        double d = Math.abs(a-b);
+        if( d < w) 
+            return dd + w*blendQuadric(d/w);
+        else 
+            return dd;
+    }
 
 }

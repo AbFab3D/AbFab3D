@@ -162,9 +162,7 @@ public class DataSourceMixer extends TransformableDataSource {
      * @noRefGuide
      * @override
      */
-    public int getDataValue(Vec pnt, Vec data) {
-
-        super.transform(pnt);
+    public int getBaseValue(Vec pnt, Vec data) {
 
         // TODO - reduce garbage collection 
         Vec sourceData = new Vec(m_maxChannelsCount);

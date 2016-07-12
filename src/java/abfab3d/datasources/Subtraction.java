@@ -116,9 +116,8 @@ public class Subtraction extends TransformableDataSource implements SNode {
      * calculates values of all data sources and return maximal value
      * can be used to make union of few shapes
      */
-    public int getDataValue(Vec pnt, Vec data) {
+    public int getBaseValue(Vec pnt, Vec data) {
         
-        super.transform(pnt);
         double v1 = 0, v2 = 0;
         
         int res = dataSource1.getDataValue(new Vec(pnt), data);

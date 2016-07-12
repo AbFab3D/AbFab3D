@@ -33,6 +33,9 @@ import static abfab3d.core.Output.printf;
  */
 public class Add extends TransformableDataSource {
     
+    static final boolean DEBUG = false;
+    int debugCount = 100;
+    
     DataSource dataSource1;
     DataSource dataSource2;
 
@@ -155,17 +158,16 @@ public class Add extends TransformableDataSource {
      * calculates values of all data sources and return maximal value
      * can be used to make union of few shapes
      */
-    public int getDataValue(Vec pnt, Vec data) {
-        
-        super.transform(pnt);
-        
+    public int getBaseValue(Vec pnt, Vec data) {
+                
         dataSource2.getDataValue(new Vec(pnt), data);
         double d2 = data.v[0];
 
         dataSource1.getDataValue(pnt, data);
         
-        data.v[0] += d2;
+        //if(DEBUG && debugCount-- > 0 )printf("d1: %7.5f d2: %7.5f\n",data.v[0], d2);
 
+        data.v[0] += d2;
         return ResultCodes.RESULT_OK;
 
     }

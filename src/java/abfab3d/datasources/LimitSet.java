@@ -56,9 +56,8 @@ public class LimitSet  extends TransformableDataSource {
      * returns 0 if pnt is further from he limit set 
      limit set distance is calculated as  stretchFactor/pnt.scaleFactor 
     */
-    public int getDataValue(Vec pnt, Vec data) {
+    public int getBaseValue(Vec pnt, Vec data) {
 
-        super.transform(pnt);
         double dist = stretchFactor/pnt.getScaleFactor();
         
         if(DEBUG ) {

@@ -273,9 +273,8 @@ public class TestSTSReadWrite extends TestCase {
             return ResultCodes.RESULT_OK;
         }
 
-        public int getDataValue(Vec pnt, Vec data){
+        public int getBaseValue(Vec pnt, Vec data){
 
-            super.transform(pnt);
             double x = pnt.v[0]-offsetX;
             double y = pnt.v[1]-offsetY;
             double z = pnt.v[2]-offsetZ;

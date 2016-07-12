@@ -130,10 +130,8 @@ public class Mad extends TransformableDataSource{
      * @noRefGuide
        
      */
-    public int getDataValue(Vec pnt, Vec data) {
-        
-        super.transform(pnt);
-        
+    public int getBaseValue(Vec pnt, Vec data) {
+                
         m_a.getDataValue(new Vec(pnt), data);
         double a = data.v[0];
         m_b.getDataValue(new Vec(pnt), data);
@@ -144,7 +142,6 @@ public class Mad extends TransformableDataSource{
         
         data.v[0] = d*a + b;
 
-        //TODO - material 
         return ResultCodes.RESULT_OK;
 
     }

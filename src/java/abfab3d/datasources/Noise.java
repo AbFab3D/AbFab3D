@@ -147,8 +147,9 @@ public class Noise extends TransformableDataSource {  // Periodic noise in 3D
         return m_noise.getGradients();
     }
 
-    public int getDataValue(Vec pnt, Vec value){
-        super.transform(pnt);
+    
+    public int getBaseValue(Vec pnt, Vec value){
+
         double x = pnt.v[0]*m_scaleX;
         double y = pnt.v[1]*m_scaleY;
         double z = pnt.v[2]*m_scaleZ;
