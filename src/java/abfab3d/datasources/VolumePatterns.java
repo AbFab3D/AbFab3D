@@ -143,7 +143,6 @@ public class VolumePatterns {
          * @return
          */
         public int getBaseValue(Vec pnt, Vec data){
-            
             double x = pnt.v[0] - m_centerX;
             double y = pnt.v[1] - m_centerY;
             double z = pnt.v[2] - m_centerZ;
@@ -151,11 +150,11 @@ public class VolumePatterns {
             x *= m_factor;
             y *= m_factor;
             z *= m_factor;
-            double vs = pnt.getScaledVoxelSize();
             
-            double d = abs(( sin(x)*cos(y) + sin(y)*cos(z) + sin(z) * cos(x) - m_level)/m_factor) - (m_thickness);
+            // gyroid 
+            double dist = abs(( sin(x)*cos(y) + sin(y)*cos(z) + sin(z) * cos(x) - m_level)/m_factor) - (m_thickness);
             
-            data.v[0] = step10(d, 0, vs);
+            data.v[0] = getShapeValue(dist, pnt);
 
             return ResultCodes.RESULT_OK;
         }
@@ -222,7 +221,6 @@ public class VolumePatterns {
             y *= m_factor;
             z *= m_factor;
 
-            double vs = pnt.getScaledVoxelSize();
             double 
                 s2x = sin(2*x),
                 s2y = sin(2*y),
@@ -239,11 +237,11 @@ public class VolumePatterns {
 
 
 
-            double d = abs(((s2x * cy * sz + s2y * cz * sx + s2z * cx * sy) -
+            double dist = abs(((s2x * cy * sz + s2y * cz * sx + s2z * cx * sy) -
                             (c2x * c2y + c2y * c2z + c2z * c2x) 
                             - m_level)/(4*m_factor))  - m_thickness;
             
-            data.v[0] = step10(d, 0, (vs));
+            data.v[0] = getShapeValue(dist, pnt);
 
             return ResultCodes.RESULT_OK;
         }
@@ -313,10 +311,9 @@ public class VolumePatterns {
             y *= m_factor;
             z *= m_factor;
 
-            double vs = pnt.getScaledVoxelSize();
-            double d = abs(cos(x) + cos(y) + cos(z)-m_level)/m_factor - m_thickness;
+            double dist = abs(cos(x) + cos(y) + cos(z)-m_level)/m_factor - m_thickness;
 
-            data.v[0] = step10(d, 0, (vs));
+            data.v[0] = getShapeValue(dist, pnt);
 
             return ResultCodes.RESULT_OK;
         }
@@ -383,10 +380,9 @@ public class VolumePatterns {
             y *= m_factor;
             z *= m_factor;
 
-            double vs = pnt.getScaledVoxelSize();
-            double d = abs(sin(x) * sin(y) * sin(z) + sin(x) * cos(y) * cos(z) + cos(x) * sin(x) * cos(z) + cos(x) * cos(y) * sin(z) - m_level)/m_factor - m_thickness;
-
-            data.v[0] = step10(d, 0, (vs));
+            double dist = abs(sin(x) * sin(y) * sin(z) + sin(x) * cos(y) * cos(z) + cos(x) * sin(x) * cos(z) + cos(x) * cos(y) * sin(z) - m_level)/m_factor - m_thickness;
+            
+            data.v[0] = getShapeValue(dist, pnt);
 
             return ResultCodes.RESULT_OK;
         }
