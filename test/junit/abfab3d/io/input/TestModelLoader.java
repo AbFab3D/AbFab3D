@@ -15,12 +15,14 @@ package abfab3d.io.input;
 import abfab3d.datasources.DataSourceGrid;
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.GridDataDesc;
+import abfab3d.io.output.SVXWriter;
 import abfab3d.util.BoundingBoxCalculator;
 import junit.framework.TestCase;
 
 import java.io.IOException;
 
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 import static abfab3d.core.Units.MM;
 
 
@@ -30,6 +32,38 @@ import static abfab3d.core.Units.MM;
  * @author Alan Hudson
  */
 public class TestModelLoader extends TestCase {
+
+
+    public void testSVX() throws IOException {
+        double voxelSize = 0.2*MM;
+
+        String filePath = "test/models/donut_textured.x3dv";
+
+        long t0 = time();
+        long lt;
+        long wt;
+        long rt;
+
+        ModelLoader loader = new ModelLoader(filePath);
+        loader.setAttributeLoading(true);
+
+        AttributeGrid grid = loader.getGrid();
+        lt = time() - t0;
+
+        t0 = time();
+        String f = "/tmp/donut.svx";
+        new SVXWriter().write(grid, f);
+        wt = time() - t0;
+
+        t0 = time();
+        SVXReader sreader = new SVXReader();
+        AttributeGrid grid2 = sreader.load(f);
+        rt = time() - t0;
+
+        printf("load time: %d ms\n",lt);
+        printf("write time: %d ms\n",wt);
+        printf("read time: %d ms\n",rt);
+    }
 
 
     public void testStripAtts() throws IOException {

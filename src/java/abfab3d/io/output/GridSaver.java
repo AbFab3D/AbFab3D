@@ -126,7 +126,7 @@ public class GridSaver {
 
 
     float m_avatarSize[] = new float[]{0.01f, 1.6f, 0.75f};// size of avatar for x3d output
-    private static final float[] WHITE_COLOR = new float[] {1,1,1};
+    private static final float[] GRAY_COLOR = new float[] {0.25f,0.25f,0.25f};
     int m_savingType = TYPE_UNDEFINED;
 
     String m_texType = "png";
@@ -570,7 +570,7 @@ public class GridSaver {
         writer.startField("material");
         writer.startNode("Material",null);
         writer.startField("specularColor");
-        writer.fieldValue(WHITE_COLOR, 3);
+        writer.fieldValue(GRAY_COLOR, 3);
         writer.endNode();   // Material
         writer.startField("texture");
         writer.startNode("ImageTexture", null);
