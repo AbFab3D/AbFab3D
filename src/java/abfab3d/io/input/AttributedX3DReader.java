@@ -32,6 +32,7 @@ import javax.vecmath.Vector3d;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -61,7 +62,8 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
     AttributeCalculator m_attributeCalculator = null;
 
     private int m_dataDimension = 0;
-
+    private int m_lastTex = 0;
+    private HashMap<String,Integer> texMap = new HashMap<String, Integer>();
     public AttributedX3DReader(String path) {
         File f = new File(path);
         m_path = f.getAbsolutePath();
@@ -150,6 +152,8 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
                 tcoord = point_xfrm;
             }
 
+            if (texNode != null) tex = addTexture(texNode);
+
             switch(m_dataDimension) {
                 case 3:
                     addTriangles3(coord, coordIndex, out);
@@ -161,9 +165,6 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
                     addTriangles6(coord, tcoord, tex, coordIndex, tcoordIndex, out);
                     break;
             }
-            if (texNode != null) addTexture(tex,texNode);
-
-            tex++;
         }
 
     }
@@ -204,12 +205,19 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         }
     }
 
-    private void addTexture(int idx, CommonEncodable tex) {
+    private int addTexture(CommonEncodable tex) {
         String[] url = (String[]) ((ArrayData)tex.getValue("url")).data;
         Boolean repeatX = (Boolean) tex.getValue("repeatX");
         Boolean repeatY = (Boolean) tex.getValue("repeatY");
 
         String path = m_baseURL + File.separator + url[0];
+        Integer idx = texMap.get(path);
+        if (idx != null) {
+            return idx;
+        }
+
+        idx = m_lastTex++;
+
         if (DEBUG) printf("X3DReader.addTexture: %s\n",path);
         ImageColorMap icm = new ImageColorMap(path,1,1,1);
         icm.setCenter(new Vector3d(0.5,0.5,0.5));
@@ -218,6 +226,9 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
 
         icm.initialize();
         m_textures[idx] = icm;
+        texMap.put(path,idx);
+
+        return idx;
     }
 
     /**

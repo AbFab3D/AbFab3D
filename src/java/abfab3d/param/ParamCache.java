@@ -32,6 +32,11 @@ public class ParamCache {
         if (DEBUG_MISSES) {
             misses = new BoundedStack<String>(25);
         }
+
+        if (STOP) {
+            printf("*** Param Cache caching is turned off ***\n");
+            new Exception().printStackTrace();
+        }
     }
 
     private ParamCache() {
