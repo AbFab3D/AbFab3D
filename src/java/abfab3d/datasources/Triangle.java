@@ -56,22 +56,17 @@ public class Triangle  extends TransformableDataSource{
     
     public int getBaseValue(Vec pnt, Vec data) {
         
-        double x = pnt.v[0];
-        double y = pnt.v[1];
-        double z = pnt.v[2];
-        
-        if(DEBUG)
-            printf("pnt: (%8.5f %8.5f %8.5f)  ", x,y,z);
-        
+        double 
+            x = pnt.v[0],
+            y = pnt.v[1],
+            z = pnt.v[2];
+                
         Vector3d p = new Vector3d(x,y,z);
+
         double dist = PointToTriangleDistance.get(p, v0, v1, v2);
-        
-        double vs = pnt.getScaledVoxelSize();
-        
-        data.v[0] = step10(dist, threshold, vs);
-        
-        if(DEBUG)
-            printf("dist: %9.5f threshold:%9.5f diff: %9.5f data: %9.5f\n ", dist, threshold,  dist - threshold, data.v[0]);
+        dist -= threshold;
+
+        data.v[0] = getShapeValue(dist, pnt);
         
         return ResultCodes.RESULT_OK;
     }                

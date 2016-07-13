@@ -19,6 +19,9 @@ package abfab3d.datasources;
 import abfab3d.core.ResultCodes;
 import abfab3d.core.Vec;
 
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+
 import static java.lang.Math.abs;
 
 import static abfab3d.core.Output.printf;
@@ -30,7 +33,7 @@ import static abfab3d.core.MathUtil.step10;
 
 /**
 
-   class to return neighborhood of a limit set. 
+   class to return neighborhood of a limit set of symmetry group. 
    These are area where 1/scaleFactor is close to 0. 
 
    @author Vladimir Bulatov
@@ -41,32 +44,46 @@ public class LimitSet  extends TransformableDataSource {
     
     final boolean DEBUG = false;
     int debugCount = 100;
-    private double distance = 1;
-    private double stretchFactor = 1;
+
+    private DoubleParameter  mp_offset = new DoubleParameter("offset","distance offset", 0.);
+    private DoubleParameter  mp_factor = new DoubleParameter("factor","scaling factor", 1);
+
+    Parameter aparam[] = new Parameter[]{
+        mp_offset,
+        mp_factor,
+    };
+
+    private double m_offset = 0;
+    private double m_factor = 1;
     
-    public LimitSet(double distance, double stretchFactor){
+
+
+    public LimitSet(double offset, double factor){
+
+        super.addParams(aparam);
+
+        mp_offset.setValue(offset);
+        mp_factor.setValue(factor);
         
-        this.distance = distance;
-        this.stretchFactor = stretchFactor;
-        
+    }
+
+    public int initialize(){
+
+        super.initialize();
+        m_offset = mp_offset.getValue();
+        m_factor = mp_factor.getValue();
+        return ResultCodes.RESULT_OK;
+
     }
     
     /**
-     * returns 1 if pnt is closer to the limit set then distance
-     * returns 0 if pnt is further from he limit set 
-     limit set distance is calculated as  stretchFactor/pnt.scaleFactor 
+     limit set distance is calculated as   m_factor/pnt.scaleFactor - m_offset 
     */
     public int getBaseValue(Vec pnt, Vec data) {
 
-        double dist = stretchFactor/pnt.getScaleFactor();
-        
-        if(DEBUG ) {
-            double s = pnt.getScaleFactor();
-            if(s != 1.0 && debugCount-- > 0)
-                printf("limitSet scaleFactor: %10.5f\n", s);
-        }
-        
-        data.v[0] = step10(dist, distance, pnt.getVoxelSize());
+        double dist = m_factor/pnt.getScaleFactor()-m_offset;
+
+        data.v[0] = getShapeValue(dist, pnt);
         
         return ResultCodes.RESULT_OK;
         

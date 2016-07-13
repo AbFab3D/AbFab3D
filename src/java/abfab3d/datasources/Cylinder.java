@@ -88,10 +88,6 @@ public class Cylinder extends TransformableDataSource {
      */
     public Cylinder(Vector3d v0, Vector3d v1, double radius0, double radius1  ) {
 
-        if (radius0 < 0 || radius1 < 0) {
-            throw new IllegalArgumentException(fmt("Cylinder radius < 0.  radius0: %15.8g radius1: %15.8g ",radius0,radius1));
-        }
-
         initParams();
 
         setRadius0(radius0);

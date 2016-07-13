@@ -166,11 +166,9 @@ public class Spring extends TransformableDataSource{
         
         double p = crossSectionPower;
         
-        double d0 = (pow(abs(rxy), p) + pow(abs(z0), p) - rpower)/(p*rpower1); 
+        double dist = (pow(abs(rxy), p) + pow(abs(z0), p) - rpower)/(p*rpower1); 
         
-
-        d0 = step10(d0, 0, pnt.getScaledVoxelSize());
-        data.v[0] = d0;
+        data.v[0] = getShapeValue(dist, pnt);
 
         return ResultCodes.RESULT_OK;
     }

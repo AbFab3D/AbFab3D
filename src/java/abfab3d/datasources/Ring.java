@@ -20,6 +20,8 @@ import abfab3d.core.ResultCodes;
 import abfab3d.core.Vec;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static java.lang.Math.sqrt;
 
 import static abfab3d.core.Output.printf;
 
@@ -46,7 +48,7 @@ public class Ring  extends TransformableDataSource{
     protected double exteriorRadius2;
     
     /**
-       makes ring centered at orign with possible differetn offsets in y directions 
+       makes ring centered at orign with possible different offsets along axis
      */
     public Ring(double radius, double thickness, double ymin, double ymax){
         
@@ -74,60 +76,24 @@ public class Ring  extends TransformableDataSource{
     /**
      * @noRefGuide
 
-     * calculates values of all data sources and return maximal value
-     * can be used to make union of few shapes
      */
     public int getBaseValue(Vec pnt, Vec data) {        
 
-        double y = pnt.v[1];
-        double vs = pnt.getScaledVoxelSize();
-        //double w2 = width2 + vs;
+        double 
+            x = pnt.v[0],
+            y = pnt.v[1],
+            z = pnt.v[2];
+
+        double dymax = y - ymax;
+        double dymin = -(y - ymin);
+        double r = sqrt(x*x + z*z);
+        double dInner = (innerRadius-r);
+        double dExt = (r - exteriorRadius);
+        double dist = max(dymax, dymin);
+        dist = max(dist, dInner);
+        dist = max(dist, dExt);
         
-        double yvalue = 1.;
-        
-        if(y < ymin-vs || y > ymax+vs){
-            
-            data.v[0] = 0;
-            return ResultCodes.RESULT_OK;
-            
-        } else if(y < (ymin + vs)){
-            // interpolate lower rim
-            
-            yvalue = (y - (ymin - vs))/(2*vs);
-            
-        } else if(y > (ymax - vs)){
-            
-            // interpolate upper rim
-            yvalue = ((ymax + vs)-y)/(2*vs);
-            
-        }
-        
-        
-        double x = pnt.v[0];
-        double z = pnt.v[2];
-        double r = Math.sqrt(x*x + z*z);
-        
-        double rvalue = 1;
-        if(r < (innerRadius-vs) || r > (exteriorRadius+vs)){
-            data.v[0] = 0;
-            return ResultCodes.RESULT_OK;
-            
-        } else if(r < (innerRadius+vs)){
-            // interpolate interior surface
-            rvalue = (r-(innerRadius-vs))/(2*vs);
-            
-        } else if(r > (exteriorRadius - vs)){
-            
-            rvalue = ((exteriorRadius + vs) - r)/(2*vs);
-            // interpolate exterior surface
-            
-        }
-        
-        //data.v[0] = (rvalue < yvalue)? rvalue : yvalue;
-        if(rvalue < yvalue)
-            data.v[0] = rvalue;
-        else
-            data.v[0] = yvalue;
+        data.v[0] = getShapeValue(dist, pnt);
         
         return ResultCodes.RESULT_OK;
     }

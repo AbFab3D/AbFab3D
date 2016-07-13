@@ -14,6 +14,7 @@ package abfab3d.datasources;
 
 
 import java.util.Vector;
+import java.util.List;
 
 
 import abfab3d.core.ResultCodes;
@@ -257,4 +258,17 @@ public class Union  extends TransformableDataSource implements SNode {
         
         return ResultCodes.RESULT_OK;
     }   
+
+    /**
+     * @noRefGuide
+     */
+    
+    public SNode[] getChildren() {
+
+        List childrenList = mp_dataSources.getValue(); 
+        SNode[] children = (SNode[])childrenList.toArray(new SNode[childrenList.size()]);
+        return children;
+
+    }
+
 } // class Union

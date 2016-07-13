@@ -14,6 +14,7 @@ package abfab3d.datasources;
 
 
 import java.util.Vector;
+import java.util.List;
 
 
 import abfab3d.core.ResultCodes;
@@ -233,16 +234,13 @@ public class Intersection extends TransformableDataSource implements SNode {
     /**
      * @noRefGuide
      */
-    /*
+    
     public SNode[] getChildren() {
-        vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
 
-        // TODO: this is messy cleanup
-        SNode[] ret = new SNode[vDataSources.length];
-        for(int i=0; i < vDataSources.length; i++) {
-            ret[i] = (SNode)vDataSources[i];
-        }
-        return ret;
+        List childrenList = mp_dataSources.getValue(); 
+        SNode[] children = (SNode[])childrenList.toArray(new SNode[childrenList.size()]);
+        return children;
+
     }
-    */
+    
 } // class Intersection
