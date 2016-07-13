@@ -236,6 +236,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Pa
             } else if (co.mesh != null) {
                 mesh = co.mesh;
                 reader = co.reader;
+                if (reader == null) throw new IllegalArgumentException("reader cannot be null");
             }
         } else {
             if (DEBUG) printf("No cache for grid: %s\n",getValueHash());
@@ -292,7 +293,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Pa
         if (DEBUG) printf("Dim: %d\n",dim);
 
         if (!STOP_CACHING) {
-            ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(grid, mesh, null,m_materialType));
+            ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(grid, mesh, reader,m_materialType));
         }
 
         return grid;
@@ -368,6 +369,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Pa
             this.grid = grid;
             this.mesh = mesh;
             this.materialType = materialType;
+            this.reader = reader;
         }
     }
 }
