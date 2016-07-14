@@ -1554,7 +1554,7 @@ public class ClosestPointIndexer {
         
         long inAtt = distanceDataChannel.makeAtt(minDistance);
         long outAtt = distanceDataChannel.makeAtt(maxDistance);
-        printf("minDistance: %7.5f maxDistance: %7.5f minAtt: 0x%x  maxAtt: 0x%x \n", minDistance, maxDistance, inAtt, outAtt);
+        //printf("minDistance: %7.5f maxDistance: %7.5f minAtt: 0x%x  maxAtt: 0x%x \n", minDistance, maxDistance, inAtt, outAtt);
         for(int y = yStart; y < yEnd; y++){
             double coordy = ymin + vs*y;
             for(int x = 0; x < nx; x++){
