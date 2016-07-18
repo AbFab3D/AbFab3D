@@ -33,16 +33,7 @@ import static abfab3d.core.Output.printf;
  *
  * @author Alan Hudson
  */
-public class AttributedMeshReader implements AttributedTriangleProducer, Transformer {
-
-    public static final String
-        EXT_STL = "stl",
-        EXT_X3DB = "x3db",
-        EXT_X3D = "x3d",
-        EXT_X3DV = "x3dv",
-        EXT_WRL = "wrl";
-
-    public static HashSet<String> supportedExt;
+public class AttributedMeshReader extends BaseMeshReader implements AttributedTriangleProducer, Transformer {
 
     private String m_path;
     private InputStream m_is;
@@ -52,15 +43,6 @@ public class AttributedMeshReader implements AttributedTriangleProducer, Transfo
     private AttributedTriangleProducer m_producer;
     private DataSource m_attributeCalc;
     private int m_dataDimension = -1;
-
-    static {
-        supportedExt = new HashSet<String>();
-        supportedExt.add(EXT_STL);
-        supportedExt.add(EXT_X3D);
-        supportedExt.add(EXT_X3DB);
-        supportedExt.add(EXT_X3DV);
-        supportedExt.add(EXT_WRL);
-    }
 
     public AttributedMeshReader(String path) {
         m_path = path;

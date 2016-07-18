@@ -62,6 +62,19 @@ public abstract class BaseAttributeWrapper extends BaseWrapper implements Attrib
     }
 
     /**
+     * Sets the underlying grid to use.
+     *
+     * @param grid The grid or null to clear.
+     */
+    public void setGrid(AttributeGrid grid) {
+        this.grid = grid;
+    }
+
+    public AttributeGrid getGrid() {
+        return ((AttributeGrid)grid);
+    }
+
+    /**
      * Create an empty grid of the specified size.  Reuses
      * the grid type and material type(byte, short, int).
      *

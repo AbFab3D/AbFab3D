@@ -17,7 +17,9 @@ import abfab3d.core.TriangleProducer;
 import abfab3d.core.VecTransform;
 import abfab3d.core.Transformer;
 import org.apache.commons.io.FilenameUtils;
+import static abfab3d.core.Output.printf;
 
+import java.io.File;
 import java.io.InputStream;
 
 /**
@@ -27,14 +29,8 @@ import java.io.InputStream;
  * @author Vladimir Bulatov
  * @author Alan Hudson
  */
-public class MeshReader implements TriangleProducer, Transformer {
-    
-    public static final String 
-        EXT_STL = "stl",
-        EXT_X3DB = "x3db",
-        EXT_X3D = "x3d",
-        EXT_X3DV = "x3dv";
-
+public class MeshReader extends BaseMeshReader implements TriangleProducer, Transformer {
+    private static final boolean DEBUG = true;
 
     private String m_path;
     private InputStream m_is;
@@ -46,7 +42,36 @@ public class MeshReader implements TriangleProducer, Transformer {
 
     public MeshReader(String path) {
         m_path = path;
-        m_format = FilenameUtils.getExtension(path);
+
+        File f = new File(m_path);
+
+        if (f.isDirectory()) {
+            // got a directory, need to find the main file
+            File[] files = f.listFiles();
+            int len = files.length;
+            String main = null;
+
+            for(int i=0; i < len; i++) {
+                String ext = FilenameUtils.getExtension(files[i].getName());
+                if (supportedExt.contains(ext)) {
+                    if (main != null) {
+                        throw new IllegalArgumentException("Zip contains multiple main file.  First: " + main + " Second: " + files[i]);
+                    }
+
+                    main = files[i].getAbsolutePath();
+                }
+            }
+
+            if (main == null) {
+                throw new IllegalArgumentException("Zip does not contain a supported main file");
+            }
+            m_path = main;
+
+            printf("main file: %s\n",m_path);
+        }
+
+        m_format = FilenameUtils.getExtension(m_path);
+
     }
 
     /**
@@ -78,6 +103,7 @@ public class MeshReader implements TriangleProducer, Transformer {
     }
     
     protected TriangleProducer createReader() {
+        if (DEBUG) printf("Creating mesh reader.  format: %s\n",m_format);
         if(m_format.equalsIgnoreCase(EXT_STL)) {
             if (m_is != null) {
                 return new STLReader(m_is);
@@ -92,7 +118,8 @@ public class MeshReader implements TriangleProducer, Transformer {
                 return new X3DReader(m_path);
             }
         }
-        return null;
+
+        throw new IllegalArgumentException("Unsupported format: " + m_format);
     }
         
     public void setTransform(VecTransform trans) {

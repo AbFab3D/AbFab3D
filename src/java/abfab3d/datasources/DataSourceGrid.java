@@ -122,7 +122,6 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
        obsolete
     */
     public DataSourceGrid(AttributeGrid grid, double _bounds[], int subvoxelResolution){
-printf("Creating DSG: %s\n",this.toString());
         super.addParams(m_aparam);
 
         setGrid(grid);
