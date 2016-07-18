@@ -13,6 +13,7 @@ package abfab3d.io.input;
 
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.GridProducer;
+import abfab3d.datasources.AttributeGridSourceWrapper;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.BooleanParameter;
 import abfab3d.param.DoubleParameter;
@@ -292,6 +293,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Pa
 
         if (DEBUG) printf("Dim: %d\n",dim);
 
+        grid = new AttributeGridSourceWrapper(m_vhash,grid);
         if (!STOP_CACHING) {
             ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(grid, mesh, reader,m_materialType));
         }
