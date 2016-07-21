@@ -34,12 +34,20 @@ import javax.vecmath.Vector3d;
 import static abfab3d.util.ImageMipMapGray16.getScaledDownDataBlack;
 import static abfab3d.core.MathUtil.intervalCap;
 import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.MathUtil.fmod;
 import static abfab3d.core.MathUtil.step01;
 import static abfab3d.core.MathUtil.step10;
 import static abfab3d.core.MathUtil.step;
+import static abfab3d.core.MathUtil.lerp2;
+import static abfab3d.core.MathUtil.blendMax;
+import static abfab3d.core.MathUtil.blendMin;
 import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.time;
+
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static java.lang.Math.sqrt;
 
 
 /**
@@ -65,12 +73,13 @@ import static abfab3d.core.Output.time;
  */
 public class Image3D extends TransformableDataSource {
 
-    final static boolean DEBUG = false;
+    final static boolean DEBUG = true;
     final static boolean DEBUG_VIZ = false;
 
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
     public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2;
     public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
+    static final double MIN_GRADIENT = 0.05;
     static final String MEMORY_IMAGE = "[memory image]";
 
     ObjectParameter mp_image = new ObjectParameter("image","Image source", null);
@@ -79,7 +88,7 @@ public class Image3D extends TransformableDataSource {
     Vector3dParameter  mp_size = new Vector3dParameter("size","size of the image box",new Vector3d(0.1,0.1,0.1));
     // rounding of the edges
     DoubleParameter  mp_rounding = new DoubleParameter("rounding","rounding of the box edges", 0.);
-    IntParameter  mp_imagePlace = new IntParameter("imagePlace","placement of the image", 0, 0, 2);
+    IntParameter  mp_imagePlace = new IntParameter("imagePlace","placement of the image", 0, 0, IMAGE_PLACE_BOTH);
     IntParameter  mp_tilesX = new IntParameter("tilesX","image tiles in x-direction", 1);
     IntParameter  mp_tilesY = new IntParameter("tilesY","image tiles in y-direction", 1);
     DoubleParameter  mp_baseThickness = new DoubleParameter("baseThickness","relative thickness of image base", 0.);
@@ -103,8 +112,6 @@ public class Image3D extends TransformableDataSource {
         mp_distanceFactor,
     };
 
-    static final double PIXEL_NORM = 1. / 255.;
-    static final double SHORT_NORM = 1. / 0xFFFF;
     public static final double DEFAULT_PIXEL_SIZE = 0.1*MM;
 
     //static double EPSILON = 1.e-3;
@@ -113,35 +120,42 @@ public class Image3D extends TransformableDataSource {
     public static final double DEFAULT_VOXEL_SIZE = 0.1*MM;
 
     // size of the box 
-    protected double m_sizeX = 0., m_sizeY = 0., m_sizeZ = 10*DEFAULT_VOXEL_SIZE;
+    protected double m_sizeX = 0., m_sizeY = 0., m_sizeZ = 0.;
+    protected double m_halfSizeX,  m_halfSizeY,  m_halfSizeZ;
     // location of the box
     protected double m_centerX = 0, m_centerY = 0, m_centerZ = 0;
 
-    protected double m_baseThickness = 0.0; // relative thickness of solid base
-    protected double m_baseThreshold = 0.01; // threshold to make cut from base of the image 
+    protected double m_baseRelThickness = 0.0; // relative thickness of solid base
+    protected double m_baseThickness = 0.0; // thickness of solid base in physical units
+    protected double m_baseRelThreshold = 0.01; // threshold to make cut from base of the image (in relative units)    
+    protected double m_baseHalfSizeZ;  // 
+    protected double m_baseCenterZ = 0; // 
+    protected double m_rounding = 0.0; // 
+    protected double m_slopeZcoeff; // factor in gradient to compensate for Z stretch in case of IMAGE_PLACE_BOTH
+    protected double m_gradXfactor; // coeff for gradient X calculation
+    protected double m_gradYfactor; // coeff for gradient Y calculation
+
 
     protected int m_imageType = IMAGE_TYPE_EMBOSSED;
     protected int m_imagePlace = IMAGE_PLACE_TOP;
 
+    protected int m_tilesX = 1; // number of image tiles in x-direction 
+    protected int m_tilesY = 1; // number of image tiles in y-direction 
 
-    protected int m_xTilesCount = 1; // number of image tiles in x-direction 
-    protected int m_yTilesCount = 1; // number of image tiles in y-direction 
-    protected boolean m_hasSmoothBoundaryX = false;//
-    protected boolean m_hasSmoothBoundaryY = false;//false;
-
-    private BufferedImage m_image;
     private int m_interpolationType = INTERPOLATION_LINEAR;//INTERPOLATION_BOX;
-    // width of optional blur of the the image 
+    // width of optional blur of the the image     
     private double m_voxelSize = 0.;
 
-    private double xmin, xmax, ymin, ymax, zmin, zmax;
-    private double imageZmin;// location of lowest point of thge image 
-    private double baseBottom;
-    private double imageZScale; // conversion form (0,1) to (0, imageZsize)
+    // bounds of box 
+    protected double m_xmin, m_xmax, m_ymin, m_ymax, m_zmin, m_zmax;
 
-    private double xscale, yscale, zscale;
+    protected boolean m_hasBase = false;
+
+    // conversion from physical units into image units
+    private double m_xfactor, m_yfactor;
+
     private boolean m_useGrayscale = true;
-    private int imageWidth, imageHeight, imageWidth1, imageHeight1;
+    private int m_imageSizeX, m_imageSizeY, m_imageSizeX1, m_imageSizeY1;
     
     // the image data is stored in the Grid2D 
     protected Grid2D m_imageGrid = null; 
@@ -161,8 +175,7 @@ public class Image3D extends TransformableDataSource {
 
     private double m_maxDistance;
 
-
-    private double imageThickness;
+    private double m_imageThickness; // thickness of image layer in physical units
 
     private double m_imageThreshold = 0.5; // this is for black and white case. below threshold we have solid voxel, above - empty voxel  
     // maximal distance to calculate distance transform 
@@ -362,12 +375,7 @@ public class Image3D extends TransformableDataSource {
      * @param sz The z dimension in meters
      */
     public void setSize(double sx, double sy, double sz) {
-
         mp_size.setValue(new Vector3d(sx, sy, sz));
-
-        m_sizeX = sx;
-        m_sizeY = sy;
-        m_sizeZ = sz;
     }
 
     /**
@@ -375,12 +383,7 @@ public class Image3D extends TransformableDataSource {
      * @param size The size in meters
      */
     public void setSize(Vector3d size) {
-
         mp_size.setValue(size);
-
-        m_sizeX = size.x;
-        m_sizeY = size.y;
-        m_sizeZ = size.z;
     }
 
     /**
@@ -399,9 +402,6 @@ public class Image3D extends TransformableDataSource {
     public void setCenter(double cx, double cy, double cz) {
         mp_center.setValue(new Vector3d(cx, cy, cz));
 
-        m_centerX = cx;
-        m_centerY = cy;
-        m_centerZ = cz;
     }
 
     /**
@@ -411,9 +411,6 @@ public class Image3D extends TransformableDataSource {
     public void setCenter(Vector3d val) {
         mp_center.setValue(val);
 
-        m_centerX = val.x;
-        m_centerY = val.y;
-        m_centerZ = val.z;
     }
 
     /**
@@ -433,8 +430,6 @@ public class Image3D extends TransformableDataSource {
 
         mp_tilesX.setValue(new Integer(tilesX));
         mp_tilesY.setValue(new Integer(tilesY));
-        m_xTilesCount = tilesX;
-        m_yTilesCount = tilesY;
     }
 
     /**
@@ -442,9 +437,7 @@ public class Image3D extends TransformableDataSource {
      * @param val The value
      */
     public void setTilesX(int val) {
-
         mp_tilesX.setValue(new Integer(val));
-        m_xTilesCount = val;
     }
 
     /**
@@ -460,7 +453,6 @@ public class Image3D extends TransformableDataSource {
      */
     public void setTilesY(int val) {
         mp_tilesY.setValue(new Integer(val));
-        m_yTilesCount = val;
     }
 
     /**
@@ -576,13 +568,6 @@ public class Image3D extends TransformableDataSource {
 
     }
 
-    /**
-     * @noRefGuide
-     */
-    public void setSmoothBoundaries(boolean boundaryX, boolean boundaryY) {
-        m_hasSmoothBoundaryX = boundaryX;
-        m_hasSmoothBoundaryY = boundaryY;
-    }
 
     /**
      * value = 0 - linear resampling for mipmap
@@ -630,7 +615,7 @@ public class Image3D extends TransformableDataSource {
 
         int nx = m_imageGrid.getWidth();
         int ny = m_imageGrid.getHeight();
-        double base = m_baseThreshold;
+        double base = m_baseRelThreshold;
         for(int y = 0;  y < ny; y++){
             for(int x = 0;  x < nx; x++){
                 double d = getImageValue(x, y);
@@ -668,6 +653,7 @@ public class Image3D extends TransformableDataSource {
     /**
      * Get a label for the OpenCL buffer, account for all params which change the buffer value
      * @return
+     * @noRefGuide
      */
     public String getBufferLabel() {
         return BaseParameterizable.getParamString(getClass().getSimpleName(), imageParams);
@@ -682,10 +668,57 @@ public class Image3D extends TransformableDataSource {
 
         if(DEBUG)printf("%s.initialize()\n",this);
 
-        m_baseThreshold = mp_baseThreshold.getValue();
-        m_baseThickness = mp_baseThickness.getValue();
+
+        Vector3d c = mp_center.getValue(); 
+        m_centerX = c.x;
+        m_centerY = c.y;
+        m_centerZ = c.z;
+
+        Vector3d s = mp_size.getValue(); 
+        m_sizeX = s.x;
+        m_sizeY = s.y;
+        m_sizeZ = s.z;
+
+        m_halfSizeX = m_sizeX/2;
+        m_halfSizeY = m_sizeY/2;
+        m_halfSizeZ = m_sizeZ/2;
+
+        m_baseRelThreshold = mp_baseThreshold.getValue();
+        m_baseRelThickness = mp_baseThickness.getValue();        
+        m_rounding = mp_rounding.getValue();
+       
         m_imagePlace = mp_imagePlace.getValue();
         m_useGrayscale = mp_useGrayscale.getValue();
+
+        m_tilesX = mp_tilesX.getValue();
+        m_tilesY = mp_tilesY.getValue();
+
+        m_xmin = m_centerX - m_halfSizeX;
+        m_xmax = m_centerX + m_halfSizeX;
+        m_ymin = m_centerY - m_halfSizeY;
+        m_ymax = m_centerY + m_halfSizeY;
+        m_zmin = m_centerZ - m_halfSizeZ;
+        m_zmax = m_centerZ + m_halfSizeZ;
+
+        m_imageThickness = (1. - m_baseRelThickness)*m_sizeZ;
+        m_baseThickness = m_baseRelThickness*m_sizeZ;
+        m_hasBase = (m_baseRelThickness > 0.);
+        m_baseHalfSizeZ = m_baseThickness/2;
+
+        switch(m_imagePlace){
+        case IMAGE_PLACE_BOTH:            
+            m_baseCenterZ = m_centerZ;
+            m_slopeZcoeff = 4;
+            break;
+        case IMAGE_PLACE_TOP:            
+            m_baseCenterZ = m_zmin + m_baseHalfSizeZ;
+            m_slopeZcoeff= 1;
+            break;
+        case IMAGE_PLACE_BOTTOM:            
+            m_baseCenterZ = m_zmax - m_baseHalfSizeZ;
+            m_slopeZcoeff = 1;
+            break;
+        }
 
         String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), imageParams);
 
@@ -694,8 +727,8 @@ public class Image3D extends TransformableDataSource {
             int res = prepareImage();
             if(res != ResultCodes.RESULT_OK){
                 // something wrong with the image
-                imageWidth = 2;
-                imageHeight = 2;
+                m_imageSizeX = 2;
+                m_imageSizeY = 2;
                 throw new IllegalArgumentException("undefined image");
             }
 
@@ -705,52 +738,21 @@ public class Image3D extends TransformableDataSource {
             m_imageGrid = (Grid2D) co;
             m_dataChannel = m_imageGrid.getAttributeDesc().getDefaultChannel();
 
-            imageWidth = m_imageGrid.getWidth();
-            imageHeight = m_imageGrid.getHeight();
-            imageWidth1 = imageWidth - 1;
-            imageHeight1 = imageHeight - 1;
-            if (DEBUG) printf("%s image cached.  w: %d  h: %d  size: %f x %f \n",this,imageWidth,imageHeight,m_sizeX,m_sizeY);
-        }
-
-        if(m_sizeX == 0.){
-            // width undefined - get it from image aspect ratio 
-            if(m_sizeY == 0.){ 
-                // both sizes are undefined - do something reasonable 
-                m_sizeX = imageWidth*DEFAULT_VOXEL_SIZE;
-                m_sizeY = imageHeight*DEFAULT_VOXEL_SIZE;
-            } else {
-                
-                m_sizeX = (m_sizeY * imageWidth) / imageHeight;
-            }            
-        } else if(m_sizeY == 0.0){ 
-            // height is undefined - get it from the image aspect ratio 
-            m_sizeY = (m_sizeX * imageHeight) / imageWidth;            
+            m_imageSizeX = m_imageGrid.getWidth();
+            m_imageSizeY = m_imageGrid.getHeight();
+            m_imageSizeX1 = m_imageSizeX - 1;
+            m_imageSizeY1 = m_imageSizeY - 1;
+            if (DEBUG) printf("%s image cached.  w: %d  h: %d  size: %f x %f \n",this,m_imageSizeX,m_imageSizeY,m_sizeX,m_sizeY);
         }
         
-        xmin = m_centerX - m_sizeX / 2.;
-        xmax = m_centerX + m_sizeX / 2.;
-        xscale = 1. / (xmax - xmin);
+        m_xfactor = m_imageSizeX/m_sizeX;
+        m_yfactor = m_imageSizeX/m_sizeY;
 
+        m_gradXfactor = m_tilesX*m_imageThickness*m_xfactor/2;
+        m_gradYfactor = m_tilesY*m_imageThickness*m_yfactor/2;
 
-        ymin = m_centerY - m_sizeY / 2.;
-        ymax = m_centerY + m_sizeY / 2.;
-        yscale = 1. / (ymax - ymin);
-
-        zmin = m_centerZ - m_sizeZ / 2.;
-        zmax = m_centerZ + m_sizeZ / 2.;
-        zscale = 1. / (zmax - zmin);
-
-        imageThickness = (1. - m_baseThickness);
-
-        if (m_imagePlace == IMAGE_PLACE_BOTH) {
-            imageZmin = m_centerZ + (zmax - m_centerZ) * m_baseThickness;
-            baseBottom = 2 * m_centerZ - imageZmin;
-        } else {
-            imageZmin = zmin + (zmax - zmin) * m_baseThickness;
-            baseBottom = zmin;
-        }
-
-        imageZScale = (zmax - imageZmin);
+        printf("m_imageThickness:%7.5f\n", m_imageThickness);
+        printf("m_baseThickness:%7.5f\n", m_baseThickness);
         
         return ResultCodes.RESULT_OK;
     }
@@ -816,14 +818,14 @@ public class Image3D extends TransformableDataSource {
 
         if (m_voxelSize > 0.0) {
             // we have finite voxel size, try to scale the image down to reasonable size 
-            double pixelSize = (m_sizeX / (imageData.getWidth() * m_xTilesCount));
+            double pixelSize = (m_sizeX / (imageData.getWidth() * m_tilesX));
             double pixelsPerVoxel = m_voxelSize / pixelSize;
             if(DEBUG)printf("pixelsPerVoxel: %f\n", pixelsPerVoxel);
 
             if (pixelsPerVoxel > MAX_PIXELS_PER_VOXEL) {
 
                 double newPixelSize = m_voxelSize / MAX_PIXELS_PER_VOXEL;
-                int newWidth = (int) Math.ceil((m_sizeX / m_xTilesCount) / newPixelSize);
+                int newWidth = (int) Math.ceil((m_sizeX / m_tilesX) / newPixelSize);
                 int newHeight = (imageData.getHeight() * newWidth) / imageData.getWidth();
                 if(DEBUG)printf("resampling image[%d x %d] -> [%d x %d]\n",
                         imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
@@ -837,31 +839,31 @@ public class Image3D extends TransformableDataSource {
             }
         }
 
-        imageWidth = imageData.getWidth();
-        imageHeight = imageData.getHeight();
-        imageWidth1 = imageWidth - 1;
-        imageHeight1 = imageHeight - 1;
+        m_imageSizeX = imageData.getWidth();
+        m_imageSizeY = imageData.getHeight();
+        m_imageSizeX1 = m_imageSizeX - 1;
+        m_imageSizeY1 = m_imageSizeY - 1;
         
         double blurWidth = mp_blurWidth.getValue();
 
         if (blurWidth > 0.0) {
 
-            double pixelSize = (m_sizeX / (imageWidth * m_xTilesCount));
+            double pixelSize = (m_sizeX / (m_imageSizeX * m_tilesX));
 
             double blurSizePixels = blurWidth / pixelSize;
             t1 = time();
             imageData.gaussianBlur(blurSizePixels);
 
             if(DEBUG)printf("Image3D image[%d x %d] gaussian blur: %7.2f pixels blur width: %10.5fmm time: %d ms\n",
-                   imageWidth, imageHeight, blurSizePixels, blurWidth/MM, (time() - t1));
+                   m_imageSizeX, m_imageSizeY, blurSizePixels, blurWidth/MM, (time() - t1));
         }
 
         int res = 0;
 
-        if (!m_useGrayscale) {
-            res = makeImageBlack(imageData);
-        } else {
+        if (m_useGrayscale) {
             res = makeImageGray(imageData);            
+        } else {
+            res = makeImageBlack(imageData);
         }
 
         if(DEBUG)printf("Image3D.prepareImage() time: %d ms\n", (time() - t0));
@@ -946,7 +948,7 @@ public class Image3D extends TransformableDataSource {
 
             t0 = time();
             if(true)throw new RuntimeException("INTERPOLATION_MIPMAP not implemented");
-            //m_mipMap = new ImageMipMapGray16(imageDataShort, imageWidth, imageHeight);
+            //m_mipMap = new ImageMipMapGray16(imageDataShort, m_imageSizeX, m_imageSizeY);
             
             if(DEBUG)printf("mipmap ready in %d ms\n", (time() - t0));
 
@@ -965,29 +967,220 @@ public class Image3D extends TransformableDataSource {
     }
 
     /**
-     * returns 1 if pnt is inside of image
-     * returns 0 otherwise
+     * calculates value of shape distance or density 
+     * the 
+     * @return ResultCodes.RESULT_OK
      *
      * @noRefGuide
      */
     public int getBaseValue(Vec pnt, Vec data) {
 
-        double vs = pnt.getScaledVoxelSize();
-        if (vs == 0.)
-            getDataValueZeroVoxel(pnt, data);
-        else
-            getDataValueFiniteVoxel(pnt, data, vs);
-
+        double dist = getDistanceValue(pnt);
+        data.v[0] = getShapeValue(dist, pnt);
+        
         return ResultCodes.RESULT_OK;
         
     }
 
+    /**      
+     *
+     *  @return distance to the Image3D
+     *  
+     */
+    public double getDistanceValue(Vec pnt){
+        if(m_useGrayscale)
+            return getDistanceGray(pnt);
+        else 
+            return getDistanceBW(pnt);
+    }
+
+
+    /**
+     *       
+     *   returns distance to gray image 3D 
+     *  
+     */    
+    public double getDistanceGray(Vec pnt){
+
+        final boolean PRINT_VALUES = false;
+
+        // original coord 
+        double 
+            x0 = pnt.v[0],
+            y0 = pnt.v[1],
+            z0 = pnt.v[2];
+        if(PRINT_VALUES)printf("pnt: (%7.5f %7.5f %7.5f)\n",x0,y0,z0);
+        double x,y,z; // coord in image units
+        x = x0 - m_xmin;
+        y = y0 - m_ymin;
+        z = z0 - m_zmin;
+        // transform coord treat all 3 cases in uniform way 
+        switch(m_imagePlace){
+        default:
+        case IMAGE_PLACE_TOP:  
+            // canonic orientation 
+            break;
+        case IMAGE_PLACE_BOTTOM:
+            // flip z 
+            z = m_sizeZ-z;
+            break;
+        case IMAGE_PLACE_BOTH: // both sides
+            // fold and scale z 
+            z = abs(2*z - m_sizeZ);
+            break;
+        }
+       
+        x *= m_xfactor;
+        y *= m_yfactor;
+
+        if(PRINT_VALUES)printf("pnt_grid: (%7.5f %7.5f %7.5f)\n",x,y,z);
+
+        x = clamp(x, 0., (double)m_imageSizeX);
+        y = clamp(y, 0., (double)m_imageSizeY);
+        // x, y are in [0, 0, m_imageSizeX, mageHeight] range
+
+        if(m_tilesX > 1) x = fmod(x*m_tilesX,(double)m_imageSizeX);
+        if(m_tilesY > 1) y = fmod(y*m_tilesY,(double)m_imageSizeY);
+        int ix = (int)x;
+        int iy = (int)y;
+        double 
+            dx = x - ix,
+            dy = y - iy;
+
+        ix = clamp(ix, 0, m_imageSizeX1);
+        iy = clamp(iy, 0, m_imageSizeY1);
+        int ix1 = ix+1;
+        int iy1 = iy+1;
+        ix1 = clamp(ix1, 0, m_imageSizeX1);
+        iy1 = clamp(iy1, 0, m_imageSizeY1);
+        int ix_1 = clamp(ix-1, 0, m_imageSizeX1);
+        int iy_1 = clamp(iy-1, 0, m_imageSizeY1);
+        int ix2 = clamp(ix+2, 0, m_imageSizeX1);
+        int iy2 = clamp(iy+2, 0, m_imageSizeY1);
+
+        double v00 = getImageValue(ix, iy);
+        double v10 = getImageValue(ix1, iy);
+        double v01 = getImageValue(ix, iy1);
+        double v11 = getImageValue(ix1, iy1);
+        // interpolated image value 
+        double iValue = lerp2(v00, v10, v01, v11, dx, dy);
+        // iValue is in range (0,1)
+
+        if(PRINT_VALUES) printf("iValue: %7.5f\n", iValue);
+        //if(PRINT_VALUES) printf("hfDist: %7.5f\n", hfDist);        
+        double v_10 = getImageValue(ix_1, iy);
+        double v20 = getImageValue(ix2, iy);
+        double v_11 = getImageValue(ix_1, iy1);
+        double v21 = getImageValue(ix2, iy1);
+        double v0_1 = getImageValue(ix, iy_1);
+        double v02 = getImageValue(ix, iy2);
+        double v1_1 = getImageValue(ix1, iy_1);
+        double v12 = getImageValue(ix1, iy2);
+
+        double gx00 = (v10 - v_10);
+        double gx10 = (v20 - v00);
+        double gx01 = (v11 - v_11);
+        double gx11 = (v21 - v01);
+        double gy00 = (v01 - v0_1);
+        double gy10 = (v11 - v1_1);
+        double gy01 = (v02 - v00);
+        double gy11 = (v12 - v10);
+        
+        double gradX = lerp2(gx00, gx10, gx01, gx11, dx, dy)*m_gradXfactor;
+        double gradY = lerp2(gy00, gy10, gy01, gy11, dx, dy)*m_gradYfactor;
+        double slopeFactor = 1/sqrt(m_slopeZcoeff + gradX*gradX + gradY*gradY);
+        double thresholdFactor = m_imageThickness/max(MIN_GRADIENT, sqrt(gradX*gradX + gradY*gradY));
+        // distance in xy pane to image threshold 
+        double thresholdDist = -(iValue-m_baseRelThreshold)* thresholdFactor;
+
+        // image value in physical units
+        iValue = iValue*m_imageThickness+m_baseThickness;
+
+        double dist = slopeFactor*(z - iValue); // distance to surface 
+        if(m_imagePlace != IMAGE_PLACE_BOTH) 
+             dist = max( dist, m_baseHalfSizeZ - z);
+
+        if(PRINT_VALUES) printf("grad: %7.5f %7.5f final hfDist: %7.5f\n", gradX, gradY, dist);
+               
+        dist = blendMax( dist, thresholdDist, m_rounding);
+        double distBoxXY = blendMax(abs(x0 - m_centerX) - m_halfSizeX,abs(y0 - m_centerY) - m_halfSizeY, m_rounding);
+        dist = blendMax(dist, distBoxXY, m_rounding);
+        //add base      
+        if(m_hasBase){
+            double distBase = blendMax(distBoxXY, abs(z0 - m_baseCenterZ) - m_baseHalfSizeZ, m_rounding);
+            dist  = blendMin(dist, distBase, m_rounding);
+        }
+        return dist;
+    }
+
+    /**
+       returns distance to BW image 
+     */
+    public double getDistanceBW(Vec pnt){
+
+        final boolean PRINT_VALUES = false;
+        double 
+            x0 = pnt.v[0],
+            y0 = pnt.v[1],
+            z0 = pnt.v[2];
+        if(PRINT_VALUES)printf("pnt: (%7.5f %7.5f %7.5f)\n",x0,y0,z0);
+        double x,y,z; // coord in image units
+        x = x0 - m_xmin;
+        y = y0 - m_ymin;
+        z = z0 - m_zmin;       
+        x *= m_xfactor;
+        y *= m_yfactor;
+
+        if(PRINT_VALUES)printf("pnt_grid: (%7.5f %7.5f %7.5f)\n",x,y,z);
+
+        x = clamp(x, 0., (double)m_imageSizeX);
+        y = clamp(y, 0., (double)m_imageSizeY);
+        // x, y are in [0, 0, m_imageSizeX, mageHeight] range
+
+        if(m_tilesX > 1) x = fmod(x*m_tilesX,(double)m_imageSizeX);
+        if(m_tilesY > 1) y = fmod(y*m_tilesY,(double)m_imageSizeY);
+        int ix = (int)x;
+        int iy = (int)y;
+        double 
+            dx = x - ix,
+            dy = y - iy;
+
+        ix = clamp(ix, 0, m_imageSizeX1);
+        iy = clamp(iy, 0, m_imageSizeY1);
+        int ix1 = ix+1;
+        int iy1 = iy+1;
+        ix1 = clamp(ix1, 0, m_imageSizeX1);
+        iy1 = clamp(iy1, 0, m_imageSizeY1);
+
+        double v00 = getImageValue(ix, iy);
+        double v10 = getImageValue(ix1, iy);
+        double v01 = getImageValue(ix, iy1);
+        double v11 = getImageValue(ix1, iy1);
+        
+        // image is precalculated to return normalized value of distance to the side 
+        double iValue = 1/(0.5*(m_tilesX + m_tilesY))*lerp2(v00, v10, v01, v11, dx, dy);
+
+        double dist = iValue; 
+        dist = blendMax(dist, z - m_sizeZ, m_rounding); // top crop 
+        dist = blendMax(dist, -z, m_rounding); // bottom crop 
+
+        double dBoxXY = blendMax(abs(x0 - m_centerX) - m_halfSizeX,abs(y0 - m_centerY) - m_halfSizeY, m_rounding);
+        dist = blendMax(dist, dBoxXY, m_rounding);
+                
+        if(m_hasBase){
+            double dBase = blendMax(dBoxXY, abs(z0 - m_baseCenterZ) - m_baseHalfSizeZ, m_rounding);
+            dist  = blendMin(dist, dBase, m_rounding);            
+        }
+        
+        return dist;        
+    }
 
     /**
      * calculation for finite voxel size
      *
      * @noRefGuide
      */
+    /*
     public int getDataValueFiniteVoxel(Vec pnt, Vec data, double vs) {
 
         double
@@ -1021,8 +1214,7 @@ public class Image3D extends TransformableDataSource {
                 break;
         }
 
-        //  getBox(x,y,z, xmin, xmax, ymin, ymax, baseBottom, imageZmin, vs);
-        double baseValue = intervalCap(z, baseBottom, imageZmin, vs);
+        double baseValue = intervalCap(z, baseBottom, m_imageZmin, vs);
         double finalValue = baseValue;
 
         double dd = vs;
@@ -1030,23 +1222,23 @@ public class Image3D extends TransformableDataSource {
         double imageX = (x - xmin) * xscale; // x and y are now in (0,1)
         double imageY = 1. - (y - ymin) * yscale;
 
-        if (m_xTilesCount > 1) {
-            imageX *= m_xTilesCount;
+        if (m_tilesX > 1) {
+            imageX *= m_tilesX;
             imageX -= Math.floor(imageX);
         }
-        if (m_yTilesCount > 1) {
-            imageY *= m_yTilesCount;
+        if (m_tilesY > 1) {
+            imageY *= m_tilesY;
             imageY -= Math.floor(imageY);
         }
 
-        imageX *= imageWidth;
-        imageY *= imageHeight;
+        imageX *= m_imageSizeX;
+        imageY *= m_imageSizeY;
 
         // image x and imageY are in image units now 
-        int ix = clamp((int) Math.floor(imageX), 0, imageWidth1);
-        int iy = clamp((int) Math.floor(imageY), 0, imageHeight1);
-        int ix1 = clamp(ix + 1, 0, imageWidth1);
-        int iy1 = clamp(iy + 1, 0, imageHeight1);
+        int ix = clamp((int) Math.floor(imageX), 0, m_imageSizeX1);
+        int iy = clamp((int) Math.floor(imageY), 0, m_imageSizeY1);
+        int ix1 = clamp(ix + 1, 0, m_imageSizeX1);
+        int iy1 = clamp(iy + 1, 0, m_imageSizeY1);
         double dx = imageX - ix;
         double dy = imageY - iy;
         double dx1 = 1. - dx;
@@ -1081,7 +1273,7 @@ public class Image3D extends TransformableDataSource {
 
         } else {
 
-            // using grayscale 
+            // grayscale image 
 
             if (h0 < m_baseThreshold) {
                 // TODO - better treatment of threshold 
@@ -1093,10 +1285,8 @@ public class Image3D extends TransformableDataSource {
                 double z0 = imageZmin + imageZScale * h0;
                 double bottomStep = step((z - (imageZmin - vs)) / (2 * vs));
 
-                //hy = imageZmin + imageZScale*h0;
-
                 //TODO - better calculation of normal in case of tiles
-                double pixelSize = (m_sizeX / (imageWidth * m_xTilesCount));
+                double pixelSize = (m_sizeX / (m_imageSizeX * m_tilesX));
                 double nx = -(v10 - v00) * imageZScale;
                 double ny = -(v01 - v00) * imageZScale;
                 double nz = pixelSize;
@@ -1123,7 +1313,6 @@ public class Image3D extends TransformableDataSource {
             }
         }
 
-
         //hfValue *= intervalCap(z, imageZmin, zmax, vs) * intervalCap(x, xmin, xmax, vs) * intervalCap(y, ymin, ymax, vs);
         // union of base and image layer 
         finalValue += imageValue;
@@ -1140,70 +1329,59 @@ public class Image3D extends TransformableDataSource {
         return ResultCodes.RESULT_OK;
 
     }
-
+    */
 
     /**
+     * @return normalized value of image data at the given point 
      * @noRefGuide
      */
     final double getImageValue(int ix, int iy) {
-
+        
         try {
             return m_dataChannel.getValue(m_imageGrid.getAttribute(ix, iy));
         } catch (Exception e) {
             e.printStackTrace(Output.out);
         }
         return 0.;
-        /*
-        switch (m_imageType) {
-            case IMAGE_TYPE_EMBOSSED:
-                v = 1. - v;
-                if (v < EPSILON)
-                    v = 0;
-                break;
-
-            default:
-            case IMAGE_TYPE_ENGRAVED:
-                break;
-        }
-        */
-
     }
 
     /**
      * @noRefGuide
      */
+    /*
     private double getHeightFieldValue(double x, double y, double probeSize) {
 
         x = (x - xmin) * xscale; // x and y are now in (0,1)
         y = 1. - (y - ymin) * yscale;
 
-        if (m_xTilesCount > 1) {
-            x *= m_xTilesCount;
+        if (m_tilesX > 1) {
+            x *= m_tilesX;
             x -= Math.floor(x);
         }
-        if (m_yTilesCount > 1) {
-            y *= m_yTilesCount;
+        if (m_tilesY > 1) {
+            y *= m_tilesY;
             y -= Math.floor(y);
         }
 
-        x *= imageWidth;
-        y *= imageHeight;
+        x *= m_imageSizeX;
+        y *= m_imageSizeY;
 
-        probeSize *= xscale * imageWidth;
+        probeSize *= (xscale * m_imageSizeX);
 
         double v = getPixelValue(x, y, probeSize);
 
-        v = imageZmin + imageZScale * v;
+        v = m_imageZmin + imageZScale * v;
 
         return v;
 
     }
-
+    */
     /**
      * calculation for zero voxel size
      *
      * @noRefGuide
      */
+    /*
     protected int getDataValueZeroVoxel(Vec pnt, Vec data) {
 
         double
@@ -1245,23 +1423,23 @@ public class Image3D extends TransformableDataSource {
             return ResultCodes.RESULT_OK;
         }
 
-        if (m_xTilesCount > 1) {
-            x *= m_xTilesCount;
+        if (m_tilesX > 1) {
+            x *= m_tilesX;
             x -= Math.floor(x);
         }
-        if (m_yTilesCount > 1) {
-            y *= m_yTilesCount;
+        if (m_tilesY > 1) {
+            y *= m_tilesY;
             y -= Math.floor(y);
         }
 
-        double imageX = imageWidth * x;
-        double imageY = imageHeight * (1. - y);// reverse Y-direction
+        double imageX = m_imageSizeX * x;
+        double imageY = m_imageSizeY * (1. - y);// reverse Y-direction
 
         double pixelValue = getPixelValue(imageX, imageY, 0.);
-        /*
-        if(debugCount-- > 0)
-            printf("imageXY: [%7.2f, %7.2f] -> pixelValue: %8.5f\n", imageX, imageY, pixelValue);
-        */
+        
+        //if(debugCount-- > 0)
+        //    printf("imageXY: [%7.2f, %7.2f] -> pixelValue: %8.5f\n", imageX, imageY, pixelValue);
+       
         double d = 0;
 
         if (m_useGrayscale) {
@@ -1285,12 +1463,13 @@ public class Image3D extends TransformableDataSource {
 
         return ResultCodes.RESULT_OK;
     }
-
+    */
 
     /**
-     * returns value of pixel at given x,y location. value normalized to (0,1)
-     * x is inside [0, imageWidth]
-     * y is inside [0, imageHeight]
+     * returns value of pixel at given x,y location. 
+     * returned value normalized to (0,1)
+     * x is inside [0, m_imageSizeX]
+     * y is inside [0, m_imageSizeY]
      *
      * @noRefGuide
      */
@@ -1298,7 +1477,7 @@ public class Image3D extends TransformableDataSource {
 
         double grayLevel;
 
-        if (x < 0 || x >= imageWidth || y < 0 || y >= imageHeight) {
+        if (x <= 0 || x >= m_imageSizeX || y <= 0 || y >= m_imageSizeY) {
 
             grayLevel = 1;
 
@@ -1323,8 +1502,6 @@ public class Image3D extends TransformableDataSource {
             }
         }
 
-        //if(debugCount-- > 0)
-        //    printf("(%10.7f, %10.7f) -> %10.7f\n", x, y, grayLevel);
         // pixel value for black is 0 for white is 255;
         // we may need to reverse it
 
@@ -1360,13 +1537,13 @@ public class Image3D extends TransformableDataSource {
         double dy = y - y0;
         double dx1 = 1 - dx, dy1 = 1 - dy;
 
-        x0 = clamp(x0, 0, imageWidth - 1);
-        x1 = clamp(x1, 0, imageWidth - 1);
-        y0 = clamp(y0, 0, imageHeight - 1);
-        y1 = clamp(y1, 0, imageHeight - 1);
+        x0 = clamp(x0, 0, m_imageSizeX - 1);
+        x1 = clamp(x1, 0, m_imageSizeX - 1);
+        y0 = clamp(y0, 0, m_imageSizeY - 1);
+        y1 = clamp(y1, 0, m_imageSizeY - 1);
 
-        int yoffset0 = y0 * imageWidth;
-        int yoffset1 = y1 * imageWidth;
+        int yoffset0 = y0 * m_imageSizeX;
+        int yoffset1 = y1 * m_imageSizeX;
 
         double d00 = getImageValue(x0, y0);
         double d10 = getImageValue(x1, y0);
@@ -1381,11 +1558,11 @@ public class Image3D extends TransformableDataSource {
      */
     final double getPixelBoxShort(double x, double y) {
 
-        int ix = clamp((int) Math.floor(x), 0, imageWidth - 1);
-        int iy = clamp((int) Math.floor(y), 0, imageHeight - 1);
+        int ix = clamp((int) Math.floor(x), 0, m_imageSizeX - 1);
+        int iy = clamp((int) Math.floor(y), 0, m_imageSizeY - 1);
 
         return getImageValue(ix, iy);
 
     }
-
+    
 }  // class Image3D

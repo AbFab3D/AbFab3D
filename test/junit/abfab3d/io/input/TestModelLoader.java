@@ -38,37 +38,75 @@ public class TestModelLoader extends TestCase {
         double voxelSize = 0.2*MM;
 
         String filePath = "test/models/donut_textured.x3dv";
-
+        String svxFile = "/tmp/donut.svx";
+        
         long t0 = time();
-        long lt;
-        long wt;
-        long rt;
-
+        long 
+            lt=0, wt = 0, rt = 0;
+        
         ModelLoader loader = new ModelLoader(filePath);
         loader.setAttributeLoading(true);
 
         AttributeGrid grid = loader.getGrid();
         lt = time() - t0;
-
+        printf("model loading time: %d ms\n", lt);
         t0 = time();
-        String f = "/tmp/donut.svx";
-        new SVXWriter().write(grid, f);
+        new SVXWriter().write(grid, svxFile);
         wt = time() - t0;
+        printf("SVX writing time: %d ms\n", wt);
 
+        
         t0 = time();
+        
         SVXReader sreader = new SVXReader();
-        AttributeGrid grid2 = sreader.load(f);
+        AttributeGrid grid2 = sreader.load(svxFile);
         rt = time() - t0;
 
-        printf("load time: %d ms\n",lt);
-        printf("write time: %d ms\n",wt);
-        printf("read time: %d ms\n",rt);
+        printf("Model load time: %d ms\n",lt);
+        printf("SVX write time: %d ms\n",wt);
+        printf("SVX read time: %d ms\n",rt);
+    }
+
+
+    public void testSVX_singleChannel() throws IOException {
+        double voxelSize = 0.05*MM;
+
+        String filePath = "test/models/donut_textured.x3dv";
+        String svxFile = "/tmp/donut_distrgb.svx";
+        
+        long t0 = time();
+        long 
+            lt=0, wt = 0, rt = 0;
+        
+        ModelLoader loader = new ModelLoader(filePath);
+        loader.setVoxelSize(voxelSize);
+        loader.setAttributeLoading(true);
+
+        AttributeGrid grid = loader.getGrid();
+        lt = time() - t0;
+        printf("model loading time: %d ms\n", lt);
+        grid.setDataDesc(GridDataDesc.getDistBGRcomposite(0.001));
+        t0 = time();
+        new SVXWriter().write(grid, svxFile);
+        wt = time() - t0;
+        printf("SVX writing time: %d ms\n", wt);
+        
+        
+        t0 = time();
+        
+        SVXReader sreader = new SVXReader();
+        AttributeGrid grid2 = sreader.load(svxFile);
+        rt = time() - t0;
+        
+        printf("Model load time: %d ms\n",lt);
+        printf("SVX write time: %d ms\n",wt);
+        printf("SVX read time: %d ms\n",rt);
     }
 
 
     public void testStripAtts() throws IOException {
 
-        double voxelSize = 0.1*MM;
+        double voxelSize = 0.2*MM;
 
         String filePath = "test/models/donut_textured.x3dv";
 
@@ -239,4 +277,14 @@ public class TestModelLoader extends TestCase {
         DataSourceGrid dsg = new DataSourceGrid(grid);
 
     }
+
+    public static void main(String arg[]) throws Exception {
+
+        for(int i = 0; i < 1; i++){
+            new TestModelLoader().testSVX_singleChannel();
+        }
+
+    }
+
+
 }

@@ -152,10 +152,15 @@ public class SVXManifest {
 class Channel {
     /** Definition of channel types */
     public enum Type {
-        DENSITY(0), COLOR(1), NORMAL(2), CUSTOM(3),
-        MATERIAL_ID_1(4), MATERIAL_DENSITY_1(5), MATERIAL_ID_2(6), MATERIAL_DENSITY_2(7),
-        MATERIAL_ID_3(8), MATERIAL_DENSITY_3(9), MATERIAL_ID_4(10), MATERIAL_DENSITY_4(11);
-
+        DISTANCE(0), RED(1), GREEN(2), BLUE(3), DENSITY(4),
+            DISTANCE_COLOR(5);
+        /*
+        DENSITY(0), COLOR(1),(1), 
+            NORMAL(2), CUSTOM(3),
+            MATERIAL_ID_1(4), MATERIAL_DENSITY_1(5), MATERIAL_ID_2(6), MATERIAL_DENSITY_2(7),
+            MATERIAL_ID_3(8), MATERIAL_DENSITY_3(9), MATERIAL_ID_4(10), MATERIAL_DENSITY_4(11), 
+            DISTANCE(12);
+        */
         private final int id;
 
         private Type(final int id) {
@@ -165,26 +170,25 @@ class Channel {
         public int getId() {
             return id;
         }
-
     };
 
     /** The type of information in the channel */
     private Type type;
 
     /** The naming pattern for the image slices, can include the directory */
-    private String slices;
+    private String slicesPath;
 
-    Channel(Type type, String slices) {
+    Channel(Type type, String slicesPath) {
         this.type = type;
-        this.slices = slices;
+        this.slicesPath = slicesPath;
     }
 
     public Type getType() {
         return type;
     }
 
-    public String getSlices() {
-        return slices;
+    public String getSlicesPath() {
+        return slicesPath;
     }
 }
 

@@ -13,7 +13,9 @@
 package abfab3d.io.input;
 
 import abfab3d.grid.ArrayAttributeGridByte;
+import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.core.AttributeGrid;
+import abfab3d.core.Bounds;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -67,28 +69,35 @@ public class SVXReader {
             if (mf == null) {
                 throw new IOException("Could not parse manifest file");
             }
+            int nx = mf.getGridSizeX();
+            int ny = mf.getGridSizeY();
+            int nz = mf.getGridSizeZ();
+            double vs = mf.getVoxelSize();
+            //TODO - select right grid 
+            AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz,vs, vs);
+            //AttributeGrid grid = new ArrayAttributeGridInt(nx, ny, nz,vs, vs);
 
-            AttributeGrid ret_val = new ArrayAttributeGridByte(mf.getGridSizeX(),mf.getGridSizeY(),mf.getGridSizeZ(),mf.getVoxelSize(),mf.getVoxelSize());
-
-            double[] bounds = new double[6];
-
-            bounds[0] = mf.getOriginX();
-            bounds[1] = mf.getOriginX() + mf.getGridSizeX() * mf.getVoxelSize();
-            bounds[2] = mf.getOriginY();
-            bounds[3] = mf.getOriginY() + mf.getGridSizeY() * mf.getVoxelSize();
-            bounds[4] = mf.getOriginZ();
-            bounds[5] = mf.getOriginZ() + mf.getGridSizeZ() * mf.getVoxelSize();
-            ret_val.setGridBounds(bounds);
+            double 
+                xmin = mf.getOriginX(),
+                ymin = mf.getOriginY(),
+                zmin = mf.getOriginZ();
+            
+            grid.setGridBounds(new Bounds(xmin, xmin + nx*vs, ymin, ymin + ny*vs,zmin, zmin+ny*vs));
 
             List<Channel> channels = mf.getChannels();
-
+            //TODO - implement this properly 
             for(Channel chan : channels) {
-                if (chan.getType().getId() == Channel.Type.DENSITY.getId()) {
+                if (chan.getType().getId() == Channel.Type.DENSITY.getId() ||                    
+                    chan.getType().getId() == Channel.Type.DISTANCE.getId()||
+                    chan.getType().getId() == Channel.Type.RED.getId()||
+                    chan.getType().getId() == Channel.Type.GREEN.getId()||
+                    chan.getType().getId() == Channel.Type.BLUE.getId() ||
+                    chan.getType().getId() == Channel.Type.DISTANCE_COLOR.getId()) {
                     SlicesReader sr = new SlicesReader();
-                    sr.readSlices(ret_val,zip,chan.getSlices(),0,0,mf.getGridSizeY());
+                    sr.readSlices(grid,zip,chan.getSlicesPath(),0,0,mf.getGridSizeY());
                 }
             }
-            return ret_val;
+            return grid;
         } finally {
             if (zip != null) zip.close();
         }
@@ -176,6 +185,7 @@ public class SVXReader {
                 field = "type";
                 val = channel.getAttribute(field);
                 String type = val;
+                printf("channel type: %s\n", type);
 
                 field = "slices";
                 val = channel.getAttribute(field);

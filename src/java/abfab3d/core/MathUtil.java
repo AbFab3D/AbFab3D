@@ -187,6 +187,13 @@ public class MathUtil {
             return xmax;
         return x;
     }
+    
+    /**
+       return reminder of division x/y 
+     */
+    public static final double fmod(double x, double y){
+        return x - y*(int)(x/y);
+    }
 
     
     // small number to detect degenerate matrix 

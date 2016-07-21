@@ -1,8 +1,6 @@
-#X3D V3.1 utf8
+#X3D V3.0 utf8
 
 PROFILE Immersive
-
-COMPONENT Rendering:3
 
 NavigationInfo {
       avatarSize [0.001, 1.6, 0.75]
@@ -10,7 +8,7 @@ NavigationInfo {
 Shape {
    appearance Appearance {
       texture ImageTexture {
-            url ["printModel_050_mm_ps1.0.png"]
+            url ["donut_textured.png"]
       }
 
    }

@@ -203,6 +203,12 @@ public class GridDataDesc {
 
     }
 
+    public static GridDataDesc getDistBGRcomposite(double maxDist){
+
+        return new GridDataDesc(new GridDataChannel(GridDataChannel.DISTANCE_COLOR, "distance_color", 32, 0, 0., 1.));
+
+    }
+
     /**
        creates data description for multichannel grid with density and color 
      */

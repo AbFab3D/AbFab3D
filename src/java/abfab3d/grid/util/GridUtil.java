@@ -166,25 +166,19 @@ public class GridUtil  {
                 int gy = (int)Math.floor(y);
                 double dx = x - gx;
                 double dy = y - gy;
-                //if(ix < magnification/2 && iy < magnification/2)
-                //    printf("[%2d %2d](%4.2f %4.2f) ", gx, gy, dx, dy);
                 int gx1 = clamp(gx + 1,0, gnx-1);
                 int gy1 = clamp(gy + 1,0, gny-1);
                 gx = clamp(gx,0, gnx-1);
                 gy = clamp(gy,0, gny-1);
-                long a00 = grid.getAttribute(gx,gy, iz);
-                long a10 = grid.getAttribute(gx1,gy, iz);
-                long a01 = grid.getAttribute(gx,gy1, iz);
-                long a11 = grid.getAttribute(gx1,gy1, iz);
 
-                double v00 = dataChannel.getValue(a00);
-                double v10 = dataChannel.getValue(a10);
-                double v01 = dataChannel.getValue(a01);
-                double v11 = dataChannel.getValue(a11);
+                double v00 = dataChannel.getValue(grid.getAttribute(gx,gy, iz));
+                double v10 = dataChannel.getValue(grid.getAttribute(gx1,gy, iz));
+                double v01 = dataChannel.getValue(grid.getAttribute(gx,gy1, iz));
+                double v11 = dataChannel.getValue(grid.getAttribute(gx1,gy1, iz));
                 //if(a00 != 0 && debugCount-- > 0) {
                 //    printf("[%3d %3d %3d]-> %3d %7.3f %x\n", ix, iy, iz, a00, v00, ac.getBits(a00));
                 //}
-                double v = lerp2(v00, v10, v11, v01,dx, dy);
+                double v = lerp2(v00, v10, v01, v11,dx, dy);
                 sliceData[ix + (iny-1-iy)*inx] = colorMapper.getColor(v);
             }
         }

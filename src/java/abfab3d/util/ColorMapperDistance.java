@@ -32,12 +32,21 @@ public class ColorMapperDistance implements ColorMapper {
     double m_stripeWidth;
 
     /**
+       makes color mapper to color distance function with default coloring (red - interior, green exterior)
+       @param stripeWidth width of color stripe (in meters) 
+     */
+    public ColorMapperDistance(double stripeWidth){
+        this(0xFF880000,0xFFFF0000,0xFF008800,0xF00FF00,stripeWidth);
+    }
+
+
+    /**
        makes color mapper to color distance function
        @param intColor0  first color of stripe for interior (negative) distances 
        @param intColor1  second color of stripe for interior (negative) distances 
        @param extColor0  first color of stripe for exteror (posituve) distances 
        @param extColor1  second color of stripe for exterior (positive) distances 
-       @param stripeWidth widh of color stripe (in meters) 
+       @param stripeWidth width of color stripe (in meters) 
      */
     public ColorMapperDistance(int intColor0, int intColor1, int extColor0, int extColor1, double stripeWidth){
 
@@ -49,6 +58,7 @@ public class ColorMapperDistance implements ColorMapper {
         m_stripeWidth = stripeWidth;
 
     }
+
 
     public int getColor(double value){
 

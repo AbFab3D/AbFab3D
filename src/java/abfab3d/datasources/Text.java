@@ -305,7 +305,7 @@ public class Text extends TransformableDataSource {
      */
     public int getBaseValue(Vec pnt, Vec data) {
         
-        return m_bitmap.getDataValue(pnt, data);
+        return m_bitmap.getBaseValue(pnt, data);
         
     }
     
