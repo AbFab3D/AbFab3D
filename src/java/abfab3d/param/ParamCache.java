@@ -19,7 +19,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class ParamCache {
-    private static final boolean STOP = false;
+    private static final boolean STOP_CACHING = false;
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_MISSES = true;
     private static final int JOB_RETAIN_MS = 60 * 60 * 1000;
@@ -33,7 +33,7 @@ public class ParamCache {
             misses = new BoundedStack<String>(25);
         }
 
-        if (STOP) {
+        if (STOP_CACHING) {
             printf("*** Param Cache caching is turned off ***\n");
             new Exception().printStackTrace();
         }
@@ -66,7 +66,7 @@ public class ParamCache {
     }
 
     public Object get(String key) {
-        if (STOP) return null;
+        if (STOP_CACHING) return null;
 
         try {
             Object co = cache.get(key);
@@ -83,7 +83,7 @@ public class ParamCache {
     }
 
     public void put(String key, Object o) {
-        if (STOP) return;
+        if (STOP_CACHING) return;
 
         if (DEBUG) {
             printf("Cache.put: %s\n", key);
