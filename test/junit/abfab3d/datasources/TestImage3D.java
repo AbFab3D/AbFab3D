@@ -38,7 +38,7 @@ import static abfab3d.datasources.DevTestUtil.makeDistanceGrid;
 import static abfab3d.datasources.DevTestUtil.printGridSliceY;
 import static abfab3d.datasources.DevTestUtil.printGridSliceValueY;
 import static abfab3d.datasources.DevTestUtil.printGridSliceValueZ;
-import static abfab3d.datasources.DevTestUtil.writeSlice;
+import static abfab3d.grid.util.GridUtil.writeSlice;
 
 /**
  * Tests the functionality of GridMaker

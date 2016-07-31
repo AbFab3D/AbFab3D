@@ -35,6 +35,8 @@ import static abfab3d.core.Output.fmt;
 import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.core.MathUtil.lerp3;
 
+import static java.lang.Math.floor;
+
 
 /**
  * DataSource interface to Grid. This object shall be used if one wants to use a generated grid as a general shape.
@@ -86,7 +88,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     static final int SHORT_SHIFT[] = new int[]{0, 16};
 
     int m_nx, m_ny, m_nz;
-    double xmin, ymin, zmin, xscale, yscale, zscale;
+    int m_nx1, m_ny1, m_nz1;
+    double m_xmin, m_ymin, m_zmin, m_xscale, m_yscale, m_zscale;
 
     ObjectParameter  mp_grid = new ObjectParameter("grid","grid to be used as source", null);
     ObjectParameter  mp_bufferDataPacker = new ObjectParameter("dataPacker","packer for grid data into buffer", null);
@@ -150,14 +153,18 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         m_nx = grid.getWidth();
         m_ny = grid.getHeight();
         m_nz = grid.getDepth();
-        
-        xmin = bounds.xmin;
-        ymin = bounds.ymin;
-        zmin = bounds.zmin;
 
-        xscale = m_nx / bounds.getSizeX();
-        yscale = m_ny / bounds.getSizeY();
-        zscale = m_nz / bounds.getSizeZ();        
+        m_nx1 = m_nx-1;
+        m_ny1 = m_ny-1;
+        m_nz1 = m_nz-1;
+
+        m_xmin = bounds.xmin;
+        m_ymin = bounds.ymin;
+        m_zmin = bounds.zmin;
+
+        m_xscale = m_nx / bounds.getSizeX();
+        m_yscale = m_ny / bounds.getSizeY();
+        m_zscale = m_nz / bounds.getSizeZ();        
             
     }
 
@@ -526,8 +533,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         double v[] = pnt.v;
         // values normalized to voxel size 
         double 
-            x = (v[0]-xmin)*xscale,
-            y = (v[1]-ymin)*yscale,
+            x = (v[0]-m_xmin)*xscale,
+            y = (v[1]-m_ymin)*yscale,
             z = (v[2]-zmin)*zscale;        
         
         int ix = (int)x;
@@ -552,30 +559,31 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         
         // values normalized to voxel size 
         double 
-            x = (v[0]-xmin)*xscale-0.5, // half voxel shift voxel centers are located at semi integer positions 
-            y = (v[1]-ymin)*yscale-0.5,
-            z = (v[2]-zmin)*zscale-0.5;        
-        int ix = (int)x;
-        int iy = (int)y;
-        int iz = (int)z;
-
-        if(ix < 0 || iy < 0 || iz < 0 || ix >= m_nx || iy >= m_ny || iz >= m_nz) {
-            //TODO something better.  use value from 0,0,0 to align with GPU
-            data.v[0] = 0;
-            return ResultCodes.RESULT_OUTSIDE;
-        }
-        int ix1 = (ix + 1);
-        int iy1 = (iy + 1);
-        int iz1 = (iz + 1);
-        if(ix1 >= m_nx || iy1 >= m_ny || iz1 >= m_nz ) {
-            data.v[0] = 0;
-            return ResultCodes.RESULT_OUTSIDE;
-        }
-
+            x = (v[0]-m_xmin)*m_xscale-0.5, // half voxel shift because voxel centers are located at semi integer positions 
+            y = (v[1]-m_ymin)*m_yscale-0.5,
+            z = (v[2]-m_zmin)*m_zscale-0.5;        
+        x = clamp(x, 0.,(double)m_nx);
+        y = clamp(y, 0.,(double)m_ny);
+        z = clamp(z, 0.,(double)m_nz);
+         
+        int ix = (int)floor(x);
+        int iy = (int)floor(y);
+        int iz = (int)floor(z);
         double 
             dx = x - ix,
             dy = y - iy,
             dz = z - iz;
+        ix = clamp(ix, 0, m_nx1);
+        iy = clamp(iy, 0, m_ny1);
+        iz = clamp(iz, 0, m_nz1);
+        
+        int ix1 = (ix + 1);
+        int iy1 = (iy + 1);
+        int iz1 = (iz + 1);
+
+        ix1 = clamp(ix1, 0, m_nx1);
+        iy1 = clamp(iy1, 0, m_ny1);
+        iz1 = clamp(iz1, 0, m_nz1);
         
         
         long   

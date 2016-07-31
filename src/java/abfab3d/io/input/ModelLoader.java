@@ -45,13 +45,14 @@ import static abfab3d.core.Output.printf;
  *
  * @author Alan Hudson
  */
-public class ModelLoader extends BaseParameterizable implements GridProducer, Parameterizable {
+public class ModelLoader extends BaseParameterizable implements GridProducer {
     private static final boolean DEBUG = false;
     private static final boolean STOP_CACHING = false;
 
     private static final long MAX_ATRRIBUTED_SIZE = 800l * 800 * 800;
 
     DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize","size of voxels", 0.1*MM);
+    DoubleParameter mp_shellHalfThickness = new DoubleParameter("shellHalfThickness","half thickness of initial shell in voxels", 2.);
     ObjectParameter mp_source = new ObjectParameter("source","model source",null);
     DoubleParameter mp_margins = new DoubleParameter("margins","size of margins", 2*MM);
     BooleanParameter mp_attributeLoading = new BooleanParameter("attributeLoading", "Load attribute data",false);
@@ -82,8 +83,10 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Pa
             mp_maxInDistance,
             mp_maxOutDistance,
             mp_maxGridSize,
-            mp_minGridSize
+            mp_minGridSize,
+            mp_shellHalfThickness
     };
+
 
     public ModelLoader(String path) {
         initParams();
@@ -91,6 +94,10 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Pa
         setSource(path);
     }
 
+    /**
+       load model from given path using given voxel size and margins
+       
+     */
     public ModelLoader(String path, double vs, double margins) {
         initParams();
 
@@ -128,6 +135,11 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Pa
 
     public void setVoxelSize(double vs) {
         mp_voxelSize.setValue(vs);
+        m_vhash = null;
+    }
+
+    public void setShellHalfThickness(double value) {
+        mp_shellHalfThickness.setValue(value);
         m_vhash = null;
     }
 
@@ -171,13 +183,10 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Pa
                 m_materialType = abfab3d.shapejs.MaterialType.SINGLE_MATERIAL;
                 break;
             case 5:
-                m_materialType = abfab3d.shapejs.MaterialType.COLOR_MATERIAL;
-                break;
             case 6:
-                m_materialType = abfab3d.shapejs.MaterialType.COLOR_MATERIAL;
-                break;
             default:
                 m_materialType = abfab3d.shapejs.MaterialType.COLOR_MATERIAL;
+                break;
         }
 
         if (!STOP_CACHING) {
@@ -252,7 +261,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Pa
         loader.setMaxInDistance(mp_maxInDistance.getValue());
         loader.setMaxOutDistance(mp_maxOutDistance.getValue());
         loader.setMargins(mp_margins.getValue());
-        loader.setShellHalfThickness(2);
+        loader.setShellHalfThickness(mp_shellHalfThickness.getValue());
         loader.setThreadCount(0);
 
         int dim;

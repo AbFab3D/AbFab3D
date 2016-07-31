@@ -52,7 +52,7 @@ import static abfab3d.core.MathUtil.step10;
    Unfortunate result of arbitrary points locations is that the algorithm is not exact anymore.
    Some percentage of voxels have errors. The points found for those voxels are located by fraction of voxel further then optimal point. 
 
-   Partial workaround is to use PI3_multiPass whcih uses several passes of the algorithm in different order. This significantly reduces errors, but increases timing.
+   Partial workaround is to use PI3_multiPass which performs several passes of the algorithm in different order. This significantly reduces errors, but increases timing.
    
    The algorithm takes partially initialized grid of closest point indexes. Used point indices start from 1. Index 0 is used to represent non initialized point.    
 
@@ -472,7 +472,7 @@ public class ClosestPointIndexer {
 
     /**
        point indexer with several passes 
-       has smallre errors, but is 3x slower 
+       has smaller errors, but x3 slower 
      */
     public static void PI3_multiPass(double coordx[], double coordy[], double coordz[], AttributeGrid indexGrid, int iterationCount){
 
@@ -1222,7 +1222,7 @@ public class ClosestPointIndexer {
     }
 
     /**
-       compares distances stored in 2 grids select shortest and stores result in first grid
+       compares distances to points stored in two grids and select shortest distance and stores result in first grid
      */
     static void combineGrids(AttributeGrid grid1, AttributeGrid grid2, double pntx[], double pnty[], double pntz[]){
 
@@ -1554,7 +1554,7 @@ public class ClosestPointIndexer {
         
         long inAtt = distanceDataChannel.makeAtt(minDistance);
         long outAtt = distanceDataChannel.makeAtt(maxDistance);
-        printf("minDistance: %7.5f maxDistance: %7.5f minAtt: 0x%x  maxAtt: 0x%x \n", minDistance, maxDistance, inAtt, outAtt);
+        if(false)printf("minDistance: %7.5f maxDistance: %7.5f minAtt: 0x%x  maxAtt: 0x%x \n", minDistance, maxDistance, inAtt, outAtt);
         for(int y = yStart; y < yEnd; y++){
             double coordy = ymin + vs*y;
             for(int x = 0; x < nx; x++){

@@ -24,6 +24,8 @@ import abfab3d.core.AttributeGrid;
 import abfab3d.core.Bounds;
 import abfab3d.core.GridDataDesc;
 import abfab3d.core.GridDataChannel;
+import abfab3d.core.DataSource;
+import abfab3d.core.Vec;
 
 import abfab3d.util.ColorMapper;
 
@@ -55,14 +57,33 @@ public class DevTestUtil {
         printf("=====\n");
     }
     
+    static void printGridSliceValueX(AttributeGrid grid, int x, GridDataChannel channel, String format, double factor){
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        printf("x:%d\n",x);
+        printf("=====\n");
+        for(int y = 0; y < ny; y++){
+            for(int z = 0; z < nz; z++){
+                double v = factor*channel.getValue(grid.getAttribute(x,y,z));
+                printf(format, v);
+            }
+            printf("\n");
+        }
+        printf("=====\n");
+    }
+
     static void printGridSliceValueY(AttributeGrid grid, int y, GridDataChannel channel, String format){
+        printGridSliceValueY(grid, y, channel, format, 1.);
+    }
+
+    static void printGridSliceValueY(AttributeGrid grid, int y, GridDataChannel channel, String format, double factor){
         int nx = grid.getWidth();
         int nz = grid.getDepth();
         printf("y:%d\n",y);
         printf("=====\n");
         for(int z = 0; z < nz; z++){
             for(int x = 0; x < nx; x++){
-                double v = channel.getValue(grid.getAttribute(x,y,z));
+                double v = factor*channel.getValue(grid.getAttribute(x,y,z));
                 printf(format, v);
             }
             printf("\n");
@@ -85,90 +106,19 @@ public class DevTestUtil {
         printf("=====\n");
     }
 
-    /**
-       writes image of grid slice into image file 
-       slice is calculated using dataChannel in points in space calculated as 
-       pnt = origin + eu * u, + ev*v; 
-       0 <= u < nu
-       0 <= v < nv
-       values are lineraly interpolated 
-       
-       @param grid grid to make slice from 
-       @param dataChannel data channel to use 
-       @param colorMaper converter from channel data value into color 
-       @param origin - physical location of slice corner (0,0)
-       @param eu - basis vector in U direction 
-       @param ev - basis vector in V direction
-       @param nu domension of slice in U direction 
-       @param nv domension of slice in Vdirection 
-       @param path locatrion of file to write to 
-     */
-    public static void writeSlice(AttributeGrid grid, GridDataChannel dataChannel, ColorMapper colorMapper, 
-                                  Vector3d origin, Vector3d eu, Vector3d ev, int nu, int nv, String path) throws IOException{
-        
-        BufferedImage image =  new BufferedImage(nu, nv, BufferedImage.TYPE_INT_ARGB);
-        DataBufferInt db = (DataBufferInt)image.getRaster().getDataBuffer();
-        int[] sliceData = db.getData();
 
+    static void printRay(DataSource data, Vector3d origin, Vector3d e, double voxelSize, int count){
 
-        Vector3d 
-            pnt = new Vector3d(),
-            pu = new Vector3d(),
-            pv = new Vector3d();
-        int 
-            nx = grid.getWidth(),
-            ny = grid.getHeight(),
-            nz = grid.getDepth();
+        Vec p = new Vec(3);
+        Vec d = new Vec(3);
+        p.setVoxelSize(voxelSize);
 
-        int nx1 = nx-1, 
-            ny1 = ny-1, 
-            nz1 = nz-1;
-
-        Vector3d gcoord = new Vector3d();
-
-        for(int v = 0; v < nv; v++){
-            for(int u = 0; u < nu; u++){
-                pnt.set(origin);
-                pu.set(eu);
-                pu.scale(u);
-                pnt.add(pu);
-                pv.set(ev);
-                pv.scale(v);
-                pnt.add(pv);
-                grid.getGridCoords(pnt.x, pnt.y, pnt.z, gcoord);
-
-                int 
-                    gx = (int)gcoord.x,
-                    gy = (int)gcoord.y,
-                    gz = (int)gcoord.z;
-                double 
-                    dx = gcoord.x - gx,
-                    dy = gcoord.y - gy,
-                    dz = gcoord.z - gz;
-
-                gx = clamp(gx, 0, nx1);
-                gy = clamp(gy, 0, ny1);
-                gz = clamp(gz, 0, nz1);
-                int gx1 = clamp(gx + 1,0, nx1);
-                int gy1 = clamp(gy + 1,0, ny1);
-                int gz1 = clamp(gz + 1,0, nz1);
-
-                double 
-                    v000 = dataChannel.getValue(grid.getAttribute(gx, gy, gz)),
-                    v100 = dataChannel.getValue(grid.getAttribute(gx1,gy, gz)),
-                    v110 = dataChannel.getValue(grid.getAttribute(gx1,gy1,gz)),
-                    v010 = dataChannel.getValue(grid.getAttribute(gx, gy1,gz)),
-                    v001 = dataChannel.getValue(grid.getAttribute(gx, gy, gz1)),
-                    v101 = dataChannel.getValue(grid.getAttribute(gx1,gy, gz1)),
-                    v111 = dataChannel.getValue(grid.getAttribute(gx1,gy1,gz1)),
-                    v011 = dataChannel.getValue(grid.getAttribute(gx, gy1,gz1));
-
-                    double value = lerp3(v000, v100, v010, v110,  v001, v101, v011, v111, dx, dy, dz);
-                sliceData[u + (nv-1-v)*nu] = colorMapper.getColor(value);                
-            }
+        for(int i = 0; i < count; i++){
+            p.v[0] = origin.x + e.x*i;
+            p.v[1] = origin.y + e.y*i;
+            p.v[2] = origin.z + e.z*i;
+            data.getDataValue(p, d);
+            printf("(%8.5f, %8.5f, %8.5f) -> (%8.5f, %8.5f, %8.5f)\n", p.v[0],p.v[1],p.v[2],d.v[0],d.v[1],d.v[2]);
         }
-        ImageIO.write(image, "png", new File(path));        
-        
     }
-
 }

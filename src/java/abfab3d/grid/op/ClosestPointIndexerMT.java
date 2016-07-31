@@ -80,7 +80,9 @@ public class ClosestPointIndexerMT {
 
         ClosestPointIndexer.getPointsInGridUnits(indexGrid, pntx, pnty, pntz);
         ClosestPointIndexer.initFirstLayer(indexGrid, pntx,pnty,pntz, firstLayerThickness);
-        ClosestPointIndexerMT.PI3_MT(pntx,pnty,pntz, maxDistance/vs, indexGrid, threadCount);
+
+        PI3_MT(pntx,pnty,pntz, maxDistance/vs, indexGrid, threadCount);
+
         ClosestPointIndexer.getPointsInWorldUnits(indexGrid, coord[0],coord[1],coord[2]);
         
     }
@@ -112,7 +114,7 @@ public class ClosestPointIndexerMT {
      *  @param coordx  array of x coordinates. coordx[0] is unused 
      *  @param coordy  array of y coordinates. coordy[0] is unused  
      *  @param coordz  array of y coordinates. coordz[0] is unused 
-     *  @param maxDistance maximal distance to calculate distances. if maxDistance == 0, the full range is calculated 
+     *  @param maxDistance maximal value to calculate and store distances. if maxDistance == 0, the full range is calculated 
      *  @param indexGrid - on input has indices of closest points in thin layer around the point cloud 
      *                   - on output has indices of closest point for each grid point 
      *                   valid indices start from 1, index value 0 means "undefined" 
@@ -145,6 +147,67 @@ public class ClosestPointIndexerMT {
         if(DEBUG_TIMING){t1 = time();printf("PI3_MT() done %d ms\n", t1 - t0);t0 = t1;}
         
     }
+
+
+    /**
+       calculates closest Point Indexer for each cell of the index grid using multi pass algorithm 
+       the indexGrid should be initialized with indices of point in close proximity to the center of grid voxels 
+       
+     *  @param coordx  array of x coordinates. coordx[0] is unused 
+     *  @param coordy  array of y coordinates. coordy[0] is unused  
+     *  @param coordz  array of y coordinates. coordz[0] is unused 
+     *  @param maxDistance maximal value to calculate and store distances. if maxDistance == 0, the full range is calculated 
+     *  @param indexGrid - on input has indices of closest points in thin layer around the point cloud 
+     *                   - on output has indices of closest point for each grid point 
+     *                   valid indices start from 1, index value 0 means "undefined" 
+     * @param threadCount count of thread to be used for calculation 
+     */
+    public static void PI3_multiPass_MT(double coordx[], double coordy[], double coordz[], double maxDistance, AttributeGrid indexGrid, int threadCount){
+
+        if(DEBUG){printf("PI3_multiPass_MT(threads: %d)\n", threadCount);}
+        long t0 = time(), t1 = t0;
+
+        int nx = indexGrid.getWidth();
+        int ny = indexGrid.getHeight();
+        int nz = indexGrid.getDepth();
+
+        // maximal dimension 
+        int nm = max(max(nx, ny),nz); 
+
+        // work arrays
+        int v[] = new int[nm];
+        double w[] = new double[nm+1];
+        int ipnt[] = new int[nm+1];
+        double value1[] = new double[nm];
+        int gpnt[] = new int[nm];
+        AttributeGrid origGrid = (AttributeGrid)indexGrid.clone();        
+        AttributeGrid workGrid = (AttributeGrid)indexGrid.clone();
+        //XYZ
+        DT3sweep_MT(0, nz, coordx, coordy, coordz, maxDistance, indexGrid, threadCount);
+        DT3sweep_MT(1, nz, coordx, coordy, coordz, maxDistance, indexGrid, threadCount);
+        DT3sweep_MT(2, ny, coordx, coordy, coordz, maxDistance, indexGrid, threadCount);
+
+        //YZX
+        DT3sweep_MT(1, nz, coordx, coordy, coordz, maxDistance, workGrid, threadCount);
+        DT3sweep_MT(2, ny, coordx, coordy, coordz, maxDistance, workGrid, threadCount);
+        DT3sweep_MT(0, nz, coordx, coordy, coordz, maxDistance, workGrid, threadCount);
+
+        //TODO make MT
+        ClosestPointIndexer.combineGrids(indexGrid, workGrid, coordx, coordy, coordz);
+        
+        workGrid.copyData(origGrid);
+
+        //ZXY
+        DT3sweep_MT(2, ny, coordx, coordy, coordz, maxDistance, workGrid, threadCount);
+        DT3sweep_MT(0, nz, coordx, coordy, coordz, maxDistance, workGrid, threadCount);
+        DT3sweep_MT(1, nz, coordx, coordy, coordz, maxDistance, workGrid, threadCount);
+        //TODO make MT
+        ClosestPointIndexer.combineGrids(indexGrid, workGrid, coordx, coordy, coordz);
+
+        if(DEBUG_TIMING){t1 = time();printf("PI3_MT() done %d ms\n", t1 - t0);t0 = t1;}
+        
+    }
+
 
     protected static void DT3sweep_MT(int direction, int gridSize, double coordx[], double coordy[], double coordz[], double maxDistance, AttributeGrid indexGrid, int threadCount){
         

@@ -81,8 +81,12 @@ public class SVXReader {
                 xmin = mf.getOriginX(),
                 ymin = mf.getOriginY(),
                 zmin = mf.getOriginZ();
-            
-            grid.setGridBounds(new Bounds(xmin, xmin + nx*vs, ymin, ymin + ny*vs,zmin, zmin+ny*vs));
+            double 
+                xmax = xmin + nx*vs,
+                ymax = ymin + ny*vs,
+                zmax = zmin + nz*vs;
+                
+            grid.setGridBounds(new Bounds(xmin, xmax, ymin, ymax,zmin, zmax));
 
             List<Channel> channels = mf.getChannels();
             //TODO - implement this properly 
