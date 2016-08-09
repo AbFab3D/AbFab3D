@@ -78,6 +78,8 @@ public class DistanceRasterizer2 implements TriangleCollector {
     boolean m_useDistanceRange = true;
     double m_maxDistanceVoxels; // max distance to calculate in case of using distance range 
     protected int m_threadCount = 1;
+    // use multi pass algorithm for distance calculation (more precise but 3 times slower) 
+    protected boolean m_useMultiPass = false;
 
     // size of surface voxels relative to size fo grid voxles 
     protected double m_surfaceVoxelSize = 1.;
@@ -138,6 +140,15 @@ public class DistanceRasterizer2 implements TriangleCollector {
     public void setThreadCount(int threadCount){
 
         m_threadCount = threadCount;
+
+    }
+
+    /**
+       forces to use slower but more precise distance calculation alg
+    */
+    public void setUseMultiPass(boolean value){
+
+        m_useMultiPass = value;
 
     }
 
@@ -241,10 +252,10 @@ public class DistanceRasterizer2 implements TriangleCollector {
         // distribute indices on the whole indexGrid        
         
         ClosestPointIndexer.getPointsInGridUnits(m_indexGrid, pntx, pnty, pntz);
-        
-        if(m_threadCount <= 1) {
-            ClosestPointIndexer.PI3_bounded(pntx, pnty, pntz, m_maxDistanceVoxels, m_indexGrid);
-            if(DEBUG_TIMING)printf("ClosestPointIndexer.PI3_sorted time: %d ms\n", (time() - t0));
+
+        if(m_useMultiPass) {
+            ClosestPointIndexerMT.PI3_multiPass_MT(pntx, pnty, pntz, m_maxDistanceVoxels, m_indexGrid, m_threadCount);
+            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.PI3_MT time: %d ms\n", (time() - t0));            
         } else {
             ClosestPointIndexerMT.PI3_MT(pntx, pnty, pntz, m_maxDistanceVoxels, m_indexGrid, m_threadCount);
             if(DEBUG_TIMING)printf("ClosestPointIndexerMT.PI3_MT time: %d ms\n", (time() - t0));

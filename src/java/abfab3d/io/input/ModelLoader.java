@@ -19,6 +19,7 @@ import abfab3d.param.BooleanParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.LongParameter;
+import abfab3d.param.EnumParameter;
 import abfab3d.param.ObjectParameter;
 import abfab3d.param.ParamCache;
 import abfab3d.param.Parameter;
@@ -57,16 +58,22 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     ObjectParameter mp_source = new ObjectParameter("source","model source",null);
     DoubleParameter mp_margins = new DoubleParameter("margins","size of margins", 2*MM);
     BooleanParameter mp_attributeLoading = new BooleanParameter("attributeLoading", "Load attribute data",false);
+    BooleanParameter mp_useMultiPass = new BooleanParameter("useMultiPass", "Use precise but slower distance calculation",false);
     IntParameter mp_densityBitCount = new IntParameter("densityBitCount","Density Bit Count", 8);
     IntParameter mp_distanceBitCount = new IntParameter("distanceBitCount","Distance Bit Count", 8);
+    IntParameter mp_threadCount = new IntParameter("threadCount","Threads count to use during loading", 0);
     DoubleParameter mp_maxInDistance = new DoubleParameter("maxInDistance","Maximum in distance", 2*MM);
     DoubleParameter mp_maxOutDistance = new DoubleParameter("maxOutDistance","Maximum out distance", 2*MM);
-    LongParameter mp_maxGridSize = new LongParameter("maxGridSize","Max grid size", 1000l * 1000 * 1000);
+    LongParameter mp_maxGridSize = new LongParameter("maxGridSize","Max grid size", 1000L * 1000 * 1000);
     LongParameter mp_minGridSize = new LongParameter("minGridSize","Min grid size", 0);
+    EnumParameter mp_distanceAlgorithm = new EnumParameter("distanceAlgorithm", "alg to be used for distance loading", sm_distAlgNames, "distance2");
+    EnumParameter mp_densityAlgorithm = new EnumParameter("densityAlgorithm", "alg to be used for density loading", sm_densAlgNames, "wavelet");
 
     protected String m_path;
-    protected abfab3d.shapejs.MaterialType m_materialType = MaterialType.SINGLE_MATERIAL;
+    protected MaterialType m_materialType = MaterialType.SINGLE_MATERIAL;
     protected String m_vhash;
+    static String[] sm_distAlgNames = GridLoader.getDistanceAlgorithmNames();
+    static String[] sm_densAlgNames = GridLoader.getDensityAlgorithmNames();
 
     static {
         if (STOP_CACHING) {
@@ -85,7 +92,11 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             mp_maxOutDistance,
             mp_maxGridSize,
             mp_minGridSize,
-            mp_shellHalfThickness
+            mp_shellHalfThickness,
+            mp_useMultiPass,
+            mp_threadCount,
+            mp_distanceAlgorithm,
+            mp_densityAlgorithm
     };
 
 
@@ -177,18 +188,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
         mesh.setDataDimension(reader.getDataDimension());
 
-        int dim = reader.getDataDimension();
-
-        switch(dim) {
-            case 3:
-                m_materialType = abfab3d.shapejs.MaterialType.SINGLE_MATERIAL;
-                break;
-            case 5:
-            case 6:
-            default:
-                m_materialType = abfab3d.shapejs.MaterialType.COLOR_MATERIAL;
-                break;
-        }
+        m_materialType = makeMaterialType(reader.getDataDimension());
 
         if (!STOP_CACHING) {
             ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(null, mesh, reader,m_materialType));
@@ -258,12 +258,14 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         loader.setDensityBitCount(mp_densityBitCount.getValue());
         loader.setDistanceBitCount(mp_distanceBitCount.getValue());
         loader.setPreferredVoxelSize(mp_voxelSize.getValue());
-        loader.setDensityAlgorithm(GridLoader.RASTERIZER_DISTANCE2);
+        loader.setDistanceAlgorithm(mp_distanceAlgorithm.getValue()); 
+        loader.setDensityAlgorithm(mp_densityAlgorithm.getValue());
         loader.setMaxInDistance(mp_maxInDistance.getValue());
         loader.setMaxOutDistance(mp_maxOutDistance.getValue());
         loader.setMargins(mp_margins.getValue());
         loader.setShellHalfThickness(mp_shellHalfThickness.getValue());
-        loader.setThreadCount(0);
+        loader.setThreadCount(mp_threadCount.getValue());
+        loader.setUseMultiPass(mp_useMultiPass.getValue());
 
         int dim;
 
@@ -286,19 +288,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             }
         }
 
-        switch(dim) {
-            case 3:
-                m_materialType = abfab3d.shapejs.MaterialType.SINGLE_MATERIAL;
-                break;
-            case 5:
-                m_materialType = abfab3d.shapejs.MaterialType.COLOR_MATERIAL;
-                break;
-            case 6:
-                m_materialType = abfab3d.shapejs.MaterialType.COLOR_MATERIAL;
-                break;
-            default:
-                m_materialType = abfab3d.shapejs.MaterialType.COLOR_MATERIAL;
-        }
+        m_materialType = makeMaterialType(dim);
 
         if (DEBUG) printf("Dim: %d\n",dim);
 
@@ -310,7 +300,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         return grid;
     }
 
-    public abfab3d.shapejs.MaterialType getMaterialType() {
+    public MaterialType getMaterialType() {
         if (DEBUG) printf("MaterialType: %s\n",m_materialType);
         return m_materialType;
     }
@@ -320,6 +310,19 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
         m_vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparam);
         return m_vhash;
+    }
+
+
+    static MaterialType makeMaterialType(int dataDimension){
+
+        switch(dataDimension) {
+            case 3:
+                return MaterialType.SINGLE_MATERIAL;
+            case 5:
+            case 6:
+            default:
+                return MaterialType.COLOR_MATERIAL;
+        }
     }
 
     /**

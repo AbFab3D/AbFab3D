@@ -66,19 +66,53 @@ public class GridLoader {
         RASTERIZER_DISTANCE = 2,  // exact distances in thin shell only
         RASTERIZER_DISTANCE2 = 3, // exact distance in thin shell and fast sweeping to the whole grid 
         RASTERIZER_ZBUFFER = 4;   // non-antialised density rasterizer
+    // names used for algorithms
+    public static String sm_algNames[] = new String[]{
+        "unknown",
+        "wavelet",
+        "distance",
+        "distance2",
+        "zbuffer",  
+    };
+
 
     protected int m_densityAlgorithm = RASTERIZER_WAVELET;
-    protected int m_distanceAlgorithm = RASTERIZER_DISTANCE;
+    protected int m_distanceAlgorithm = RASTERIZER_DISTANCE2;
     protected double m_maxOutDistance = 2*MM;
     protected double m_maxInDistance = 2*MM;
     protected double m_shellHalfThickness = 2;
     protected int m_threadCount = 1;
+    protected boolean m_useMultiPass = false;
     protected int m_triangleCount;
     // size of surface voxel (in grid voxel units)
     protected double m_surfaceVoxelSize = 1;
-    
+
+
+
+    /**
+
+     */
     public GridLoader(){
         
+    }
+        
+    public static String[] getDensityAlgorithmNames(){
+        return sm_algNames;
+    }
+    
+    public static String[] getDistanceAlgorithmNames(){
+        return sm_algNames;
+    }
+
+    /**
+       convert alg name inot alg ID
+     */
+    public static int getAlgorithmId(String algorithmName){
+        for(int i = 0; i < sm_algNames.length; i++){
+            if(sm_algNames[i].equalsIgnoreCase(algorithmName))
+                return i;
+        }
+        return -1;
     }
 
     public static String getAlgorithmName(int algorithm){
@@ -104,6 +138,16 @@ public class GridLoader {
 
         m_threadCount = count;
     }
+
+    /**
+       forces to use slower but more precise distance calculation alg
+    */
+    public void setUseMultiPass(boolean value){
+
+        m_useMultiPass = value;
+
+    }
+
 
     public void setMaxGridSize(long maxGridSize){
         m_maxGridSize = maxGridSize;
@@ -137,6 +181,11 @@ public class GridLoader {
         m_surfaceVoxelSize = value;
     }
 
+    public void setDensityAlgorithm(String algorithmName){
+        setDensityAlgorithm(getAlgorithmId(algorithmName));
+    }
+
+
     public void setDensityAlgorithm(int algorithm){
         switch(algorithm){
         default: throw new IllegalArgumentException(fmt("unknown Density Rasterization Algorithm: %d",algorithm));
@@ -149,9 +198,13 @@ public class GridLoader {
         }
     }
 
+    public void setDistanceAlgorithm(String algorithmName){
+        setDistanceAlgorithm(getAlgorithmId(algorithmName));
+    }
+
     public void setDistanceAlgorithm(int algorithm){
         switch(algorithm){
-        default: throw new IllegalArgumentException(fmt("unknown Density Rasterization Algorithm: %d",algorithm));
+        default: throw new IllegalArgumentException(fmt("unknown Distance Rasterization Algorithm: %d",algorithm));
         case RASTERIZER_WAVELET:
         case RASTERIZER_DISTANCE:
         case RASTERIZER_DISTANCE2:
@@ -212,7 +265,7 @@ public class GridLoader {
         double voxelSize = bounds.getVoxelSize();
 
         
-        switch(m_densityAlgorithm){
+        switch(m_distanceAlgorithm){
         default: 
             throw new IllegalArgumentException(fmt("unsupported Distance Rasterization Algorithm: %d",m_distanceAlgorithm));
             
@@ -268,6 +321,7 @@ public class GridLoader {
                 rasterizer.setShellHalfThickness(m_shellHalfThickness);
                 rasterizer.setSurfaceVoxelSize(m_surfaceVoxelSize);
                 rasterizer.setThreadCount(m_threadCount);
+                rasterizer.setUseMultiPass(m_useMultiPass);
                 // run rasterization
                 AttributeGrid distanceGrid = createDistanceGrid(bounds);
                 rasterizer.getDistances(reader, distanceGrid);

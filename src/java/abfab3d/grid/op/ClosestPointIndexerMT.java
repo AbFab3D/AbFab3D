@@ -122,6 +122,11 @@ public class ClosestPointIndexerMT {
      */
     public static void PI3_MT(double coordx[], double coordy[], double coordz[], double maxDistance, AttributeGrid indexGrid, int threadCount){
 
+        if(threadCount <= 1) {
+            // use ST path for single thread
+            ClosestPointIndexer.PI3_bounded(coordx, coordy, coordz, maxDistance, indexGrid);
+            return;
+        }
         //if(DEBUG){printf("PI3_MT(threads: %d)\n", threadCount);}
         long t0 = time(), t1 = t0;
 

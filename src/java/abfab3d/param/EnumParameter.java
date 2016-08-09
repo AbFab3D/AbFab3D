@@ -26,12 +26,6 @@ public class EnumParameter extends BaseParameter {
     String m_values[] = new String[]{"value"};
     int m_index = 0;
 
-    /*
-    public EnumParameter(String name, String desc, String initialValue) {
-        super(name, desc);
-        setValue(initialValue);
-    }
-    */
 
     public EnumParameter(String name, String values[], String initialValue) {
         this(name, name, values, initialValue);
