@@ -48,7 +48,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class ModelLoader extends BaseParameterizable implements GridProducer {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final boolean STOP_CACHING = false;
 
     private static final long MAX_ATRRIBUTED_SIZE = 800l * 800 * 800;
@@ -171,6 +171,9 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         }
     }
 
+    /**
+       @return loaded mesh for this model 
+     */
     public AttributedMesh getMesh() {
         ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(getValueHash());
         AttributedMesh mesh = null;
@@ -209,6 +212,10 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     public void setMaxInDistance(double val) {
         mp_maxInDistance.setValue(val);
         m_vhash = null;
+    }
+
+    public void setUseMultiPass(boolean value) {
+        mp_useMultiPass.setValue(value);
     }
 
     public void setMaxOutDistance(double val) {

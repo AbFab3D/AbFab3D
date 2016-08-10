@@ -57,6 +57,8 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
     private String m_path;
     private InputStream m_is;
     private String m_baseURL;
+    private boolean m_initialized = false;
+
 
     private ImageColorMap[] m_textures;
     AttributeCalculator m_attributeCalculator = null;
@@ -85,28 +87,40 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         this.m_transform = transform;
     }
 
-    /**
-       reads file and passes triangles to TriangleCollector
-     */
-    private void read(AttributedTriangleCollector out) throws IOException {
+    public void initialize(){
+        if(m_initialized)
+            return;
 
-        if(m_fileLoader == null){
+        try {
             m_fileLoader = new X3DFileLoader(new SysErrorReporter(SysErrorReporter.PRINT_ERRORS));
-
+        
             if (m_is != null) {
                 m_fileLoader.load(m_baseURL,m_is);
             } else {
                 m_fileLoader.loadFile(new File(m_path));
             }
+            List<CommonEncodable> shapes = m_fileLoader.getShapes();
+            
+            m_dataDimension = calcDataDimension(shapes);
+            m_attributeCalculator = new AttributeCalculator(m_textures, m_dataDimension-3);
+        } catch(Exception e){
+            throw new RuntimeException(e);
         }
+        m_initialized = true;
+    }
+
+    /**
+       reads file and passes triangles to TriangleCollector
+     */
+    private void read(AttributedTriangleCollector out)  throws IOException {
+
+        initialize();
 
         List<CommonEncodable> shapes = m_fileLoader.getShapes();
 
         Iterator<CommonEncodable> itr = shapes.iterator();
-        int tex = 0;
-
+        int texID = 0;
         m_textures = new ImageColorMap[shapes.size()];
-        m_dataDimension = calcDataDimension(shapes);
 
         while(itr.hasNext()) {
 
@@ -152,7 +166,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
                 tcoord = point_xfrm;
             }
 
-            if (texNode != null) tex = addTexture(texNode);
+            if (texNode != null) texID = getTextureID(texNode);
 
             switch(m_dataDimension) {
                 case 3:
@@ -162,7 +176,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
                     addTriangles5(coord, tcoord, coordIndex, tcoordIndex, out);
                     break;
                 case 6:
-                    addTriangles6(coord, tcoord, tex, coordIndex, tcoordIndex, out);
+                    addTriangles6(coord, tcoord, texID, coordIndex, tcoordIndex, out);
                     break;
             }
         }
@@ -205,7 +219,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         }
     }
 
-    private int addTexture(CommonEncodable tex) {
+    private int getTextureID(CommonEncodable tex) {
         String[] url = (String[]) ((ArrayData)tex.getValue("url")).data;
         Boolean repeatX = (Boolean) tex.getValue("repeatX");
         Boolean repeatY = (Boolean) tex.getValue("repeatY");
@@ -218,7 +232,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
 
         idx = m_lastTex++;
 
-        if (DEBUG) printf("X3DReader.addTexture: %s\n",path);
+        if (DEBUG) printf("X3DReader.getTextureID: %s\n",path);
         ImageColorMap icm = new ImageColorMap(path,1,1,1);
         icm.setCenter(new Vector3d(0.5,0.5,0.5));
         if (repeatX != null) icm.setRepeatX(repeatX);
@@ -401,8 +415,6 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
      * @return
      */
     public DataSource getAttributeCalculator() {
-        if(m_attributeCalculator == null)
-            m_attributeCalculator = new AttributeCalculator(m_textures, m_dataDimension-3);
 
         return m_attributeCalculator;
     }
@@ -438,8 +450,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
      * Returns how many data channels this file contains.  Must be called after getAttTriangles call.
      */
     public int getDataDimension() {
-        if(m_dataDimension < 1)
-            throw new RuntimeException("data dimension is not known yet");
+        initialize();
         return m_dataDimension;
     }
 

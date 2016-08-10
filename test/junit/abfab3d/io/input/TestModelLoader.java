@@ -278,13 +278,24 @@ public class TestModelLoader extends TestCase {
 
     }
 
-    public static void main(String arg[]) throws Exception {
+    public void devTestMultiPass() throws IOException {
 
-        for(int i = 0; i < 1; i++){
-            new TestModelLoader().testSVX_singleChannel();
-        }
+        double voxelSize = 0.5*MM;
+        String filePath = "test/models/boxITS_4x4x0.4cm_slanted.x3d";
 
+        ModelLoader loader = new ModelLoader(filePath);
+        loader.setAttributeLoading(false);
+        loader.setVoxelSize(voxelSize);
+        loader.setUseMultiPass(true);
+        AttributeGrid grid = loader.getGrid();
+        
     }
 
+    public static void main(String arg[]) throws Exception {
+
+        new TestModelLoader().devTestMultiPass();
+        //new TestModelLoader().testBinarySTLfile();
+        
+    }
 
 }

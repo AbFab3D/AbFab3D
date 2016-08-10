@@ -360,7 +360,6 @@ public class ClosestPointIndexerMT {
 
     }
     
-
     public static void makeAttributedDistanceGrid_MT(AttributeGrid indexGrid, 
                                                      double [][] pnts, 
                                                      AttributeGrid interiorGrid, 
@@ -371,6 +370,10 @@ public class ClosestPointIndexerMT {
                                                      AttributeGrid outGrid){
 
         if(DEBUG) printf("makeAttributedDistanceGrid_MT() threadCount: %d\n", threadCount);
+        if(threadCount <= 1){            
+            ClosestPointIndexer.makeAttributedDistanceGrid(indexGrid, pnts, interiorGrid, minDistance, maxDistance, attColorizer, outGrid);
+            return;
+        }
         int sliceThickness = 1;
         SliceManager slicer = new SliceManager(outGrid.getHeight(),sliceThickness);
         

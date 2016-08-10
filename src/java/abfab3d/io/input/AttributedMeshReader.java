@@ -43,6 +43,7 @@ public class AttributedMeshReader extends BaseMeshReader implements AttributedTr
     private AttributedTriangleProducer m_producer;
     private DataSource m_attributeCalc;
     private int m_dataDimension = -1;
+    private boolean m_initialized = false;
 
     public AttributedMeshReader(String path) {
         m_path = path;
@@ -91,27 +92,16 @@ public class AttributedMeshReader extends BaseMeshReader implements AttributedTr
 
 
     public boolean getAttTriangles(AttributedTriangleCollector out) {
-
-        m_dataDimension = 3;
-
-        if(m_producer == null){
-            createReader();
-        }
-        if(m_producer != null && m_producer instanceof Transformer){
-
-            ((Transformer)m_producer).setTransform(m_transform); 
-            
-        }
+        
+        initialize();
         
         boolean ret_val = m_producer.getAttTriangles(out);
 
-        if (m_producer instanceof AttributedX3DReader) {
-            m_dataDimension = ((AttributedX3DReader)m_producer).getDataDimension();
-        }
         return ret_val;
     }
     
     protected void createReader() {
+
         if(m_format.equalsIgnoreCase(EXT_STL)) {
             if (m_is != null) {
                 m_producer = new STLReader(m_is);
@@ -124,14 +114,40 @@ public class AttributedMeshReader extends BaseMeshReader implements AttributedTr
                 m_producer = new AttributedX3DReader(m_is,m_baseURL);
             } else {
                 m_producer = new AttributedX3DReader(m_path);
-            }
+            }            
         }
-
+        
         if (m_producer == null) throw new IllegalArgumentException("Unsupported format: " + m_format + " path: " + m_path);
+        
+        if (m_producer instanceof AttributedX3DReader) {
+            m_dataDimension = ((AttributedX3DReader)m_producer).getDataDimension();
+        } else {
+            m_dataDimension = 3;
+        }
+        
     }
         
     public void setTransform(VecTransform trans) {
         m_transform = trans;
+    }
+
+    public void initialize(){
+
+        if(m_initialized)
+            return;
+
+        if (m_producer == null){
+            createReader();
+        }
+       
+        if(m_producer != null && m_producer instanceof Transformer){
+            
+            ((Transformer)m_producer).setTransform(m_transform); 
+            
+        }
+
+
+        m_initialized = true;
     }
 
     /**
@@ -139,20 +155,19 @@ public class AttributedMeshReader extends BaseMeshReader implements AttributedTr
      * @return
      */
     public DataSource getAttributeCalculator() {
-        if (m_dataDimension == -1) throw new IllegalStateException("Must call getTriangles2 first");
+        
+        initialize();         
 
-        if (m_producer instanceof AttributedX3DReader) {
-            m_attributeCalc = ((AttributedX3DReader) m_producer).getAttributeCalculator();
-        }
         return m_attributeCalc;
     }
 
     /**
-     * Returns how many data channels this file contains.  Must be called after getTriangles2 call.
+     * Returns how many data channels this file contains.  
      */
     public int getDataDimension() {
-        if (m_dataDimension == -1) throw new IllegalStateException("Must call getTriangles2 first");
-
+        
+        initialize();
+        
         return m_dataDimension;
     }
 }

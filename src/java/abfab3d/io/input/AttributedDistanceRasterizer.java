@@ -88,6 +88,7 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
 
     protected double m_maxDistanceVoxels; // max distance to calculate in case of using distance range 
     protected int m_threadCount = 1;
+    protected boolean m_useMultiPass = false;
 
     // size of surface voxels relative to size fo grid voxles 
     protected double m_surfaceVoxelSize = 1.;
@@ -147,6 +148,15 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
     }
 
     /**
+       forces to use slower but more precise distance calculation alg
+    */
+    public void setUseMultiPass(boolean value){
+
+        m_useMultiPass = value;
+
+    }
+
+    /**
        set thickness of initial shel whiuch is build around rastrerised surface
      */
     public void setShellHalfThickness(double value){  
@@ -160,7 +170,7 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
      */
     public void setDataDimension(int dataDimension){
 
-        if(DEBUG) printf("AttributedDIstanceRasterizer.setDataDimension(%d)\n", dataDimension);
+        if(DEBUG) printf("AttributedDistanceRasterizer.setDataDimension(%d)\n", dataDimension);
         m_dataDimension = dataDimension;
     }
 
@@ -229,7 +239,7 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
 
         init();
         triProducer.getAttTriangles(this);
-        if(DEBUG_TIMING)printf("AttributedDistanceRasterizer..getTriangles(this) time: %d ms\n", (time() - t0));
+        if(DEBUG_TIMING)printf("AttributedDistanceRasterizer.getTriangles(this) time: %d ms\n", (time() - t0));
 
         int pcount = m_surfaceBuilder.getPointCount();
         if(DEBUG)printf("pcount: %d\n", pcount);
@@ -269,32 +279,23 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
         ClosestPointIndexer.getPointsInGridUnits(m_indexGrid, pnt[0], pnt[1], pnt[2]);
 
         // distribute indices on the whole indexGrid                
-        if(m_threadCount <= 1) {
-            ClosestPointIndexer.PI3_bounded(pnt[0], pnt[1], pnt[2], m_maxDistanceVoxels, m_indexGrid);
-            if(DEBUG_TIMING)printf("ClosestPointIndexer.PI3_sorted time: %d ms\n", (time() - t0));
+        if(m_useMultiPass) {
+            ClosestPointIndexerMT.PI3_multiPass_MT(pnt[0], pnt[1], pnt[2], m_maxDistanceVoxels, m_indexGrid, m_threadCount);
+            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.PI3_multiPass_MT() time: %d ms\n", (time() - t0));            
         } else {
             ClosestPointIndexerMT.PI3_MT(pnt[0], pnt[1], pnt[2], m_maxDistanceVoxels, m_indexGrid, m_threadCount);
-            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.PI3_MT time: %d ms\n", (time() - t0));
+            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.PI3_MT() time: %d ms\n", (time() - t0));
         }
-        
+
         t0 = time();
         // transform points into world units
         ClosestPointIndexer.getPointsInWorldUnits(m_indexGrid, pnt[0], pnt[1], pnt[2]);
         if(DEBUG_TIMING)printf("ClosestPointIndexer.getPointsInWorldUnits(): %d ms\n", (time() - t0));
         
         t0 = time();
-        if(m_threadCount <= 1) {
-
-            ClosestPointIndexer.makeAttributedDistanceGrid(m_indexGrid, pnt, interiorGrid, m_minDistance, m_maxDistance, attributeColorizer,outGrid);
-            //ClosestPointIndexer.makeDistanceGrid(m_indexGrid, pnt[0], pnt[1], pnt[2], interiorGrid, m_maxInDistance, m_maxOutDistance, distanceGrid);
-
-            if(DEBUG_TIMING)printf("ClosestPointIndexer.makeAttributedDistanceGrid() time: %d ms\n", (time() - t0));
-        } else {
-
-            printf("calling ClosestPointIndexerMT.makeAttributedDistanceGrid_MT()\n");            
-            ClosestPointIndexerMT.makeAttributedDistanceGrid_MT(m_indexGrid, pnt, interiorGrid, m_minDistance, m_maxDistance, attributeColorizer,m_threadCount, outGrid);
-            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.makeAttributedDistanceGrid_MT() time: %d ms\n", (time() - t0));
-        }
+        ClosestPointIndexerMT.makeAttributedDistanceGrid_MT(m_indexGrid, pnt, interiorGrid, m_minDistance, m_maxDistance, attributeColorizer,m_threadCount, outGrid);
+        if(DEBUG_TIMING)printf("ClosestPointIndexerMT.makeAttributedDistanceGrid_MT() time: %d ms\n", (time() - t0));
+    
        
     } // getDistances()
 

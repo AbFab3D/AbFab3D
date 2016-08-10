@@ -214,7 +214,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
      */
     public void getDistances(TriangleProducer triProducer, AttributeGrid distanceGrid){
         
-        if(DEBUG)printf("DistanceRasterizer2.getDistances(grid)\n");
+        if(DEBUG)printf("DistanceRasterizer2.getDistances(%s, %s)\n",triProducer,distanceGrid);
         long t0 = time();
 
         init();
@@ -255,10 +255,10 @@ public class DistanceRasterizer2 implements TriangleCollector {
 
         if(m_useMultiPass) {
             ClosestPointIndexerMT.PI3_multiPass_MT(pntx, pnty, pntz, m_maxDistanceVoxels, m_indexGrid, m_threadCount);
-            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.PI3_MT time: %d ms\n", (time() - t0));            
+            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.PI3_multiPass_MT() time: %d ms\n", (time() - t0));            
         } else {
             ClosestPointIndexerMT.PI3_MT(pntx, pnty, pntz, m_maxDistanceVoxels, m_indexGrid, m_threadCount);
-            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.PI3_MT time: %d ms\n", (time() - t0));
+            if(DEBUG_TIMING)printf("ClosestPointIndexerMT.PI3_MT() time: %d ms\n", (time() - t0));
         }
         
         t0 = time();

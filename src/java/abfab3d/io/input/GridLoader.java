@@ -335,7 +335,7 @@ public class GridLoader {
     /**
        open mesh on given path and return density grid for that mesh 
        
-       @return distance grid to the rasterized mesh
+       @return ddensity grid to the rasterized mesh
      */
     public AttributeGrid loadDensityGrid(String filePath){
                 
@@ -525,21 +525,7 @@ public class GridLoader {
         Bounds bounds = getModelBounds(tp);
         if(DEBUG) printf("model bounds: %s\n", bounds);
         int dims = attTriProducer.getDataDimension();
-        AttributeGrid grid = null;
-
-        switch(dims) {
-            case 3:
-                grid = createDistanceGrid(bounds);
-                break;
-            case 5:
-                grid = createDistRGBGrid(bounds);
-                break;
-            case 6:
-                grid = createDistRGBGrid(bounds);
-                break;
-            default:
-                throw new IllegalArgumentException("Unhandled case.  dims: " + dims);
-        }
+        AttributeGrid grid = greateOutputGrid(bounds, dims);
         if(DEBUG)printf("grid: [%d x %d x %d]  dims: %d\n", grid.getWidth(),grid.getHeight(),grid.getDepth(),dims);
         if(DEBUG)printf("voxelSize: %7.5f\n", grid.getVoxelSize()); 
         AttributedDistanceRasterizer rasterizer = new AttributedDistanceRasterizer(bounds, grid.getWidth(),grid.getHeight(),grid.getDepth());
@@ -548,6 +534,7 @@ public class GridLoader {
         rasterizer.setShellHalfThickness(m_shellHalfThickness);
         rasterizer.setSurfaceVoxelSize(m_surfaceVoxelSize);
         rasterizer.setThreadCount(m_threadCount);
+        rasterizer.setUseMultiPass(m_useMultiPass);
         rasterizer.setDistanceRange(-m_maxInDistance, m_maxOutDistance);
        
         rasterizer.getAttributedDistances(attTriProducer, attributeColorizer, grid);
@@ -555,11 +542,18 @@ public class GridLoader {
         return grid;
         
     }
+
     public AttributeGrid rasterizeAttributedTriangles(AttributedMeshReader reader){
 
         if(DEBUG) printf("GridLoader.rasterizeTexturedTriangles(%s)\n", reader);
 
-        TriangleProducer tp = null;
+        DataSource attributeColorizer = reader.getAttributeCalculator();
+        if(attributeColorizer instanceof Initializable) ((Initializable)attributeColorizer).initialize();
+
+        return rasterizeAttributedTriangles(reader,attributeColorizer);
+ 
+        /*
+          TriangleProducer tp = null;
 
         if (reader instanceof TriangleProducer) tp = (TriangleProducer) reader;
         else tp = new AttributedTriangleProducerConverter(reader);
@@ -569,21 +563,8 @@ public class GridLoader {
         if(attributeColorizer instanceof Initializable) ((Initializable)attributeColorizer).initialize();
         if(DEBUG) printf("model bounds: %s\n", bounds);
         int dims = reader.getDataDimension();
-        AttributeGrid grid = null;
+        AttributeGrid grid = createOutputGrid(bounds, dim);
 
-        switch(dims) {
-            case 3:
-                grid = createDistanceGrid(bounds);
-                break;
-            case 5:
-                grid = createDistRGBGrid(bounds);
-                break;
-            case 6:
-                grid = createDistRGBGrid(bounds);
-                break;
-            default:
-                throw new IllegalArgumentException("Unhandled case.  dims: " + dims);
-        }
         if(DEBUG)printf("grid: [%d x %d x %d]  dims: %d\n", grid.getWidth(),grid.getHeight(),grid.getDepth(),dims);
         if(DEBUG)printf("voxelSize: %7.5f\n", grid.getVoxelSize());
         AttributedDistanceRasterizer rasterizer = new AttributedDistanceRasterizer(bounds, grid.getWidth(),grid.getHeight(),grid.getDepth());
@@ -598,6 +579,23 @@ public class GridLoader {
         rasterizer.getAttributedDistances(reader, attributeColorizer, grid);
 
         return grid;
+            */
+    }
 
+    /**
+       creates apropriate output grid  
+     */
+    protected AttributeGrid greateOutputGrid(Bounds bounds, int dataDimension){
+        
+        switch(dataDimension) {
+        case 3:
+            return createDistanceGrid(bounds);
+        case 5:
+            return createDistRGBGrid(bounds);
+        case 6:
+            return createDistRGBGrid(bounds);
+        default:
+            throw new IllegalArgumentException("Unhandled case.  dataDimension: " + dataDimension);
+        }
     }
 }
