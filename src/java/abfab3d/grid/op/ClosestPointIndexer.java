@@ -1247,6 +1247,28 @@ public class ClosestPointIndexer {
         }
     }
 
+    static void combineGridsSlice(int ymin, int ymax, AttributeGrid grid1, AttributeGrid grid2, double pntx[], double pnty[], double pntz[]){
+
+        int 
+            nx = grid1.getWidth(),
+            nz = grid1.getDepth();
+
+        for(int y = ymin; y < ymax; y++){
+            for(int x = 0; x < nx; x++){
+                for(int z = 0; z < nz; z++){
+                    int ind1 = (int)grid1.getAttribute(x,y,z);
+                    int ind2 = (int)grid2.getAttribute(x,y,z);
+                    if(ind1 != ind2){
+                        double dist1 = distance2(x,y,z,pntx,pnty,pntz, ind1);
+                        double dist2 = distance2(x,y,z,pntx,pnty,pntz, ind2); 
+                        if(dist2 < dist1) 
+                            grid1.setAttribute(x,y,z, ind2);
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * scan the index grid for used indices and assign INF to points which are not presented in the grid 
      * 

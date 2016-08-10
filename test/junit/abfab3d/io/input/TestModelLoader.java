@@ -12,15 +12,26 @@
 
 package abfab3d.io.input;
 
-import abfab3d.datasources.DataSourceGrid;
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.GridDataDesc;
+import abfab3d.core.Bounds;
+
+import javax.vecmath.Vector3d;
+
+import abfab3d.datasources.DataSourceGrid;
+
 import abfab3d.io.output.SVXWriter;
+
 import abfab3d.util.BoundingBoxCalculator;
+import abfab3d.util.ColorMapperDistance;
+import abfab3d.util.ColorMapper;
+
+
 import junit.framework.TestCase;
 
 import java.io.IOException;
 
+import static abfab3d.grid.util.GridUtil.writeSlice;
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.time;
 import static abfab3d.core.Units.MM;
@@ -280,20 +291,33 @@ public class TestModelLoader extends TestCase {
 
     public void devTestMultiPass() throws IOException {
 
-        double voxelSize = 0.5*MM;
+        double voxelSize = 0.1*MM;
+        double distanceBand = 0.5*MM;
         String filePath = "test/models/boxITS_4x4x0.4cm_slanted.x3d";
 
         ModelLoader loader = new ModelLoader(filePath);
+        loader.setUseCaching(true);
         loader.setAttributeLoading(false);
         loader.setVoxelSize(voxelSize);
-        loader.setUseMultiPass(true);
+        loader.setUseMultiPass(false);
         AttributeGrid grid = loader.getGrid();
+        Bounds bounds = grid.getGridBounds();
+        printf("loaded grid: [%d x %d x %d]\n", grid.getWidth(), grid.getHeight(), grid.getDepth());
+        int nv = 3000;
+        int nu = (int)(nv * bounds.getSizeZ()/bounds.getSizeY());
+        Vector3d eu = new Vector3d(0, 0, bounds.getSizeZ()/nu);
+        Vector3d ev = new Vector3d(0, bounds.getSizeY()/nv, 0);
+        Vector3d sliceOrigin = new Vector3d(bounds.getCenterX(), bounds.ymin, bounds.zmin);
+        ColorMapper colorMapper = new ColorMapperDistance(distanceBand);
+
+        //writeSlice(grid,grid.getDataChannel(),colorMapper, sliceOrigin, eu, ev,nu, nv, "/tmp/00_outModelSliceX.png");
         
     }
 
     public static void main(String arg[]) throws Exception {
 
-        new TestModelLoader().devTestMultiPass();
+        for(int i = 0; i < 5; i++)
+            new TestModelLoader().devTestMultiPass();
         //new TestModelLoader().testBinarySTLfile();
         
     }

@@ -49,7 +49,6 @@ import static abfab3d.core.Output.printf;
  */
 public class ModelLoader extends BaseParameterizable implements GridProducer {
     private static final boolean DEBUG = true;
-    private static final boolean STOP_CACHING = false;
 
     private static final long MAX_ATRRIBUTED_SIZE = 800l * 800 * 800;
 
@@ -58,6 +57,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     ObjectParameter mp_source = new ObjectParameter("source","model source",null);
     DoubleParameter mp_margins = new DoubleParameter("margins","size of margins", 2*MM);
     BooleanParameter mp_attributeLoading = new BooleanParameter("attributeLoading", "Load attribute data",false);
+    BooleanParameter mp_useCaching = new BooleanParameter("useCaching", "turn on/off data caching",true);
     BooleanParameter mp_useMultiPass = new BooleanParameter("useMultiPass", "Use precise but slower distance calculation",false);
     IntParameter mp_densityBitCount = new IntParameter("densityBitCount","Density Bit Count", 8);
     IntParameter mp_distanceBitCount = new IntParameter("distanceBitCount","Distance Bit Count", 8);
@@ -75,12 +75,8 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     static String[] sm_distAlgNames = GridLoader.getDistanceAlgorithmNames();
     static String[] sm_densAlgNames = GridLoader.getDensityAlgorithmNames();
 
-    static {
-        if (STOP_CACHING) {
-            printf("*** ModelLoader caching turned off ****\n");
-            new Exception().printStackTrace();
-        }
-    }
+    static boolean reportCaching = true;
+
     Parameter m_aparam[] = new Parameter[]{
             mp_source,
             mp_voxelSize,
@@ -96,7 +92,8 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             mp_useMultiPass,
             mp_threadCount,
             mp_distanceAlgorithm,
-            mp_densityAlgorithm
+            mp_densityAlgorithm,
+            mp_useCaching,
     };
 
 
@@ -145,6 +142,10 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
     }
 
+    public void setUseCaching(boolean value) {
+        mp_useCaching.setValue(value);
+    }
+
     public void setVoxelSize(double vs) {
         mp_voxelSize.setValue(vs);
         m_vhash = null;
@@ -169,34 +170,6 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
                 mp_maxGridSize.setValue(MAX_ATRRIBUTED_SIZE);
             }
         }
-    }
-
-    /**
-       @return loaded mesh for this model 
-     */
-    public AttributedMesh getMesh() {
-        ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(getValueHash());
-        AttributedMesh mesh = null;
-
-        if (co != null) {
-            if (co.mesh != null) {
-                m_materialType = co.materialType;
-                return co.mesh;
-            }
-        }
-
-        AttributedMeshReader reader = new AttributedMeshReader(m_path);
-        mesh = new AttributedMesh();
-        reader.getAttTriangles(mesh);
-
-        mesh.setDataDimension(reader.getDataDimension());
-
-        m_materialType = makeMaterialType(reader.getDataDimension());
-
-        if (!STOP_CACHING) {
-            ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(null, mesh, reader,m_materialType));
-        }
-        return mesh;
     }
 
     public void setDensityBitCount(int val) {
@@ -239,24 +212,68 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         m_vhash = null;
     }
 
-    public AttributeGrid getGrid() {
+    public void reportCachingStatus(){
+
+        printf("*** ModelLoader caching :%s  ****\n", mp_useCaching.getValue());
+        new Exception().printStackTrace();
+
+    }
+
+
+    /**
+       @return loaded mesh for this model 
+     */
+    public AttributedMesh getMesh() {
+
+        reportCachingStatus();
+        
         ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(getValueHash());
+        AttributedMesh mesh = null;
+
+        if (co != null) {
+            if (co.mesh != null) {
+                m_materialType = co.materialType;
+                return co.mesh;
+            }
+        }
+
+        AttributedMeshReader reader = new AttributedMeshReader(m_path);
+        mesh = new AttributedMesh();
+        reader.getAttTriangles(mesh);
+
+        mesh.setDataDimension(reader.getDataDimension());
+
+        m_materialType = makeMaterialType(reader.getDataDimension());
+
+        if(mp_useCaching.getValue()){
+            ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(null, mesh, reader,m_materialType));
+        }
+        return mesh;
+    }
+
+    /**
+       return grid for loaded model 
+     */
+    public AttributeGrid getGrid() {
+
         AttributedMesh mesh = null;
         AttributeGrid grid = null;
         AttributedMeshReader reader = null;
-
-        if (co != null) {
-            if (co.grid != null) {
-                if (DEBUG) printf("Found cached grid: %s\n",getValueHash());
-                m_materialType = co.materialType;
-                return co.grid;
-            } else if (co.mesh != null) {
-                mesh = co.mesh;
-                reader = co.reader;
-                if (reader == null) throw new IllegalArgumentException("reader cannot be null");
+        if(mp_useCaching.getValue()){
+            ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(getValueHash());
+            if (co != null) {
+                if (co.grid != null) {
+                    if (DEBUG) printf("Found cached grid: %s\n",getValueHash());
+                    m_materialType = co.materialType;
+                    return co.grid;
+                } else if (co.mesh != null) {
+                    mesh = co.mesh;
+                    reader = co.reader;
+                    if (reader == null) throw new IllegalArgumentException("reader cannot be null");
+                }
+            } else {
+                if (DEBUG) printf("No cache for grid: %s\n",getValueHash());
             }
-        } else {
-            if (DEBUG) printf("No cache for grid: %s\n",getValueHash());
         }
 
         GridLoader loader = new GridLoader();
@@ -300,7 +317,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         if (DEBUG) printf("Dim: %d\n",dim);
 
         grid = new AttributeGridSourceWrapper(m_vhash,grid);
-        if (!STOP_CACHING) {
+        if(mp_useCaching.getValue()){
             ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(grid, mesh, reader,m_materialType));
         }
 

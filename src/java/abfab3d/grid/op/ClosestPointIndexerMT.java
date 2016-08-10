@@ -36,6 +36,7 @@ import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepX_bounded;
 import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepY_bounded;
 import static abfab3d.grid.op.ClosestPointIndexer.DT3sweepZ_bounded;
 
+import static abfab3d.grid.op.ClosestPointIndexer.combineGridsSlice;
 import static abfab3d.grid.op.ClosestPointIndexer.makeDistanceGridSlice;
 import static abfab3d.grid.op.ClosestPointIndexer.makeAttributedDistanceGridSlice;
 
@@ -53,7 +54,7 @@ import static abfab3d.grid.op.ClosestPointIndexer.makeAttributedDistanceGridSlic
 public class ClosestPointIndexerMT {
 
 
-    static final boolean DEBUG_TIMING = false;
+    static final boolean DEBUG_TIMING = true;
     static final boolean DEBUG = false;
     //static final double DEF_LAYER_THICKNESS = 1.8;
 
@@ -187,29 +188,58 @@ public class ClosestPointIndexerMT {
         int gpnt[] = new int[nm];
         AttributeGrid origGrid = (AttributeGrid)indexGrid.clone();        
         AttributeGrid workGrid = (AttributeGrid)indexGrid.clone();
+        if(DEBUG_TIMING) {
+            printf("PI3_multiPass_MT() grid cloning: %d ms\n", time() - t1);
+            t1 = time();
+        }
         //XYZ
         DT3sweep_MT(0, nz, coordx, coordy, coordz, maxDistance, indexGrid, threadCount);
         DT3sweep_MT(1, nz, coordx, coordy, coordz, maxDistance, indexGrid, threadCount);
         DT3sweep_MT(2, ny, coordx, coordy, coordz, maxDistance, indexGrid, threadCount);
+        if(DEBUG_TIMING) {
+            printf("PI3_multiPass_MT() first pass: %d ms\n", time() - t1);
+            t1 = time();
+        }
 
         //YZX
         DT3sweep_MT(1, nz, coordx, coordy, coordz, maxDistance, workGrid, threadCount);
         DT3sweep_MT(2, ny, coordx, coordy, coordz, maxDistance, workGrid, threadCount);
         DT3sweep_MT(0, nz, coordx, coordy, coordz, maxDistance, workGrid, threadCount);
 
-        //TODO make MT
-        ClosestPointIndexer.combineGrids(indexGrid, workGrid, coordx, coordy, coordz);
+        if(DEBUG_TIMING) {
+            printf("PI3_multiPass_MT() second pass: %d ms\n", time() - t1);
+            t1 = time();
+        }
+
+        combineGrids_MT(indexGrid, workGrid, coordx, coordy, coordz, threadCount);
         
+        if(DEBUG) {
+            printf("PI3_multiPass_MT() combine grids: %d ms\n", time() - t1);
+            t1 = time();
+        }
         workGrid.copyData(origGrid);
+
+        if(DEBUG_TIMING) {
+            printf("PI3_multiPass_MT() copy data: %d ms\n", time() - t1);
+            t1 = time();
+        }
 
         //ZXY
         DT3sweep_MT(2, ny, coordx, coordy, coordz, maxDistance, workGrid, threadCount);
         DT3sweep_MT(0, nz, coordx, coordy, coordz, maxDistance, workGrid, threadCount);
         DT3sweep_MT(1, nz, coordx, coordy, coordz, maxDistance, workGrid, threadCount);
-        //TODO make MT
-        ClosestPointIndexer.combineGrids(indexGrid, workGrid, coordx, coordy, coordz);
 
-        if(DEBUG_TIMING){t1 = time();printf("PI3_MT() done %d ms\n", t1 - t0);t0 = t1;}
+        if(DEBUG_TIMING) {
+            printf("PI3_multiPass_MT() third pass: %d ms\n", time() - t1);
+            t1 = time();
+        }
+        combineGrids_MT(indexGrid, workGrid, coordx, coordy, coordz, threadCount);
+        if(DEBUG_TIMING) {
+            printf("PI3_multiPass_MT() combine grids: %d ms\n", time() - t1);
+            t1 = time();
+        }
+
+        if(DEBUG_TIMING){printf("PI3_multiPass_MT() done %d ms\n", time() - t0);}
         
     }
 
@@ -322,6 +352,37 @@ public class ClosestPointIndexerMT {
     } // static class SliceProcessorSweeper
 
 
+
+    /**
+       compares distances to points stored in two grids and select shortest distance and stores result in first grid
+     */
+    public static void combineGrids_MT(AttributeGrid grid1, AttributeGrid grid2, double pntx[], double pnty[], double pntz[], int threadCount){
+        if(threadCount <= 1) {
+            ClosestPointIndexer.combineGrids(grid1, grid2, pntx,pnty, pntz);
+            return;
+        }
+
+        if(DEBUG) printf("combineGrids_MT(%d)\n", threadCount);
+        long t0 = time();
+        int sliceThickness = 1;
+        SliceManager slicer = new SliceManager(grid1.getHeight(),sliceThickness);        
+        //if(DEBUG) printf("threads: %d slices: %d \n", threadCount, slicer.getSliceCount());
+        
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        
+        for(int i = 0; i < threadCount; i++){
+            SliceProcessorCombine sliceProcessor = new SliceProcessorCombine(i, slicer, grid1, grid2, pntx, pnty, pntz);
+            executor.submit(sliceProcessor);
+        }
+        executor.shutdown();
+        
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+                
+    }
 
     public static void makeDistanceGrid_MT(AttributeGrid indexGrid, 
                                            double pntx[], double pnty[], double pntz[], 
@@ -526,5 +587,48 @@ public class ClosestPointIndexerMT {
             }            
         }        
     } // static class SliceProcessorAttributedDistance 
+
+
+    /**
+       class to combine slices of two grids
+     */
+    static class SliceProcessorCombine implements Runnable {
+
+        SliceManager slicer;
+        int id;
+        double coordx[];
+        double coordy[];
+        double coordz[];
+        AttributeGrid grid1;
+        AttributeGrid grid2;
+
+        SliceProcessorCombine(int id, SliceManager slicer, 
+                              AttributeGrid grid1, 
+                              AttributeGrid grid2, 
+                              double coordx[], double coordy[], double coordz[]){
+
+            this.id = id;
+            this.slicer = slicer;
+            this.coordx = coordx;
+            this.coordy = coordy;
+            this.coordz = coordz;
+            this.grid1 = grid1;
+            this.grid2 = grid2;            
+        }
+
+        public void run(){
+
+            //if(DEBUG)printf("thread: %d run\n", id);
+            while(true){
+                
+                Slice slice = slicer.getNextSlice();
+                //if(DEBUG)printf("thread: %d slice: %s\n", id, slice);
+                if(slice == null)
+                    break;                
+                combineGridsSlice(slice.smin, slice.smax, grid1, grid2, coordx, coordy, coordz);
+            }            
+            //if(DEBUG)printf("thread: %d done\n", id);
+        }        
+    } // static class SliceProcessorCombine
 
 } // class ClosestPointIndexer_MT
