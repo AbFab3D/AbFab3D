@@ -75,8 +75,6 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     static String[] sm_distAlgNames = GridLoader.getDistanceAlgorithmNames();
     static String[] sm_densAlgNames = GridLoader.getDensityAlgorithmNames();
 
-    static boolean reportCaching = true;
-
     Parameter m_aparam[] = new Parameter[]{
             mp_source,
             mp_voxelSize,
@@ -189,6 +187,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
     public void setUseMultiPass(boolean value) {
         mp_useMultiPass.setValue(value);
+        m_vhash = null;
     }
 
     public void setMaxOutDistance(double val) {
@@ -225,8 +224,6 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
      */
     public AttributedMesh getMesh() {
 
-        reportCachingStatus();
-        
         ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(getValueHash());
         AttributedMesh mesh = null;
 
