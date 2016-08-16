@@ -311,6 +311,7 @@ public class GridSaver {
                     writeTexturedMesh(mesh, grid, makeDefaultColorMaker(grid), os,"x3db");
                 else
                     writeMesh(mesh, os, "x3db");
+                break;
             default:
                 throw new IllegalArgumentException("Unhandled type: " + type);
         }
