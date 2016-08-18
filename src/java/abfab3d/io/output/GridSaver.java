@@ -274,11 +274,10 @@ public class GridSaver {
 
         // TODO: Handle other file types
         WingedEdgeTriangleMesh mesh = getMesh(grid);
-
         printf("min shell Volume: %f  max shellCount: %d\n", m_minShellVolume, m_maxShellsCount);
         if (m_minShellVolume != VOLUME_UNDEFINED || m_maxShellsCount != SHELLS_COUNT_UNDEFINED) {
 
-            ShellResults sr = GridSaver.getLargestShells(mesh, m_maxShellsCount, m_minShellVolume);
+            ShellResults sr = GridSaver.getLargestShells(mesh, m_maxShellsCount, m_minShellVolume, m_minShellCount);
             mesh = sr.getLargestShell();
             int regions_removed = sr.getShellsRemoved();
             if (DEBUG)
@@ -885,7 +884,7 @@ public class GridSaver {
 
         ShellFinder shellFinder = new ShellFinder();
         ShellFinder.ShellInfo shells[] = shellFinder.findShells(mesh);
-        printf("shellsCount: %d\n", shells.length);
+        printf("shellsCount: %d, minShellCount: %d\n", shells.length, minShellCount);
 
         if (shells.length <= minShellCount) {
             return new ShellResults(mesh, 0);
