@@ -9,29 +9,15 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.param.editor;
+package abfab3d.shapejs;
 
-import java.awt.Component;
-import java.util.Vector;
-
+import abfab3d.param.BaseParameterizable;
 
 /**
- * Editor for a parameter
+ * Contains parameters for a rendering equation.  Each type of shader such as Phong or Metal will have
+ * different parameter spaces.
  *
  * @author Alan Hudson
  */
-public interface Editor {
-    /**
-     * Get the AWT component for editing this item
-     * @return
-     */
-    public Component getComponent();
-
-    /**
-     * Get notification of any parameter changes from this editor
-     * @param listener
-     */
-    public void addParamChangedListener(ParamChangedListener listener);
-
-    public void addParamChangedListeners(Vector<ParamChangedListener> listeners);
+public class RenderingParams extends BaseParameterizable {
 }

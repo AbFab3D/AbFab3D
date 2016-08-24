@@ -133,6 +133,14 @@ public abstract class BaseParameter implements Parameter {
     }
 
     /**
+     * Is this parameter set at its default value
+     * @return
+     */
+    public boolean isDefaultValue() {
+        return (getDefaultValue().equals(getValue()));
+    }
+
+    /**
      * Set the parameters value
      * @param value
      */

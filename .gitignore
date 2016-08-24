@@ -2,7 +2,6 @@
 classes
 release
 apps/booleanops/out.*
-*.x3db
 apps/*.x3dv
 apps/test/
 jars/

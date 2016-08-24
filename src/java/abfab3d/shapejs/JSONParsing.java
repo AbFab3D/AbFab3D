@@ -9,29 +9,18 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.param.editor;
+package abfab3d.shapejs;
 
-import java.awt.Component;
-import java.util.Vector;
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
- * Editor for a parameter
+ * Common JSON parsing utils
  *
  * @author Alan Hudson
  */
-public interface Editor {
-    /**
-     * Get the AWT component for editing this item
-     * @return
-     */
-    public Component getComponent();
-
-    /**
-     * Get notification of any parameter changes from this editor
-     * @param listener
-     */
-    public void addParamChangedListener(ParamChangedListener listener);
-
-    public void addParamChangedListeners(Vector<ParamChangedListener> listeners);
+public class JSONParsing {
+    public static Gson getJSONParser() {
+        return new GsonBuilder().serializeSpecialFloatingPointValues().create();
+    }
 }

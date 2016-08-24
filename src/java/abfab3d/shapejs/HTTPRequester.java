@@ -9,29 +9,19 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.param.editor;
-
-import java.awt.Component;
-import java.util.Vector;
-
+package abfab3d.shapejs;
+import java.util.Map;
 
 /**
- * Editor for a parameter
+ * Handles HTTP requests.
+ *
+ * TODO: This code is experimental and likely will change
  *
  * @author Alan Hudson
  */
-public interface Editor {
-    /**
-     * Get the AWT component for editing this item
-     * @return
-     */
-    public Component getComponent();
+public interface HTTPRequester {
+    public enum Method {GET, POST};
 
-    /**
-     * Get notification of any parameter changes from this editor
-     * @param listener
-     */
-    public void addParamChangedListener(ParamChangedListener listener);
+    public String sendRequest(String url, Method method, Map<String, String> params, Map<String, String> multipartParams, Map<String, String> headers, String accept, String user, String password, int connectionTimeout, int socketTimeout, boolean suppressErrorMsgs) throws Exception;
 
-    public void addParamChangedListeners(Vector<ParamChangedListener> listeners);
 }

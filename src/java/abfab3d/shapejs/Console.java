@@ -9,29 +9,25 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.param.editor;
+package abfab3d.shapejs;
 
-import java.awt.Component;
-import java.util.Vector;
-
+import org.mozilla.javascript.Context;
 
 /**
- * Editor for a parameter
+ * Logs print() calls for later return;
  *
  * @author Alan Hudson
  */
-public interface Editor {
-    /**
-     * Get the AWT component for editing this item
-     * @return
-     */
-    public Component getComponent();
+public class Console {
+    public Console() {
+    }
 
-    /**
-     * Get notification of any parameter changes from this editor
-     * @param listener
-     */
-    public void addParamChangedListener(ParamChangedListener listener);
-
-    public void addParamChangedListeners(Vector<ParamChangedListener> listeners);
+    public static void log(String msg) {
+        Context cx = Context.enter();
+        try {
+            DebugLogger.log(cx,msg);
+        } finally {
+            Context.exit();
+        }
+    }
 }

@@ -9,29 +9,22 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.param.editor;
+package abfab3d.shapejs;
 
-import java.awt.Component;
-import java.util.Vector;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.WrapFactory;
 
+import static abfab3d.core.Output.printf;
 
 /**
- * Editor for a parameter
+ * Wrapper to stop reflection attacks
  *
  * @author Alan Hudson
  */
-public interface Editor {
-    /**
-     * Get the AWT component for editing this item
-     * @return
-     */
-    public Component getComponent();
-
-    /**
-     * Get notification of any parameter changes from this editor
-     * @param listener
-     */
-    public void addParamChangedListener(ParamChangedListener listener);
-
-    public void addParamChangedListeners(Vector<ParamChangedListener> listeners);
+public class SandboxWrapFactory extends WrapFactory {
+    @Override
+    public Scriptable wrapAsJavaObject(Context cx, Scriptable scope, Object javaObject, Class staticType) {
+        return new SandboxNativeJavaObject(scope, javaObject, staticType);
+    }
 }

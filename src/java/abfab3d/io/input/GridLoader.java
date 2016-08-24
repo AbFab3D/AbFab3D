@@ -12,6 +12,7 @@
 
 package abfab3d.io.input;
 
+import abfab3d.core.VecTransform;
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.BoundingBoxCalculator;
@@ -242,6 +243,14 @@ public class GridLoader {
         if(DEBUG)printf("loadDistanceGrid(%s)\n",filepath);
 
         MeshReader reader = new MeshReader(filepath);
+        return loadDistanceGrid(reader);
+    }
+
+    public AttributeGrid loadDistanceGrid(String filepath, VecTransform trans) {
+        if(DEBUG)printf("loadDistanceGrid(%s)\n",filepath);
+
+        MeshReader reader = new MeshReader(filepath);
+        reader.setTransform(trans);
         return loadDistanceGrid(reader);
     }
 
@@ -523,7 +532,7 @@ public class GridLoader {
         TriangleProducer tp = new AttributedTriangleProducerConverter(attTriProducer);
         if(attributeColorizer instanceof Initializable) ((Initializable)attributeColorizer).initialize();
         Bounds bounds = getModelBounds(tp);
-        if(DEBUG) printf("model bounds: %s\n", bounds);
+        if(DEBUG) printf("GridLoader.model bounds: %s\n", bounds);
         int dims = attTriProducer.getDataDimension();
         AttributeGrid grid = greateOutputGrid(bounds, dims);
         if(DEBUG)printf("grid: [%d x %d x %d]  dims: %d\n", grid.getWidth(),grid.getHeight(),grid.getDepth(),dims);

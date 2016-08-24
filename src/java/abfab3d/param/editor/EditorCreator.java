@@ -11,27 +11,18 @@
  ****************************************************************************/
 package abfab3d.param.editor;
 
-import java.awt.Component;
-import java.util.Vector;
-
+import abfab3d.param.Parameter;
 
 /**
- * Editor for a parameter
+ * Creates editord for a parameter type
  *
  * @author Alan Hudson
  */
-public interface Editor {
+public interface EditorCreator {
     /**
-     * Get the AWT component for editing this item
+     * Create an editor for the parameter
+     * @param param
      * @return
      */
-    public Component getComponent();
-
-    /**
-     * Get notification of any parameter changes from this editor
-     * @param listener
-     */
-    public void addParamChangedListener(ParamChangedListener listener);
-
-    public void addParamChangedListeners(Vector<ParamChangedListener> listeners);
+    public Editor createEditor(Parameter param);
 }

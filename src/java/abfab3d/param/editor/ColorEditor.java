@@ -13,35 +13,61 @@ package abfab3d.param.editor;
 
 import abfab3d.param.Parameter;
 
-import java.awt.TextField;
-import java.awt.Component;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
-import static abfab3d.core.Output.printf;
+import java.io.File;
+import java.util.prefs.Preferences;
 
 
 /**
- * Edits default parameter 
+ * Color Editor
  *
  * @author Vladimir Bulatov
  */
-public class DefaultEditor extends BaseEditor implements ActionListener {
+public class ColorEditor extends BaseEditor implements ActionListener {
 
     static final int EDITOR_SIZE = 10;
 
+    JColorChooser chooser;
     TextField  m_textField;
-    
-    public DefaultEditor(Parameter param) {
+    JButton m_open;
+    JPanel panel;
+
+    public ColorEditor(final Parameter param) {
         super(param);
+
+        chooser = new JColorChooser();
         m_textField = new TextField(EDITOR_SIZE);
-        Object val = m_param.getValue();
+        abfab3d.core.Color val = (abfab3d.core.Color) m_param.getValue();
         String sval = "";
         if (val != null) {
-            sval = val.toString();
+            sval = val.toHEX();
         }
         m_textField.setText(sval);
         m_textField.addActionListener(this);
+
+        m_open = new JButton("Choose");
+        m_open.setToolTipText("Choose Color");
+
+        panel = new JPanel(new FlowLayout());
+        panel.add(m_open);
+        panel.add(m_textField);
+
+        m_open.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Color c = JColorChooser.showDialog(null, param.getName(), Color.WHITE);
+                if (c != null) {
+                    abfab3d.core.Color ac = abfab3d.core.Color.fromColor(c);
+                    m_param.setValue(ac);
+                    m_textField.setText(ac.toHEX());
+                    informParamChangedListeners();
+                }
+
+            }
+        });
     }
 
     @Override
@@ -55,7 +81,7 @@ public class DefaultEditor extends BaseEditor implements ActionListener {
     */
     public Component getComponent() {
         
-        return m_textField;
+        return panel;
         
     }
 }

@@ -71,6 +71,12 @@ public interface Parameter extends Cloneable {
     public Object getDefaultValue();
 
     /**
+     * Is this parameter set at its default value
+     * @return
+     */
+    public boolean isDefaultValue();
+
+    /**
      * Set the parameters value
      * @param value
      */

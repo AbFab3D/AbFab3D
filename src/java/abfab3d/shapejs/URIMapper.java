@@ -9,29 +9,20 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.param.editor;
-
-import java.awt.Component;
-import java.util.Vector;
-
+package abfab3d.shapejs;
 
 /**
- * Editor for a parameter
+ * A URI mapping interface.  Allows users to modify URI's before resolution
  *
  * @author Alan Hudson
  */
-public interface Editor {
-    /**
-     * Get the AWT component for editing this item
-     * @return
-     */
-    public Component getComponent();
+public interface URIMapper {
 
     /**
-     * Get notification of any parameter changes from this editor
-     * @param listener
+     * Transform a URI
+     *
+     * @param uri The original
+     * @return  The transformed URI
      */
-    public void addParamChangedListener(ParamChangedListener listener);
-
-    public void addParamChangedListeners(Vector<ParamChangedListener> listeners);
+    public String mapURI(String uri);
 }

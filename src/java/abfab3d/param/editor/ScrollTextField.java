@@ -79,6 +79,7 @@ public class ScrollTextField extends TextField {
         this.addMouseMotionListener(new MyMouseMotionListener());    
         this.addMouseListener(new MyMouseListener());
         this.addFocusListener(focusListener);
+        this.addMouseWheelListener(new MyMouseWheelListener());
         
         if(processUpDownArrowKeys){
             this.addKeyListener(new ArrowsListener());
@@ -121,7 +122,30 @@ public class ScrollTextField extends TextField {
             y_old = y;
         } 
     }
-    
+
+    class MyMouseWheelListener implements MouseWheelListener {
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            int y = e.getWheelRotation();
+            double oldVal = m_value;
+            double value = oldVal + ((y))*m_currentIncrement;
+            double scale = 1/m_currentIncrement;
+            value = (int)(value*scale)/(scale);
+
+            if(doInteger) {
+
+                if(value > top )
+                    value = top;
+                if(value < bottom)
+                    value = bottom;
+            }
+
+            //printf("rot: %d  old_val: %f  new_val: %f  inc: %f\n",y,oldVal,value,m_currentIncrement);
+
+            updateValue(value);
+            y_old = y;
+        }
+    }
     /**
        set numeric value from outside
      */
@@ -145,10 +169,12 @@ public class ScrollTextField extends TextField {
     
     public void updateValue(){
 
-        m_value = Double.parseDouble(extractNumber()); 
-        //setText(fmt(m_currentFormat,m_value));            
-        informListeners();
-        
+        double newVal = Double.parseDouble(extractNumber());
+        if (newVal != m_value) {
+            m_value = newVal;
+            //setText(fmt(m_currentFormat,m_value));
+            informListeners();
+        }
     }
 
     private void updateValue(double value){

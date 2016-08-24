@@ -9,29 +9,26 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.param.editor;
+package abfab3d.shapejs;
 
-import java.awt.Component;
-import java.util.Vector;
+import abfab3d.param.BaseParameterizable;
 
+import javax.vecmath.Matrix4f;
 
 /**
- * Editor for a parameter
+ * Camera interface.  All cameras can be backed down to a 4x4 matrix.
  *
  * @author Alan Hudson
  */
-public interface Editor {
+public abstract class Camera extends BaseParameterizable {
     /**
-     * Get the AWT component for editing this item
+     * Returns current inverted view matrix, the matrix should transform view coord into playbox coord
+     */
+    public abstract void getViewMatrix(Matrix4f invViewMatrix);
+
+    /**
+     * TODO: This is a kernel parameter instead of a databuffer right now, so provide a separate method to get it
      * @return
      */
-    public Component getComponent();
-
-    /**
-     * Get notification of any parameter changes from this editor
-     * @param listener
-     */
-    public void addParamChangedListener(ParamChangedListener listener);
-
-    public void addParamChangedListeners(Vector<ParamChangedListener> listeners);
+    public abstract double getCameraAngle();
 }

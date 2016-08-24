@@ -26,6 +26,8 @@ public abstract class BaseEditor implements Editor {
      * @param listener
      */
     public void addParamChangedListener(ParamChangedListener listener) {
+        if (listener == null) return;
+
         if(m_plisteners == null)
             m_plisteners = new Vector<ParamChangedListener>();
         m_plisteners.add(listener);
@@ -43,9 +45,9 @@ public abstract class BaseEditor implements Editor {
 
         if(m_plisteners != null){            
             for(int i = 0; i < m_plisteners.size(); i++){
-                m_plisteners.get(i).paramChanged(m_param);
+                ParamChangedListener list = m_plisteners.get(i);
+                list.paramChanged(m_param);
             }
         }
     }
-
 }
