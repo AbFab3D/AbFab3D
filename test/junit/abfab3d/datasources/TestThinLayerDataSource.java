@@ -89,7 +89,7 @@ public class TestThinLayerDataSource extends TestCase {
         int imgHeight = 1000;
         int imgWidthExt = 1000;
         int imgHeightExt = 1000;
-        double s = 5.5*MM;
+        double s = 6*MM;
 
         double r = 1.5*MM;
         double R = 50*MM;
@@ -106,9 +106,9 @@ public class TestThinLayerDataSource extends TestCase {
         //DataSource source = sphere1;
 
         ThinLayerDataSource thinLayer = new ThinLayerDataSource(source, bounds);
-        thinLayer.set("hiVoxelSize", 0.05*MM);
+        thinLayer.set("hiVoxelSize", 0.1*MM);
         thinLayer.set("layerThickness", 0.5*MM);
-        thinLayer.set("lowVoxelFactor", 5);
+        thinLayer.set("lowVoxelFactor", 11);
         long t0 = time();
         thinLayer.initialize();
         printf("thin layer initialized: %d ms\n", time() - t0);
@@ -132,6 +132,7 @@ public class TestThinLayerDataSource extends TestCase {
         ImageMaker im = new ImageMaker();
 
         ColorMapper colorMapper = new ColorMapperDistance(0.1*MM);
+        ColorMapper colorMapperHR = new ColorMapperDistance(0.01*MM);
         
         t0 = time();
         BufferedImage img1 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(source, colorMapper));
@@ -149,7 +150,7 @@ public class TestThinLayerDataSource extends TestCase {
         thinLayer.setDataType(1);
 
         t0 = time();
-        BufferedImage img3 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(thinLayer,colorMapper));        
+        BufferedImage img3 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(thinLayer,colorMapperHR));        
         printf("img3 [%d x %d ] rendered: %d ms\n", img3.getWidth(), img3.getHeight(), time() - t0);
         ImageIO.write(img3, "png", new File("/tmp/02_higrid.png"));        
 

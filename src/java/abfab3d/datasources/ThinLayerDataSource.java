@@ -61,9 +61,9 @@ import static java.lang.Math.abs;
  */
 public class ThinLayerDataSource extends TransformableDataSource {
 
+    static final int BYTE_BITS = 8;
     static final int SHORT_BITS = 16;
     static final int INT_BITS = 32;
-    static final int BYTE_BITS = 8;
     static final double HALF = 0.5;
     static final int HI_GRID_BLOCK_ORDER = 3;
     static final boolean DEBUG = true;
@@ -145,10 +145,15 @@ public class ThinLayerDataSource extends TransformableDataSource {
         int nz = m_lowGrid.getDepth();
         Vec data = new Vec(3);
         int layerVoxelCount = 0;
+        // max distance to store in hiGrid 
         double maxHiDistance = 0.5*mp_layerThickness.getValue();
-        double maxLowDistance =  max(lowVoxel*1.8, maxHiDistance); 
-        AttributePacker hiPacker = new SignedIntPacker(10*maxHiDistance);
-        //AttributePacker hiPacker = new SignedIntPacker(maxDist);
+        // min distance on lowGrid to trigger refinement 
+        //double minLowDistance =  max(lowVoxel*1.8, maxHiDistance); 
+        double minLowDistance =  max(lowVoxel, maxHiDistance); 
+        //AttributePacker hiPacker = new SignedShortPacker(maxHiDistance);
+        // experimental bounds - error in low res grid is bounded by 1.5*lowVoxel
+        AttributePacker hiPacker = new SignedBytePacker(1.5*lowVoxel);
+        //AttributePacker hiPacker = new SignedIntPacker(maxHiDistance);
         m_hiGrid = new SparseGridInt(m_bounds,  HI_GRID_BLOCK_ORDER, hiVoxel);
         m_hiGridData = new GridInterpolator(m_hiGrid, hiPacker);
         printf("hiGrid: [%d x %d x %d]\n",m_hiGrid.getWidth(), m_hiGrid.getHeight(), m_hiGrid.getDepth());
@@ -158,7 +163,7 @@ public class ThinLayerDataSource extends TransformableDataSource {
             for(int x = 0; x < nx; x++){
                 for(int z = 0; z < nz; z++){
                     lowPacker.getData(m_lowGrid.getAttribute(x,y,z), data);
-                    if(abs(data.v[0]) < maxLowDistance){
+                    if(abs(data.v[0]) < minLowDistance){
                         fillHiGridBlock(hiPacker, x, y, z, blockSize, maxHiDistance);
                         layerVoxelCount++;
                     }
@@ -376,10 +381,10 @@ public class ThinLayerDataSource extends TransformableDataSource {
             return m_bitCount;
         }
         
-    }
+    } // class UnsignedPacker 
 
     /**
-       pack values into signed int 
+       packs values into signed int 
      */
     static class SignedIntPacker implements AttributePacker {
         
@@ -400,7 +405,7 @@ public class ThinLayerDataSource extends TransformableDataSource {
         }
 
         public long makeAttribute(Vec data){
-
+            
             return ((long)((clamp(data.v[0], -m_maxValue, m_maxValue))*m_factor+0.5)) & m_mask;
             
         }
@@ -412,15 +417,97 @@ public class ThinLayerDataSource extends TransformableDataSource {
         */
         public void getData(long att, Vec data){
             data.v[0] = ((long)((int)(att & m_mask))) * m_invfactor;
-        }
-        
+        }        
         /**
            bit count used by this packer to pack attribute 
         */
         public int getBitCount(){
             return m_bitCount;
+        }        
+    } // class  SignedIntPacker
+
+    /**
+       packs values into signed int 
+     */
+    static class SignedBytePacker implements AttributePacker {
+        
+        long m_mask;
+        int m_bitCount;
+        double m_maxValue;
+        double m_factor;
+        double m_invfactor;
+        
+        SignedBytePacker(double maxValue){
+
+            m_maxValue = maxValue;
+            m_bitCount = BYTE_BITS;
+            m_mask = (1L << (m_bitCount)) - 1;
+            m_factor = m_mask/m_maxValue;
+            m_invfactor = 1./m_factor;
+        }
+
+        public long makeAttribute(Vec data){
+            
+            return ((long)((clamp(data.v[0], -m_maxValue, m_maxValue))*m_factor+0.5)) & m_mask;
+            
         }
         
-    }
+        /**
+           converts attribute into vector of double data 
+           @param attribute 
+           @param data values of data stored in attribute 
+        */
+        public void getData(long att, Vec data){
+            data.v[0] = ((long)((byte)(att & m_mask))) * m_invfactor;
+        }        
+        /**
+           bit count used by this packer to pack attribute 
+        */
+        public int getBitCount(){
+            return m_bitCount;
+        }        
+    } // class  SignedBytePacker
+
+    /**
+       packs values into signed int 
+     */
+    static class SignedShortPacker implements AttributePacker {
+        
+        long m_mask;
+        int m_bitCount;
+        double m_maxValue;
+        double m_factor;
+        double m_invfactor;
+        
+        SignedShortPacker(double maxValue){
+
+            m_maxValue = maxValue;
+            m_bitCount = SHORT_BITS;
+            m_mask = (1L << (m_bitCount)) - 1;
+            m_factor = m_mask/m_maxValue;
+            m_invfactor = 1./m_factor;
+        }
+
+        public long makeAttribute(Vec data){
+            
+            return ((long)((clamp(data.v[0], -m_maxValue, m_maxValue))*m_factor+0.5)) & m_mask;
+            
+        }
+        
+        /**
+           converts attribute into vector of double data 
+           @param attribute 
+           @param data values of data stored in attribute 
+        */
+        public void getData(long att, Vec data){
+            data.v[0] = ((long)((short)(att & m_mask))) * m_invfactor;
+        }        
+        /**
+           bit count used by this packer to pack attribute 
+        */
+        public int getBitCount(){
+            return m_bitCount;
+        }        
+    } // class  SignedShortPacker
     
-} // ThinLayerDataSource 
+} // class ThinLayerDataSource 
