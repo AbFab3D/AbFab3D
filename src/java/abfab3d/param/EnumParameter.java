@@ -14,6 +14,7 @@ package abfab3d.param;
 // External Imports
 
 import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 /**
  * A enum parameter.
@@ -35,6 +36,11 @@ public class EnumParameter extends BaseParameter {
         super(name, desc);
         m_values = values.clone();
 
+
+        if (initialValue == null) {
+            // An enum must have a value, pick the first one
+            initialValue = m_values[0];
+        }
         defaultValue = initialValue;
         setValue(initialValue);
     }
@@ -45,6 +51,10 @@ public class EnumParameter extends BaseParameter {
 
         m_values = values.clone();
 
+        if (initialValue == null) {
+            // An enum must have a value, pick the first one
+            initialValue = m_values[0];
+        }
         defaultValue = initialValue;
         setValue(initialValue);
     }
@@ -52,13 +62,21 @@ public class EnumParameter extends BaseParameter {
     public EnumParameter(EnumParameter def, String initialValue) {
 
         super(def.getName(), def.getDesc());
-        
+
+        if (initialValue == null) {
+            // An enum must have a value, pick the first one
+            initialValue = m_values[0];
+        }
         defaultValue = initialValue;
         setValue(initialValue);
     }
 
     @Override
     public String getValue() {
+        if (value == null) {
+            printf("Enum is null: name: %s\n",getName());
+            return "null";
+        }
         return value.toString();
     }
 

@@ -13,6 +13,8 @@ package abfab3d.io.input;
 
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.GridProducer;
+import abfab3d.core.Initializable;
+import abfab3d.core.VecTransform;
 import abfab3d.datasources.AttributeGridSourceWrapper;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.BooleanParameter;
@@ -25,6 +27,8 @@ import abfab3d.param.ParamCache;
 import abfab3d.param.Parameter;
 import abfab3d.param.Parameterizable;
 import abfab3d.shapejs.MaterialType;
+import abfab3d.shapejs.URIMapper;
+import abfab3d.shapejs.URIUtils;
 import com.google.common.io.Files;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -36,8 +40,10 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static abfab3d.core.Units.*;
 import static abfab3d.core.Output.printf;
@@ -74,8 +80,11 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     protected String m_vhash;
     static String[] sm_distAlgNames = GridLoader.getDistanceAlgorithmNames();
     static String[] sm_densAlgNames = GridLoader.getDensityAlgorithmNames();
+    private VecTransform m_transform = null;
 
-    static boolean reportCaching = true;
+    private static URIMapper uriMapper = null;
+    // TODO: this will grow unbounded
+    private static ConcurrentHashMap<String, URIToFileCacheEntry> uriToFileCache = new ConcurrentHashMap<String, URIToFileCacheEntry>();
 
     Parameter m_aparam[] = new Parameter[]{
             mp_source,
@@ -122,8 +131,64 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         super.addParams(m_aparam);
     }
 
-    public void setSource(String path) {
+    public static void setURIMapper(URIMapper mapper) {
+        uriMapper = mapper;
+    }
+
+    public void setSource(String uri) {
+        String path = null;
+        m_vhash = null;
+
+        if (uriMapper != null) {
+            uri = uriMapper.mapURI(uri);
+        }
+
+        printf("Model Loader: %s\n",uri);
+        // TODO: How to deal with not wanting to cache user uploaded files(put in temp dir) versus local usage
+        if (uri.startsWith("http")) {
+
+            URIToFileCacheEntry entry = uriToFileCache.get(uri);
+
+            if (entry != null) {
+                m_path = entry.filename;
+                if (DEBUG) printf("Found cached file for: %s its: %s\n", uri, uri);
+                File f = new File(m_path);
+                if (f.exists()) {
+                    mp_source.setValue(path);
+                    return;
+                }
+                if (DEBUG) printf("File gone for url: %s\n", uri);
+            }
+
+            if (DEBUG) printf("Downloading url: %s\n", uri);
+            try {
+                path = URIUtils.downloadURI("ModelLoader", uri);
+                uriToFileCache.put(uri, new URIToFileCacheEntry(uri, path));
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            } catch (URISyntaxException use) {
+                use.printStackTrace();
+            }
+        } else {
+            path = uri;
+        }
+
+        if (path == null) throw new IllegalArgumentException("Cannot resolve source: " + uri);
+
         if (FilenameUtils.getExtension(path).equalsIgnoreCase("zip")) {
+            URIToFileCacheEntry entry = uriToFileCache.get(path);
+
+            if (entry != null) {
+                m_path = entry.filename;
+                if (DEBUG) printf("Found cached file for: %s its: %s\n", uri, uri);
+                File f = new File(m_path);
+                if (f.exists()) {
+                    mp_source.setValue(path);
+                    return;
+                }
+                if (DEBUG) printf("File gone for url: %s\n", uri);
+            }
+
             File src = new File(path);
             File dest = Files.createTempDir();
             dest.deleteOnExit();
@@ -135,11 +200,11 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
                 throw new IllegalArgumentException("Cannot unzip: " + path + " to: " + dest);
             }
             path = dest.getAbsolutePath();
+            uriToFileCache.put(uri, new URIToFileCacheEntry(uri, path));
+            if (DEBUG) printf("Caching uri: %s to: %s\n",uri,path);
         }
         mp_source.setValue(path);
         m_path = path;
-        m_vhash = null;
-
     }
 
     public void setUseCaching(boolean value) {
@@ -189,6 +254,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
     public void setUseMultiPass(boolean value) {
         mp_useMultiPass.setValue(value);
+        m_vhash = null;
     }
 
     public void setMaxOutDistance(double val) {
@@ -212,7 +278,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         m_vhash = null;
     }
 
-    public void reportCachingStatus(){
+    public void reportCachingStatus() {
 
         printf("*** ModelLoader caching :%s  ****\n", mp_useCaching.getValue());
         new Exception().printStackTrace();
@@ -224,20 +290,23 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
        @return loaded mesh for this model 
      */
     public AttributedMesh getMesh() {
-
-        reportCachingStatus();
-        
-        ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(getValueHash());
+        String vhash = getValueHash();
+        ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(vhash);
         AttributedMesh mesh = null;
+        if (DEBUG) printf("ML.getMesh() Checking cache: %s\n",vhash);
 
         if (co != null) {
             if (co.mesh != null) {
                 m_materialType = co.materialType;
+                if (DEBUG) printf("Found mesh cached, returning\n");
                 return co.mesh;
             }
         }
 
         AttributedMeshReader reader = new AttributedMeshReader(m_path);
+        if (m_transform instanceof Initializable) ((Initializable)m_transform).initialize();
+        reader.setTransform(m_transform);
+        reader.initialize();
         mesh = new AttributedMesh();
         reader.getAttTriangles(mesh);
 
@@ -260,8 +329,12 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         AttributeGrid grid = null;
         AttributedMeshReader reader = null;
         if(mp_useCaching.getValue()){
-            ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(getValueHash());
+            String vhash = getValueHash();
+            if (DEBUG) printf("ML.getGrid() Checking cache: %s\n",vhash);
+
+            ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(vhash);
             if (co != null) {
+                if (DEBUG) printf("Found a cache entry: %s\n",vhash);
                 if (co.grid != null) {
                     if (DEBUG) printf("Found cached grid: %s\n",getValueHash());
                     m_materialType = co.materialType;
@@ -269,6 +342,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
                 } else if (co.mesh != null) {
                     mesh = co.mesh;
                     reader = co.reader;
+                    printf("Found a mesh cached2, returning\n");
                     if (reader == null) throw new IllegalArgumentException("reader cannot be null");
                 }
             } else {
@@ -300,6 +374,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
                 dim = reader.getDataDimension();
             } else {
                 reader = new AttributedMeshReader(m_path);
+                reader.setTransform(m_transform);
                 grid = loader.rasterizeAttributedTriangles(reader);
                 dim = reader.getDataDimension();
             }
@@ -318,6 +393,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
         grid = new AttributeGridSourceWrapper(m_vhash,grid);
         if(mp_useCaching.getValue()){
+            printf("Caching file: " + m_vhash);
             ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(grid, mesh, reader,m_materialType));
         }
 
@@ -332,10 +408,18 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     protected String getValueHash() {
         if (m_vhash != null) return m_vhash;
 
-        m_vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparam);
+        // TODO: transform should likely be a parameter but need to think through
+        m_vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparam, m_transform == null ? "trans=null" : m_transform.toString());
         return m_vhash;
     }
 
+
+    public void setTransform(VecTransform trans) {
+        if (DEBUG) printf("Got a setTransform: %s\n",trans);
+        if (trans instanceof Initializable) ((Initializable)trans).initialize();
+        m_transform = trans;
+        m_vhash = null;
+    }
 
     static MaterialType makeMaterialType(int dataDimension){
 
@@ -408,6 +492,16 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             this.mesh = mesh;
             this.materialType = materialType;
             this.reader = reader;
+        }
+    }
+
+    static class URIToFileCacheEntry {
+        public String uri;
+        public String filename;
+
+        public URIToFileCacheEntry(String uri, String filename) {
+            this.uri = uri;
+            this.filename = filename;
         }
     }
 }

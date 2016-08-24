@@ -62,7 +62,7 @@ public class ColorParameter extends BaseParameter {
         return ((Color)value).getg();
     }
 
-    public double getBlue() {
+    public double getb() {
         return ((Color)value).getb();
     }
 

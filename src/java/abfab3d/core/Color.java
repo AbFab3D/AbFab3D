@@ -78,6 +78,10 @@ public class Color implements Cloneable {
         b = val;
     }
 
+    public static Color fromColor(java.awt.Color color) {
+        return new Color(color.getRed()/255.0f,color.getGreen()/255.0f,color.getBlue()/255.0f);
+    }
+
     /**
      * Convert a hex encoded value to a color.  Use HTML hex form #FF00FF.  Null/empty values will be black(0,0,0).
      *

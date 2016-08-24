@@ -124,6 +124,52 @@ public class TestAttributedMeshReader extends TestCase {
         assertTrue("BoundsZ",(Math.abs(boundsZ - expectedZ) < EPS));
     }
 
+    /**
+     * Test loading of color specified using Material
+     * @throws IOException
+     */
+    public void testMaterial() throws IOException {
+
+        double voxelSize = 0.1*MM;
+
+        String filePath = "test/models/mat.x3dv";
+
+        AttributedMeshReader reader = new AttributedMeshReader(filePath);
+        //TriangleProducer tp = new TriangleProducer2Converter(reader);
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        reader.getAttTriangles(bb);
+        double bounds[] = bb.getRoundedBounds(voxelSize);
+
+        //size: 0.030008 0.050003998 0.03
+        double expectedX = 30 * MM + voxelSize;
+        double expectedY = 50.0 * MM + voxelSize;
+        double expectedZ = 30 * MM + voxelSize;
+
+        double EPS = 2*voxelSize;
+
+        double boundsX = (bounds[1] - bounds[0]);
+        double boundsY = (bounds[3] - bounds[2]);
+        double boundsZ = (bounds[5] - bounds[4]);
+    }
+
+    /**
+     * Test multiple textures per file
+     * @throws IOException
+     */
+    public void testMultTextures() throws IOException {
+
+        double voxelSize = 0.1*MM;
+
+        String filePath = "test/models/textured2.x3db";
+
+        AttributedMeshReader reader = new AttributedMeshReader(filePath);
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        reader.getAttTriangles(bb);
+        double bounds[] = bb.getRoundedBounds(voxelSize);
+
+        DataSource atts = reader.getAttributeCalculator();
+    }
+
     public void testAttributes() throws IOException {
 
         double voxelSize = 0.1*MM;
@@ -268,42 +314,6 @@ public class TestAttributedMeshReader extends TestCase {
 
         AttributedMeshReader reader = new AttributedMeshReader(filePath);
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
-        reader.getAttTriangles(bb);
-
-        double bounds[] = bb.getRoundedBounds(voxelSize);
-
-        double expected = 100 * MM + voxelSize;
-        double EPS = 2*voxelSize;
-
-        double boundsX = (bounds[1] - bounds[0]);
-        double boundsY = (bounds[3] - bounds[2]);
-        double boundsZ = (bounds[5] - bounds[4]);
-        printf("Bounds: %4.2f %4.2f %4.2f mm",boundsX/MM,boundsY/MM,boundsZ/MM);
-        assertTrue("BoundsX",(Math.abs(boundsX - expected) < EPS));
-        assertTrue("BoundsY",(Math.abs(boundsY - expected) < EPS));
-        assertTrue("BoundsZ",(Math.abs(boundsZ - expected) < EPS));
-
-        assertTrue("dimension should be 3",reader.getDataDimension() == 3);
-        assertTrue("attributeCalculator should be null",reader.getAttributeCalculator() == null);
-    }
-
-    public void testTiming() throws IOException {
-
-        double voxelSize = 0.1*MM;
-
-        String filePath = "test/models/sphere_10cm_5K_tri.stl";
-
-        AttributedMeshReader reader = new AttributedMeshReader(filePath);
-        BoundingBoxCalculator bb = new BoundingBoxCalculator();
-
-        try {
-            reader.getDataDimension();
-            DataSource ds = reader.getAttributeCalculator();
-            fail("Exception not issued");
-        } catch(IllegalStateException ise) {
-
-        }
-
         reader.getAttTriangles(bb);
 
         double bounds[] = bb.getRoundedBounds(voxelSize);

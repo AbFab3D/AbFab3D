@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 /**
  * Base code for all Parameterizable
@@ -79,6 +80,22 @@ public class BaseParameterizable implements Parameterizable, SNode {
     }
 
     /**
+     adds parameters from the array to the params table
+     @param aparam  - array of parameters to add
+     */
+    public void addParams(Map<String,Parameter> aparam){
+        params.putAll(aparam);
+    }
+
+    public void addParam(Parameter p) {
+        params.put(p.getName(),p);
+    }
+
+    public void removeParam(String name) {
+        params.remove(name);
+    }
+
+    /**
        remove all existng params 
      */
     public void clearParams(){
@@ -139,6 +156,28 @@ public class BaseParameterizable implements Parameterizable, SNode {
             p.getParamString(sb);
             sb.append("\";");
         }
+        return sb.toString();
+    }
+
+    /**
+     * saves array of parameters into a string
+     *
+     * @param add Additional string to add
+     * @noRefGuide
+     */
+    public static String getParamString(String name,Parameter aparam[], String add){
+        StringBuilder sb = new StringBuilder();
+        sb.append(name);
+        sb.append(":");
+        for(int i = 0; i < aparam.length; i++){
+            Parameter p = aparam[i];
+            sb.append(p.getName());
+            sb.append("=\"");
+            p.getParamString(sb);
+            sb.append("\";");
+        }
+
+        sb.append(add);
         return sb.toString();
     }
 

@@ -121,6 +121,7 @@ public class AttributedMeshReader extends BaseMeshReader implements AttributedTr
         
         if (m_producer instanceof AttributedX3DReader) {
             m_dataDimension = ((AttributedX3DReader)m_producer).getDataDimension();
+            m_attributeCalc = ((AttributedX3DReader)m_producer).getAttributeCalculator();
         } else {
             m_dataDimension = 3;
         }
@@ -145,7 +146,6 @@ public class AttributedMeshReader extends BaseMeshReader implements AttributedTr
             ((Transformer)m_producer).setTransform(m_transform); 
             
         }
-
 
         m_initialized = true;
     }

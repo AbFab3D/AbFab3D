@@ -59,6 +59,12 @@ public class ParamPanel extends Frame {
         wm.addPanel(this);
     }
 
+    public void clearParamChangedListeners() {
+        if (m_plisteners != null) {
+            m_plisteners.clear();
+        }
+    }
+
     /**
      * Get notification of any parameter changes from this editor
      * @param listener

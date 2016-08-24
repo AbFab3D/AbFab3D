@@ -9,29 +9,17 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.param.editor;
+package abfab3d.shapejs;
 
-import java.awt.Component;
-import java.util.Vector;
-
+import java.io.*;
 
 /**
- * Editor for a parameter
+ * Parses a file and returns a Javascript object
+ *
+ * TODO: This concept is still experimental and likely will change
  *
  * @author Alan Hudson
  */
-public interface Editor {
-    /**
-     * Get the AWT component for editing this item
-     * @return
-     */
-    public Component getComponent();
-
-    /**
-     * Get notification of any parameter changes from this editor
-     * @param listener
-     */
-    public void addParamChangedListener(ParamChangedListener listener);
-
-    public void addParamChangedListeners(Vector<ParamChangedListener> listeners);
+public interface URLHandler {
+    public Object[][] parse(Reader r) throws IOException;
 }

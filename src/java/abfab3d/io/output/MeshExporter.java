@@ -165,11 +165,14 @@ public class MeshExporter {
         writer.startField("avatarSize");
         writer.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
         writer.endNode(); // NavigationInfo
-        writer.startNode("Viewpoint", null);
-        writer.startField("position");
-        writer.fieldValue(pos, 3);
-        writer.endNode(); // Viewpoint
-
+        
+        if (pos != null && pos.length == 3) {
+        	writer.startNode("Viewpoint", null);
+        	writer.startField("position");
+        	writer.fieldValue(pos, 3);
+        	writer.endNode(); // Viewpoint
+        }
+        
         se.outputX3D(we, params, writer, null);
         writer.endDocument();
     }
@@ -192,11 +195,14 @@ public class MeshExporter {
         writer.startField("avatarSize");
         writer.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
         writer.endNode(); // NavigationInfo
-        writer.startNode("Viewpoint", null);
-        writer.startField("position");
-        writer.fieldValue(pos, 3);
-        writer.endNode(); // Viewpoint
-
+        
+        if (pos != null && pos.length == 3) {
+	        writer.startNode("Viewpoint", null);
+	        writer.startField("position");
+	        writer.fieldValue(pos, 3);
+	        writer.endNode(); // Viewpoint
+        }
+        
         se.outputX3D(we, params, writer, null);
         writer.endDocument();
     }
@@ -217,10 +223,13 @@ public class MeshExporter {
             writer.startField("avatarSize");
             writer.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
             writer.endNode(); // NavigationInfo
-            writer.startNode("Viewpoint", null);
-            writer.startField("position");
-            writer.fieldValue(pos, 3);
-            writer.endNode(); // Viewpoint
+            
+            if (pos != null && pos.length == 3) {
+	            writer.startNode("Viewpoint", null);
+	            writer.startField("position");
+	            writer.fieldValue(pos, 3);
+	            writer.endNode(); // Viewpoint
+            }
         }
 
         SAVExporter se = new SAVExporter();

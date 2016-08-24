@@ -12,6 +12,7 @@
 package abfab3d.param;
 
 // External Imports
+import static abfab3d.core.Output.printf;
 
 /**
  * A ObjectParameter parameter  to hold generic object
@@ -54,6 +55,7 @@ public class ObjectParameter extends BaseParameter {
 
     @Override
     public String getParamString() {
+
         if (value instanceof SourceWrapper) {
             return ((SourceWrapper)value).getParamString();
         }

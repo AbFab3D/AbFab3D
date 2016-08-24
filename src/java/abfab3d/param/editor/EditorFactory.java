@@ -11,47 +11,60 @@
  ****************************************************************************/
 package abfab3d.param.editor;
 
-import abfab3d.param.BooleanParameter;
-import abfab3d.param.DoubleParameter;
-import abfab3d.param.IntParameter;
-import abfab3d.param.EnumParameter;
-import abfab3d.param.Parameter;
-import abfab3d.param.SNodeListParameter;
-import abfab3d.param.SNodeParameter;
-import abfab3d.param.Vector3dParameter;
-import abfab3d.param.AxisAngle4dParameter;
+import abfab3d.param.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Creates an editor for a parameter
  *
  * @author Alan Hudson
  */
-public class EditorFactory {
+public class EditorFactory implements EditorCreator {
 
-    
+    private static ArrayList<EditorCreator> factories = new ArrayList<EditorCreator>();
+
     private static EditorFactory sm_factory;
-    
+
+    /**
+     * A a custom creator.  Must return null on createEditor if you don't handle that type
+     * @param ec
+     */
+    public static void addCreator(EditorCreator ec) {
+        factories.add(ec);
+    }
+
     public Editor createEditor(Parameter param) {
+        for(EditorCreator ec : factories) {
+            Editor ret_val = ec.createEditor(param);
+            if (ret_val != null) return ret_val;
+        }
+
         switch(param.getType()) {
-        case INTEGER:
-            return new IntEditor((IntParameter)param);
-        case DOUBLE:
-            //return new DoubleEditor((DoubleParameter)param);
-            return new DoubleEditorScroll((DoubleParameter)param);
-        case VECTOR_3D:
-            return new Vector3dEditor((Vector3dParameter)param);
-        case AXIS_ANGLE_4D:
-            return new AxisAngle4dEditor((AxisAngle4dParameter)param);            
-        case ENUM:
-            return new EnumEditor((EnumParameter)param);
-        case BOOLEAN:
-            return new BooleanEditor((BooleanParameter)param);
-        case SNODE_LIST:
-            return new SNodeListEditor((SNodeListParameter)param);
-            case SNODE:
-                return new SNodeEditor((SNodeParameter)param);
-        default:
-            return new DefaultEditor(param);
+            case INTEGER:
+                return new IntEditor((IntParameter)param);
+            case DOUBLE:
+                //return new DoubleEditor((DoubleParameter)param);
+                return new DoubleEditorScroll((DoubleParameter)param);
+            case VECTOR_3D:
+                return new Vector3dEditor((Vector3dParameter)param);
+            case AXIS_ANGLE_4D:
+                return new AxisAngle4dEditor((AxisAngle4dParameter)param);
+            case ENUM:
+                return new EnumEditor((EnumParameter)param);
+            case BOOLEAN:
+                return new BooleanEditor((BooleanParameter)param);
+            case URI:
+                return new URIEditor((URIParameter)param);
+            case COLOR:
+                return new ColorEditor(param);
+            case SNODE_LIST:
+                return new SNodeListEditor((SNodeListParameter)param);
+                case SNODE:
+                    return new SNodeEditor((SNodeParameter)param);
+            default:
+                return new DefaultEditor(param);
         }
     }
     

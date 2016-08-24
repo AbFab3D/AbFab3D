@@ -9,29 +9,25 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.param.editor;
 
-import java.awt.Component;
-import java.util.Vector;
+package abfab3d.shapejs;
 
+import abfab3d.param.Parameterizable;
+import abfab3d.core.DataSource;
 
 /**
- * Editor for a parameter
+ * Specified material for rendering.  Two params:  source and renderingParams
  *
  * @author Alan Hudson
  */
-public interface Editor {
+public interface RenderingMaterial extends Parameterizable {
+
     /**
-     * Get the AWT component for editing this item
+     * Get the rendering source for this content.
+     * @param source The content source to transform
      * @return
      */
-    public Component getComponent();
+    public DataSource getRenderingSource(DataSource source);
 
-    /**
-     * Get notification of any parameter changes from this editor
-     * @param listener
-     */
-    public void addParamChangedListener(ParamChangedListener listener);
-
-    public void addParamChangedListeners(Vector<ParamChangedListener> listeners);
+    public RenderingParams getRenderingParams();
 }

@@ -140,6 +140,7 @@ public class LocationParameter extends BaseParameter implements Cloneable {
     		Vector3d point = ((Vector3d[])value)[0];
     		if (point == null) {
     			point = new Vector3d();
+                ((Vector3d[])value)[0] = point;
     		}
             point.x = val.x;
             point.y = val.y;
@@ -159,6 +160,7 @@ public class LocationParameter extends BaseParameter implements Cloneable {
             Vector3d normal = ((Vector3d[])value)[1];
     		if (normal == null) {
     			normal = new Vector3d();
+                ((Vector3d[])value)[1] = normal;
     		}
             normal.x = val.x;
             normal.y = val.y;

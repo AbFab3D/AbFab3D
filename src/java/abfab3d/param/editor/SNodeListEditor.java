@@ -248,7 +248,6 @@ public class SNodeListEditor extends BaseEditor {
         m_editButton.setEnabled((size > 0));
         m_deleteButton.setEnabled((size > 0));
         int namesCount = m_param.getSNodeFactory().getNames().length;
-        printf("factory names count: %d \n", namesCount);
         m_newButton.setEnabled((namesCount > 0));
         
         
