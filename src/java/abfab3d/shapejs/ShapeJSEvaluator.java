@@ -179,7 +179,7 @@ public class ShapeJSEvaluator {
         classImports.add("abfab3d.util.Complex");
         classImports.add("abfab3d.util.ShapeProducer");
 
-        classImports.add("abfab3d.shapejs.MaterialType");
+        classImports.add("abfab3d.core.MaterialType");
 
         classImports.add("abfab3d.grid.ArrayAttributeGridShort");
         classImports.add("abfab3d.grid.ArrayAttributeGridByte");
