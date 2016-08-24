@@ -1,4 +1,4 @@
-package abfab3d.shapejs;
+package abfab3d.io.input;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;

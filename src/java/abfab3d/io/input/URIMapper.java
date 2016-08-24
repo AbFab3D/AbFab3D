@@ -9,7 +9,7 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.shapejs;
+package abfab3d.io.input;
 
 /**
  * A URI mapping interface.  Allows users to modify URI's before resolution
