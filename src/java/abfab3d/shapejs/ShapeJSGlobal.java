@@ -23,6 +23,8 @@ import abfab3d.grid.ArrayAttributeGridByte;
 
 import abfab3d.io.input.AttributedMeshReader;
 import abfab3d.io.input.GridLoader;
+import abfab3d.io.input.URIMapper;
+import abfab3d.io.input.URIUtils;
 import abfab3d.io.input.X3DReader;
 import abfab3d.io.input.SVXReader;
 import abfab3d.io.input.STLReader;
@@ -39,7 +41,6 @@ import abfab3d.mesh.WingedEdgeTriangleMesh;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.ParamCache;
 
-import abfab3d.core.DataSource;
 import abfab3d.core.Units;
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.core.TriangleProducer;
@@ -54,11 +55,7 @@ import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 
 import com.google.gson.Gson;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Function;
@@ -78,20 +75,12 @@ import javax.imageio.ImageIO;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -15,6 +15,7 @@ import javax.vecmath.Vector3d;
 
 import abfab3d.core.Bounds;
 import abfab3d.core.Color;
+import abfab3d.core.MaterialType;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameterizable;
 
