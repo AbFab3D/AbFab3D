@@ -1,4 +1,4 @@
-package abfab3d.io.input;
+package abfab3d.util;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;

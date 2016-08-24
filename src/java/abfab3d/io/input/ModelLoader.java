@@ -26,6 +26,7 @@ import abfab3d.param.ObjectParameter;
 import abfab3d.param.ParamCache;
 import abfab3d.param.Parameter;
 import abfab3d.core.MaterialType;
+import abfab3d.util.URIUtils;
 import com.google.common.io.Files;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
