@@ -120,15 +120,15 @@ public class Bounds implements Cloneable {
 
 
     public int getGridWidth(){
-        return roundSize((xmax-xmin)/m_voxelSize);
+        return round((xmax-xmin)/m_voxelSize);
     }
 
     public int getGridHeight(){
-        return roundSize((ymax-ymin)/m_voxelSize);
+        return round((ymax-ymin)/m_voxelSize);
     }
 
     public int getGridDepth(){
-        return roundSize((zmax-zmin)/m_voxelSize);
+        return round((zmax-zmin)/m_voxelSize);
     }
 
     public int[] getGridSize(){
@@ -149,21 +149,21 @@ public class Bounds implements Cloneable {
        @return width of bounds in voxels 
      */
     public int getWidthVoxels(double voxelSize){
-        return roundSize((xmax-xmin)/voxelSize);
+        return round((xmax-xmin)/voxelSize);
     }
 
     /**
        @return height of bounds in voxels 
      */
     public int getHeightVoxels(double voxelSize){
-        return roundSize((ymax-ymin)/voxelSize);
+        return round((ymax-ymin)/voxelSize);
     }
 
     /**
        @return depth of bounds in voxels 
      */
     public int getDepthVoxels(double voxelSize){
-        return roundSize((zmax-zmin)/voxelSize);
+        return round((zmax-zmin)/voxelSize);
     }    
 
 
@@ -260,7 +260,7 @@ public class Bounds implements Cloneable {
     }
     */
 
-    public static final int roundSize(double s){        
+    public static final int round(double s){        
         return (int)(s + 0.5);
     }
 
@@ -341,6 +341,15 @@ public class Bounds implements Cloneable {
     /**
        round bounds using given voxel size 
      */
+    public void roundSize(double voxelSize){
+
+        xmax = xmin + voxelSize*Math.round((xmax-xmin)/voxelSize);
+        ymax = ymin + voxelSize*Math.round((ymax-ymin)/voxelSize);
+        zmax = zmin + voxelSize*Math.round((zmax-zmin)/voxelSize);
+
+        init();
+    }
+
     public void roundBounds(double voxelSize){
 
         xmin = voxelSize*Math.floor(xmin/voxelSize);

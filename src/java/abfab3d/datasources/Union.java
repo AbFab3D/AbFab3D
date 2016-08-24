@@ -173,12 +173,8 @@ public class Union  extends TransformableDataSource implements SNode {
         super.initialize();
         vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
         m_blendWidth = mp_blendWidth.getValue();
-        for(int i = 0; i < vDataSources.length; i++){
-            
-            DataSource ds = vDataSources[i];
-            if(ds instanceof Initializable){
-                ((Initializable)ds).initialize();
-            }
+        for(int i = 0; i < vDataSources.length; i++){            
+            initializeChild(vDataSources[i]);
         }
 
 

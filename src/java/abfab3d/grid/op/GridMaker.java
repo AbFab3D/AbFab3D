@@ -19,11 +19,26 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors; 
 import java.util.concurrent.TimeUnit;
 
-import abfab3d.core.*;
-import abfab3d.grid.*;
+import abfab3d.core.VecTransform;
+import abfab3d.core.AttributePacker;
+import abfab3d.core.Grid;
+import abfab3d.core.AttributeGrid;
+import abfab3d.core.DataSource;
+import abfab3d.core.Bounds;
+import abfab3d.core.Vec;
+import abfab3d.core.Units;
+import abfab3d.core.GridDataDesc;
+import abfab3d.core.Initializable;
+import abfab3d.core.Output;
+
+import abfab3d.grid.Operation;
+import abfab3d.grid.AttributeOperation;
+import abfab3d.grid.AttributePackerDensity;
 
 import abfab3d.grid.util.ExecutionStoppedException;
-import abfab3d.util.*;
+
+import abfab3d.util.AbFab3DGlobals;
+
 import abfab3d.transforms.Identity;
 
 import static abfab3d.core.Output.time;
@@ -247,6 +262,7 @@ public class GridMaker implements Operation, AttributeOperation {
         m_nx = grid.getWidth();
         m_ny = grid.getHeight();
         m_nz = grid.getDepth();
+        if(DEBUG)printf("GridMaker rendering grid: [%d x %d x %d]\n",m_nx, m_ny, m_nz);
         
         if(m_attributePacker == null){
             // no attibute maker given -> try to make one             
@@ -273,6 +289,7 @@ public class GridMaker implements Operation, AttributeOperation {
             ((Initializable)m_dataSource).initialize();
         }
 
+        // top level sources don't know of dta dimension of lower level sources 
         //m_dataChannelsCount = m_dataSource.getChannelsCount();
         m_dataChannelsCount = MAX_DATA_CHANNELS_COUNT;
 
@@ -282,6 +299,7 @@ public class GridMaker implements Operation, AttributeOperation {
         if (m_threadCount == 0) {
             m_threadCount = Runtime.getRuntime().availableProcessors();
         }
+        if(DEBUG)printf("GridMaker uses %d threads\n",m_threadCount);
 
         t0 = time();
         if(m_threadCount > 1)

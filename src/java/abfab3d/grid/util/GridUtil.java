@@ -128,7 +128,7 @@ public class GridUtil  {
 
         BufferedImage image =  new BufferedImage(imgx, imgy, BufferedImage.TYPE_INT_ARGB);
 
-        writeSlice(grid, magnification, iz, dataChannel, colorMapper, image);
+        renderSlice(grid, magnification, iz, dataChannel, colorMapper, image);
         
         ImageIO.write(image, "png", new File(path));        
 
@@ -138,12 +138,12 @@ public class GridUtil  {
      writes grid slice slice into image file using given magnification and ColorMapper
 
      */
-    public static void writeSlice(AttributeGrid grid, int iz, GridDataChannel dataChannel, ColorMapper colorMapper, BufferedImage image){
+    public static void renderSlice(AttributeGrid grid, int iz, GridDataChannel dataChannel, ColorMapper colorMapper, BufferedImage image){
 
-        writeSlice(grid, 1, iz, dataChannel, colorMapper, image);
+        renderSlice(grid, 1, iz, dataChannel, colorMapper, image);
     }
 
-    public static void writeSlice(AttributeGrid grid, int magnification, int iz, GridDataChannel dataChannel, ColorMapper colorMapper, BufferedImage image) {
+    public static void renderSlice(AttributeGrid grid, int magnification, int iz, GridDataChannel dataChannel, ColorMapper colorMapper, BufferedImage image) {
 
         int gnx = grid.getWidth();
         int gny = grid.getHeight();
@@ -207,8 +207,35 @@ public class GridUtil  {
      */
     public static void writeSlice(AttributeGrid grid, GridDataChannel dataChannel, ColorMapper colorMapper, 
                                   Vector3d origin, Vector3d eu, Vector3d ev, int nu, int nv, String path) throws IOException{
-        
         BufferedImage image =  new BufferedImage(nu, nv, BufferedImage.TYPE_INT_ARGB);
+
+        renderSlice(grid,dataChannel,colorMapper, origin, eu, ev, nu, nv,image);
+        ImageIO.write(image, "png", new File(path));        
+        
+    }
+
+
+    /**
+       render image of grid slice into buffered image 
+       slice is calculated using dataChannel in points in space calculated as 
+       pnt = origin + eu * u, + ev*v; 
+       0 <= u < nu
+       0 <= v < nv
+       values are lineraly interpolated 
+       
+       @param grid grid to make slice from 
+       @param dataChannel data channel to use 
+       @param colorMaper converter from channel data value into color 
+       @param origin - physical location of slice corner (0,0)
+       @param eu - basis vector in U direction 
+       @param ev - basis vector in V direction
+       @param nu domension of slice in U direction 
+       @param nv domension of slice in Vdirection 
+       @param image destimation image to render to 
+     */
+    public static void renderSlice(AttributeGrid grid, GridDataChannel dataChannel, ColorMapper colorMapper, 
+                                  Vector3d origin, Vector3d eu, Vector3d ev, int nu, int nv, BufferedImage image) throws IOException{
+        
         DataBufferInt db = (DataBufferInt)image.getRaster().getDataBuffer();
         int[] sliceData = db.getData();
 
@@ -227,26 +254,30 @@ public class GridUtil  {
             nz1 = nz-1;
 
         Vector3d gcoord = new Vector3d();
+        final double HALF = 0.5;
 
         for(int v = 0; v < nv; v++){
             for(int u = 0; u < nu; u++){
                 pnt.set(origin);
                 pu.set(eu);
-                pu.scale(u);
+                pu.scale(u+HALF);
                 pnt.add(pu);
                 pv.set(ev);
-                pv.scale(v);
+                pv.scale(v+HALF);
                 pnt.add(pv);
                 grid.getGridCoords(pnt.x, pnt.y, pnt.z, gcoord);
-
-                int 
-                    gx = (int)gcoord.x,
-                    gy = (int)gcoord.y,
-                    gz = (int)gcoord.z;
                 double 
-                    dx = gcoord.x - gx,
-                    dy = gcoord.y - gy,
-                    dz = gcoord.z - gz;
+                    x = clamp(gcoord.x,0,nx),
+                    y = clamp(gcoord.y,0,ny),
+                    z = clamp(gcoord.z,0,nz);
+                int 
+                    gx = (int)(x),
+                    gy = (int)(y),
+                    gz = (int)(z);
+                double 
+                    dx = x - gx,
+                    dy = y - gy,
+                    dz = z - gz;
 
                 gx = clamp(gx, 0, nx1);
                 gy = clamp(gy, 0, ny1);
@@ -264,12 +295,11 @@ public class GridUtil  {
                     v101 = dataChannel.getValue(grid.getAttribute(gx1,gy, gz1)),
                     v111 = dataChannel.getValue(grid.getAttribute(gx1,gy1,gz1)),
                     v011 = dataChannel.getValue(grid.getAttribute(gx, gy1,gz1));
-
-                    double value = lerp3(v000, v100, v010, v110,  v001, v101, v011, v111, dx, dy, dz);
+                
+                double value = lerp3(v000, v100, v010, v110,  v001, v101, v011, v111, dx, dy, dz);
                 sliceData[u + (nv-1-v)*nu] = colorMapper.getColor(value);                
             }
         }
-        ImageIO.write(image, "png", new File(path));        
         
     }
 

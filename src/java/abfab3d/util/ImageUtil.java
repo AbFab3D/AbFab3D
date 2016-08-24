@@ -42,21 +42,29 @@ public class ImageUtil {
     // indices of component in the array of colors
     public static final int RED = 0, GREEN  = 1, BLUE = 2, ALPHA = 3;
     
-    static public int getAlpha(int rgb){
+    static public  final int getAlpha(int rgb){
         return ((rgb >> 24) & 0xFF);
     }
     
-    static public int getRed(int rgb){
+    static public  final int getRed(int rgb){
         return ((rgb >> 16) & 0xFF);
     }
     
-    static public int getGreen(int rgb){
+    static public final  int getGreen(int rgb){
         return ((rgb >> 8) & 0xFF);
     }
     
-    static public int getBlue(int rgb){
+    static public final  int getBlue(int rgb){
         return ((rgb) & 0xFF);
     }
+
+    static public final void getRGBA(int argb, double color[]){
+        color[RED] = getRed(argb)/255.;
+        color[GREEN] = getGreen(argb)/255.;
+        color[BLUE] = getBlue(argb)/255.;
+        color[ALPHA] = getAlpha(argb)/255.;
+    }
+
     
     /**
        combines 3 color components into single int RGB (0xFFRRGGBB) 
@@ -80,6 +88,9 @@ public class ImageUtil {
             ((b & 0xFF) );    
     }
 
+    /**
+       converts rgba color into single int 
+     */
     public static final int makeARGB(double r, double g, double b, double a ){
         return makeARGB((int)(r*255+0.5), (int)(g*255+0.5), (int)(b*255+0.5),(int)(a*255+0.5));
     }
