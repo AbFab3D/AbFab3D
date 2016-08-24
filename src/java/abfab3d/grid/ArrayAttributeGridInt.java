@@ -231,6 +231,9 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
         Arrays.fill(data, (int)value);
 
     }
-    
+
+    public int[] getData() {
+        return data;
+    }
 }
 

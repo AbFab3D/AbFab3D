@@ -336,5 +336,8 @@ public class ArrayAttributeGridShort extends BaseAttributeGrid {
 
     }
 
+    public short[] getData() {
+        return data;
+    }
 }
 

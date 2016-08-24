@@ -24,7 +24,7 @@ import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.io.input.AttributedMeshReader;
 import abfab3d.io.input.GridLoader;
 import abfab3d.io.input.URIMapper;
-import abfab3d.io.input.URIUtils;
+import abfab3d.util.URIUtils;
 import abfab3d.io.input.X3DReader;
 import abfab3d.io.input.SVXReader;
 import abfab3d.io.input.STLReader;
