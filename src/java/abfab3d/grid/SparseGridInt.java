@@ -38,7 +38,7 @@ public class SparseGridInt extends BaseAttributeGrid {
     static final int SIZEOF_INT=4;
     static final long MAX_DATA_SIZE = Integer.MAX_VALUE;
     static final long DATA_MASK = 0xFFFFFFFFL;
-    static final int DEFAULT_BLOCK_ORDER = 3;
+    static final int DEFAULT_BLOCK_SIZE = 8;
     // offset to write new block 
     protected int m_nextOffset = 1;    
     // array to store actual data     
@@ -46,24 +46,26 @@ public class SparseGridInt extends BaseAttributeGrid {
     // array to store blocks offsets
     protected int m_blocks[]; 
     // block size = 1 << blockOrder;    
-    protected int m_blockOrder;
-    protected int m_blockOrder2;
+    //protected int m_blockOrder;
+    //protected int m_blockOrder2;
+
     protected int m_blockSize;
-    protected int m_blockMask;
-    protected int m_blockMemorySize;
+    protected int m_blockSize2;
+    protected int m_blockSize3;
+
+    //protected int m_blockMask;
     int m_bx, m_by, m_bz, m_bxz;
 
     public SparseGridInt(Bounds bounds, double voxelSize) {
-        this(bounds, DEFAULT_BLOCK_ORDER, voxelSize);
+        this(bounds, DEFAULT_BLOCK_SIZE, voxelSize);
     }
 
-    public SparseGridInt(Bounds bounds, int blockOrder, double voxelSize) {
+    public SparseGridInt(Bounds bounds, int blockSize, double voxelSize) {
         super(bounds, voxelSize, voxelSize);
-        m_blockOrder = blockOrder;
-        m_blockOrder2 = 2*blockOrder;
-        m_blockSize = 1 << blockOrder;
-        m_blockMask = m_blockSize-1;
-        m_blockMemorySize = m_blockSize*m_blockSize*m_blockSize;
+        m_blockSize = blockSize;
+        m_blockSize2 = blockSize*blockSize;
+        m_blockSize3 = blockSize*blockSize*blockSize;
+
         allocateData();
     }
 
@@ -82,11 +84,8 @@ public class SparseGridInt extends BaseAttributeGrid {
         
         if(DEBUG)printf("blocks: %d x %d x %d\n", m_bx, m_by, m_bz);
         if(DEBUG)printf("blockSize: %d\n", m_blockSize);
-        if(DEBUG)printf("blockMask: 0x%x\n", m_blockMask);
-        if(DEBUG)printf("blockOrder: %d\n", m_blockOrder);
-        if(DEBUG)printf("blockOrder2: %d\n", m_blockOrder2);
 
-        int initialDataSize = m_blockMemorySize+1;
+        int initialDataSize = m_blockSize3+1;
 
         m_data = new int[initialDataSize];
     }
@@ -114,20 +113,20 @@ public class SparseGridInt extends BaseAttributeGrid {
      */
     public long getAttribute(int x, int y, int z) {
 
-        int bx = (x >> m_blockOrder);
-        int by = (y >> m_blockOrder);
-        int bz = (z >> m_blockOrder);
+        int bx = (x / m_blockSize);
+        int by = (y / m_blockSize);
+        int bz = (z / m_blockSize);
         int blockIndex = by*m_bxz + bx * m_bz + bz;
         int blockOffset = m_blocks[blockIndex];
         if(blockOffset == 0){
             // empty block 
             return 0;
         }
-        int xb = (x & m_blockMask);
-        int yb = (y & m_blockMask);
-        int zb = (z & m_blockMask);
+        int xb = (x % m_blockSize);
+        int yb = (y % m_blockSize);
+        int zb = (z % m_blockSize);
 
-        int dataOffset = blockOffset + (yb << m_blockOrder2) + (xb << m_blockOrder) + zb;
+        int dataOffset = blockOffset + (yb * m_blockSize2 + xb * m_blockSize + zb);
         return m_data[dataOffset];
     }
 
@@ -142,9 +141,9 @@ public class SparseGridInt extends BaseAttributeGrid {
     public void setAttribute(int x, int y, int z, long attribute) {
         if(DEBUG)printf("setAttribute(%d %d %d %d)\n", x,y,z,attribute);
         // block coordinates 
-        int bx = (x >> m_blockOrder);
-        int by = (y >> m_blockOrder);
-        int bz = (z >> m_blockOrder);
+        int bx = (x / m_blockSize);
+        int by = (y / m_blockSize);
+        int bz = (z / m_blockSize);
         if(DEBUG)printf("block %d %d %d\n", bx, by, bz);
         int blockIndex = by*m_bxz + bx * m_bz + bz;
         int dataOffset = m_blocks[blockIndex];
@@ -152,7 +151,7 @@ public class SparseGridInt extends BaseAttributeGrid {
         if(dataOffset == 0){
             // allocate new block 
             if(DEBUG)printf("allocate new block\n");
-            if(m_nextOffset + m_blockMemorySize > m_data.length){
+            if(m_nextOffset + m_blockSize3 > m_data.length){
                 if(2L * m_data.length > MAX_DATA_SIZE) 
                     throw new RuntimeException(fmt("max data size exceeded: %d", MAX_DATA_SIZE));
                 if(DEBUG)printf("realloc data: %d\n", 2 * m_data.length);
@@ -164,16 +163,16 @@ public class SparseGridInt extends BaseAttributeGrid {
             }
             m_blocks[blockIndex] = m_nextOffset;
             dataOffset = m_nextOffset;
-            m_nextOffset += m_blockMemorySize;
+            m_nextOffset += m_blockSize3;
         }
         // in-block coordinates 
-        int xb = (x & m_blockMask);
-        int yb = (y & m_blockMask);
-        int zb = (z & m_blockMask);
+        int xb = (x % m_blockSize);
+        int yb = (y % m_blockSize);
+        int zb = (z % m_blockSize);
         if(DEBUG)printf("xb: %d %d %d\n", xb, yb, zb);
         if(DEBUG)printf("dataOffset: %d\n", dataOffset);
         
-        int dataIndex = dataOffset + (yb << m_blockOrder2) + (xb << m_blockOrder) + zb;
+        int dataIndex = dataOffset + (yb * m_blockSize2 + xb * m_blockSize + zb);
         if(DEBUG)printf("dataIndex %d\n", dataIndex);
         m_data[dataIndex] = (int)attribute;
     }

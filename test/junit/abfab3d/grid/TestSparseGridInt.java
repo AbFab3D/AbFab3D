@@ -51,20 +51,22 @@ public class TestSparseGridInt extends BaseTestAttributeGrid {
 
     public void devTestAttribute(){
 
-        int blockOrder = 4;
+        printf("devTestAttribute()\n");
+        int blockSize = 16;
         double s = 1000.;
         double vs = 1.;
-        SparseGridInt grid = new SparseGridInt(new Bounds(-s, s, -s, s, -s, s), blockOrder, vs);
+        SparseGridInt grid = new SparseGridInt(new Bounds(-s, s, -s, s, -s, s), blockSize, vs);
         int nx = grid.getWidth();
         int ny = grid.getHeight();
         int nz = grid.getDepth();
 
-        printf("grid: [%d x %d x %d\n", nx, ny, nz);
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
         long t0 = time();
         int w = Math.min(Math.min(nx, ny),nz);
         int w1 = w-1;
         long att = 1000;
         int nt = 1000000;
+        printf("writing test attributes\n");
         for(int i = 0; i < nt; i++){
             double t = Math.PI*2*i/nt;
             int x = (int)(nx * (0.9*Math.cos(t)+1)/2);
@@ -72,6 +74,7 @@ public class TestSparseGridInt extends BaseTestAttributeGrid {
             int z = (int)(nz * (0.9*Math.sin(t)+1)/2);            
             grid.setAttribute(x,y,z, att);
         }
+        printf("reading attributes back\n");
         for(int i = 0; i < nt; i++){
             double t = Math.PI*2*i/nt;
             int x = (int)(nx * (0.9*Math.cos(t)+1)/2);
@@ -80,7 +83,7 @@ public class TestSparseGridInt extends BaseTestAttributeGrid {
             long a = grid.getAttribute(x,y,z);
             assertEquals("wrong attribute returned", a, att);
         }        
-        printf("memory used: %d ints\n", grid.getDataSize());
+        printf("memory used: %8.2f MB \n", grid.getDataSize()*1.e-6);
         printf("points count: %d\n", nt);
         printf("time: %d ms\n", time() - t0);
         
@@ -88,10 +91,11 @@ public class TestSparseGridInt extends BaseTestAttributeGrid {
 
     public void devTestSphere(){
 
-        int blockOrder = 3;
+        printf("devTestSphere()\n");
+        int blockSize = 8;
         double s = 1000.;
         double vs = 1;
-        SparseGridInt grid = new SparseGridInt(new Bounds(-s, s, -s, s, -s, s), blockOrder, vs);
+        SparseGridInt grid = new SparseGridInt(new Bounds(-s, s, -s, s, -s, s), blockSize, vs);
         int nx = grid.getWidth();
         int ny = grid.getHeight();
         int nz = grid.getDepth();
@@ -116,7 +120,7 @@ public class TestSparseGridInt extends BaseTestAttributeGrid {
                 }
             }
         }
-        printf("memory used: %8.2f MB\n", 4*grid.getDataSize()*0.000001);
+        printf("memory used: %8.2f MB\n", grid.getDataSize()*1.e-6);
         printf("points count: %d x %d\n", nu, nv);
         printf("writing time: %d ms\n", time() - t0);
         t0 = time();
@@ -142,14 +146,14 @@ public class TestSparseGridInt extends BaseTestAttributeGrid {
     public void devTestThinLayer(){
 
         printf("devTestThinLayer()\n");
-        int blockOrder = 4;
+        int blockSize = 10;
         double s = 50*MM;
         double vs = 0.1*MM;
-        double maxDist = 10*vs;
+        double maxDist = 3*vs;
         printf("layerThickness: %4.1f vs\n", 2*maxDist/vs);
 
         Bounds bounds = new Bounds(-s, s, -s, s, -s, s);
-        SparseGridInt grid = new SparseGridInt(bounds, blockOrder, vs);
+        SparseGridInt grid = new SparseGridInt(bounds, blockSize, vs);
         int nx = grid.getWidth();
         int ny = grid.getHeight();
         int nz = grid.getDepth();
@@ -183,11 +187,11 @@ public class TestSparseGridInt extends BaseTestAttributeGrid {
     public void devTestFullGrid(){
 
         printf("devFullGrid()\n");
-        int blockOrder = 3;
+        int blockSize = 10;
         double s = 30*MM;
         double vs = 1*MM;
         Bounds bounds = new Bounds(-s, s, -s, s, -s, s);
-        SparseGridInt grid = new SparseGridInt(bounds, blockOrder, vs);
+        SparseGridInt grid = new SparseGridInt(bounds, blockSize, vs);
         int nx = grid.getWidth();
         int ny = grid.getHeight();
         int nz = grid.getDepth();
@@ -196,7 +200,7 @@ public class TestSparseGridInt extends BaseTestAttributeGrid {
         for(int y =0; y < ny; y++){
             for(int x =0; x < nx; x++){
                 for(int z = 0; z < nz; z++){
-                    long origAtt = (x + (y << blockOrder)  + (z << (blockOrder *2)));
+                    long origAtt = (x + (y * blockSize)  + (z * blockSize * blockSize ));
                     grid.setAttribute(x,y,z,origAtt); 
                     //long att = grid.getAttribute(x,y,z);                    
                     //if(z == nz/2 && y == ny/2) printf("%d-> %d\n", origAtt, att);
@@ -209,7 +213,7 @@ public class TestSparseGridInt extends BaseTestAttributeGrid {
         for(int y =0; y < ny; y++){
             for(int x =0; x < nx; x++){
                 for(int z = 0; z < nz; z++){
-                    long origAtt = (x + (y << blockOrder)  + (z << (blockOrder *2)));
+                    long origAtt = (x + (y * blockSize)  + (z * blockSize * blockSize ));
                     long att = grid.getAttribute(x,y,z);                    
                     if(att != origAtt) {
                         if(debugCount-- > 0 ) printf("(%2d %2d %2d) %8x -> %8x\n", x,y,z, origAtt, att);
@@ -226,8 +230,9 @@ public class TestSparseGridInt extends BaseTestAttributeGrid {
 
     public static void main(String arg[]){
         //new TestSparseGridInt().devTestSphere();
+        new TestSparseGridInt().devTestAttribute();
         //new TestSparseGridInt().devTestThinLayer();
-        new TestSparseGridInt().devTestFullGrid();
+        //new TestSparseGridInt().devTestFullGrid();
     }
 
 }
