@@ -16,6 +16,7 @@ import abfab3d.core.GridProducer;
 import abfab3d.core.Initializable;
 import abfab3d.core.VecTransform;
 import abfab3d.datasources.AttributeGridSourceWrapper;
+import abfab3d.datasources.ThinLayerDataSource;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.BooleanParameter;
 import abfab3d.param.DoubleParameter;
@@ -396,6 +397,15 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
         return grid;
     }
+
+    /**
+       returns loaded model represented as ThinLayerDataSource 
+     */
+    public ThinLayerDataSource getThinLayerDataSource() {
+        if(true) throw new RuntimeException("ModelLoader.getThinLayerDataSource() not implemented");
+        return null;
+    }
+
 
     public MaterialType getMaterialType() {
         if (DEBUG) printf("MaterialType: %s\n",m_materialType);
