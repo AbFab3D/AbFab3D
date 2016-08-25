@@ -26,6 +26,7 @@ import java.util.Map;
 public class Script {
     private URI m_uri;
     private EvaluatedScript m_evalScript;
+    private String m_code;
 
     public Script(URI uri, EvaluatedScript evalScript) {
         m_uri = uri;
@@ -44,12 +45,22 @@ public class Script {
         m_uri = uri;
     }
 
+    public String getCode() {
+        if (m_code != null) return m_code;
+        try {
+            m_code = resolveURI(m_uri);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        return m_code;
+    }
     public EvaluatedScript getEvaluatedScript() {
         if (m_evalScript == null) {
             ShapeJSEvaluator eval = new ShapeJSEvaluator();
             try {
                 String code = resolveURI(m_uri);
-                m_evalScript = eval.evalScript(code,null,null);
+                m_evalScript = eval.evalScript(code,"main",null);
             } catch(IOException ioe) {
                 ioe.printStackTrace();
             }

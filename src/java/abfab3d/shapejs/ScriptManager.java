@@ -151,6 +151,26 @@ public class ScriptManager {
     }
 
     /**
+     * Update a script and its params
+     *
+     * @param jobID  UniqueID for caching results
+     * @param script The script or null if its not changed
+     * @param params The params, delta encoded, null to remove
+     * @return
+     */
+    public ScriptResources update(String jobID, Script script, Map<String,Object> params) {
+        try {
+            String code = script.getCode();
+            return update(jobID, false, code, params);
+        } catch(NotCachedException nce) {
+            // should never happen
+            nce.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /**
      * Update a script
      *
      * @param jobID  UniqueID for caching results
@@ -160,6 +180,26 @@ public class ScriptManager {
     public ScriptResources update(String jobID, String script) {
         try {
             return update(jobID, false, script, new HashMap<String,Object>());
+        } catch(NotCachedException nce) {
+            // should never happen
+            nce.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /**
+     * Update a script
+     *
+     * @param jobID  UniqueID for caching results
+     * @param script The script or null if its not changed
+     * @return
+     */
+    public ScriptResources update(String jobID, Script script) {
+        try {
+            String code = script.getCode();
+
+            return update(jobID, false, code, new HashMap<String,Object>());
         } catch(NotCachedException nce) {
             // should never happen
             nce.printStackTrace();
