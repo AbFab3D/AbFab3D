@@ -81,7 +81,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
     // use multi pass algorithm for distance calculation (more precise but 3 times slower) 
     protected boolean m_useMultiPass = false;
 
-    // size of surface voxels relative to size fo grid voxles 
+    // size of surface voxels relative to size ofo grid voxles 
     protected double m_surfaceVoxelSize = 1.;
     // it looks like y-sorting actually surface points decreases performance 
     protected boolean m_sortSurfacePoints = false;

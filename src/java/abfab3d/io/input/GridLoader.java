@@ -56,7 +56,7 @@ public class GridLoader {
     protected double m_margins = 1*MM;
 
     protected long m_maxGridSize = 1000L*1000L*1000L;
-    protected long m_minGridSize = 0;
+    protected long m_minGridSize = 1000L;
 
     protected AttributeGrid m_densityGridTemplate = new ArrayAttributeGridByte(1,1,1, 10*MM, 10*MM);
     protected AttributeGrid m_distanceGridTemplate = new ArrayAttributeGridShort(1,1,1, 10*MM, 10*MM);
@@ -552,6 +552,9 @@ public class GridLoader {
         
     }
 
+    /**
+       rasterizes attributed triangles coming from mesh reader 
+     */
     public AttributeGrid rasterizeAttributedTriangles(AttributedMeshReader reader){
 
         if(DEBUG) printf("GridLoader.rasterizeTexturedTriangles(%s)\n", reader);
@@ -561,34 +564,6 @@ public class GridLoader {
 
         return rasterizeAttributedTriangles(reader,attributeColorizer);
  
-        /*
-          TriangleProducer tp = null;
-
-        if (reader instanceof TriangleProducer) tp = (TriangleProducer) reader;
-        else tp = new AttributedTriangleProducerConverter(reader);
-
-        Bounds bounds = getModelBounds(tp);
-        DataSource attributeColorizer = reader.getAttributeCalculator();
-        if(attributeColorizer instanceof Initializable) ((Initializable)attributeColorizer).initialize();
-        if(DEBUG) printf("model bounds: %s\n", bounds);
-        int dims = reader.getDataDimension();
-        AttributeGrid grid = createOutputGrid(bounds, dim);
-
-        if(DEBUG)printf("grid: [%d x %d x %d]  dims: %d\n", grid.getWidth(),grid.getHeight(),grid.getDepth(),dims);
-        if(DEBUG)printf("voxelSize: %7.5f\n", grid.getVoxelSize());
-        AttributedDistanceRasterizer rasterizer = new AttributedDistanceRasterizer(bounds, grid.getWidth(),grid.getHeight(),grid.getDepth());
-
-        rasterizer.setDataDimension(reader.getDataDimension());
-        if (DEBUG) printf("dims: %d\n",reader.getDataDimension());
-        rasterizer.setShellHalfThickness(m_shellHalfThickness);
-        rasterizer.setSurfaceVoxelSize(m_surfaceVoxelSize);
-        rasterizer.setThreadCount(m_threadCount);
-        rasterizer.setDistanceRange(-m_maxInDistance, m_maxOutDistance);
-
-        rasterizer.getAttributedDistances(reader, attributeColorizer, grid);
-
-        return grid;
-            */
     }
 
     /**

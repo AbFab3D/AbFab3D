@@ -297,6 +297,6 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
         if(DEBUG_TIMING)printf("ClosestPointIndexerMT.makeAttributedDistanceGrid_MT() time: %d ms\n", (time() - t0));
     
        
-    } // getDistances()
+    } // getAttributedDistances()
 
-}
+} // AttributedDistanceRasterizer 

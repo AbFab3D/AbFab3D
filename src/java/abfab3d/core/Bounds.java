@@ -122,13 +122,24 @@ public class Bounds implements Cloneable {
     public int getGridWidth(){
         return round((xmax-xmin)/m_voxelSize);
     }
+    public int getGridWidth(double voxelSize){
+        return round((xmax-xmin)/voxelSize);
+    }
 
     public int getGridHeight(){
         return round((ymax-ymin)/m_voxelSize);
     }
 
+    public int getGridHeight(double voxelSize){
+        return round((ymax-ymin)/voxelSize);
+    }
+
     public int getGridDepth(){
         return round((zmax-zmin)/m_voxelSize);
+    }
+
+    public int getGridDepth(double voxelSize){
+        return round((zmax-zmin)/voxelSize);
     }
 
     public int[] getGridSize(){
@@ -137,6 +148,16 @@ public class Bounds implements Cloneable {
             getGridWidth(),
             getGridHeight(),
             getGridDepth()
+        };
+
+    }
+
+    public int[] getGridSize(double voxelSize){
+
+        return new int[]{
+            getGridWidth(voxelSize),
+            getGridHeight(voxelSize),
+            getGridDepth(voxelSize)
         };
 
     }

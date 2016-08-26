@@ -367,6 +367,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
         if (DEBUG) printf("Getting grid: %s  attributed: %b\n",m_path,mp_attributeLoading.getValue());
         if (mp_attributeLoading.getValue()) {
+            // textured or colored mesh loading 
             if (mesh != null) {
                 grid = loader.rasterizeAttributedTriangles(mesh, reader.getAttributeCalculator());
                 dim = reader.getDataDimension();
@@ -377,6 +378,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
                 dim = reader.getDataDimension();
             }
         } else {
+            // plain mesh loading 
             dim = 3;
             if (mesh != null) {
                 grid = loader.loadDistanceGrid(mesh);
@@ -399,11 +401,12 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     }
 
     /**
-       returns loaded model represented as ThinLayerDataSource 
+       returns loaded model represented as DistanceToMeshDataSource
      */
-    public ThinLayerDataSource getThinLayerDataSource() {
-        if(true) throw new RuntimeException("ModelLoader.getThinLayerDataSource() not implemented");
-        return null;
+    public DistanceToMeshDataSource getDistanceToMeshDataSource() {
+        
+        return new DistanceToMeshDataSource(getMesh()); 
+
     }
 
 
