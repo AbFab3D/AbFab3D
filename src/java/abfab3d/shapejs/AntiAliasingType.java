@@ -16,4 +16,4 @@ package abfab3d.shapejs;
  *
  * @author Alan Hudson
  */
-public enum AntiAliasingType {NONE, SUPER_2X2, SUPER_2X2ROT}
+public enum AntiAliasingType {NONE, SUPER_2X2, SUPER_2X2ROT, SUPER_3X3, SUPER_4X4}
