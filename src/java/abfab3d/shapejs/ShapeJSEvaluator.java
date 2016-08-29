@@ -240,7 +240,7 @@ public class ShapeJSEvaluator {
 
 
         imports = bldr.toString();
-        printf("Initializing Header.  len: %d   imports: %d\n",headerLines,imports.length());
+        //printf("Initializing Header.  len: %d   imports: %d\n",headerLines,imports.length());
     }
 
     public static void configureSecurity(List<String> pwl, List<String> cwl, List<String> ci, List<String> si) {
