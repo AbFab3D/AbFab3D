@@ -16,20 +16,25 @@ package abfab3d.mesh;
 
 import abfab3d.core.ClassTraverser;
 import abfab3d.core.Grid;
-import abfab3d.grid.GridShortIntervals;
 import abfab3d.core.VoxelClasses;
+
+import abfab3d.grid.GridShortIntervals;
+
 import abfab3d.io.input.IndexedTriangleSetLoader;
-import abfab3d.io.input.MeshRasterizer;
 import abfab3d.io.input.STLRasterizer;
 import abfab3d.io.input.STLReader;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.MeshExporter;
 import abfab3d.io.output.STLWriter;
+
 import abfab3d.util.StructMixedData;
+import abfab3d.util.MeshRasterizer;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.j3d.geom.GeometryData;
+
 
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Point3d;

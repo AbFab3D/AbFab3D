@@ -20,6 +20,8 @@ import abfab3d.grid.op.ClosestPointIndexerMT;
 import abfab3d.grid.op.ClosestPointIndexer;
 
 import abfab3d.util.AbFab3DGlobals;
+import abfab3d.util.ZBufferRasterizer;
+
 import abfab3d.core.Bounds;
 import abfab3d.core.TriangleProducer;
 

@@ -20,7 +20,9 @@ import abfab3d.core.TriangleCollector;
 import abfab3d.core.TriangleProducer;
 import abfab3d.core.Bounds;
 import abfab3d.core.DataSource;
+
 import abfab3d.util.PointSetCoordArrays;
+import abfab3d.util.MeshRasterizer;
 
 import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridInt;
@@ -31,7 +33,8 @@ import abfab3d.grid.op.ClosestPointIndexerMT;
 
 import abfab3d.grid.util.GridUtil;
 
-import abfab3d.geom.TriangleMeshSurfaceBuilder;
+import abfab3d.util.TriangleMeshSurfaceBuilder;
+
 import abfab3d.grid.op.PointSetShellBuilder;
 
 

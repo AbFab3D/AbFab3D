@@ -10,15 +10,12 @@
  *
  ****************************************************************************/
 
-package abfab3d.geom;
+package abfab3d.util;
 
 import javax.vecmath.Vector3d;
 
 import abfab3d.core.Bounds;
 import abfab3d.core.TriangleCollector;
-import abfab3d.util.PointSet;
-import abfab3d.util.PointSetArray;
-import abfab3d.util.TriangleRenderer;
 
 import static java.lang.Math.max;
 import static java.lang.Math.abs;

@@ -22,6 +22,7 @@ import abfab3d.grid.op.ClosestPointIndexer;
 
 import abfab3d.core.Bounds;
 import abfab3d.core.TriangleProducer;
+import abfab3d.util.ZBufferRasterizer;
 
 import static java.lang.Math.max;
 import static java.lang.Math.abs;

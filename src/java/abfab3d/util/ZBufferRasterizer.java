@@ -10,39 +10,39 @@
  *
  ****************************************************************************/
 
-package abfab3d.io.input;
+package abfab3d.util;
 
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.geom.ZBuffer;
 import abfab3d.core.TriangleCollector;
-import abfab3d.core.Bounds;
 
-import abfab3d.core.Grid;
 import abfab3d.core.AttributeGrid;
+
+import abfab3d.core.Bounds;
 
 import static abfab3d.core.Output.printf;
 
 
 /**
-   class to convert collection of triangles into a voxel grid
-
-   it uses ZBuffer technique to rasterize each incoming triangle 
-   
-   it is supposed to be used as follows 
-
-   rasterizer = new MeshRasterizer(bounds, nx, ny, nz);
-   for(each triangle in collection){
-      rasterizer.addTri();
-   }
-
-   AttributeGrid grid = new AttributeGrid(...);
-   rasterizer.getRaster(grid);    
-
-   @author Vladimir Bulatov
+ * class to convert collection of triangles into a voxel grid
+ *
+ * it uses ZBuffer technique to rasterize each incoming triangle 
+ *  
+ *  it is supposed to be used as follows 
+ * 
+ *  mr = new ZBufferRasterizer(bounds);
+ *  for(each triangle in collection){
+ *    mr.addTri();
+ *  }
+ * 
+ *  AttributeGrid grid = new Grid();
+ *  mr.getGrid(grid); 
+ *  
+ *
+ *  @author Vladimir Bulatov
  */
-public class MeshRasterizer implements TriangleCollector {
+public class ZBufferRasterizer implements TriangleCollector {
 
     int exceptionCount = 100;
     static final boolean DEBUG = false;
@@ -56,30 +56,33 @@ public class MeshRasterizer implements TriangleCollector {
     
     // grid size 
     int m_nx, m_ny, m_nz;
-
-    long m_attributeValue=1;
-
+    
     ZBuffer m_zbuffer; // z-buffer to render trianges to
     
 
     /**
        construct rasterizer 
-       @param bounds rasterization grid bounds
-       @param gridX width of grid 
-       @param gridY height of grid 
-       @param gridZ depth of grid 
-     */
-    public MeshRasterizer(Bounds bounds, int gridX, int gridY, int gridZ){
+       bounds[] {xmin, xmax, ymin, ymax, zmin, zmax}
 
-        m_zbuffer = new ZBuffer(gridX, gridY, gridZ);
+       grid - place to put the voxels to 
+
+     */
+    public ZBufferRasterizer(Bounds bounds){
         
-        m_nx = gridX;
-        m_ny = gridY;
-        m_nz = gridZ;
+        int 
+            nx = bounds.getGridWidth(),
+            ny = bounds.getGridHeight(),
+            nz = bounds.getGridDepth();
+
+        m_zbuffer = new ZBuffer(nx, ny, nz);
         
-        m_sx = gridX/bounds.getSizeX();
-        m_sy = gridY/bounds.getSizeY();
-        m_sz = gridZ/bounds.getSizeZ();
+        m_nx = nx;
+        m_ny = ny;
+        m_nz = nx;
+        
+        m_sx = nx/bounds.getSizeX();
+        m_sy = ny/bounds.getSizeY();;
+        m_sz = nz/bounds.getSizeZ();;
         
         m_tx = -m_sx*bounds.xmin;
         m_ty = -m_sy*bounds.ymin;
@@ -95,20 +98,6 @@ public class MeshRasterizer implements TriangleCollector {
         }
     }
     
-    public MeshRasterizer(double bounds[], int gridX, int gridY, int gridZ){
-
-        this(new Bounds(bounds), gridX, gridY, gridZ);
-    }
-
-    /**
-       set value used for shape interior
-     */
-    public void setInteriorValue(long value){
-        m_attributeValue = value;
-
-    }
-            
-
 
     /**
        method of TriangleCollector interface 
@@ -133,7 +122,7 @@ public class MeshRasterizer implements TriangleCollector {
         y2 = m_sy*v2.y+m_ty;
         z2 = m_sz*v2.z+m_tz;
         
-        //printf("fillTriangle(%6.1f,%6.1f,%6.1f; %6.1f,%6.1f,%6.1f; %6.1f,%6.1f,%6.1f)\n",x0, y0, z0, x1, y1, z1, x2, y2, z2);
+        //printf("fillTriangle(%7.1f,%7.1f,%7.1f,%7.1f,%7.1f,%7.1f,%7.1f,%7.1f,%7.1f)\n",x0, y0, z0, x1, y1, z1, x2, y2, z2);
         m_zbuffer.fillTriangle(x0, y0, z0, x1, y1, z1, x2, y2, z2);
         
 
@@ -145,49 +134,13 @@ public class MeshRasterizer implements TriangleCollector {
        the final mandatory step after all rasterization is done
        it stores data from ZBuffer into supplied grid
      */
-    public void getRaster(Grid grid){
+    public void getRaster(AttributeGrid grid){
         
         fillGrid(grid);
 
     }
-
-    public void getRaster(AttributeGrid grid){
         
-        fillGridAttribute(grid);
-        
-    }
-   
-    protected void fillGridAttribute(AttributeGrid grid){
-
-        m_zbuffer.sort();
-                        
-        for(int y = 0; y < m_ny; y++){
-            
-            for(int x = 0; x < m_nx; x++){
-                
-                int len = m_zbuffer.getCount(x,y);
-                //printf("len: %d %d %d\n", x,y, len);
-
-                if(len < 2)
-                    continue;
-                
-                float zray[] = m_zbuffer.getRay(x,y);
-                
-                len = (len & 0xFFFE); // make it even 
-                
-                for(int c = len-2; c >= 0; c-=2 ){
-                    // half voxel shift 
-                    int z1 = (int)Math.ceil(zray[c] - 0.5);   
-                    int z2 = (int)Math.floor(zray[c+1] - 0.5); 
-                    fillSegmentAttribute(grid, x,y,z1,z2);
-                }
-                // release ray memory 
-                m_zbuffer.setRay(x,y, null);
-            }            
-        }        
-    }
-    
-    protected void fillGrid(Grid grid){
+    protected void fillGrid(AttributeGrid grid){
 
         m_zbuffer.sort();
         
@@ -219,25 +172,11 @@ public class MeshRasterizer implements TriangleCollector {
         }
     }    
     
-    void fillSegment(Grid grid, int x, int y, int z1, int z2){
+    void fillSegment(AttributeGrid grid, int x, int y, int z1, int z2){
         int z = 0;
         try {
             for(z = z2; z >= z1; z--){
-                grid.setState(x, y, z, Grid.INSIDE);
-            }         
-        } catch(Exception e){
-            if(exceptionCount > 0){
-                exceptionCount--;
-                printf("index out of bounds: (x: %d, y:%d, z: %d)\n", x,y,z);
-            }
-        }
-    }
-
-    void fillSegmentAttribute(AttributeGrid grid, int x, int y, int z1, int z2){
-        int z = 0;
-        try {
-            for(z = z2; z >= z1; z--){
-                grid.setAttribute(x, y, z, m_attributeValue);
+                grid.setAttribute(x, y, z, 1);
             }         
         } catch(Exception e){
             if(exceptionCount > 0){

@@ -12,16 +12,20 @@
 
 package abfab3d.io.input;
 
-import abfab3d.core.VecTransform;
-import abfab3d.mesh.AreaCalculator;
-import abfab3d.util.AbFab3DGlobals;
-import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.core.Bounds;
 import abfab3d.core.TriangleProducer;
 import abfab3d.core.AttributedTriangleProducer;
-import abfab3d.util.AttributedTriangleProducerConverter;
+import abfab3d.core.VecTransform;
 import abfab3d.core.DataSource;
 import abfab3d.core.Initializable;
+
+import abfab3d.mesh.AreaCalculator;
+
+import abfab3d.util.AbFab3DGlobals;
+import abfab3d.util.BoundingBoxCalculator;
+import abfab3d.util.AttributedTriangleProducerConverter;
+import abfab3d.util.MeshRasterizer;
+
 
 import abfab3d.grid.op.DistanceTransformLayered;
 

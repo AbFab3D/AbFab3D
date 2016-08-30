@@ -98,6 +98,26 @@ public class MathUtil {
         return sqrt(x*x + y*y + z*z);
     }
 
+    /**
+       distance between 3D points 
+    */
+    public static final double getDistance(double vx, double vy, double vz, double px, double py, double pz){
+        vx -= px;
+        vy -= py;
+        vz -= pz;
+        return sqrt(vx*vx + vy*vy + vz*vz);
+    }
+
+    /**
+       square of distance between two 3D points 
+     */
+    public static final double getDistance2(double vx, double vy, double vz, double px, double py, double pz){
+        vx -= px;
+        vy -= py;
+        vz -= pz;
+        return (vx*vx + vy*vy + vz*vz);
+    }
+
 
     /**
        extends bounds array by given margin 

@@ -31,6 +31,8 @@ import abfab3d.grid.op.ClosestPointIndexerMT;
 
 import abfab3d.grid.util.GridUtil;
 
+import abfab3d.util.MeshRasterizer;
+
 import abfab3d.geom.TriangleMeshShellBuilder;
 
 

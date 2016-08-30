@@ -16,6 +16,9 @@ import java.io.IOException;
 
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.Grid;
+
+import abfab3d.util.MeshRasterizer;
+
 //import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.ArrayAttributeGridByte;
 

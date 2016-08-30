@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.geom;
+package abfab3d.util;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -25,6 +25,9 @@ import abfab3d.core.Bounds;
 import abfab3d.core.TriangleCollector;
 
 import abfab3d.io.output.STLWriter;
+
+import abfab3d.geom.Octahedron;
+import abfab3d.geom.TriangulatedModels;
 
 
 import static java.lang.Math.round;

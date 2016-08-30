@@ -6,6 +6,8 @@ import abfab3d.core.Grid;
 import abfab3d.grid.GridIntervals;
 import abfab3d.util.BoundingBoxUtilsFloat;
 import abfab3d.util.MatrixUtil;
+import abfab3d.util.ZBuffer;
+
 import org.j3d.geom.GeometryData;
 
 import javax.vecmath.Matrix4d;

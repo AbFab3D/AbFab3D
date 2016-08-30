@@ -9,7 +9,7 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.io.input;
+package abfab3d.datasources;
 
 import javax.vecmath.Vector3d;
 
@@ -26,6 +26,7 @@ import abfab3d.core.AttributeGrid;
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.util.PointSetCoordArrays;
 import abfab3d.util.MeshRasterizer;
+
 import abfab3d.util.TriangleMeshSurfaceBuilder;
 
 import abfab3d.grid.ArrayAttributeGridInt;
@@ -88,8 +89,12 @@ public class DistanceToMeshDataSource extends TransformableDataSource implements
     protected long m_minGridSize = 1000L;
 
     Parameter[] m_aparams = new Parameter[]{
+        mp_meshProducer,
         mp_voxelSize,
+        mp_margins,
+        
         mp_attributeLoading,
+        mp_useMultiPass,
     };
 
     public DistanceToMeshDataSource(TriangleProducer meshProducer){
@@ -112,7 +117,6 @@ public class DistanceToMeshDataSource extends TransformableDataSource implements
         // find mesh bounds
         Bounds gridBounds = getGridBounds(producer);
         int gridDim[] = gridBounds.getGridSize();
-        if(DEBUG)printf("grid bounds: %s\n", gridBounds);
 
         m_gridDimX = gridDim[0];
         m_gridDimY = gridDim[1];
@@ -124,7 +128,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource implements
         m_gridMinY = gridBounds.ymin;
         m_gridMinZ = gridBounds.zmin;
         
-        m_rasterizer = new MeshRasterizer(m_bounds, gridDim[0],gridDim[1],gridDim[2]);
+        m_rasterizer = new MeshRasterizer(gridBounds, gridDim[0],gridDim[1],gridDim[2]);
         m_rasterizer.setInteriorValue(1);
         
         Bounds surfaceBounds = gridBounds.clone();
@@ -148,9 +152,9 @@ public class DistanceToMeshDataSource extends TransformableDataSource implements
         shellBuilder.setShellHalfThickness(m_shellHalfThickness);
 
         // create index grid 
-        AttributeGrid indexGrid = createIndexGrid(gridBounds);
+        m_indexGrid = createIndexGrid(gridBounds);
         // thicken surface points into thin layer 
-        shellBuilder.execute(indexGrid);
+        shellBuilder.execute(m_indexGrid);
 
         // create interior grid 
         m_interiorGrid = new GridMask(gridDim[0],gridDim[1],gridDim[2]);        
@@ -228,8 +232,11 @@ public class DistanceToMeshDataSource extends TransformableDataSource implements
             voxelSize = Math.pow(gridVolume/m_minGridSize, 1./3);
         }
         gridBounds.setVoxelSize(voxelSize);
-        if(DEBUG)printf("DistancreToMeshDataSource uses voxelSize: %7.3fmm\n",voxelSize/MM);
-                
+        if(DEBUG){
+            printf("DistanceToMeshDataSource()  grid:[%d x %d x %d] voxelSize: %7.3f mm\n",ng[0],ng[1],ng[2],voxelSize/MM);
+            printf("DistanceToMeshDataSource()  gridBounds: (%7.3f %7.3f; %7.3f %7.3f; %7.3f %7.3f) mm)\n",
+                   gridBounds.xmin/MM,gridBounds.xmax/MM,gridBounds.ymin/MM,gridBounds.ymax/MM,gridBounds.zmin/MM,gridBounds.zmax/MM);
+        }                
         return gridBounds;
     }
 

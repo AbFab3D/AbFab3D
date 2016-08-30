@@ -21,7 +21,9 @@ import abfab3d.core.AttributedTriangleCollector;
 import abfab3d.core.AttributedTriangleProducer;
 import abfab3d.core.Bounds;
 import abfab3d.core.DataSource;
+
 import abfab3d.util.PointSetCoordArrays;
+import abfab3d.util.MeshRasterizer;
 
 import abfab3d.core.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridInt;

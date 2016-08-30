@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.geom;
+package abfab3d.util;
 
 import javax.vecmath.Vector3d;
 
@@ -36,7 +36,7 @@ import static abfab3d.core.Output.fmt;
    pixel with integer coordinates ix,iy is represented by square (ix < x < ix+1, iy < y < iy+1)
    z-ray pass via center of square.  
 
-   @authoir Vladimir Bulatov
+   @author Vladimir Bulatov
  */
 public class ZBuffer {
     
