@@ -48,8 +48,8 @@ public class ImageSetup implements Cloneable {
     /** Should we display material bump maps */
     public boolean bumpMaps;
 
-    /** Should lights case shadows */
-    public boolean castShadows;
+    /** Should lights cast shadows */
+    public float shadowQuality;
 
     /** How many ray samples for lights */
     public int lightSamples;
@@ -59,7 +59,7 @@ public class ImageSetup implements Cloneable {
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality,
                       AntiAliasingType aa, float[] backgroundColor, boolean bumpMaps,
-                      boolean castShadows, int lightSamples) {
+                      float shadowQuality, int lightSamples) {
         this.width = width;
         this.height = height;
         this.view = view;
@@ -68,14 +68,14 @@ public class ImageSetup implements Cloneable {
         this.aa = aa;
         this.backgroundColor = backgroundColor;
         this.bumpMaps = bumpMaps;
-        this.castShadows = castShadows;
+        this.shadowQuality = shadowQuality;
         this.lightSamples = lightSamples;
         this.renderingStyle = RenderingStyle.MATERIAL;
     }
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality, AntiAliasingType aa,
                       RenderingStyle style, float[] backgroundColor, boolean bumpMaps,
-                      boolean castShadows, int lightSamples) {
+                      float shadowQuality, int lightSamples) {
         this.width = width;
         this.height = height;
         this.view = view;
@@ -84,7 +84,7 @@ public class ImageSetup implements Cloneable {
         this.aa = aa;
         this.backgroundColor = backgroundColor;
         this.bumpMaps = bumpMaps;
-        this.castShadows = castShadows;
+        this.shadowQuality = shadowQuality;
         this.lightSamples = lightSamples;
         this.renderingStyle = style;
     }
@@ -99,7 +99,7 @@ public class ImageSetup implements Cloneable {
         aa = AntiAliasingType.NONE;
         backgroundColor = new float[3];
         bumpMaps = false;
-        castShadows = false;
+        shadowQuality = 0;
         lightSamples = 1;
         this.renderingStyle = RenderingStyle.MATERIAL;
     }

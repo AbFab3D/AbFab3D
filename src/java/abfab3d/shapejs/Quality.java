@@ -5,4 +5,4 @@ package abfab3d.shapejs;
  *
  * @author Alan Hudson
  */
-public enum RenderingQuality {DRAFT,NORMAL,FINE,SUPER_FINE}
+public enum Quality {DRAFT,NORMAL,FINE,SUPER_FINE}
