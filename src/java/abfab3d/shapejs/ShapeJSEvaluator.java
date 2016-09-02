@@ -114,7 +114,7 @@ public class ShapeJSEvaluator {
         // Create imports
 
         defaultParams = new HashMap<String,Parameter>();
-        EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None","WSF","Stainless","Ceramics","WSFP","White"},"None");
+        EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None","WSF","Stainless","Premium Silver","Ceramics","WSFP","White"},"None");
         matParam.setLabel("Material");
         matParam.setOnChange("main");
         defaultParams.put("material",matParam);
