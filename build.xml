@@ -32,6 +32,8 @@
     <property name="runarg2" value="-Djava.library.path=&quot;./natives/${os.name}/${os.arch}&quot;" />
 -->
     <property name="jvmrunargs" value="${runarg0}"/>
+    
+    <property name="test.coverage.dir" value="${basedir}/tmp/coverage" /> 
 
 <!-- Emma code coverage properties -->
     <property name="emma.dir" value="${basedir}/lib/support/emma" />  
@@ -74,7 +76,20 @@
     
     <taskdef classpathref="cobertura.classpath" resource="tasks.properties"/>
 <!-- End Cobertura code coverage properties -->
-  
+
+<!-- jacoco code coverage properties -->
+    <property name="jacoco.dir" value="${basedir}/lib/support/jacoco" />  
+    <property name="jacoco.out.dir" value="${test.coverage.dir}/jacoco" /> 
+    <property name="jacoco.reports.dir" value="${jacoco.out.dir}/jacoco" />
+    
+    <path id="jacoco.classpath">
+	<fileset dir="${jacoco.dir}">
+		<include name="jacocoant.jar" />
+		<include name="lib/**/*.jar" />
+	</fileset>
+    </path>
+<!-- End jacoco code coverage properties -->
+
     <target name="build" 
         description="Complete clean, setup, compilation, run" 
         depends="clean,init,compile,compileApps,jar" />
@@ -684,6 +699,76 @@
   </target>
 <!-- End code coverage tasks -->
 
+<!-- Begin Jacoco code coverage tasks -->
+    <target name="jacoco" depends="compileTest">
+        <mkdir dir="${jacoco.reports.dir}" />
+    
+        <!-- Import the JaCoCo Ant Task -->
+        <taskdef uri="org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+            <classpath>
+                <path refid="jacoco.classpath"/>
+            </classpath>
+        </taskdef>
+    
+        <!-- Run your unit tests, adding the JaCoCo agent -->
+        <jacoco:coverage destfile="${test.coverage.dir}/jacoco.exec" xmlns:jacoco="org.jacoco.ant">
+          <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+            <jvmarg line="${jvmrunargs}"/>
+
+			<classpath>
+				<pathelement path="${classes.dir}" />
+				<pathelement path="${test.classes.dir}" />
+				<fileset dir="${lib.dir}" includes="**/*.jar" excludes="support/japex/*.jar"/>
+			</classpath>
+			<classpath refid="jacoco.classpath" />
+			  
+            <formatter type="xml" />
+            <batchtest todir="${jacoco.reports.dir}">
+				<fileset dir="${test.dir}">
+            		<include name="**/Test*.java"/>
+            		<exclude name="**/*Performance*.java"/>
+            		<exclude name="**/*Suite*.java"/>
+
+            		<!-- Non working ones -->
+<!--            	<exclude name="**/TestTriangleModelCreator.java"/> -->
+            		<exclude name="**/TestCanMoveMaterialTargetedBoundsMT.java" />
+<!--
+					<exclude name="**/TestParametricSurfaceMaker.java" />
+					<exclude name="**/TestTriangulatedModels.java" />
+-->
+					<exclude name="**/TestRegionFinder.java" />
+<!--            	<exclude name="**/TestDilationShapeMT.java" /> -->
+					<exclude name="**/TestShellFinder.java" />
+				</fileset>
+            </batchtest>
+          </junit>
+        </jacoco:coverage>
+        
+		<jacoco:report xmlns:jacoco="org.jacoco.ant">
+			<executiondata>
+				<file file="${test.coverage.dir}/jacoco.exec" />
+			</executiondata>
+
+			<structure name="Jacoco">
+				<classfiles>
+					<fileset dir="${classes.dir}">
+						<include name="**/*.class" />
+						<!-- Exclude classes necessary for testing only from the code coverage report-->
+						<exclude name="test/**/*.class" />
+						<!-- Exclude inner classes -->
+						<exclude name="**/*$*.class" />
+					</fileset>
+				</classfiles>
+				<sourcefiles encoding="UTF-8">
+					<fileset dir="${src.dir}/java" />
+				</sourcefiles>
+			</structure>
+
+			<html destdir="${jacoco.out.dir}" />
+		</jacoco:report>
+    </target>
+<!-- End Jacoco code coverage tasks -->
+
   <target name="compileTest" depends="init" description="Compile all Test source files">
      <mkdir dir="${test.classes.dir}" />
 
@@ -698,7 +783,6 @@
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/output" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/input" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/transform" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/util" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/symmetry" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/random" jars="**/*.jar" />
@@ -707,6 +791,8 @@
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/datasources" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/transforms" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/mesh" jars="**/*.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/shapejs" jars="**/*.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/core" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="" jars="**/*.jar" />
 
   </target>

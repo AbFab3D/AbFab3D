@@ -82,7 +82,7 @@ public class TestColor extends BaseTestCase  {
         String s = c.toHEX();
 
         s = s.toUpperCase();
-        assertEquals("white", "0XFFFFFF",s);
+        assertEquals("white", "#FFFFFF",s);
     }
 
 }

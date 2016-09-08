@@ -16,3 +16,5 @@ apps/*/src/java/*/ui
 apps/gpu/models/launch_vase_dec.stl
 refguide
 /bin/
+tmp/
+
