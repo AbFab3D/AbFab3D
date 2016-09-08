@@ -80,6 +80,62 @@ public class TestGridLoader extends TestCase {
         double voxelSize = 2*MM;
         int magnification = 20;
         int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE;
+        double maxInDistance = 50*MM; //voxelSize*2;
+        double maxOutDistance = maxInDistance;
+
+        
+        //String path  = "test/models/sphere_10cm_5K_tri.stl"; //10cm diameter sphere
+        String path  = "test/models/sphere_10cm_32K_tri.stl";
+        //String path  = "test/models/sphere_10cm_400K_tri.stl";
+        
+
+        printf("voxelSize: %5.2f mm\n", voxelSize/MM);
+        printf("path: %s\n", path);
+        
+        GridLoader loader = new GridLoader();
+        loader.setDensityBitCount(densityBitCount);
+        loader.setDistanceBitCount(distanceBitCount);
+        loader.setPreferredVoxelSize(voxelSize);
+        loader.setDistanceAlgorithm(rasterAlgorithm);
+        loader.setMaxInDistance(maxInDistance);
+        loader.setMaxOutDistance(maxOutDistance);
+        loader.setShellHalfThickness(2.5);
+        //loader.setSurfaceVoxelSize(1./2);
+        //loader.setMargins(2*voxelSize);
+        //loader.setUseMultiPass(false);
+
+        AttributeGrid grid = loader.loadDistanceGrid(path);
+        
+        Difference diff = getDifference(grid, new DistanceDataSphere(50*MM), 0.25);
+        
+        printf("diffMax:    %7.3f voxels\n", diff.diffmax/voxelSize);
+        printf("  diff1: %7.3f voxels\n", diff.diff1/voxelSize);
+        printf("  diff2: %7.3f voxels\n", diff.diff2/voxelSize);
+
+        if(true){
+            assertTrue("((maxdiff < 0.19) != true)\n", (diff.diffmax/voxelSize < 0.19));
+            assertTrue("((diff1 < 0.036) != true)\n", (diff.diff1/voxelSize < 0.036));
+            assertTrue("((diff2 < 0.044) != true)\n", (diff.diff2/voxelSize < 0.044));
+        }
+
+        if(false){
+            GridDataChannel dataChannel = grid.getDataDesc().getChannel(0);
+            printf("gridDataChannel: %s\n", dataChannel);
+            ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, voxelSize);
+            //int iz = grid.getDepth()/2;
+            for(int iz = 0; iz < grid.getDepth(); iz++){
+                GridUtil.writeSlice(grid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));
+            }
+        }   
+    }
+    
+    public void testRasterizerDistance2Precision() throws Exception {
+
+        int densityBitCount = 8;
+        int distanceBitCount = 16;
+        double voxelSize = 2*MM;
+        int magnification = 20;
+        int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
         double maxInDistance = 50*MM;
         double maxOutDistance = 50*MM;
 
@@ -99,62 +155,14 @@ public class TestGridLoader extends TestCase {
         loader.setDensityAlgorithm(rasterAlgorithm);
         loader.setMaxInDistance(maxInDistance);
         loader.setMaxOutDistance(maxOutDistance);
-        loader.setShellHalfThickness(2.5);
-        
-        AttributeGrid grid = loader.loadDistanceGrid(path);
-        
-        Difference diff = getDifference(grid, new DistanceDataSphere(50*MM));
-        
-        printf("diffMax: %7.3f voxels\n", diff.diffmax/voxelSize);
-        printf("  diff1: %7.3f voxels\n", diff.diff1/voxelSize);
-        printf("  diff2: %7.3f voxels\n", diff.diff2/voxelSize);
-
-        assertTrue("((maxdiff < 0.19) != true)\n", (diff.diffmax/voxelSize < 0.19));
-        assertTrue("((diff1 < 0.036) != true)\n", (diff.diff1/voxelSize < 0.036));
-        assertTrue("((diff2 < 0.044) != true)\n", (diff.diff2/voxelSize < 0.044));
-        
-        if(false){
-            GridDataChannel dataChannel = grid.getDataDesc().getChannel(0);
-            ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, 2*MM);
-            int iz = grid.getDepth()/2;
-            GridUtil.writeSlice(grid, magnification, iz, dataChannel, colorMapper, fmt("/tmp/dens/dist%03d.png", iz));
-        }   
-    }
-    
-    public void testRasterizerDistance2Precision() throws Exception {
-
-        int densityBitCount = 8;
-        int distanceBitCount = 16;
-        double voxelSize = 2*MM;
-        int magnification = 20;
-        int rasterAlgorithm = GridLoader.RASTERIZER_DISTANCE2;
-        double maxInDistance = 50*MM;
-        double maxOutDistance = 50*MM;
-
-        
-        //String path  = "test/models/sphere_10cm_5K_tri.stl"; //10cm diameter sphere
-        //String path  = "test/models/sphere_10cm_32K_tri.stl";
-        String path  = "test/models/sphere_10cm_400K_tri.stl";
-        
-
-        printf("voxelSize: %5.2 mm\n", voxelSize/MM);
-        printf("path: %s\n", path);
-        
-        GridLoader loader = new GridLoader();
-        loader.setDensityBitCount(densityBitCount);
-        loader.setDistanceBitCount(distanceBitCount);
-        loader.setPreferredVoxelSize(voxelSize);
-        loader.setDensityAlgorithm(rasterAlgorithm);
-        loader.setMaxInDistance(maxInDistance);
-        loader.setMaxOutDistance(maxOutDistance);
         //loader.setShellHalfThickness(1.5);
         loader.setShellHalfThickness(2.6);
         //loader.setSurfaceVoxelSize(0.35);
-        loader.setSurfaceVoxelSize(0.31);
+        loader.setSurfaceVoxelSize(1./2);
                 
         AttributeGrid grid = loader.loadDistanceGrid(path);
         
-        Difference diff = getDifference(grid, new DistanceDataSphere(50*MM), 0.3);
+        Difference diff = getDifference(grid, new DistanceDataSphere(50*MM), 0.4);
         
         printf("diffMax: %7.3f voxels\n", diff.diffmax/voxelSize);
         printf("  diff1: %7.3f voxels\n", diff.diff1/voxelSize);
@@ -164,7 +172,7 @@ public class TestGridLoader extends TestCase {
         assertTrue("((diff1 < 0.042) != true)\n", (diff.diff1/voxelSize < 0.042));
         assertTrue("((diff2 < 0.057) != true)\n", (diff.diff2/voxelSize < 0.057));
         
-        if(false){
+        if(true){
             GridDataChannel dataChannel = grid.getDataDesc().getChannel(0);
             ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, 2*MM);
             int iz = grid.getDepth()/2;
@@ -350,12 +358,12 @@ public class TestGridLoader extends TestCase {
                     double exactDist = distData.getDistance(pnt[0],pnt[1],pnt[2]);
                     double gridDist = dataChannel.getValue(grid.getAttribute(x,y,z));
                     double diff = Math.abs(gridDist - exactDist);
-                    if(diff/vs > bigError) printf("dist: %7.2f %7.2f diff: %4.2f\n", gridDist/vs, exactDist/vs, diff/vs);
+                    if(diff/vs > bigError) printf("dist: %7.2f exact:%7.2f diff: %4.2f (%8.5f %8.5f %8.5f)\n", gridDist/vs, exactDist/vs, diff/vs, pnt[0]/vs, pnt[1]/vs, pnt[2]/vs);
                     if(diff > maxDiff){
                         maxDiff = diff;
                     }
                     diffSum += diff;
-                    diff2Sum += diff*diff;
+                    diff2Sum += diff*diff;                    
                     count++;
                 }
             }
@@ -368,7 +376,7 @@ public class TestGridLoader extends TestCase {
         double diffmax;
         double diff1;
         double diff2;
-        
+
         Difference(double diffmax, double diff1, double diff2){
             this.diffmax = diffmax;
             this.diff1 = diff1;
@@ -488,7 +496,9 @@ public class TestGridLoader extends TestCase {
 
         for(int k = 0; k < 1; k++){
             //new TestGridLoader().devTestSTL_density();
-            new TestGridLoader().devTestSTL_distance();
+            //new TestGridLoader().devTestSTL_distance();
+            //new TestGridLoader().testRasterizerDistancePrecision();
+            new TestGridLoader().testRasterizerDistance2Precision();
             //new TestGridLoader().testRasterizerDistancePrecision();
             //new TestGridLoader().testRasterizerDistance2Precision();
             //new TestGridLoader().devTestRasterizeTexturedTriangles();

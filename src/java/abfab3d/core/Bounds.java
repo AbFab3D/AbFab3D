@@ -351,6 +351,21 @@ public class Bounds implements Cloneable {
     }
 
     /**
+       translate bounds by given amount 
+       @param tx x-component of transltion 
+       @param ty y-component of transltion 
+       @param tz z-component of transltion 
+     */
+    public void translate(double tx, double ty, double tz){
+        xmin += tx;
+        xmax += tx;
+        ymin += ty;
+        ymax += ty;
+        zmin += tz;
+        zmax += tz;
+    }
+
+    /**
        round bounds using current voxel size 
      */
     public void roundBounds(){

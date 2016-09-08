@@ -60,7 +60,6 @@ import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.printf;
 
 import static abfab3d.grid.util.GridUtil.writeSlice;
-import static abfab3d.util.ImageUtil.getRGBA;
 
 
 
@@ -106,10 +105,13 @@ public class TestThinLayerDataSource extends TestCase {
         //DataSource source = sphere1;
 
         ThinLayerDataSource thinLayer = new ThinLayerDataSource(source, bounds);
-        thinLayer.set("hiVoxelSize", 0.1*MM);
-        thinLayer.set("layerThickness", 0.5*MM);
-        thinLayer.set("lowVoxelFactor", 11);
+        thinLayer.set("hiVoxelSize", 0.05*MM);
+        thinLayer.set("layerThickness", 0.6*MM);
+        thinLayer.set("lowVoxelFactor", 5);
+        thinLayer.setUseCombined(false);
+
         long t0 = time();
+        
         thinLayer.initialize();
         printf("thin layer initialized: %d ms\n", time() - t0);
         
@@ -132,7 +134,7 @@ public class TestThinLayerDataSource extends TestCase {
         ImageMaker im = new ImageMaker();
 
         ColorMapper colorMapper = new ColorMapperDistance(0.1*MM);
-        ColorMapper colorMapperHR = new ColorMapperDistance(0.01*MM);
+        ColorMapper colorMapperHR = new ColorMapperDistance(0.1*MM);
         
         t0 = time();
         BufferedImage img1 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(source, colorMapper));
@@ -145,49 +147,25 @@ public class TestThinLayerDataSource extends TestCase {
         t0 = time();
         BufferedImage img2 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(thinLayer, colorMapper));        
         printf("img2 [%d x %d ] rendered: %d ms\n", img2.getWidth(), img2.getHeight(), time() - t0);
-        ImageIO.write(img2, "png", new File("/tmp/01_logrid.png"));        
+        ImageIO.write(img2, "png", new File("/tmp/01_lowGrid.png"));        
 
         thinLayer.setDataType(1);
 
         t0 = time();
         BufferedImage img3 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(thinLayer,colorMapperHR));        
         printf("img3 [%d x %d ] rendered: %d ms\n", img3.getWidth(), img3.getHeight(), time() - t0);
-        ImageIO.write(img3, "png", new File("/tmp/02_higrid.png"));        
+        ImageIO.write(img3, "png", new File("/tmp/02_hiGrid.png"));        
 
         thinLayer.setDataType(2);
         t0 = time();
         BufferedImage img4 = im.renderImage(imgWidthExt, imgHeightExt, bounds, new SliceDistanceColorizer(thinLayer, colorMapper));        
-        printf("image [%d x %d ] rendered: %d ms\n", img4.getWidth(), img4.getHeight(), time() - t0);
+        printf("img4 [%d x %d ] rendered: %d ms\n", img4.getWidth(), img4.getHeight(), time() - t0);
         t0 = time();
-        ImageIO.write(img4, "png", new File("/tmp/03_fullgrid.png"));        
+        ImageIO.write(img4, "png", new File("/tmp/03_fullGrid.png"));        
         printf("image written: %d ms\n", time() - t0);
 
     }
 
-
-    static class SliceDistanceColorizer extends TransformableDataSource {
-        
-        DataSource m_source;
-        ColorMapper m_colorMapper;
-
-        public SliceDistanceColorizer(DataSource source, ColorMapper colorMapper){
-            m_colorMapper = colorMapper;
-            m_source = source;
-            
-        }
-
-        public int getBaseValue(Vec pnt, Vec data){
-
-            m_source.getDataValue(pnt, data);
-
-            int argb = m_colorMapper.getColor(data.v[0]); 
-            getRGBA(argb, data.v);
-            return ResultCodes.RESULT_OK;
-        }
-        
-    } // static class SliceDistanceColorizer 
-
- 
     public static void main(String[] args) throws Exception {
         new TestThinLayerDataSource().devTestSphere();
     }

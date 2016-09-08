@@ -20,6 +20,7 @@ import abfab3d.core.TriangleCollector;
 import abfab3d.core.TriangleProducer;
 import abfab3d.core.Bounds;
 import abfab3d.core.DataSource;
+import abfab3d.core.MathUtil;
 
 import abfab3d.util.PointSetCoordArrays;
 import abfab3d.util.MeshRasterizer;
@@ -54,7 +55,7 @@ import static abfab3d.core.MathUtil.step10;
  */
 public class DistanceRasterizer2 implements TriangleCollector {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static final boolean DEBUG_TIMING = true;
 
 
@@ -84,7 +85,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
     // use multi pass algorithm for distance calculation (more precise but 3 times slower) 
     protected boolean m_useMultiPass = false;
 
-    // size of surface voxels relative to size ofo grid voxles 
+    // size of surface voxels relative to size of grid voxles 
     protected double m_surfaceVoxelSize = 1.;
     // it looks like y-sorting actually surface points decreases performance 
     protected boolean m_sortSurfacePoints = false;
@@ -173,7 +174,14 @@ public class DistanceRasterizer2 implements TriangleCollector {
         m_indexGrid = createIndexGrid();
         
         Bounds surfaceBounds = m_bounds.clone();
-        surfaceBounds.setVoxelSize(m_bounds.getVoxelSize()*m_surfaceVoxelSize);
+        int svfactor = (int)Math.round(1./m_surfaceVoxelSize);
+        double svoxel = m_bounds.getVoxelSize()/svfactor;
+        surfaceBounds.setVoxelSize(svoxel);
+        if((svfactor & 1) == 0) {
+            // even surface factor requires half voxel shift             
+            double shift = svoxel/2;
+            surfaceBounds.translate(shift,shift,shift);
+        }
         m_surfaceBuilder = new TriangleMeshSurfaceBuilder(surfaceBounds);        
         m_surfaceBuilder.setSortPoints(m_sortSurfacePoints);
 
@@ -253,8 +261,8 @@ public class DistanceRasterizer2 implements TriangleCollector {
         t0 = time();
 
         // distribute indices on the whole indexGrid        
-        
         ClosestPointIndexer.getPointsInGridUnits(m_indexGrid, pntx, pnty, pntz);
+        if(false) printPoints("points in grid units", pntx, pnty, pntz);
 
         if(m_useMultiPass) {
             ClosestPointIndexerMT.PI3_multiPass_MT(pntx, pnty, pntz, m_maxDistanceVoxels, m_indexGrid, m_threadCount);
@@ -267,6 +275,7 @@ public class DistanceRasterizer2 implements TriangleCollector {
         t0 = time();
         // transform points into world units
         ClosestPointIndexer.getPointsInWorldUnits(m_indexGrid, pntx, pnty, pntz);
+        if(false) printPointsAndLength("points in world units", pntx, pnty, pntz);
         if(DEBUG_TIMING)printf("ClosestPointIndexer.getPointsInWorldUnits(): %d ms\n", (time() - t0));
         
         
@@ -341,6 +350,19 @@ public class DistanceRasterizer2 implements TriangleCollector {
             GridUtil.printSliceAttribute(densityGrid, z);
         }
 
+    }
+
+    static void printPoints(String title, double px[], double py[], double pz[]){
+        printf("%s\n", title);
+        for(int i = 1; i < px.length; i++){
+            printf("[%8.5f %8.5f %8.5f]\n", px[i],py[i],pz[i]);
+        }
+    }
+    static void printPointsAndLength(String title, double px[], double py[], double pz[]){
+        printf("%s\n", title);
+        for(int i = 1; i < px.length; i++){
+            printf("[%8.5f %8.5f %8.5f] %10.6f\n", px[i],py[i],pz[i], MathUtil.getLength(px[i],py[i],pz[i]));
+        }
     }
 
 }

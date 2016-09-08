@@ -120,6 +120,16 @@ public class MathUtil {
 
 
     /**
+     *  returen length of vector with   
+     *
+     */
+    public static double getLength(double x, double y, double z) {
+    	
+    	return Math.sqrt(x*x + y*y + z*z);
+    	
+    }
+
+    /**
        extends bounds array by given margin 
      */
     public static double[] extendBounds(double bounds[], double margin){
