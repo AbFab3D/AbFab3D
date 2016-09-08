@@ -54,6 +54,8 @@ public class ImageSetup implements Cloneable {
     /** How many ray samples for lights */
     public int lightSamples;
 
+    public int maxRayBounces;
+
     public RenderingMaterial renderingMaterial;
     public RenderingStyle renderingStyle;
 
@@ -71,6 +73,7 @@ public class ImageSetup implements Cloneable {
         this.shadowQuality = shadowQuality;
         this.lightSamples = lightSamples;
         this.renderingStyle = RenderingStyle.MATERIAL;
+        this.maxRayBounces = 0;
     }
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality, AntiAliasingType aa,
@@ -87,6 +90,41 @@ public class ImageSetup implements Cloneable {
         this.shadowQuality = shadowQuality;
         this.lightSamples = lightSamples;
         this.renderingStyle = style;
+        this.maxRayBounces = 0;
+    }
+
+    public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality,
+                      AntiAliasingType aa, float[] backgroundColor, boolean bumpMaps,
+                      float shadowQuality, int lightSamples, int maxRayBounces) {
+        this.width = width;
+        this.height = height;
+        this.view = view;
+        this.imgType = imgType;
+        this.quality = quality;
+        this.aa = aa;
+        this.backgroundColor = backgroundColor;
+        this.bumpMaps = bumpMaps;
+        this.shadowQuality = shadowQuality;
+        this.lightSamples = lightSamples;
+        this.renderingStyle = RenderingStyle.MATERIAL;
+        this.maxRayBounces = maxRayBounces;
+    }
+
+    public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality, AntiAliasingType aa,
+                      RenderingStyle style, float[] backgroundColor, boolean bumpMaps,
+                      float shadowQuality, int lightSamples, int maxRayBounces) {
+        this.width = width;
+        this.height = height;
+        this.view = view;
+        this.imgType = imgType;
+        this.quality = quality;
+        this.aa = aa;
+        this.backgroundColor = backgroundColor;
+        this.bumpMaps = bumpMaps;
+        this.shadowQuality = shadowQuality;
+        this.lightSamples = lightSamples;
+        this.renderingStyle = style;
+        this.maxRayBounces = maxRayBounces;
     }
 
     public ImageSetup() {
@@ -102,6 +140,7 @@ public class ImageSetup implements Cloneable {
         shadowQuality = 0;
         lightSamples = 1;
         this.renderingStyle = RenderingStyle.MATERIAL;
+        maxRayBounces = 0;
     }
 
     /**
