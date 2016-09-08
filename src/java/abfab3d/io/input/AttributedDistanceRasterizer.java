@@ -185,7 +185,17 @@ public class AttributedDistanceRasterizer implements AttributedTriangleCollector
         m_indexGrid = createIndexGrid();
         
         Bounds surfaceBounds = m_bounds.clone();
-        surfaceBounds.setVoxelSize(m_bounds.getVoxelSize()*m_surfaceVoxelSize);
+        int svfactor = (int)Math.round(1./m_surfaceVoxelSize);
+        double svoxel = m_bounds.getVoxelSize()/svfactor;
+        surfaceBounds.setVoxelSize(svoxel);
+        if((svfactor & 1) == 0) {
+            // even surface factor requires half voxel shift             
+            double shift = svoxel/2;
+            surfaceBounds.translate(shift,shift,shift);
+        }
+
+
+
         m_surfaceBuilder = new AttributedTriangleMeshSurfaceBuilder(surfaceBounds);        
         m_surfaceBuilder.setDataDimension(m_dataDimension);
         m_surfaceBuilder.initialize();
