@@ -46,6 +46,9 @@ public class DefaultEditor extends BaseEditor implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        String newValue = m_textField.getText();
+        m_param.setValue(newValue);
+
         informParamChangedListeners();
     }
 
