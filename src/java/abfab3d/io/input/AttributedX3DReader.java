@@ -684,7 +684,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
          * @return
          */
         public int getDataValue(Vec pnt, Vec dataValue) {
-            int tz = (int) pnt.v[2];
+            int tz = (int) (pnt.v[2] + 0.5);
 
             return calcs[tz].getDataValue(pnt,dataValue);
         }
