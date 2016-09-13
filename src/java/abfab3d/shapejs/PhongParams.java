@@ -23,6 +23,7 @@ public class PhongParams extends RenderingParams {
     private ColorParameter mp_diffuseColor = new ColorParameter("diffuseColor","Diffuse Color",new Color(0.8,0.8,0.8));
     private ColorParameter mp_emissiveColor = new ColorParameter("emissiveColor","Emissive Color",new Color(0,0,0));
     private ColorParameter mp_specularColor = new ColorParameter("specularColor","Diffuse Color",new Color(1,1,1));
+    private ColorParameter mp_albedo = new ColorParameter("albedo","albedo",new Color(0,0,0));
     private DoubleParameter mp_shininess = new DoubleParameter("shininess","How reflective", 0.2);
     private DoubleParameter mp_ambientIntensity = new DoubleParameter("ambientIntensity","Ambient light", 0.2);
 
@@ -30,6 +31,7 @@ public class PhongParams extends RenderingParams {
             mp_diffuseColor,
             mp_emissiveColor,
             mp_specularColor,
+            mp_albedo,
             mp_shininess,
             mp_ambientIntensity
     };
@@ -39,6 +41,16 @@ public class PhongParams extends RenderingParams {
     }
 
     public PhongParams(Color diffuseColor, Color emissiveColor, double shininess, Color specularColor, double ambientIntensity) {
+        initParams();
+
+        setDiffuseColor(diffuseColor);
+        setEmissiveColor(emissiveColor);
+        setShininess(shininess);
+        setSpecularColor(specularColor);
+        setAmbientIntensity(ambientIntensity);
+    }
+
+    public PhongParams(Color diffuseColor, Color emissiveColor, double shininess, Color specularColor, Color albedo, double ambientIntensity) {
         initParams();
 
         setDiffuseColor(diffuseColor);
@@ -91,4 +103,13 @@ public class PhongParams extends RenderingParams {
     public void setAmbientIntensity(double ambientIntensity) {
         mp_ambientIntensity.setValue(ambientIntensity);
     }
+
+    public Color getAlbedo() {
+        return mp_albedo.getValue();
+    }
+
+    public void setAlbedo(Color albedo) {
+        mp_albedo.setValue((Color) albedo.clone());
+    }
+
 }

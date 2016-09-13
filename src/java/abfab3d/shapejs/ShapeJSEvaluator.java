@@ -114,7 +114,7 @@ public class ShapeJSEvaluator {
         // Create imports
 
         defaultParams = new HashMap<String,Parameter>();
-        EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None","WSF","Stainless","Premium Silver","Ceramics","WSFP","White"},"None");
+        EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None","WSF","Stainless","Premium Silver","14K Gold","Ceramics","WSFP","White"},"None");
         matParam.setLabel("Material");
         matParam.setOnChange("main");
         defaultParams.put("material",matParam);
@@ -165,7 +165,7 @@ public class ShapeJSEvaluator {
 
         // Be explicit about io.input to stop reading of disk contents
         classImports.add("abfab3d.io.input.AttributedMesh");
-        classImports.add("abfab3d.io.input.MeshRasterizer");
+        classImports.add("abfab3d.util.MeshRasterizer");
 
         classImports.add("abfab3d.shapejs.Scene");
         classImports.add("abfab3d.shapejs.Light");
