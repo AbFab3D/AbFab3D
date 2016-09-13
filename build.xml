@@ -154,7 +154,7 @@
             jars=""
         />
         <compilejava package="abfab3d/datasources"
-            jars="jafama.jar vecmath.jar"
+            jars="jafama.jar vecmath.jar core-renderer.jar"
         />
         <compilejava package="abfab3d/mesh"
                      jars=""
@@ -439,10 +439,6 @@
 
 <!-- Normal test without any code coverage -->
   <target name="test" depends="compileTest">
-      <echo message="Testing Volume Sculptor" />
-      <ant dir="apps/volumesculptor" target="test" inheritAll="false" useNativeBasedir="true"/>
-
-
       <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
       <jvmarg line="${jvmrunargs}"/>
       <formatter type="plain" usefile="false"/>
@@ -775,6 +771,7 @@
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/opencl" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/random" jars="**/*.jar" />
+      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/param" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/param/editor" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/path" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid" jars="**/*.jar" />

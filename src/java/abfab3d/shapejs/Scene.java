@@ -16,6 +16,7 @@ import javax.vecmath.Vector3d;
 import abfab3d.core.Bounds;
 import abfab3d.core.Color;
 import abfab3d.core.MaterialType;
+import abfab3d.datasources.ImageColorMap;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameterizable;
 
@@ -69,6 +70,7 @@ public class Scene extends BaseParameterizable {
     protected LightingRig m_lightingRig = DEFAULT_LIGHTING_RIG;
     protected Camera camera = new SimpleCamera();
     protected boolean m_userSetLights = false;
+    protected ImageColorMap environmentMap;
 
     protected MaterialType m_materialType = MaterialType.SINGLE_MATERIAL;
 
@@ -341,6 +343,14 @@ public class Scene extends BaseParameterizable {
 
     public RenderingParams _getRenderingParams() {
         return m_renderingParams;
+    }
+
+    public void setEnvironmentMap(ImageColorMap map) {
+        environmentMap = map;
+    }
+
+    public ImageColorMap getEnvironmentMap() {
+        return environmentMap;
     }
 
     /**

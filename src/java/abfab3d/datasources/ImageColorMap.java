@@ -271,6 +271,9 @@ public class ImageColorMap extends TransformableDataSource {
         } else if (imageSource instanceof Text2D) {
 
             m_imageData = new ImageColor(((Text2D) imageSource).getImage());
+        } else if (imageSource instanceof FormattedText2D) {
+
+            m_imageData = new ImageColor(((FormattedText2D) imageSource).getImage());
 
         } else if (imageSource instanceof BufferedImage) {
 

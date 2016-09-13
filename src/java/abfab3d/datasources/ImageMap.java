@@ -406,7 +406,9 @@ public class ImageMap extends TransformableDataSource {
         } else if(imageSource instanceof Text2D){
             if (DEBUG) printf("Getting text2d image\n");
             imageData = new ImageGray16(((Text2D)imageSource).getImage());
-
+        } else if(imageSource instanceof FormattedText2D){
+            if (DEBUG) printf("Getting formattedtext2d image\n");
+            imageData = new ImageGray16(((FormattedText2D)imageSource).getImage());
         } else if(imageSource instanceof BufferedImage){
 
             imageData = new ImageGray16((BufferedImage)imageSource);
