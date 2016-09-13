@@ -1,42 +1,32 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
- *                               Java Source
- *
+ * Shapeways, Inc Copyright (c) 2011
+ * Java Source
+ * <p/>
  * This source is licensed under the GNU LGPL v2.1
  * Please read http://www.gnu.org/copyleft/lgpl.html for more information
- *
+ * <p/>
  * This software comes with the standard NO WARRANTY disclaimer for any
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
- *
  ****************************************************************************/
 
 package abfab3d.datasources;
 
 
 import abfab3d.core.ResultCodes;
-import abfab3d.param.*;
-import abfab3d.util.Insets2;
-import abfab3d.util.TextUtil;
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.Scene;
-import javafx.scene.image.WritableImage;
-import javafx.scene.web.WebView;
+import abfab3d.param.BaseParameterizable;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.ExpensiveInitializable;
+import abfab3d.param.Parameter;
+import abfab3d.param.URIParameter;
 import org.w3c.dom.Document;
 import org.xhtmlrenderer.swing.Java2DRenderer;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.awt.*;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
@@ -53,16 +43,16 @@ public class FormattedText2D extends BaseParameterizable implements ExpensiveIni
 
     BufferedImage m_bitmap = null;
 
-    DoubleParameter  mp_height = new DoubleParameter("height","height of text",5*MM);
-    DoubleParameter  mp_width = new DoubleParameter("width","width of text",0*MM); // width is initially undefined
-    DoubleParameter  mp_voxelSize = new DoubleParameter("voxelSize","size of voxel for text rendering", 0.1*MM);
-    URIParameter mp_source      = new URIParameter("source","text to be created", "Hello<br/>World");
+    DoubleParameter mp_height = new DoubleParameter("height", "height of text", 5 * MM);
+    DoubleParameter mp_width = new DoubleParameter("width", "width of text", 0 * MM); // width is initially undefined
+    DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize", "size of voxel for text rendering", 0.1 * MM);
+    URIParameter mp_source = new URIParameter("source", "text to be created", "Hello<br/>World");
 
     Parameter m_aparam[] = new Parameter[]{
-        mp_height,
-        mp_width,
-        mp_voxelSize,
-        mp_source
+            mp_height,
+            mp_width,
+            mp_voxelSize,
+            mp_source
     };
 
 
@@ -70,7 +60,7 @@ public class FormattedText2D extends BaseParameterizable implements ExpensiveIni
      * Constructor
      @param source The text source
      */
-    public FormattedText2D(String source){
+    public FormattedText2D(String source) {
         super.addParams(m_aparam);
         mp_source.setValue(source);
     }
@@ -125,9 +115,9 @@ public class FormattedText2D extends BaseParameterizable implements ExpensiveIni
      * @noRefGuide
      * @return
      */
-    public BufferedImage getImage(){
+    public BufferedImage getImage() {
 
-        if(m_bitmap == null)
+        if (m_bitmap == null)
             initialize();
 
         return m_bitmap;
@@ -136,28 +126,28 @@ public class FormattedText2D extends BaseParameterizable implements ExpensiveIni
     /**
      * @noRefGuide
      */
-    protected void initParams(){
+    protected void initParams() {
         super.addParams(m_aparam);
     }
 
     /**
-       @noRefGuide
+     @noRefGuide
      */
-    public int initialize(){
+    public int initialize() {
 
-        if(DEBUG) printf("FormattedText2D.initialize()\n");
+        if (DEBUG) printf("FormattedText2D.initialize()\n");
 
         double voxelSize = mp_voxelSize.getValue();
-        if(DEBUG) printf("  voxelSize:%7.5f\n", voxelSize);
-        int height = (int)Math.round(mp_height.getValue()/voxelSize);
-        if(DEBUG) printf("  text height:%d pixels\n", height);
+        if (DEBUG) printf("  voxelSize:%7.5f\n", voxelSize);
+        int height = (int) Math.round(mp_height.getValue() / voxelSize);
+        if (DEBUG) printf("  text height:%d pixels\n", height);
 
-        int width = (int)Math.round(mp_width.getValue()/voxelSize);
-        if(DEBUG) printf("  text width:%d pixels\n", width);
+        int width = (int) Math.round(mp_width.getValue() / voxelSize);
+        if (DEBUG) printf("  text width:%d pixels\n", width);
 
         String text = mp_source.getValue();
 
-        if(DEBUG) printf("  text:\"%s\"\n", text);
+        if (DEBUG) printf("  text:\"%s\"\n", text);
 
         DocumentBuilderFactory factory =
                 DocumentBuilderFactory.newInstance();
@@ -167,24 +157,24 @@ public class FormattedText2D extends BaseParameterizable implements ExpensiveIni
             String header = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">";
             text = header + text + "</html>";
             builder = factory.newDocumentBuilder();
-            ByteArrayInputStream input =  new ByteArrayInputStream(
+            ByteArrayInputStream input = new ByteArrayInputStream(
                     text.getBytes("UTF-8"));
             doc = builder.parse(input);
 
-            System.out.printf("Rendering:  w: %d  h: %d\n",width,height);
-            Java2DRenderer renderer = new Java2DRenderer(doc, width,height);
+            System.out.printf("Rendering:  w: %d  h: %d\n", width, height);
+            Java2DRenderer renderer = new Java2DRenderer(doc, width, height);
             renderer.setBufferedImageType(BufferedImage.TYPE_INT_RGB);
             m_bitmap = renderer.getImage();
 
-            ImageIO.write(m_bitmap,"png", new File("/tmp/formatted.png"));
+            ImageIO.write(m_bitmap, "png", new File("/tmp/formatted.png"));
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        if(DEBUG)printf("Text2D bitmap height: %d x %d\n", m_bitmap.getWidth(), m_bitmap.getHeight());
-        
+        if (DEBUG) printf("Text2D bitmap height: %d x %d\n", m_bitmap.getWidth(), m_bitmap.getHeight());
+
         return ResultCodes.RESULT_OK;
-        
+
     }
 
     /**
@@ -192,7 +182,7 @@ public class FormattedText2D extends BaseParameterizable implements ExpensiveIni
      * @return
      */
     public String getParamString() {
-        return BaseParameterizable.getParamString("Text2D",getParams());
+        return BaseParameterizable.getParamString("Text2D", getParams());
     }
 
 }  // class Text2D 
