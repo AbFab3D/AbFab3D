@@ -75,11 +75,11 @@ public class TestDistanceToMeshDataSource extends TestCase {
         double sy = 1.*MM; 
         double sz = 2.*MM; 
         double margins = 10*MM;
-        double radius = 50*MM;
+        double radius = 10*MM;
         int imgWidth = 1000;
         int imgHeight = 1000;
-        double bandWidth = 0.1*MM;
-        double voxelSize = 0.1*MM;
+        double voxelSize = 1*MM;
+        double bandWidth = voxelSize;
         //TriangleProducer producer = new TriangulatedModels.Box(0.4*voxelSize,0.4*voxelSize,0.4*voxelSize,sx, sy, sz);
         TriangleProducer producer = new TriangulatedModels.Sphere(radius, new Vector3d(0,0,0), 6);
         
@@ -87,16 +87,17 @@ public class TestDistanceToMeshDataSource extends TestCase {
         dmds.set("margins", margins);
         dmds.set("useMultiPass", true);
         dmds.set("voxelSize", voxelSize);
-        dmds.set("surfaceVoxelSize", 1);
+
+        dmds.set("surfaceVoxelSize", 1./3);
         dmds.set("interpolationType", DistanceToMeshDataSource.INTERPOLATION_LINEAR);
-        dmds.set("shellHalfThickness", 2);
+        dmds.set("shellHalfThickness", 1);
         dmds.set("maxDistance", voxelSize*2);
 
         dmds.initialize();
 
         //double s = radius + margins;
         //Bounds bounds = new Bounds(-s, s, -s, s, 0*MM, 0*MM);
-        double s = 5*MM;
+        double s = 20*voxelSize;
         Bounds bounds = new Bounds(radius-s, radius+s, -s, s, 0*MM, 0*MM);
 
         int N = 30;
@@ -129,5 +130,5 @@ public class TestDistanceToMeshDataSource extends TestCase {
         new TestDistanceToMeshDataSource().devTestSlice();
         
     }
-
+    
 }

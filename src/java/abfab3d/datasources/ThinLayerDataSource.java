@@ -497,7 +497,7 @@ public class ThinLayerDataSource extends TransformableDataSource {
                 m_packer.getData(att, data);
                 return data.v[0];
             } else {
-                // voxel data is empy - take missing data from low res grid 
+                // voxel data is empty - take missing data from low res grid 
                 lowGridData.getValue(pnt, data);
                 return data.v[0];
             }

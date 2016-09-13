@@ -15,8 +15,11 @@ import abfab3d.core.AttributeGrid;
 import abfab3d.core.GridProducer;
 import abfab3d.core.Initializable;
 import abfab3d.core.VecTransform;
+
 import abfab3d.datasources.AttributeGridSourceWrapper;
 import abfab3d.datasources.ThinLayerDataSource;
+import abfab3d.datasources.DistanceToMeshDataSource;
+
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.BooleanParameter;
 import abfab3d.param.DoubleParameter;
