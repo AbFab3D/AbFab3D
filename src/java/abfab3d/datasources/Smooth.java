@@ -25,6 +25,8 @@ import abfab3d.core.Vec;
 
 import javax.vecmath.Vector3d;
 
+import static abfab3d.core.Units.*;
+
 
 /**
    Smoothing operation
@@ -39,7 +41,7 @@ public class Smooth extends TransformableDataSource {
 
     private SNodeParameter mp_data = new SNodeParameter("source");
     private DoubleParameter mp_smoothWidth = new DoubleParameter("smoothWidth","Smoothing width", 1* Units.MM);
-    private IntParameter mp_pattern = new IntParameter("pattern","Pattern of the sampling", 0, 0, PATTERN_6);
+    private IntParameter mp_pattern = new IntParameter("pattern","Pattern of the sampling", 0, 0, PATTERN_7);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_data, mp_smoothWidth,mp_pattern
@@ -90,6 +92,11 @@ public class Smooth extends TransformableDataSource {
      */
     public int getPattern() {
         return mp_pattern.getValue();
+    }
+
+    public void setSource(DataSource source) {
+        mp_data.setValue(source);
+        dataSource = source;
     }
 
     /**

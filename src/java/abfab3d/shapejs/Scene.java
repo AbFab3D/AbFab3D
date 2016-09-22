@@ -264,6 +264,11 @@ public class Scene extends BaseParameterizable {
         }
     }
 
+    public void setSource(Parameterizable source) {
+        m_sources.clear();
+        m_sources.add(source);
+    }
+
     public void setVoxelSize(double voxelSize) {
         m_bounds.setVoxelSize(voxelSize);
     }
