@@ -21,20 +21,25 @@ import abfab3d.core.DataSource;
  *
  * @author Alan Hudson
  */
-public abstract class BaseMaterial extends BaseParameterizable implements RenderingMaterial {
+public abstract class BaseMaterial extends BaseParameterizable implements Material {
     protected SNodeParameter mp_renderingParams = new SNodeParameter("renderingParams");
     protected SNodeParameter mp_source = new SNodeParameter("source");
+    protected String m_name;
 
     private Parameter m_aparam[] = new Parameter[]{
             mp_renderingParams, mp_source
     };
 
-
-    public BaseMaterial() {
+    public BaseMaterial(String name) {
+        m_name = name;
         addParams(m_aparam);
     }
 
+    public String getName() {
+        return m_name;
+    }
+
     public DataSource getRenderingSource(DataSource source) {
-        return (DataSource) mp_source.getValue();
+        return source;
     }
 }

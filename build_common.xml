@@ -9,8 +9,8 @@
    <attribute name="package"/>
    <attribute name="extra" default="" />
    <attribute name="jars" default="none" />
-   <attribute name="target" default="1.8" />
-   <attribute name="source" default="1.8" />
+   <attribute name="target" default="1.7" />
+   <attribute name="source" default="1.7" />
    <attribute name="include" default="*.java" />
    <attribute name="destdir" default="${classes.dir}" />
    <element name="exclude-elements" optional="true" />

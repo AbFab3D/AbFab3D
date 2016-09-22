@@ -82,6 +82,12 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
     protected Bounds m_bounds = null;
     protected boolean boundsDirty = false;
 
+    /** Is this datasource enabled */
+    protected boolean m_enabled = true;
+
+    /** Is this datasource printable */
+    protected boolean m_printable = true;
+
     SNodeListParameter mp_transform = new SNodeListParameter("transform", new BaseSNodeFactory(TransformsFactory.getNames(), TransformsFactory.getClassNames()));
     
     private Parameter m_aparam[] = new Parameter[]{
@@ -348,6 +354,22 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      */
     public int getChannelsCount(){
         return m_channelsCount + m_materialChannelsCount;
+    }
+
+    public void setEnabled(boolean val) {
+        m_enabled = val;
+    }
+
+    public boolean isEnabled() {
+        return m_enabled;
+    }
+
+    public void setPrintable(boolean val) {
+        m_printable = val;
+    }
+
+    public boolean isPrintable() {
+        return m_printable;
     }
 
     /**
