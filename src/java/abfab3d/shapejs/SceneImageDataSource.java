@@ -35,10 +35,10 @@ public class SceneImageDataSource implements DataSource {
 
     @Override
     public int getDataValue(Vec pnt, Vec dataValue) {
-        // TODO: Need real value, just return blue for now
-        dataValue.v[0] = 0;
-        dataValue.v[1] = 0;
-        dataValue.v[2] = 1;
+        // TODO: Need real value, just return point for now
+        dataValue.v[0] = pnt.v[0];
+        dataValue.v[1] = pnt.v[1];
+        dataValue.v[2] = pnt.v[2];
         dataValue.v[3] = 1;
         return ResultCodes.RESULT_OK;
     }

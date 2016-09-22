@@ -39,6 +39,27 @@ public class ParamPanel extends Frame {
     private ArrayList<Editor> editors;
     private boolean closeAllowed;
 
+    public ParamPanel(Parameterizable node) {
+
+        super(node.getClass().getSimpleName());
+
+        editors = new ArrayList<Editor>();
+        setLayout(new GridBagLayout());
+        m_node = new ArrayList<>();
+        m_node.add(node);
+        if(sm_factory == null)
+            sm_factory = new EditorFactory();
+
+        Component parametersPanel = makeParamPanel(m_node);
+        WindowUtils.constrain(this, parametersPanel, 0,0,1,1,
+                GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
+
+        this.pack();
+
+        WindowManager wm = WindowManager.getInstance();
+        wm.addPanel(this);
+    }
+
     public ParamPanel(java.util.List<Parameterizable> node) {
 
         super(node.getClass().getSimpleName());
