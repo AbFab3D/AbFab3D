@@ -85,7 +85,7 @@ public class TestImageGray16 extends TestCase {
      * Testing handling of an allblack value=1 image
      * @throws Exception
      */
-    public void testAllBlack1() throws Exception{
+    public void _testAllBlack1() throws Exception{
         String path = "test/images/allblack_1.png";
 
         BufferedImage image = null;
