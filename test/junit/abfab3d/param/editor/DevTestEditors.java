@@ -10,6 +10,8 @@ import abfab3d.datasources.Union;
 import abfab3d.datasources.VolumePatterns;
 
 
+import java.util.ArrayList;
+
 import static java.awt.AWTEvent.WINDOW_EVENT_MASK;
 import static abfab3d.core.Output.printf;
 
@@ -28,8 +30,10 @@ public class DevTestEditors extends JFrame implements ParamChangedListener {
         
         setSize(width, height);
         setVisible(true);
-        
-        ParamPanel seditor = new ParamPanel(makeUnion());
+
+        ArrayList<Parameterizable> list = new ArrayList<>();
+        list.add(makeUnion());
+        ParamPanel seditor = new ParamPanel(list);
         seditor.addParamChangedListener(this);
         seditor.setVisible(true);
         
