@@ -29,7 +29,7 @@ public class SceneMaterials extends BaseParameterizable {
     protected SNodeListParameter mp_materials = new SNodeListParameter("materials");
 
     public SceneMaterials() {
-        ArrayList<RenderingMaterial> mats = new ArrayList<RenderingMaterial>(MAX_MATERIALS);
+        ArrayList<Material> mats = new ArrayList<Material>(MAX_MATERIALS);
 
         for (int i = 0; i < MAX_MATERIALS; i++) {
             mats.add(new DefaultMaterial());
@@ -39,18 +39,10 @@ public class SceneMaterials extends BaseParameterizable {
         addParam(mp_materials);
     }
 
-    public RenderingMaterial getRenderingMaterial() {
-        return (RenderingMaterial) mp_materials.get(0);
-    }
-
-    public void setRenderingMaterial(RenderingMaterial mat) {
-        mp_materials.set(0, mat);
-    }
-
     /**
      * set rendering material for given index
      */
-    public void setMaterial(int index, RenderingMaterial mat) {
+    public void setMaterial(int index, Material mat) {
 
         if (index < 0 || index >= MAX_MATERIALS)
             throw new RuntimeException(fmt("material index: %d is out of range[0,%d]", index, MAX_MATERIALS - 1));
@@ -58,7 +50,7 @@ public class SceneMaterials extends BaseParameterizable {
         mp_materials.set(index, mat);
     }
 
-    public void setMaterials(RenderingMaterial[] mats) {
+    public void setMaterials(Material[] mats) {
         mp_materials.clear();
 
         for (int i = 0; i < mats.length; i++) {
@@ -66,7 +58,7 @@ public class SceneMaterials extends BaseParameterizable {
         }
     }
 
-    public List<RenderingMaterial> getMaterials() {
+    public List<Material> getMaterials() {
         return mp_materials.getValue();
     }
 

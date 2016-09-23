@@ -32,7 +32,7 @@ public class ParamPanel extends Frame {
 
     static final int SPACE = 2;
 
-    private Parameterizable m_node;
+    private java.util.List<Parameterizable> m_node;
     private static EditorFactory sm_factory;
     private Vector<ParamChangedListener> m_plisteners;
     
@@ -40,6 +40,27 @@ public class ParamPanel extends Frame {
     private boolean closeAllowed;
 
     public ParamPanel(Parameterizable node) {
+
+        super(node.getClass().getSimpleName());
+
+        editors = new ArrayList<Editor>();
+        setLayout(new GridBagLayout());
+        m_node = new ArrayList<>();
+        m_node.add(node);
+        if(sm_factory == null)
+            sm_factory = new EditorFactory();
+
+        Component parametersPanel = makeParamPanel(m_node);
+        WindowUtils.constrain(this, parametersPanel, 0,0,1,1,
+                GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
+
+        this.pack();
+
+        WindowManager wm = WindowManager.getInstance();
+        wm.addPanel(this);
+    }
+
+    public ParamPanel(java.util.List<Parameterizable> node) {
 
         super(node.getClass().getSimpleName());
 
@@ -89,27 +110,39 @@ public class ParamPanel extends Frame {
     }
 
 
-    Component makeParamPanel(Parameterizable node){
+    Component makeParamPanel(java.util.List<Parameterizable> nodes){
 
-        Parameter[] param = node.getParams();
-        
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
-        
-        for(int i=0; i < param.length; i++){
+        int tot = 0;
 
-            double hWeight = (i < param.length-1)? (0.) : (1.);
-            
-            WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, i, 1, 1,
-                    GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 0., hWeight, SPACE, SPACE, SPACE, 0);
+        for(Parameterizable node : nodes) {
+            Parameter[] param = node.getParams();
+            tot += param.length;
+        }
 
-            Editor editor = sm_factory.createEditor(param[i]);
-            editor.addParamChangedListeners(m_plisteners);
-            editors.add(editor);
+        int cnt = 0;
+        for(Parameterizable node : nodes) {
+            // TODO: Having some visual separator would be nice
+            Parameter[] param = node.getParams();
 
-            WindowUtils.constrain(panel,editor.getComponent(), 1,i,1,1,
-                                  GridBagConstraints.HORIZONTAL,GridBagConstraints.NORTH, 1.,hWeight, SPACE,SPACE,SPACE,0);
-            
+            for (int i = 0; i < param.length; i++) {
+
+                double hWeight = (i < tot - 1) ? (0.) : (1.);
+
+                WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, cnt, 1, 1,
+                        GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 0., hWeight, SPACE, SPACE, SPACE, 0);
+
+                Editor editor = sm_factory.createEditor(param[i]);
+                editor.addParamChangedListeners(m_plisteners);
+                editors.add(editor);
+
+                WindowUtils.constrain(panel, editor.getComponent(), 1, cnt, 1, 1,
+                        GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH, 1., hWeight, SPACE, SPACE, SPACE, 0);
+
+                cnt++;
+
+            }
         }
         return panel;
                 

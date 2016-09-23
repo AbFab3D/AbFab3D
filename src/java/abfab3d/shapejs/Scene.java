@@ -15,10 +15,19 @@ import javax.vecmath.Vector3d;
 
 import abfab3d.core.Bounds;
 import abfab3d.core.Color;
+import abfab3d.core.DataSource;
 import abfab3d.core.MaterialType;
+import abfab3d.core.Vec;
+import abfab3d.datasources.Composition;
+import abfab3d.datasources.Constant;
 import abfab3d.datasources.ImageColorMap;
+import abfab3d.datasources.TransformableDataSource;
+import abfab3d.datasources.Union;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameterizable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.printf;
@@ -42,17 +51,12 @@ public class Scene extends BaseParameterizable {
     final public static double DEFAULT_ERROR_FACTOR = 0.1;
     final public static int DEFAULT_MAX_PARTS_COUNT = Integer.MAX_VALUE;
 
-    final public static int SINGLE_MATERIAL = 0;
-    final public static int MULTI_MATERIAL = 1;
-    final public static int COLOR_MATERIAL = 2;
-
     public static enum LightingRig {
         TWO_POINT,THREE_POINT, THREE_POINT_COLORED,
     };
 
     final public static LightingRig DEFAULT_LIGHTING_RIG = LightingRig.THREE_POINT_COLORED;
 
-    protected Parameterizable m_source = null;
     protected Bounds m_bounds = DEFAULT_BOUNDS;
     protected double m_errorFactor = DEFAULT_ERROR_FACTOR;
     protected double m_smoothingWidth = DEFAULT_SMOOTHING_WIDTH;
@@ -66,11 +70,13 @@ public class Scene extends BaseParameterizable {
     // material[1,2,3] correspond to material channels
     protected SceneMaterials m_materials = new SceneMaterials();
     protected RenderingParams m_renderingParams;
-    protected Parameterizable m_renderingSource;
+    protected ArrayList<Parameterizable> m_sources = new ArrayList<>();
     protected LightingRig m_lightingRig = DEFAULT_LIGHTING_RIG;
     protected Camera camera = new SimpleCamera();
     protected boolean m_userSetLights = false;
-    protected ImageColorMap environmentMap;
+    protected ImageColorMap m_environmentMap;
+    protected double m_gradientStep = 0.001;
+    protected int m_lastMaterial = 0;
 
     protected MaterialType m_materialType = MaterialType.SINGLE_MATERIAL;
 
@@ -88,7 +94,7 @@ public class Scene extends BaseParameterizable {
 
     public Scene(Parameterizable source, Bounds bounds, double voxelSize){
         //if(DEBUG)printf("Shape(%s, source:%s bounds:%s vs:%7.5f)\n", this, source, bounds, voxelSize);
-        m_source = source;
+        addSource(source);
         m_bounds = bounds;
         bounds.setVoxelSize(voxelSize);
 
@@ -187,12 +193,80 @@ public class Scene extends BaseParameterizable {
         m_bounds = bounds.clone();
     }
 
-    public Parameterizable getSource(){
-        return m_source;
+    /**
+     * Get the sources.  No rendering tricks will be applied.  This is a live map, don't change it.
+     * @return
+     */
+    public final List<Parameterizable> getSource(){
+        return m_sources;
+    }
+
+    /**
+     * Get the source for rendering.  This will include rendering tricks to approximate materials
+     *
+     * @draftMode Use low quality approximation
+     * @return
+     */
+    public Parameterizable getRenderingSource(boolean draftMode) {
+        Composition root = new Composition(Composition.BoverA);
+
+        for(Parameterizable p : m_sources) {
+            TransformableDataSource tds = (TransformableDataSource) p;
+            if (!tds.isEnabled()) continue;
+
+            DataSource ds = null;
+            if (draftMode) {
+                ds = tds;
+            } else {
+                DataSource mat = tds.getMaterial();
+                int idx = 0;
+                if (mat != null) {
+                    if (mat instanceof Constant) {
+                        Constant matIdx = (Constant) mat;
+                        matIdx.initialize();
+                        Vec v = new Vec(1);
+                        matIdx.getDataValue(v,v);
+                        idx = (int) Math.round(v.v[0]);
+                    }
+                } else {
+                    printf("No material channel data?\n");
+                    // Assume this is material idx 0
+                }
+                Material rm = m_materials.getMaterials().get(idx);
+                MaterialShader ms = rm.getShader();
+                ds = ms.getRenderingSource(tds);
+            }
+
+            root.add(ds);
+        }
+
+        root.initialize();
+        return root;
+    }
+
+
+    public void addSource(Parameterizable source) {
+        m_sources.add(source);
+    }
+
+    public void removeSource(Parameterizable source) {
+        m_sources.remove(source);
+    }
+
+    public void setSource(int idx, Parameterizable source) {
+        m_sources.set(idx,source);
+    }
+
+    public void setSource(Parameterizable[] source) {
+        m_sources.clear();
+        for(Parameterizable p : source) {
+            m_sources.add(p);
+        }
     }
 
     public void setSource(Parameterizable source) {
-        m_source = source;
+        m_sources.clear();
+        m_sources.add(source);
     }
 
     public void setVoxelSize(double voxelSize) {
@@ -218,16 +292,19 @@ public class Scene extends BaseParameterizable {
         return m_smoothingWidth;
     }
 
-    public void setMinShellVolume(double value){
-        printf("setMinShellVolume.  minShell: %f  hashcode: %d\n",value,hashCode());
-        printf("shell: ");
+    public void setGradientStep(double val) {
+        m_gradientStep = val;
+    }
 
+    public double getGradientStep() {
+        return m_gradientStep;
+    }
+
+    public void setMinShellVolume(double value){
         m_minShellVolume = value;
     }
 
     public double getMinShellVolume(){
-        printf("getMinShellVolume.  minShell: %f  hashcode: %d\n",m_minShellVolume,hashCode());
-
         return m_minShellVolume;
     }
 
@@ -239,18 +316,33 @@ public class Scene extends BaseParameterizable {
         m_maxPartsCount = maxPartsCount;
     }
 
-    public void setRenderingMaterial(RenderingMaterial mat) {
-
-        m_materials.setRenderingMaterial(mat);
-        buildParams();
-    }
-
-
     /**
        set rendering material for given index 
      */
-    public void setMaterial(int index, RenderingMaterial mat) {
+    public void setMaterial(int index,Material mat) {
+        TransformableDataSource ds = (TransformableDataSource) m_sources.get(index);
+        if (ds != null) {
+            ds.setMaterial(new Constant(index));
+        }
+
         m_materials.setMaterial(index, mat);
+        buildParams();
+    }
+
+    public int addMaterial(Material mat) {
+        m_lastMaterial++;
+
+        if (m_sources.size() > m_lastMaterial) {
+            TransformableDataSource ds = (TransformableDataSource) m_sources.get(m_lastMaterial);
+            if (ds != null) {
+                ds.setMaterial(new Constant(m_lastMaterial));
+            }
+        }
+
+        m_materials.setMaterial(m_lastMaterial, mat);
+        buildParams();
+
+        return m_lastMaterial;
     }
 
     /**
@@ -270,18 +362,6 @@ public class Scene extends BaseParameterizable {
         if (type == null) throw new IllegalArgumentException("Type cannot be null");
         m_materialType = type;
     }
-    /**
-       return base material 
-     */
-    public RenderingMaterial getRenderingMaterial() {
-        return m_materials.getRenderingMaterial();
-    }
-
-    /*
-    public RenderingMaterial[] getRenderingMaterials() {
-        return m_materials;
-    }
-    */
 
     public void setLights(Light[] lights) {
         m_userSetLights = true;
@@ -294,7 +374,7 @@ public class Scene extends BaseParameterizable {
         return m_lights;
     }
 
-    public SceneMaterials getRenderingMaterials() {
+    public SceneMaterials getMaterials() {
         return m_materials;
     }
 
@@ -323,34 +403,20 @@ public class Scene extends BaseParameterizable {
         return m_lightingRig;
     }
 
-    /**
-     * Set an alternate source to use for rendering.  This source might apply embossing to the surface to approximate
-     * a rendering technique.
-     *
-     * @param source
-     */
-    public void _setRenderingSource(Parameterizable source) {
-        m_renderingSource = source;
-    }
-
-    public Parameterizable getRenderingSource() {
-        return m_renderingSource;
-    }
-
-    public void _setRenderingParams(RenderingParams params) {
+    public void setRenderingParams(RenderingParams params) {
         m_renderingParams = params;
     }
 
-    public RenderingParams _getRenderingParams() {
+    public RenderingParams getRenderingParams() {
         return m_renderingParams;
     }
 
     public void setEnvironmentMap(ImageColorMap map) {
-        environmentMap = map;
+        m_environmentMap = map;
     }
 
     public ImageColorMap getEnvironmentMap() {
-        return environmentMap;
+        return m_environmentMap;
     }
 
     /**

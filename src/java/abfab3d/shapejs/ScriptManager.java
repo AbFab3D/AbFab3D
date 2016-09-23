@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -331,12 +332,12 @@ public class ScriptManager {
 
                 if (result != null && result.getScene() != null) {
                     if (matSt.equals("None")) {
-                        result.getScene().setRenderingMaterial(new DefaultMaterial());
+                        result.getScene().setMaterial(0,new DefaultMaterial());
                         result.getScene().setLightingRig(Scene.LightingRig.THREE_POINT_COLORED);
                     } else if (matMapper != null) {
-                        RenderingMaterial rm = matMapper.getImplementation(matSt);
+                        Material rm = matMapper.getImplementation(matSt);
                         if (rm != null) {
-                            result.getScene().setRenderingMaterial(rm);
+                            result.getScene().setMaterial(0,rm);
                             result.getScene().setLightingRig(Scene.LightingRig.THREE_POINT);
                         }
                     }
@@ -348,9 +349,11 @@ public class ScriptManager {
         if (sr.result.isSuccess()) {
 
             // I think this is the correct place to call initialize.  Might call it too often?
-            Parameterizable ds = sr.result.getScene().getSource();
-            if (ds instanceof Initializable) {
-                ((Initializable) ds).initialize();
+            List<Parameterizable> list = sr.result.getScene().getSource();
+            for(Parameterizable ds: list) {
+                if (ds instanceof Initializable) {
+                    ((Initializable) ds).initialize();
+                }
             }
 
             if (!STOP_CACHING) {

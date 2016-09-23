@@ -386,7 +386,11 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             if (mesh != null) {
                 grid = loader.loadDistanceGrid(mesh);
             } else {
-                grid = loader.loadDistanceGrid(m_path);
+                if (m_transform != null) {
+                    grid = loader.loadDistanceGrid(m_path, m_transform);
+                } else {
+                    grid = loader.loadDistanceGrid(m_path);
+                }
             }
         }
 

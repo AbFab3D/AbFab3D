@@ -20,7 +20,7 @@ import abfab3d.core.DataSource;
  *
  * @author Alan Hudson
  */
-public interface RenderingMaterial extends Parameterizable {
+public interface MaterialShader extends Parameterizable {
 
     /**
      * Get the rendering source for this content.
@@ -29,5 +29,5 @@ public interface RenderingMaterial extends Parameterizable {
      */
     public DataSource getRenderingSource(DataSource source);
 
-    public RenderingParams getRenderingParams();
+    public RenderingParams getShaderParams();
 }

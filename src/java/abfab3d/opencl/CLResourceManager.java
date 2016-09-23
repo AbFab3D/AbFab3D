@@ -70,12 +70,14 @@ public class CLResourceManager implements Runnable {
     }
 
     public static CLResourceManager getInstance(long contextID, long capacity, int timeout) {
+        if (DEBUG) printf("CLRM rm: %s  thread: %s cl: %s\n",managers,Thread.currentThread(),Thread.currentThread().getContextClassLoader());
         CLResourceManager rm = managers.get(contextID);
 
         if (rm != null && !rm.isShutdown()) {
             return rm;
         }
 
+        if (DEBUG) printf("CLRM creating resource manager for: %s\n",contextID);
         rm = new CLResourceManager(capacity,timeout);
         rm.setContextID(contextID);
         managers.put(contextID,rm);
@@ -109,8 +111,8 @@ public class CLResourceManager implements Runnable {
      */
     public boolean isResident(Resource resource) {
 
-        if (DEBUG) printf("CLRM isResident: %s underlying: %s\n",resource,((OpenCLResource)resource).getResource());
         if (resource == null) return false;
+        if (DEBUG) printf("CLRM isResident: %s underlying: %s\n",resource,((OpenCLResource)resource).getResource());
 
         CacheEntry ce = cache.get(resource);
         if (ce == null) return false;
@@ -200,7 +202,9 @@ public class CLResourceManager implements Runnable {
                 CacheEntry ce = me.getValue();
                 if (time > ce.lastAccess + timeout) {
                     if (DEBUG) printf("CLRM Freeing1: %s resc: %s\n", me.getKey(),ce.resource);
-                    ce.resource.release();
+                    if (!ce.resource.isReleased()) {
+                        ce.resource.release();
+                    }
                     ce.resource = null;
                     if (toremove == null) toremove = new ArrayList();
                     toremove.add(me.getKey());
@@ -240,7 +244,9 @@ public class CLResourceManager implements Runnable {
 
                     CacheEntry ce = me.getValue();
                     if (DEBUG) printf("CLRM Freeing2: %s\n", me.getKey());
-                    ce.resource.release();
+                    if (!ce.resource.isReleased()) {
+                        ce.resource.release();
+                    }
                     ce.resource = null;
                     if (toremove == null) toremove = new ArrayList();
                     toremove.add(me.getKey());
@@ -314,9 +320,11 @@ public class CLResourceManager implements Runnable {
     public void shutdown() {
         if (shutdown) throw new IllegalArgumentException("Manager already shutdown: contextID: " + contextID + " this:" + this);
         shutdown = true;
-        if (DEBUG) printf("CLResourceManager Shutting down.  this: %s \n",this);
+        if (DEBUG) printf("CLResourceManager Shutting down.  this: %s context: %s\n",this,contextID);
 
         waitForNotFreeing();
+
+        freeMemory(maxBytes);
 
         if (scheduler != null) scheduler.shutdownNow();
         if (cache != null) cache.clear();

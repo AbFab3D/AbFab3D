@@ -58,6 +58,7 @@ public class PhongParams extends RenderingParams {
         setShininess(shininess);
         setSpecularColor(specularColor);
         setAmbientIntensity(ambientIntensity);
+        setAlbedo(albedo);
     }
 
     protected void initParams(){

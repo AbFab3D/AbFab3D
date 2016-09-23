@@ -32,6 +32,7 @@ public class ImageSetup implements Cloneable {
 
     /** Viewpoint matrix */
     public Matrix4f view;
+    public Matrix4f objTrans;
 
     /** The type of image IMAGE_* */
     public int imgType;
@@ -56,7 +57,6 @@ public class ImageSetup implements Cloneable {
 
     public int maxRayBounces;
 
-    public RenderingMaterial renderingMaterial;
     public RenderingStyle renderingStyle;
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality,
@@ -74,6 +74,8 @@ public class ImageSetup implements Cloneable {
         this.lightSamples = lightSamples;
         this.renderingStyle = RenderingStyle.MATERIAL;
         this.maxRayBounces = 0;
+        this.objTrans = new Matrix4f();
+        objTrans.setIdentity();
     }
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality, AntiAliasingType aa,
@@ -91,6 +93,8 @@ public class ImageSetup implements Cloneable {
         this.lightSamples = lightSamples;
         this.renderingStyle = style;
         this.maxRayBounces = 0;
+        this.objTrans = new Matrix4f();
+        objTrans.setIdentity();
     }
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality,
@@ -108,6 +112,8 @@ public class ImageSetup implements Cloneable {
         this.lightSamples = lightSamples;
         this.renderingStyle = RenderingStyle.MATERIAL;
         this.maxRayBounces = maxRayBounces;
+        this.objTrans = new Matrix4f();
+        objTrans.setIdentity();
     }
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality, AntiAliasingType aa,
@@ -125,6 +131,8 @@ public class ImageSetup implements Cloneable {
         this.lightSamples = lightSamples;
         this.renderingStyle = style;
         this.maxRayBounces = maxRayBounces;
+        this.objTrans = new Matrix4f();
+        objTrans.setIdentity();
     }
 
     public ImageSetup() {
@@ -141,6 +149,8 @@ public class ImageSetup implements Cloneable {
         lightSamples = 1;
         this.renderingStyle = RenderingStyle.MATERIAL;
         maxRayBounces = 0;
+        this.objTrans = new Matrix4f();
+        objTrans.setIdentity();
     }
 
     /**
@@ -148,7 +158,7 @@ public class ImageSetup implements Cloneable {
      * @return
      */
     public String getCLKey() {
-        return "BM:" + bumpMaps + " Mat:" + renderingMaterial.getClass().getSimpleName();
+        return "BM:" + bumpMaps;
     }
 
     public ImageSetup clone() {

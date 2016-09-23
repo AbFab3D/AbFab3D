@@ -22,5 +22,5 @@ public interface MaterialMapper {
      * @param mat
      * @return
      */
-    public RenderingMaterial getImplementation(String mat);
+    public Material getImplementation(String mat);
 }

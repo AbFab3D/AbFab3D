@@ -20,23 +20,16 @@ import abfab3d.core.DataSource;
  * @author Alan Hudson
  */
 public class DefaultMaterial extends BaseMaterial {
-    private PhongParams params = new PhongParams();
+    private PhongShader m_shader;
 
     public DefaultMaterial() {
-        params.setAmbientIntensity(0);
-        params.setDiffuseColor(new Color(1, 1, 1));
-        params.setEmissiveColor(new Color(0, 0, 0));
-        params.setSpecularColor(new Color(0.25,0.25,0.25));
-        params.setShininess(0.1);
+        super("DefaultMaterial");
 
-        mp_renderingParams.setValue(params);
+        m_shader = new PhongShader(0,new Color(1, 1, 1),new Color(0, 0, 0),new Color(0.25,0.25,0.25),0.1);
+        mp_renderingParams.setValue(m_shader);
     }
 
-    public DataSource getRenderingSource(DataSource source) {
-        return source;
-    }
-
-    public RenderingParams getRenderingParams() {
-        return params;
+    public MaterialShader getShader() {
+        return m_shader;
     }
 }

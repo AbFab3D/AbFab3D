@@ -49,36 +49,94 @@ public class TestModelLoader extends TestCase {
         double voxelSize = 0.2*MM;
 
         String filePath = "test/models/donut_textured.x3dv";
-        String svxFile = "/tmp/donut.svx";
-        
+
         long t0 = time();
-        long 
-            lt=0, wt = 0, rt = 0;
-        
+        long lt;
+        long wt;
+        long rt;
+
         ModelLoader loader = new ModelLoader(filePath);
+        loader.setVoxelSize(voxelSize);
         loader.setAttributeLoading(true);
+        //loader.setAttributeLoading(false);
 
         AttributeGrid grid = loader.getGrid();
         lt = time() - t0;
-        printf("model loading time: %d ms\n", lt);
-        t0 = time();
-        new SVXWriter().write(grid, svxFile);
-        wt = time() - t0;
-        printf("SVX writing time: %d ms\n", wt);
 
-        
         t0 = time();
-        
+        String f = "/tmp/donut.svx";
+        new SVXWriter().write(grid, f);
+        wt = time() - t0;
+
+        t0 = time();
         SVXReader sreader = new SVXReader();
-        AttributeGrid grid2 = sreader.load(svxFile);
+        AttributeGrid grid2 = sreader.load(f);
         rt = time() - t0;
 
-        printf("Model load time: %d ms\n",lt);
-        printf("SVX write time: %d ms\n",wt);
-        printf("SVX read time: %d ms\n",rt);
+        printf("load time: %d ms\n",lt);
+        printf("write time: %d ms\n",wt);
+        printf("read time: %d ms\n",rt);
     }
+/*
+    public void testSVX2() throws IOException, ClassNotFoundException {
+        double voxelSize = 0.2*MM;
+
+//        String filePath = "test/models/donut_textured.x3dv";
+//        String filePath = "test/models/coffee_maker.x3db";
+        String filePath = "test/models/flufee.x3db";
+
+        long t0 = time();
+        long lt=0;
+        long wt=0;
+        long rt=0;
+
+        ModelLoader loader = new ModelLoader(filePath);
+        loader.setVoxelSize(voxelSize);
+        loader.setAttributeLoading(true);
+        //loader.setAttributeLoading(false);
+
+        lt = time() - t0;
+
+        t0 = time();
+        AttributeGrid grid = loader.getGrid();
+        DataSourceGrid dsg = new DataSourceGrid(grid);
+
+        int data[] = new int[dsg.getBufferSize()];
+        dsg.getBuffer(data);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        GZIPOutputStream gos = new GZIPOutputStream(baos);
+        ByteBuffer bdata = null;
+
+        int dsize = 4;
+        bdata = ByteBuffer.allocate(data.length * dsize);
+        int dlen = data.length;
+        for (int i = 0; i < dlen; i++) {
+            bdata.putInt(data[i]);
+        }
+        gos.write(bdata.array());
+        gos.flush();
 
 
+        byte[] cbytes = baos.toByteArray();
+        wt = time() - t0;
+
+
+        t0 = time();
+
+        byte[] ucbytes = new byte[dlen*dsize];
+        ByteArrayInputStream bais = new ByteArrayInputStream(cbytes);
+        GZIPInputStream gis = new GZIPInputStream(bais);
+        gis.read(ucbytes);
+        rt = time() - t0;
+
+        printf("grid size: %d %d %d\n",grid.getWidth(),grid.getHeight(),grid.getDepth());
+        printf("load time: %d ms\n",lt);
+        printf("compress time: %d ms\n",wt);
+        printf("decompress time: %d ms\n",rt);
+        printf("size  original: %d  compressed: %d\n",0,cbytes.length);
+    }
+*/
     public void testSVX_singleChannel() throws IOException {
         double voxelSize = 0.05*MM;
 
