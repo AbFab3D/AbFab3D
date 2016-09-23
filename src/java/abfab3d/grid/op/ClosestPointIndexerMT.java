@@ -107,6 +107,27 @@ public class ClosestPointIndexerMT {
 
     
 
+    /**
+       calculates closest Point Indexer for each cell of the index grid 
+       the indexGrid should be initialized with indices of point in close proximity to the center of grid voxels 
+       
+     *  @param coordx  array of x coordinates. coordx[0] is unused 
+     *  @param coordy  array of y coordinates. coordy[0] is unused  
+     *  @param coordz  array of y coordinates. coordz[0] is unused 
+     *  @param indexGrid - on input has indices of closest points in thin layer around the point cloud 
+     *                   - on output has indices of closest point for each grid point 
+     *                   valid indices start from 1, index value 0 means "undefined" 
+     * @param threadCount count of thread to be used for calculation 
+     * @param useMultiPass turns ON using of multipass algorithm
+     */
+    public static void PI3_MT(double coordx[], double coordy[], double coordz[], double maxDistance, AttributeGrid indexGrid, int threadCount, boolean useMultipass){
+        if(useMultipass){
+            PI3_multiPass_MT(coordx, coordy, coordz, maxDistance, indexGrid, threadCount);
+            } else {
+            PI3_MT(coordx, coordy, coordz, maxDistance, indexGrid, threadCount);
+            }
+    }
+
 
     /**
        calculates closest Point Indexer for each cell of the index grid 

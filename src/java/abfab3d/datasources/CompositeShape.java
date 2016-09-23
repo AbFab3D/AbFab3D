@@ -26,7 +26,7 @@ import abfab3d.util.ShapeProducer;
 
 
 /**
- * Makes complex composte node act as single opaque data source with only exposed parameters 
+ * Makes complex composite node act as single opaque data source with only exposed parameters 
  *    
  *  
  * @author Vladimir Bulatov

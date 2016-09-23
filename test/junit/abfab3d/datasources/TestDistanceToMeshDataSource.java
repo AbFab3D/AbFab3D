@@ -90,8 +90,8 @@ public class TestDistanceToMeshDataSource extends TestCase {
 
         dmds.set("surfaceVoxelSize", 1./3);
         dmds.set("interpolationType", DistanceToMeshDataSource.INTERPOLATION_LINEAR);
-        dmds.set("shellHalfThickness", 1);
-        dmds.set("maxDistance", voxelSize*2);
+        dmds.set("shellHalfThickness", 2.6);
+        //dmds.set("maxDistance", voxelSize*2);
 
         dmds.initialize();
 

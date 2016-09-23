@@ -73,6 +73,9 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
     static final boolean DEBUG = true;
     static final double DEFAULT_VOXEL_SIZE = 0.2*MM;
+    static final double DEFAULT_SURFACE_VOXEL_SIZE  = 0.5;
+    static final double DEFAULT_SHELL_HALF_THICKNESS = 2.6;
+
     static final int INTERIOR_VALUE = 1; // interior value for interior grid 
     
     static final public int INTERPOLATION_BOX = IndexedDistanceInterpolator.INTERPOLATION_BOX;
@@ -138,6 +141,17 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
         //TODO - use it 
         int interpolationType = mp_interpolationType.getValue();
+        
+        IndexedDistanceInterpolator lowResData = makeDistanceInterpolator(producer, gridBounds, maxDistance, 
+                                                                          mp_surfaceVoxelSize.getValue(), 
+                                                                          mp_shellHalfThickness.getValue(),
+                                                                          mp_useMultiPass.getValue(), 
+                                                                          threadCount);
+        
+        m_distCalc = lowResData;
+
+        return ResultCodes.RESULT_OK;
+            /*
 
         int gridDim[] = gridBounds.getGridSize();
         
@@ -150,6 +164,92 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
         // surface voxel ratio = volumeVoxelSize/surfaceVoxelSize
         int svratio = Math.max(1, (int)Math.round(1./mp_surfaceVoxelSize.getValue()));
+        // surface voxel size 
+        double svs = gridBounds.getVoxelSize()/svratio;
+        surfaceBounds.setVoxelSize(svs);
+        if((svratio & 1) == 0){ // even ratio
+            double shift = svs/2;
+            // shift grid of surface rasterization by half voxel to align centers of surface grid with center of voliume grid
+            surfaceBounds.translate(shift,shift,shift);
+        }
+
+        // triangles rasterizer         
+        TriangleMeshSurfaceBuilder surfaceBuilder = new TriangleMeshSurfaceBuilder(surfaceBounds);        
+        
+        surfaceBuilder.initialize();
+
+        // aggregator otf 2 triangle collectors 
+        TC2 tc2 = new TC2(interiorRasterizer, surfaceBuilder);
+        
+        // get mesh from producer 
+        producer.getTriangles(tc2);
+
+        int pcount = surfaceBuilder.getPointCount();
+        if(DEBUG)printf("DistanceToMeshDataSource pcount: %d\n", pcount);
+        double pnts[][] = new double[3][pcount];
+        surfaceBuilder.getPoints(pnts[0], pnts[1], pnts[2]);
+        
+        // builder of shell around rasterized points 
+        PointSetShellBuilder shellBuilder = new PointSetShellBuilder(); 
+        shellBuilder.setShellHalfThickness(mp_shellHalfThickness.getValue());
+        shellBuilder.setPoints(new PointSetCoordArrays(pnts[0], pnts[1], pnts[2]));
+        shellBuilder.setShellHalfThickness(mp_shellHalfThickness.getValue());
+
+        // create index grid 
+        AttributeGrid indexGrid = createIndexGrid(gridBounds, voxelSize);
+        // thicken surface points into thin layer 
+        shellBuilder.execute(indexGrid);
+
+        // create interior grid 
+        AttributeGrid interiorGrid = new GridMask(gridDim[0],gridDim[1],gridDim[2]);        
+
+        interiorRasterizer.getRaster(interiorGrid);
+        printf("surface building time: %d ms\n", time() - t0);
+
+        double maxDistanceVoxels = maxDistance/voxelSize;
+       
+        if(maxDistanceVoxels > mp_shellHalfThickness.getValue()){
+            t0 = time();
+            // spread distances to the whole grid 
+            ClosestPointIndexer.getPointsInGridUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
+            if(mp_useMultiPass.getValue()){
+                ClosestPointIndexerMT.PI3_multiPass_MT(pnts[0], pnts[1], pnts[2], maxDistanceVoxels, indexGrid, threadCount);
+            } else {
+                ClosestPointIndexerMT.PI3_MT(pnts[0], pnts[1], pnts[2], maxDistanceVoxels, indexGrid, threadCount);
+            }        
+            ClosestPointIndexer.getPointsInWorldUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
+            printf("distance sweeping time: %d ms\n", time() - t0);
+        }
+        m_distCalc = new IndexedDistanceInterpolator(pnts, indexGrid, interiorGrid, maxDistance);
+        return ResultCodes.RESULT_OK;
+            */
+    }
+
+    /**
+       creates distance interpolator for given triangle mesh 
+       @param producer triangle mesh
+       @param bounds for generated 
+       @param maxDistance maximal distance to calculate 
+     */
+    static IndexedDistanceInterpolator makeDistanceInterpolator(TriangleProducer producer, 
+                                                                Bounds gridBounds, 
+                                                                double maxDistance, 
+                                                                double surfaceVoxelSize,
+                                                                double shellHalfThickness,
+                                                                boolean useMultiPass, 
+                                                                int threadCount
+                                                                ){
+        long t0 = time();
+        int gridDim[] = gridBounds.getGridSize();
+        // z-buffer rasterizer to get mesh interior 
+        MeshRasterizer interiorRasterizer = new MeshRasterizer(gridBounds, gridDim[0],gridDim[1],gridDim[2]);
+        interiorRasterizer.setInteriorValue(INTERIOR_VALUE);
+                
+        Bounds surfaceBounds = gridBounds.clone();
+        double voxelSize = gridBounds.getVoxelSize();
+
+        // surface voxel ratio = volumeVoxelSize/surfaceVoxelSize
+        int svratio = Math.max(1, (int)Math.round(1./surfaceVoxelSize));
         // surface voxel size 
         double svs = gridBounds.getVoxelSize()/svratio;
         surfaceBounds.setVoxelSize(svs);
@@ -177,12 +277,12 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         
         // builder of shell around rasterized points 
         PointSetShellBuilder shellBuilder = new PointSetShellBuilder(); 
-        shellBuilder.setShellHalfThickness(mp_shellHalfThickness.getValue());
+        shellBuilder.setShellHalfThickness(shellHalfThickness);
         shellBuilder.setPoints(new PointSetCoordArrays(pnts[0], pnts[1], pnts[2]));
-        shellBuilder.setShellHalfThickness(mp_shellHalfThickness.getValue());
+        shellBuilder.setShellHalfThickness(shellHalfThickness);
 
         // create index grid 
-        AttributeGrid indexGrid = createIndexGrid(gridBounds);
+        AttributeGrid indexGrid = createIndexGrid(gridBounds, voxelSize);
         // thicken surface points into thin layer 
         shellBuilder.execute(indexGrid);
 
@@ -192,30 +292,22 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         interiorRasterizer.getRaster(interiorGrid);
         printf("surface building time: %d ms\n", time() - t0);
 
-        double maxDistanceVoxels = maxDistance/voxelSize;
-       
-        if(maxDistanceVoxels > mp_shellHalfThickness.getValue()){
+        double maxDistanceVoxels = maxDistance/voxelSize;       
+        if(maxDistanceVoxels > shellHalfThickness){
             t0 = time();
             // spread distances to the whole grid 
             ClosestPointIndexer.getPointsInGridUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
-            if(mp_useMultiPass.getValue()){
-                ClosestPointIndexerMT.PI3_multiPass_MT(pnts[0], pnts[1], pnts[2], maxDistanceVoxels, indexGrid, threadCount);
-            } else {
-                ClosestPointIndexerMT.PI3_MT(pnts[0], pnts[1], pnts[2], maxDistanceVoxels, indexGrid, threadCount);
-            }        
+            ClosestPointIndexerMT.PI3_MT(pnts[0], pnts[1], pnts[2], maxDistanceVoxels, indexGrid, threadCount, useMultiPass);
             ClosestPointIndexer.getPointsInWorldUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
             printf("distance sweeping time: %d ms\n", time() - t0);
         }
-        m_distCalc = new IndexedDistanceInterpolator(pnts, indexGrid, interiorGrid, maxDistance);
-        return ResultCodes.RESULT_OK;
+        return new IndexedDistanceInterpolator(pnts, indexGrid, interiorGrid, maxDistance);        
     }
 
+    static AttributeGrid createIndexGrid(Bounds bounds, double voxelSize){
 
-    protected AttributeGrid createIndexGrid(Bounds bounds){
-
-        //TODO - select here appropriate grid to create 
-        
-        return new ArrayAttributeGridInt(bounds, bounds.getVoxelSize(),bounds.getVoxelSize());
+        //TODO - select here appropriate grid to create         
+        return new ArrayAttributeGridInt(bounds, voxelSize,voxelSize);
 
     }
         
