@@ -71,7 +71,9 @@ public class ParamPanel extends Frame {
             sm_factory = new EditorFactory();
 
         Component parametersPanel = makeParamPanel(m_node);
-        WindowUtils.constrain(this, parametersPanel, 0,0,1,1, 
+        JScrollPane scrollPane = new JScrollPane(parametersPanel);
+
+        WindowUtils.constrain(this, scrollPane, 0,0,1,1,
                               GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
 
         this.pack();
