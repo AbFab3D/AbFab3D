@@ -10,16 +10,18 @@ import abfab3d.param.BaseParameterizable;
  * @author Alan Hudson
  */
 public class MetalShader extends BaseParameterizable implements MaterialShader {
-    private PhongParams params;
+    private PhongParams sparams;
 
     public MetalShader(double ambientIntensity, Color diffuseColor, Color emissiveColor, Color specularColor, double shininess, Color albedo) {
-        params = new PhongParams();
-        params.setAmbientIntensity(ambientIntensity);
-        params.setDiffuseColor(diffuseColor);
-        params.setEmissiveColor(emissiveColor);
-        params.setSpecularColor(specularColor);
-        params.setShininess(shininess);
-        params.setAlbedo(albedo);
+        sparams = new PhongParams();
+        sparams.setAmbientIntensity(ambientIntensity);
+        sparams.setDiffuseColor(diffuseColor);
+        sparams.setEmissiveColor(emissiveColor);
+        sparams.setSpecularColor(specularColor);
+        sparams.setShininess(shininess);
+        sparams.setAlbedo(albedo);
+
+        addParams(sparams.getParams());
     }
 
     @Override
@@ -30,6 +32,6 @@ public class MetalShader extends BaseParameterizable implements MaterialShader {
 
     @Override
     public RenderingParams getShaderParams() {
-        return params;
+        return sparams;
     }
 }
