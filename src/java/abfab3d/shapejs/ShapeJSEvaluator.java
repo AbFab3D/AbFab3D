@@ -812,11 +812,17 @@ public class ShapeJSEvaluator {
                 case STRING:
                     String sv = null;
                     try {
-                        // A regular string is invalid json, but gson parses it and returns a null string
+                        // A regular string is invalid json, but gson parses it and returns a "null" string
                         if (json.equals("")) {
                             throw new JsonSyntaxException("Invalid json: " + json);
                         }
-                        sv = gson.fromJson(json, String.class);
+                        // json of string consisting of spaces also returns a "null" string
+                        String trimmed = json.trim();
+                        if (trimmed.equals("")) {
+                        	sv = json;
+                        } else {
+                        	sv = gson.fromJson(json, String.class);
+                        }
                     } catch (JsonSyntaxException jse) {
                         sv = json;
                     }
