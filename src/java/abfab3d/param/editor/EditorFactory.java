@@ -42,6 +42,8 @@ public class EditorFactory implements EditorCreator {
         }
 
         switch(param.getType()) {
+        	case STRING:
+        		return new FormattedTextEditor(param);
             case INTEGER:
                 return new IntEditor((IntParameter)param);
             case DOUBLE:

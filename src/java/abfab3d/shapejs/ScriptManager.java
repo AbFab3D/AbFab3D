@@ -392,6 +392,10 @@ public class ScriptManager {
                     // Null value indicates removal of param from scene
                     if (urlStr == null) continue;
 
+                    if (uriMapper != null) {
+                        urlStr = uriMapper.mapURI(urlStr);
+                    }
+
                     String file = ShapeJSGlobal.isURLCached(urlStr);
 
                     // If urlStr is in cache, make sure cached file exists

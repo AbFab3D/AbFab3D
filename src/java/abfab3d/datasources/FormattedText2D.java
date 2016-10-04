@@ -79,6 +79,14 @@ public class FormattedText2D extends BaseParameterizable implements ExpensiveIni
         mp_voxelSize.setValue(val);
     }
 
+    /**
+     * Get the voxel size
+     * @return
+     */
+    public double getVoxelSize() {
+        return mp_voxelSize.getValue();
+    }
+    
     public void set(String param, Object val) {
         // change of param causes change of bitmap
         m_bitmap = null;
