@@ -76,11 +76,13 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     static final double DEFAULT_SURFACE_VOXEL_SIZE  = 0.5;
     static final double DEFAULT_SHELL_HALF_THICKNESS = 2.6;
 
+    static final long INTERIOR_MASK = IndexedDistanceInterpolator.INTERIOR_MASK;
+
     static final int INTERIOR_VALUE = 1; // interior value for interior grid 
     
     static final public int INTERPOLATION_BOX = IndexedDistanceInterpolator.INTERPOLATION_BOX;
     static final public int INTERPOLATION_LINEAR = IndexedDistanceInterpolator.INTERPOLATION_LINEAR;
-    static final public int INTERPOLATION_COMBINED = IndexedDistanceInterpolator.INTERPOLATION_COMBINED;
+    //static final public int INTERPOLATION_COMBINED = IndexedDistanceInterpolator.INTERPOLATION_COMBINED;
     
     static final double MAX_DISTANCE_UNDEFINED = 1.e10;
     
@@ -92,7 +94,9 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     DoubleParameter mp_shellHalfThickness = new DoubleParameter("shellHalfThickness", "shell half thickness (in voxels)", 1);
     BooleanParameter mp_attributeLoading = new BooleanParameter("attributeLoading", "Load attribute data",false);
     BooleanParameter mp_useMultiPass = new BooleanParameter("useMultiPass", "use Multi Pass algorithm in distance sweeping",false);
-    IntParameter mp_interpolationType = new IntParameter("interpolationType", "0 - nearest neighbor, 1 - best neighbor",INTERPOLATION_BOX);
+    IntParameter mp_interpolationType = new IntParameter("interpolationType", "0 - box, 1 - linear",INTERPOLATION_LINEAR);
+    BooleanParameter mp_useThinLayer = new BooleanParameter("useThinLayer", "use thin layer representation",false);
+    DoubleParameter mp_thinLayerHalfThickness = new DoubleParameter("thinLayerHalfThickness", "half thickness of thin layer (in voxels)",2.0);
 
     protected long m_maxGridSize = 1000L*1000L*1000L;
     protected long m_minGridSize = 1000L;
@@ -107,6 +111,8 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         mp_useMultiPass,
         mp_surfaceVoxelSize,
         mp_interpolationType,
+        mp_useThinLayer,
+        mp_thinLayerHalfThickness
     };
 
     
@@ -122,7 +128,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
     /**
        initialization
-       makes all disntace calculations here 
+       makes all distance calculations here 
      */
     public int initialize(){
         
@@ -142,13 +148,15 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         //TODO - use it 
         int interpolationType = mp_interpolationType.getValue();
         
-        IndexedDistanceInterpolator lowResData = makeDistanceInterpolator(producer, gridBounds, maxDistance, 
+        IndexedDistanceInterpolator distData = makeDistanceInterpolator(producer, gridBounds, maxDistance, 
                                                                           mp_surfaceVoxelSize.getValue(), 
                                                                           mp_shellHalfThickness.getValue(),
                                                                           mp_useMultiPass.getValue(), 
                                                                           threadCount);
+        //TODO
+        // handle mutli resolution case 
         
-        m_distCalc = lowResData;
+        m_distCalc = distData;
 
         return ResultCodes.RESULT_OK;
             /*
@@ -301,7 +309,42 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
             ClosestPointIndexer.getPointsInWorldUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
             printf("distance sweeping time: %d ms\n", time() - t0);
         }
-        return new IndexedDistanceInterpolator(pnts, indexGrid, interiorGrid, maxDistance);        
+        
+        setInteriorMask(indexGrid, interiorGrid, INTERIOR_MASK);
+
+        return new IndexedDistanceInterpolator(pnts, indexGrid, maxDistance);        
+        //return new IndexedDistanceInterpolator(pnts, indexGrid, interiorGrid, maxDistance);        
+    }
+
+    /**
+       set mask bits into attributes of grid if interior grid value != 0
+       it is used to store information interior and value info in single grid 
+       caller is responsible that mask will fit into voxel storage size 
+       @param grid grid to add mask to value 
+       @param interior grid of inerior voxels 
+       @param mask - bit mask to set if voxel is interior 
+     */
+    static public void setInteriorMask(AttributeGrid grid, AttributeGrid interior, long mask){
+
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                for(int z = 0; z < nz; z++){
+                    if(interior.getAttribute(x,y,z) != 0) {
+                        // interior 
+                        long a = grid.getAttribute(x,y,z);
+                        if(a != 0) {
+                            // non empty value 
+                            a |= mask;
+                            grid.setAttribute(x,y,z,a);
+                        }
+                    }                        
+                }
+            }
+        }
     }
 
     static AttributeGrid createIndexGrid(Bounds bounds, double voxelSize){
@@ -332,9 +375,9 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         gridBounds.setVoxelSize(voxelSize);
         if(DEBUG){
             printf("DistanceToMeshDataSource()  grid:[%d x %d x %d] voxelSize: %7.3f mm\n",ng[0],ng[1],ng[2],voxelSize/MM);
-            printf("DistanceToMeshDataSource()  meshBounds: (%7.3f %7.3f; %7.3f %7.3f; %7.3f %7.3f) mm)\n",
+            printf("                      meshBounds: (%7.3f %7.3f; %7.3f %7.3f; %7.3f %7.3f) mm)\n",
                    meshBounds.xmin/MM,meshBounds.xmax/MM,meshBounds.ymin/MM,meshBounds.ymax/MM,meshBounds.zmin/MM,meshBounds.zmax/MM);
-            printf("DistanceToMeshDataSource()  gridBounds: (%7.3f %7.3f; %7.3f %7.3f; %7.3f %7.3f) mm)\n",
+            printf("                      gridBounds: (%7.3f %7.3f; %7.3f %7.3f; %7.3f %7.3f) mm)\n",
                    gridBounds.xmin/MM,gridBounds.xmax/MM,gridBounds.ymin/MM,gridBounds.ymax/MM,gridBounds.zmin/MM,gridBounds.zmax/MM);
         }                
         return gridBounds;
@@ -353,7 +396,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
 
     /**
-       aggregator ffor 2 triangle collector 
+       aggregator for 2 triangle collector 
      */
     static class TC2 implements TriangleCollector {
         

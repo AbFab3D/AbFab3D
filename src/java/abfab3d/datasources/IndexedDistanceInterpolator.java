@@ -26,9 +26,9 @@ import static abfab3d.core.MathUtil.getDistance;
 
 /**
    intepolator of distances from index grid and array of coordinates
-   the data are supplied as array of point cordinates (and optioanl other values) 
-   each voxel contains index of closes point in that array 
-   values in between voxel centetrs are intetrpolated 
+   the data are supplied as array of point coordinates (and optional other values) 
+   each grid voxel contains index of closes point in that array 
+   values in between voxel centers are linearly interpolated 
    
    @author Vladimir Bulatov
 */
@@ -36,6 +36,9 @@ public class IndexedDistanceInterpolator implements DataSource {
     
     static final int UNDEFINED_INDEX = 0;  // value of voxels with undefined index 
     static final double HALF = 0.5;
+
+    static final long INTERIOR_MASK = (1L << 31); // bit to store interior mask 
+    static final long INDEX_MASK = 0x7FFFFFFF; // bits containing actual index data 
 
     static final public int INTERPOLATION_BOX = 0;
     static final public int INTERPOLATION_LINEAR = 1;
@@ -46,8 +49,6 @@ public class IndexedDistanceInterpolator implements DataSource {
         pntx[], 
         pnty[], 
         pntz[]; 
-    // on/off grid of interior voxels 
-    AttributeGrid interiorGrid;
     // indices of closest point to each voxel 
     AttributeGrid indexGrid;
     
@@ -81,13 +82,12 @@ public class IndexedDistanceInterpolator implements DataSource {
        pnts[4][] - v cordinates (optional, used for texture or color coord)
        pnts[5][] - w cordinates (optional, used for color coord)        
      */
-    public IndexedDistanceInterpolator(double pnts[][], AttributeGrid indexGrid, AttributeGrid interiorGrid, double maxDistance){
+    public IndexedDistanceInterpolator(double pnts[][], AttributeGrid indexGrid, double maxDistance){
         
         this.pntx = pnts[0];
         this.pnty = pnts[1];
         this.pntz = pnts[2];
         this.indexGrid = indexGrid;
-        this.interiorGrid = interiorGrid;
         this.maxDistance = maxDistance;
         Bounds bounds = indexGrid.getGridBounds();
         
@@ -304,10 +304,11 @@ public class IndexedDistanceInterpolator implements DataSource {
         iy = clamp(iy, 0, nymax);
         iz = clamp(iz, 0, nzmax);
         
-        int ind = (int)indexGrid.getAttribute(ix, iy, iz);
+        long a = indexGrid.getAttribute(ix, iy, iz);        
         int sign = 1;
-        if(interiorGrid != null && interiorGrid.getAttribute(ix, iy, iz) != 0)
+        if((a & INTERIOR_MASK) != 0)
             sign = -1;
+        int ind = (int)(a & INDEX_MASK);
         if(ind == UNDEFINED_INDEX){
             return sign*maxDistance;
         } else {
