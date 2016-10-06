@@ -46,9 +46,7 @@ public class IndexedDistanceInterpolator implements DataSource {
 
     // coordinates of points 
     double 
-        pntx[], 
-        pnty[], 
-        pntz[]; 
+        pnts[][]; 
     // indices of closest point to each voxel 
     AttributeGrid indexGrid;
     
@@ -84,9 +82,7 @@ public class IndexedDistanceInterpolator implements DataSource {
      */
     public IndexedDistanceInterpolator(double pnts[][], AttributeGrid indexGrid, double maxDistance){
         
-        this.pntx = pnts[0];
-        this.pnty = pnts[1];
-        this.pntz = pnts[2];
+        this.pnts = pnts;
         this.indexGrid = indexGrid;
         this.maxDistance = maxDistance;
         Bounds bounds = indexGrid.getGridBounds();
@@ -306,16 +302,20 @@ public class IndexedDistanceInterpolator implements DataSource {
         
         long a = indexGrid.getAttribute(ix, iy, iz);        
         int sign = 1;
-        if((a & INTERIOR_MASK) != 0)
+        if((a & INTERIOR_MASK) != 0){
+            // interior voxel 
             sign = -1;
+        }
+        // index of closest point 
         int ind = (int)(a & INDEX_MASK);
         if(ind == UNDEFINED_INDEX){
             return sign*maxDistance;
         } else {
-            double x = (ix+HALF)*voxelSize + xmin;
-            double y = (iy+HALF)*voxelSize + ymin;
-            double z = (iz+HALF)*voxelSize + zmin;            
-            return sign*getDistance(x,y,z, pntx[ind],pnty[ind],pntz[ind]);
+            // coord of voxel center 
+            double vx = (ix+HALF)*voxelSize + xmin;
+            double vy = (iy+HALF)*voxelSize + ymin;
+            double vz = (iz+HALF)*voxelSize + zmin;            
+            return sign*getDistance(vx,vy,vz, pnts[0][ind],pnts[1][ind],pnts[2][ind]);
         }        
     }        
 } //  class  IndexedDistanceInterpolator

@@ -149,10 +149,11 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         int interpolationType = mp_interpolationType.getValue();
         
         IndexedDistanceInterpolator distData = makeDistanceInterpolator(producer, gridBounds, maxDistance, 
-                                                                          mp_surfaceVoxelSize.getValue(), 
-                                                                          mp_shellHalfThickness.getValue(),
-                                                                          mp_useMultiPass.getValue(), 
-                                                                          threadCount);
+                                                                        mp_surfaceVoxelSize.getValue(), 
+                                                                        mp_shellHalfThickness.getValue(),
+                                                                        false, // preserveZero 
+                                                                        mp_useMultiPass.getValue(), 
+                                                                        threadCount);
         //TODO
         // handle mutli resolution case 
         
@@ -244,6 +245,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
                                                                 double maxDistance, 
                                                                 double surfaceVoxelSize,
                                                                 double shellHalfThickness,
+                                                                boolean preserveZero,
                                                                 boolean useMultiPass, 
                                                                 int threadCount
                                                                 ){
@@ -310,10 +312,10 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
             printf("distance sweeping time: %d ms\n", time() - t0);
         }
         
-        setInteriorMask(indexGrid, interiorGrid, INTERIOR_MASK);
+        setInteriorMask(indexGrid, interiorGrid, INTERIOR_MASK, preserveZero);
 
         return new IndexedDistanceInterpolator(pnts, indexGrid, maxDistance);        
-        //return new IndexedDistanceInterpolator(pnts, indexGrid, interiorGrid, maxDistance);        
+
     }
 
     /**
@@ -323,12 +325,14 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
        @param grid grid to add mask to value 
        @param interior grid of inerior voxels 
        @param mask - bit mask to set if voxel is interior 
+       @param preserveZero set interior bits even if original voxel value is 0
      */
-    static public void setInteriorMask(AttributeGrid grid, AttributeGrid interior, long mask){
+    static public void setInteriorMask(AttributeGrid grid, AttributeGrid interior, long mask, boolean preserveZero){
 
         int nx = grid.getWidth();
         int ny = grid.getHeight();
         int nz = grid.getDepth();
+        boolean ignoreZero = !preserveZero;
 
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){
@@ -336,8 +340,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
                     if(interior.getAttribute(x,y,z) != 0) {
                         // interior 
                         long a = grid.getAttribute(x,y,z);
-                        if(a != 0) {
-                            // non empty value 
+                        if(ignoreZero || (a != 0)) {                            
                             a |= mask;
                             grid.setAttribute(x,y,z,a);
                         }
