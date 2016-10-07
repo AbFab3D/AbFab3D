@@ -47,6 +47,8 @@ public class IndexedDistanceInterpolator implements DataSource {
     // coordinates of points 
     double 
         pnts[][]; 
+    // default data dimensomn is 3, but may be 3,5,6 
+    int m_dataDimension = 3; 
     // indices of closest point to each voxel 
     AttributeGrid indexGrid;
     
@@ -107,6 +109,38 @@ public class IndexedDistanceInterpolator implements DataSource {
         
     }
     
+    
+    public int getDataDimension(){
+        return m_dataDimension;
+
+    }
+    public int getPointCount(){
+
+        return pnts[0].length;
+
+    }
+
+    /**
+       @return max distance stored in the interpolator 
+     */
+    public double getMaxDistance(){
+        return maxDistance;
+
+    }
+    /**
+       @return values for given point 
+     */
+    public void getPoint(int index, double values[]){
+        for(int k = 0; k < m_dataDimension; k++){
+            values[k] = pnts[k][index];
+        }
+    }
+
+    public AttributeGrid getIndexGrid(){
+        return indexGrid;
+    }
+
+
     /**
        method of DataSource interface 
     */

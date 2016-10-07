@@ -70,7 +70,6 @@ public class TestDistanceToMeshDataSource extends TestCase {
 
     void devTestSlice() throws Exception {
         
-        //Octahedron producer = new Octahedron(10*MM);
         double sx = 1.*MM; 
         double sy = 1.*MM; 
         double sz = 2.*MM; 

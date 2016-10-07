@@ -123,6 +123,13 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         mp_meshProducer.setValue(meshProducer);
 
     }
+
+    /**
+       @return interpolator used to calcyulate distances 
+     */
+    public IndexedDistanceInterpolator getDistanceInterpolator(){
+        return m_distCalc;
+    }
     
     IndexedDistanceInterpolator m_distCalc;
 
