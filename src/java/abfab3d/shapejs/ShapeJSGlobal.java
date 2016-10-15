@@ -837,7 +837,7 @@ public class ShapeJSGlobal {
         if (filename.startsWith("http") || filename.startsWith("https")) {
             try {
                 printf("Downloading url: %s\n", filename);
-                filename = URIUtils.downloadURI("loadModelDistance", filename);
+                filename = URIUtils.downloadURI("loadImage", filename);
             } catch (Exception ioe) {
                 ioe.printStackTrace();
             }

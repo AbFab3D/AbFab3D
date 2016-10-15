@@ -11,6 +11,8 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
+import abfab3d.core.Material;
+
 /**
  * Maps material names to implementations
  *

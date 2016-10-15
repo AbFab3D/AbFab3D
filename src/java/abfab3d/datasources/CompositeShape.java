@@ -28,7 +28,9 @@ import abfab3d.util.ShapeProducer;
 /**
  * Makes complex composite node act as single opaque data source with only exposed parameters 
  *    
- *  
+ *
+ *  // rename to CompositeDataSource
+ *
  * @author Vladimir Bulatov
  */
 public class CompositeShape extends TransformableDataSource {

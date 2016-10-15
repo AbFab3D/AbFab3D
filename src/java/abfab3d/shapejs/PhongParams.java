@@ -13,6 +13,7 @@ package abfab3d.shapejs;
 
 import abfab3d.core.Color;
 import abfab3d.param.*;
+import static abfab3d.core.Output.printf;
 
 /**
  * Material parameters for Phong Shading
@@ -23,9 +24,13 @@ public class PhongParams extends RenderingParams {
     private ColorParameter mp_diffuseColor = new ColorParameter("diffuseColor","Diffuse Color",new Color(0.8,0.8,0.8));
     private ColorParameter mp_emissiveColor = new ColorParameter("emissiveColor","Emissive Color",new Color(0,0,0));
     private ColorParameter mp_specularColor = new ColorParameter("specularColor","Diffuse Color",new Color(1,1,1));
-    private ColorParameter mp_albedo = new ColorParameter("albedo","albedo",new Color(0,0,0));
     private DoubleParameter mp_shininess = new DoubleParameter("shininess","How reflective", 0.2);
     private DoubleParameter mp_ambientIntensity = new DoubleParameter("ambientIntensity","Ambient light", 0.2);
+
+    // TODO: These are really metal stuff, need to separate
+    private ColorParameter mp_albedo = new ColorParameter("albedo","albedo",new Color(0,0,0));
+    private DoubleParameter mp_roughness = new DoubleParameter("roughness","How rough", 0,0,1);
+    private DoubleParameter mp_gradientFactor = new DoubleParameter("gradientFactor","Factor to underlying gradientStep",1);
 
     private Parameter m_aparam[] = new Parameter[]{
             mp_diffuseColor,
@@ -33,7 +38,9 @@ public class PhongParams extends RenderingParams {
             mp_specularColor,
             mp_albedo,
             mp_shininess,
-            mp_ambientIntensity
+            mp_ambientIntensity,
+            mp_roughness,
+            mp_gradientFactor
     };
 
     public PhongParams() {
@@ -113,4 +120,19 @@ public class PhongParams extends RenderingParams {
         mp_albedo.setValue((Color) albedo.clone());
     }
 
+    public void setRoughness(double val) {
+        mp_roughness.setValue(val);
+    }
+
+    public double getRoughness() {
+        return mp_roughness.getValue();
+    }
+
+    public void setGradientFactor(double val) {
+        mp_gradientFactor.setValue(val);
+    }
+
+    public double getGradientFactor() {
+        return mp_gradientFactor.getValue();
+    }
 }

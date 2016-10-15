@@ -12,9 +12,6 @@
 
 package abfab3d.core;
 
-import abfab3d.core.Bounds;
-import abfab3d.core.Vec;
-
 /**
    
    interface to implements calculation of general multidimensional data at the given point 

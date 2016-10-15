@@ -34,7 +34,7 @@ import static abfab3d.core.Output.printf;
 
 public class DataSourceMixer extends TransformableDataSource {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     // plain array of sources 
     protected DataSource m_sources[];

@@ -2,6 +2,7 @@ package abfab3d.shapejs;
 
 import abfab3d.core.Color;
 import abfab3d.core.DataSource;
+import abfab3d.core.MaterialShader;
 import abfab3d.param.BaseParameterizable;
 
 /**
@@ -12,7 +13,8 @@ import abfab3d.param.BaseParameterizable;
 public class MetalShader extends BaseParameterizable implements MaterialShader {
     private PhongParams sparams;
 
-    public MetalShader(double ambientIntensity, Color diffuseColor, Color emissiveColor, Color specularColor, double shininess, Color albedo) {
+    public MetalShader(double ambientIntensity, Color diffuseColor, Color emissiveColor, Color specularColor,
+                       double shininess, Color albedo, double roughness, double gradientFactor) {
         sparams = new PhongParams();
         sparams.setAmbientIntensity(ambientIntensity);
         sparams.setDiffuseColor(diffuseColor);
@@ -20,6 +22,8 @@ public class MetalShader extends BaseParameterizable implements MaterialShader {
         sparams.setSpecularColor(specularColor);
         sparams.setShininess(shininess);
         sparams.setAlbedo(albedo);
+        sparams.setRoughness(roughness);
+        sparams.setGradientFactor(gradientFactor);
 
         addParams(sparams.getParams());
     }

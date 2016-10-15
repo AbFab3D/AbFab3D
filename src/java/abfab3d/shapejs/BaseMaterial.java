@@ -11,6 +11,7 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
+import abfab3d.core.Material;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNodeParameter;

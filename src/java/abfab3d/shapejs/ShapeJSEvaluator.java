@@ -114,7 +114,7 @@ public class ShapeJSEvaluator {
         // Create imports
 
         defaultParams = new HashMap<String,Parameter>();
-        EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None","WSF","Stainless","Premium Silver","14K Gold","18K Gold","Ceramics","WSFP","White"},"None");
+        EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None","WSF","Stainless","Raw Silver","Premium Silver","14K Gold","18K Gold","Ceramics","WSFP","White"},"None");
         matParam.setLabel("Material");
         matParam.setOnChange("main");
         defaultParams.put("material",matParam);
@@ -169,12 +169,14 @@ public class ShapeJSEvaluator {
 
         classImports.add("abfab3d.shapejs.Scene");
         classImports.add("abfab3d.shapejs.Light");
+        classImports.add("abfab3d.shapejs.Viewpoint");
         classImports.add("abfab3d.io.input.ModelLoader");
 
         classImports.add("abfab3d.core.MathUtil");
         classImports.add("abfab3d.core.Color");
         classImports.add("abfab3d.core.Bounds");
         classImports.add("abfab3d.core.Vec");
+        classImports.add("abfab3d.param.Shape");
         classImports.add("abfab3d.util.PointSetArray");
         classImports.add("abfab3d.util.Complex");
         classImports.add("abfab3d.util.ShapeProducer");

@@ -12,7 +12,8 @@
 package abfab3d.shapejs;
 
 import abfab3d.core.Color;
-import abfab3d.core.DataSource;
+import abfab3d.core.Material;
+import abfab3d.core.MaterialShader;
 
 /**
  * Default material for rendering
@@ -21,8 +22,9 @@ import abfab3d.core.DataSource;
  */
 public class DefaultMaterial extends BaseMaterial {
     private PhongShader m_shader;
+    private static Material instance = null;
 
-    public DefaultMaterial() {
+    private DefaultMaterial() {
         super("DefaultMaterial");
 
         m_shader = new PhongShader(0,new Color(1, 1, 1),new Color(0, 0, 0),new Color(0.25,0.25,0.25),0.1);
@@ -31,5 +33,12 @@ public class DefaultMaterial extends BaseMaterial {
 
     public MaterialShader getShader() {
         return m_shader;
+    }
+
+    public static Material getInstance() {
+        if (instance != null) return instance;
+        instance = new DefaultMaterial();
+
+        return instance;
     }
 }

@@ -16,13 +16,13 @@ import javax.vecmath.Vector3d;
 import abfab3d.core.Bounds;
 import abfab3d.core.Color;
 import abfab3d.core.DataSource;
+import abfab3d.core.Material;
+import abfab3d.core.MaterialShader;
 import abfab3d.core.MaterialType;
-import abfab3d.core.Vec;
-import abfab3d.datasources.Composition;
-import abfab3d.datasources.Constant;
+import abfab3d.datasources.ShapeList;
+import abfab3d.param.Shape;
 import abfab3d.datasources.ImageColorMap;
 import abfab3d.datasources.TransformableDataSource;
-import abfab3d.datasources.Union;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameterizable;
 
@@ -42,7 +42,6 @@ public class Scene extends BaseParameterizable {
 
     final static boolean DEBUG = false;
 
-    final public static Scene DEFAULT_SHAPE = new Scene("DEFAULT_SHAPE");
     final public static double DEFAULT_VOXEL_SIZE = 0.1*MM;
     final public static Vector3d DEFAULT_SIZE = new Vector3d(0.1,0.1,0.1);
     final public static Vector3d DEFAULT_CENTER = new Vector3d(0.,0.,0.);
@@ -69,8 +68,9 @@ public class Scene extends BaseParameterizable {
     // material[0] is base material
     // material[1,2,3] correspond to material channels
     protected SceneMaterials m_materials = new SceneMaterials();
+    protected SceneViewpoints m_viewpoints = new SceneViewpoints();
     protected RenderingParams m_renderingParams;
-    protected ArrayList<Parameterizable> m_sources = new ArrayList<>();
+    protected ArrayList<Shape> m_shapes = new ArrayList<>();
     protected LightingRig m_lightingRig = DEFAULT_LIGHTING_RIG;
     protected Camera camera = new SimpleCamera();
     protected boolean m_userSetLights = false;
@@ -84,6 +84,7 @@ public class Scene extends BaseParameterizable {
     public Scene(String name){
         m_name = name;
         initParams();
+        initRendering();
     }
 
     public Scene(Parameterizable source, Bounds bounds){
@@ -92,9 +93,25 @@ public class Scene extends BaseParameterizable {
         //if(DEBUG)printf("Shape(%s, source:%s, bounds:%s)\n", this, source, bounds);
     }
 
+    public Scene(Shape shape, Bounds bounds){
+        this(shape,bounds,bounds.getVoxelSize());
+    }
+
     public Scene(Parameterizable source, Bounds bounds, double voxelSize){
         //if(DEBUG)printf("Shape(%s, source:%s bounds:%s vs:%7.5f)\n", this, source, bounds, voxelSize);
-        addSource(source);
+        Shape s = new Shape((DataSource)source, DefaultMaterial.getInstance());
+        addShape(s);
+
+        m_bounds = bounds;
+        bounds.setVoxelSize(voxelSize);
+
+        initParams();
+        initRendering();
+    }
+
+    public Scene(Shape shape, Bounds bounds, double voxelSize){
+        //if(DEBUG)printf("Shape(%s, source:%s bounds:%s vs:%7.5f)\n", this, source, bounds, voxelSize);
+        addShape(shape);
         m_bounds = bounds;
         bounds.setVoxelSize(voxelSize);
 
@@ -103,8 +120,7 @@ public class Scene extends BaseParameterizable {
     }
 
     private void initParams() {
-        addParams(m_lights.getParams());
-        addParams(m_materials.getParams());
+        buildParams();
     }
 
     /**
@@ -165,7 +181,10 @@ public class Scene extends BaseParameterizable {
         for(int i=0; i < lights.length; i++) {
             lights[i].setCastShadows(true);
             lights[i].setSamples(4);
-            lights[i].setRadius(50);
+            //lights[i].setRadius(50);
+
+            // TODO: revisit this when area lights work better
+            lights[i].setRadius(0);
         }
         return lights;
     }
@@ -194,11 +213,17 @@ public class Scene extends BaseParameterizable {
     }
 
     /**
-     * Get the sources.  No rendering tricks will be applied.  This is a live map, don't change it.
+     * Get the sources.  No rendering tricks will be applied.
      * @return
      */
     public final List<Parameterizable> getSource(){
-        return m_sources;
+        ArrayList<Parameterizable> ret_val = new ArrayList<>(m_shapes.size());
+
+        for(Shape shape : m_shapes) {
+            ret_val.add((Parameterizable)shape);
+        }
+
+        return ret_val;
     }
 
     /**
@@ -208,65 +233,111 @@ public class Scene extends BaseParameterizable {
      * @return
      */
     public Parameterizable getRenderingSource(boolean draftMode) {
-        Composition root = new Composition(Composition.BoverA);
+        ShapeList root = new ShapeList();
 
-        for(Parameterizable p : m_sources) {
+        Material mats[] = new Material[SceneMaterials.MAX_MATERIALS];
+        int midx = 0;
+        for(Shape shape : m_shapes) {
+            Parameterizable p = (Parameterizable) shape.getSource();
+
             TransformableDataSource tds = (TransformableDataSource) p;
             if (!tds.isEnabled()) continue;
 
-            DataSource ds = null;
+            Shape ds = null;
             if (draftMode) {
-                ds = tds;
+                ds = shape;
             } else {
-                DataSource mat = tds.getMaterial();
-                int idx = 0;
-                if (mat != null) {
-                    if (mat instanceof Constant) {
-                        Constant matIdx = (Constant) mat;
-                        matIdx.initialize();
-                        Vec v = new Vec(1);
-                        matIdx.getDataValue(v,v);
-                        idx = (int) Math.round(v.v[0]);
-                    }
-                } else {
-                    printf("No material channel data?\n");
-                    // Assume this is material idx 0
-                }
-                Material rm = m_materials.getMaterials().get(idx);
+                Material rm = shape.getMaterial();
                 MaterialShader ms = rm.getShader();
-                ds = ms.getRenderingSource(tds);
+                ds = new Shape(ms.getRenderingSource(tds),rm,shape.getShader());
+            }
+
+            Material dsm = ds.getMaterial();
+            boolean found = false;
+            for(int i=0; i < mats.length; i++) {
+                if (dsm == mats[i]) {
+                    ds.setMaterialID(i);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                mats[midx] = ds.getMaterial();
+                ds.setMaterialID(midx);
+                midx++;
             }
 
             root.add(ds);
         }
+
+        for(int i=midx; i < SceneMaterials.MAX_MATERIALS; i++) {
+            mats[i] = DefaultMaterial.getInstance();
+        }
+
+        m_materials.setMaterials(mats);
 
         root.initialize();
         return root;
     }
 
 
-    public void addSource(Parameterizable source) {
-        m_sources.add(source);
+    public void addShape(Shape shape) {
+        m_shapes.add(shape);
+
+        int matId = addMaterial(shape.getMaterial());
     }
 
-    public void removeSource(Parameterizable source) {
-        m_sources.remove(source);
+    public Shape removeShape(Shape shape) {
+        Shape toremove = null;
+
+        for(Shape s : m_shapes) {
+            if (s.getSource() == shape) {
+                toremove = s;
+            }
+        }
+
+        if (toremove != null) {
+            Material mat = toremove.getMaterial();
+            m_shapes.remove(toremove);
+
+            boolean found = false;
+            for(Shape s : m_shapes) {
+                if (s.getMaterial() == mat) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                removeMaterial(mat);
+            }
+        }
+
+        return toremove;
     }
 
-    public void setSource(int idx, Parameterizable source) {
-        m_sources.set(idx,source);
+    // Keep for backwards compat
+    public void setSource(DataSource source) {
+        m_shapes.clear();
+        m_lastMaterial = 0;
+        Shape shape = new Shape(source, DefaultMaterial.getInstance());
+        m_shapes.add(shape);
+        addMaterial(shape.getMaterial());
     }
 
-    public void setSource(Parameterizable[] source) {
-        m_sources.clear();
-        for(Parameterizable p : source) {
-            m_sources.add(p);
+    public void setShape(Shape[] shapes) {
+        m_shapes.clear();
+        m_lastMaterial = 0;
+
+        for(Shape s : shapes) {
+            m_shapes.add(s);
+            addMaterial(s.getMaterial());
         }
     }
 
-    public void setSource(Parameterizable source) {
-        m_sources.clear();
-        m_sources.add(source);
+    public void setShape(int idx, Shape shape) {
+        m_shapes.set(idx,shape);
     }
 
     public void setVoxelSize(double voxelSize) {
@@ -320,29 +391,37 @@ public class Scene extends BaseParameterizable {
        set rendering material for given index 
      */
     public void setMaterial(int index,Material mat) {
-        TransformableDataSource ds = (TransformableDataSource) m_sources.get(index);
-        if (ds != null) {
-            ds.setMaterial(new Constant(index));
-        }
-
-        m_materials.setMaterial(index, mat);
+        m_shapes.get(index).setMaterial(mat);
+        addMaterial(mat);
         buildParams();
     }
 
-    public int addMaterial(Material mat) {
-        m_lastMaterial++;
-
-        if (m_sources.size() > m_lastMaterial) {
-            TransformableDataSource ds = (TransformableDataSource) m_sources.get(m_lastMaterial);
-            if (ds != null) {
-                ds.setMaterial(new Constant(m_lastMaterial));
+    /**
+     * Adds a material to scene.  Duplicates will be reused
+     * @param mat
+     * @return
+     */
+    private int addMaterial(Material mat) {
+        List<Material> mats = m_materials.getMaterials();
+        int idx = 0;
+        for(Material m : mats) {
+            if (m == mat) {
+                return idx;
             }
+            idx++;
         }
+
+        m_lastMaterial++;
 
         m_materials.setMaterial(m_lastMaterial, mat);
         buildParams();
 
         return m_lastMaterial;
+    }
+
+    private void removeMaterial(Material mat) {
+        m_materials.removeMaterial(mat);
+        m_lastMaterial--;
     }
 
     /**
@@ -376,6 +455,31 @@ public class Scene extends BaseParameterizable {
 
     public SceneMaterials getMaterials() {
         return m_materials;
+    }
+
+    public void setViewpoints(Viewpoint[] viewpoints) {
+        m_viewpoints.setViewpoints(viewpoints);
+
+        buildParams();
+    }
+
+    public SceneViewpoints getViewpoints() {
+        return m_viewpoints;
+    }
+
+    public int getMaterialID(Material mat) {
+        // TODO: Should we use a map instead of a list for faster access?
+
+        List<Material> mats = m_materials.getMaterials();
+        int idx = 0;
+        for(Material m : mats) {
+            if (m == mat) {
+                return idx;
+            }
+            idx++;
+        }
+
+        throw new IllegalArgumentException("Cannot find material: " + mat);
     }
 
     public void setLightingRig(LightingRig rig) {
@@ -427,8 +531,7 @@ public class Scene extends BaseParameterizable {
         clearParams();
         addParams(m_lights.getParams());
         addParams(m_materials.getParams());
-
-
+        addParams(m_viewpoints.getParams());
     }
     public String toString(){
         return fmt("Shape(\"%s\",%s, vs: %7.5f)", m_name, m_bounds, m_bounds.getVoxelSize());

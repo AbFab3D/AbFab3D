@@ -12,6 +12,7 @@
 package abfab3d.shapejs;
 
 import javax.vecmath.Matrix4f;
+import static abfab3d.core.Output.fmt;
 
 /**
  * Image generation setup parameters.
@@ -40,8 +41,8 @@ public class ImageSetup implements Cloneable {
     /** The quality of the surface marching, 1.0 is highest sampling */
     public float quality;
 
-    /** How to antialias the image */
-    public AntiAliasingType aa;
+    /** How many aa samples to use */
+    public int aa;
 
     /** The background, RGB */
     public float[] backgroundColor;
@@ -60,7 +61,7 @@ public class ImageSetup implements Cloneable {
     public RenderingStyle renderingStyle;
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality,
-                      AntiAliasingType aa, float[] backgroundColor, boolean bumpMaps,
+                      int aa, float[] backgroundColor, boolean bumpMaps,
                       float shadowQuality, int lightSamples) {
         this.width = width;
         this.height = height;
@@ -68,6 +69,25 @@ public class ImageSetup implements Cloneable {
         this.imgType = imgType;
         this.quality = quality;
         this.aa = aa;
+        this.backgroundColor = backgroundColor;
+        this.bumpMaps = bumpMaps;
+        this.shadowQuality = shadowQuality;
+        this.lightSamples = lightSamples;
+        this.renderingStyle = RenderingStyle.MATERIAL;
+        this.maxRayBounces = 0;
+        this.objTrans = new Matrix4f();
+        objTrans.setIdentity();
+    }
+
+    public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality,
+                      AntiAliasingType aa, float[] backgroundColor, boolean bumpMaps,
+                      float shadowQuality, int lightSamples) {
+        this.width = width;
+        this.height = height;
+        this.view = view;
+        this.imgType = imgType;
+        this.quality = quality;
+        this.aa = AntiAliasingType.getNumSamples(aa);
         this.backgroundColor = backgroundColor;
         this.bumpMaps = bumpMaps;
         this.shadowQuality = shadowQuality;
@@ -86,7 +106,7 @@ public class ImageSetup implements Cloneable {
         this.view = view;
         this.imgType = imgType;
         this.quality = quality;
-        this.aa = aa;
+        this.aa = AntiAliasingType.getNumSamples(aa);
         this.backgroundColor = backgroundColor;
         this.bumpMaps = bumpMaps;
         this.shadowQuality = shadowQuality;
@@ -105,6 +125,25 @@ public class ImageSetup implements Cloneable {
         this.view = view;
         this.imgType = imgType;
         this.quality = quality;
+        this.aa = AntiAliasingType.getNumSamples(aa);
+        this.backgroundColor = backgroundColor;
+        this.bumpMaps = bumpMaps;
+        this.shadowQuality = shadowQuality;
+        this.lightSamples = lightSamples;
+        this.renderingStyle = RenderingStyle.MATERIAL;
+        this.maxRayBounces = maxRayBounces;
+        this.objTrans = new Matrix4f();
+        objTrans.setIdentity();
+    }
+
+    public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality,
+                      int aa, float[] backgroundColor, boolean bumpMaps,
+                      float shadowQuality, int lightSamples, int maxRayBounces) {
+        this.width = width;
+        this.height = height;
+        this.view = view;
+        this.imgType = imgType;
+        this.quality = quality;
         this.aa = aa;
         this.backgroundColor = backgroundColor;
         this.bumpMaps = bumpMaps;
@@ -124,7 +163,7 @@ public class ImageSetup implements Cloneable {
         this.view = view;
         this.imgType = imgType;
         this.quality = quality;
-        this.aa = aa;
+        this.aa = AntiAliasingType.getNumSamples(aa);
         this.backgroundColor = backgroundColor;
         this.bumpMaps = bumpMaps;
         this.shadowQuality = shadowQuality;
@@ -142,7 +181,7 @@ public class ImageSetup implements Cloneable {
         view.setIdentity();
         imgType = IMAGE_JPEG;
         quality = 0.5f;
-        aa = AntiAliasingType.NONE;
+        this.aa = AntiAliasingType.getNumSamples(AntiAliasingType.NONE);
         backgroundColor = new float[3];
         bumpMaps = false;
         shadowQuality = 0;
@@ -167,5 +206,10 @@ public class ImageSetup implements Cloneable {
         } catch(CloneNotSupportedException cns) {
             return null;
         }
+    }
+
+    public static String toString(ImageSetup setup) {
+        return fmt("ImageSetup  w: %d h: %d quality: %4.2f aa: %d bumpMaps: %b shadows: %4.2f maxRay: %d",
+                setup.width,setup.height,setup.quality,setup.aa,setup.bumpMaps,setup.shadowQuality,setup.maxRayBounces);
     }
 }

@@ -11,6 +11,7 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
+import abfab3d.core.Material;
 import abfab3d.param.*;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class SceneMaterials extends BaseParameterizable {
         ArrayList<Material> mats = new ArrayList<Material>(MAX_MATERIALS);
 
         for (int i = 0; i < MAX_MATERIALS; i++) {
-            mats.add(new DefaultMaterial());
+            mats.add(DefaultMaterial.getInstance());
         }
         mp_materials.setValue(mats);
 
@@ -47,14 +48,28 @@ public class SceneMaterials extends BaseParameterizable {
         if (index < 0 || index >= MAX_MATERIALS)
             throw new RuntimeException(fmt("material index: %d is out of range[0,%d]", index, MAX_MATERIALS - 1));
 
-        mp_materials.set(index, mat);
+        mp_materials.set(index, (Parameterizable)mat);
     }
 
     public void setMaterials(Material[] mats) {
         mp_materials.clear();
 
         for (int i = 0; i < mats.length; i++) {
-            mp_materials.add(mats[i]);
+            mp_materials.add((Parameterizable)mats[i]);
+        }
+    }
+
+    /**
+     * Removes a material.  Empty slots will be filled with DefaultMaterial
+     * @param mat
+     */
+    public void removeMaterial(Material mat) {
+        ArrayList<Material> mats =(ArrayList<Material>) mp_materials.getValue();
+
+        mats.remove(mat);
+
+        if (mats.size() < MAX_MATERIALS) {
+            mats.add(DefaultMaterial.getInstance());
         }
     }
 
