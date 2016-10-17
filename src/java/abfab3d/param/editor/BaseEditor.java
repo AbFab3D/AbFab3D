@@ -3,6 +3,7 @@ package abfab3d.param.editor;
 import java.util.Vector;
 
 import abfab3d.param.Parameter;
+import static abfab3d.core.Output.printf;
 
 /**
  * Base code for all parameter editors
@@ -42,8 +43,7 @@ public abstract class BaseEditor implements Editor {
     }
 
     public void informParamChangedListeners(){
-
-        if(m_plisteners != null){            
+        if(m_plisteners != null){
             for(int i = 0; i < m_plisteners.size(); i++){
                 ParamChangedListener list = m_plisteners.get(i);
                 list.paramChanged(m_param);

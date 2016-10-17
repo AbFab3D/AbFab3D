@@ -92,11 +92,12 @@ public class SNodeListEditor extends BaseEditor {
             panel.addParamChangedListeners(getParamChangedListeners());
             children.put(node, panel);
             panel.setLocation(getNewLocation());
+        } else {
+            informParamChangedListeners();
         }
 
         panel.setVisible(true);
 
-        informParamChangedListeners();
     }
 
 
