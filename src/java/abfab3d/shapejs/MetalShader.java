@@ -13,6 +13,11 @@ import abfab3d.param.BaseParameterizable;
 public class MetalShader extends BaseParameterizable implements MaterialShader {
     private PhongParams sparams;
 
+    public MetalShader() {
+        sparams = new PhongParams();
+        addParams(sparams.getParams());
+    }
+
     public MetalShader(double ambientIntensity, Color diffuseColor, Color emissiveColor, Color specularColor,
                        double shininess, Color albedo, double roughness, double gradientFactor) {
         sparams = new PhongParams();
@@ -30,12 +35,43 @@ public class MetalShader extends BaseParameterizable implements MaterialShader {
 
     @Override
     public DataSource getRenderingSource(DataSource source) {
-        // TODO: this needs to change gradientStep currently...
         return source;
     }
 
     @Override
     public RenderingParams getShaderParams() {
         return sparams;
+    }
+
+    public void setDiffuseColor(Color diffuseColor) {
+        sparams.setDiffuseColor((Color) diffuseColor.clone());
+    }
+
+    public void setEmissiveColor(Color emissiveColor) {
+        sparams.setEmissiveColor((Color) emissiveColor.clone());
+    }
+
+    public void setShininess(double shininess) {
+        sparams.setShininess(shininess);
+    }
+
+    public void setSpecularColor(Color specularColor) {
+        sparams.setSpecularColor((Color)specularColor.clone());
+    }
+
+    public void setAmbientIntensity(double ambientIntensity) {
+        sparams.setAmbientIntensity(ambientIntensity);
+    }
+
+    public void setAlbedo(Color albedo) {
+        sparams.setAlbedo((Color) albedo.clone());
+    }
+
+    public void setRoughness(double roughness) {
+        sparams.setRoughness(roughness);
+    }
+
+    public void setGradientFactor(double factor) {
+        sparams.setGradientFactor(factor);
     }
 }
