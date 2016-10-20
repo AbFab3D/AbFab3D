@@ -13,6 +13,8 @@ package abfab3d.shapejs;
 
 import abfab3d.core.Material;
 
+import java.util.Map;
+
 /**
  * Maps material names to implementations
  *
@@ -25,4 +27,10 @@ public interface MaterialMapper {
      * @return
      */
     public Material getImplementation(String mat);
+
+    /**
+     * Get the implemented materials
+     * @return
+     */
+    public Map<String,Material> getMaterials();
 }

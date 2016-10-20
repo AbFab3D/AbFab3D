@@ -71,6 +71,10 @@ public class EnumParameter extends BaseParameter {
         setValue(initialValue);
     }
 
+    public void setValues(String[] vals) {
+        m_values = vals.clone();
+    }
+
     @Override
     public String getValue() {
         if (value == null) {

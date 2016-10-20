@@ -12,6 +12,7 @@
 package abfab3d.shapejs;
 
 import abfab3d.core.Color;
+import abfab3d.core.Material;
 import abfab3d.param.*;
 import abfab3d.util.Unit;
 
@@ -98,6 +99,7 @@ public class ShapeJSEvaluator {
     private static HashSet<String> errorFields;
 
     private static final HashSet<String> restrictedPackages;
+    private static MaterialMapper matMapper;
 
     static {
 
@@ -114,7 +116,7 @@ public class ShapeJSEvaluator {
         // Create imports
 
         defaultParams = new HashMap<String,Parameter>();
-        EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None","WSF","Stainless","Raw Silver","Premium Silver","14K Gold","18K Gold","Ceramics","WSFP","White"},"None");
+        EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None"},"None");
         matParam.setLabel("Material");
         matParam.setOnChange("main");
         defaultParams.put("material",matParam);
@@ -243,6 +245,25 @@ public class ShapeJSEvaluator {
 
         imports = bldr.toString();
         //printf("Initializing Header.  len: %d   imports: %d\n",headerLines,imports.length());
+    }
+
+    public static void setMaterialMapper(MaterialMapper mm) {
+        matMapper = mm;
+
+        EnumParameter matParam = (EnumParameter) defaultParams.get("material");
+        Map<String,Material> mats = mm.getMaterials();
+        String[] ovals = matParam.getValues();
+        String[] nvals = new String[ovals.length + mats.size()];
+
+        for(int i=0; i < ovals.length;i++) {
+            nvals[i] = ovals[i];
+        }
+        int idx = ovals.length;
+        for(Material mat : mats.values()) {
+            nvals[idx++] = mat.getName();
+        }
+
+        matParam.setValues(nvals);
     }
 
     public static void configureSecurity(List<String> pwl, List<String> cwl, List<String> ci, List<String> si) {
