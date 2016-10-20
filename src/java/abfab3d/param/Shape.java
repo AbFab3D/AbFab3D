@@ -6,8 +6,6 @@ import abfab3d.core.Material;
 import abfab3d.core.MaterialShader;
 import abfab3d.core.ResultCodes;
 import abfab3d.core.VecTransform;
-import abfab3d.transforms.CompositeTransform;
-import abfab3d.transforms.TransformsFactory;
 
 import java.util.List;
 
@@ -30,7 +28,7 @@ public class Shape extends BaseParameterizable implements Initializable {
     protected SNodeParameter mp_source = new SNodeParameter("source");
     protected SNodeParameter mp_material = new SNodeParameter("material");
     protected SNodeParameter mp_shader = new SNodeParameter("shader");
-    SNodeListParameter mp_transform = new SNodeListParameter("transform", new BaseSNodeFactory(TransformsFactory.getNames(), TransformsFactory.getClassNames()));
+    SNodeListParameter mp_transform = new SNodeListParameter("transform", "Transform");
 
 
     Parameter m_aparam[] = new Parameter[]{
@@ -112,11 +110,7 @@ public class Shape extends BaseParameterizable implements Initializable {
         } else if(tr.length == 1){
             return (VecTransform)tr[0];
         } else {
-            CompositeTransform ct = new CompositeTransform();
-            for(int k = 0 ; k < tr.length; k++){
-                ct.add((VecTransform)tr[k]);
-            }
-            return ct;
+            throw new IllegalArgumentException("Composite transforms not supported");
         }
     }
 
