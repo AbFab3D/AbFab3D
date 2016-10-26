@@ -13,6 +13,10 @@
 package abfab3d.util;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
    utils to deal with files 
@@ -46,4 +50,35 @@ public class FileUtil {
         return dir.replace('\\', '/');
     }
 
+
+    /**
+     * Get a resource as a stream.  Deals with differences between loading from an app and applet.
+     * @param filename
+     * @return
+     */
+    public static InputStream getResourceAsStream(String filename) {
+        File f = new File(filename);
+
+        try {
+            if (f.exists()) {
+                return new FileInputStream(f);
+            } else {
+
+                String fname = "classes" + File.separator + filename;
+                f = new File(fname);
+
+                if (f.exists()) {
+                    return new FileInputStream(f);
+                } else {
+                    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+                    fname = filename.replace("\\","/");
+                    InputStream is = classLoader.getResourceAsStream(fname);
+                    return is;
+                }
+            }
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+            return null;
+        }
+    }
 }

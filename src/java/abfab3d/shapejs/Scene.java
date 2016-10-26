@@ -16,6 +16,7 @@ import javax.vecmath.Vector3d;
 import abfab3d.core.Bounds;
 import abfab3d.core.Color;
 import abfab3d.core.DataSource;
+import abfab3d.core.Initializable;
 import abfab3d.core.Material;
 import abfab3d.core.MaterialShader;
 import abfab3d.core.MaterialType;
@@ -74,7 +75,7 @@ public class Scene extends BaseParameterizable {
     protected LightingRig m_lightingRig = DEFAULT_LIGHTING_RIG;
     protected Camera camera = new SimpleCamera();
     protected boolean m_userSetLights = false;
-    protected ImageColorMap m_environmentMap;
+    protected Background m_background = new Background();
     protected double m_gradientStep = 0.001;
     protected int m_lastMaterial = 0;
 
@@ -388,6 +389,14 @@ public class Scene extends BaseParameterizable {
     }
 
     /**
+     * @noRefGuide
+     */
+    public void reinitialize() {
+        // reinitialize all properties.  Done after param changes.
+        m_background.initialize();
+    }
+
+    /**
        set rendering material for given index 
      */
     public void setMaterial(int index,Material mat) {
@@ -515,12 +524,12 @@ public class Scene extends BaseParameterizable {
         return m_renderingParams;
     }
 
-    public void setEnvironmentMap(ImageColorMap map) {
-        m_environmentMap = map;
+    public void setBackground(Background val) {
+        m_background = val;
     }
 
-    public ImageColorMap getEnvironmentMap() {
-        return m_environmentMap;
+    public Background getBackground() {
+        return m_background;
     }
 
     /**
@@ -532,7 +541,9 @@ public class Scene extends BaseParameterizable {
         addParams(m_lights.getParams());
         addParams(m_materials.getParams());
         addParams(m_viewpoints.getParams());
+        addParams(m_background.getParams());
     }
+
     public String toString(){
         return fmt("Shape(\"%s\",%s, vs: %7.5f)", m_name, m_bounds, m_bounds.getVoxelSize());
     }

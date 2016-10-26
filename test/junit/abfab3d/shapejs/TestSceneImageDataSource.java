@@ -62,7 +62,7 @@ public class TestSceneImageDataSource extends TestCase {
         assertTrue("Eval failed", sr.result.isSuccess());
         Scene scene = sr.result.getScene();
 
-        ImageSetup setup = new ImageSetup(width, height, getView(), ImageSetup.IMAGE_JPEG, 0.5f, AntiAliasingType.NONE, backgroundColor, false, 0f, 1);
+        ImageSetup setup = new ImageSetup(width, height, getView(), ImageSetup.IMAGE_JPEG, 0.5f, AntiAliasingType.NONE, false, 0f, 1);
         MatrixCamera camera = new MatrixCamera(getView());
         SceneImageDataSource sids = new SceneImageDataSource(scene,setup,camera);
         ImageMaker renderer = new ImageMaker();

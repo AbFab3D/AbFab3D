@@ -172,6 +172,7 @@ public class ShapeJSEvaluator {
         classImports.add("abfab3d.shapejs.Scene");
         classImports.add("abfab3d.shapejs.Light");
         classImports.add("abfab3d.shapejs.Viewpoint");
+        classImports.add("abfab3d.shapejs.Background");
         classImports.add("abfab3d.io.input.ModelLoader");
 
         classImports.add("abfab3d.core.MathUtil");
