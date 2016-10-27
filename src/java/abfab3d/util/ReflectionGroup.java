@@ -162,6 +162,48 @@ public class ReflectionGroup {
             nz = normal.z / len;
             dist = distance; 
         }
+
+        /**
+         * Plane is defined via 3 points, which lie in the plane. 
+         * External normal points into direction from which points pnt0, pnt1, pnt2 look oriented counter clock wise
+         *
+         * @param pnt0 point in the plane
+         * @param pnt1 point in the plane
+         * @param pnt2 point in the plane
+         */
+        public Plane(Vector3d pnt0, Vector3d pnt1, Vector3d pnt2 ){
+            
+            Vector3d v1 = new Vector3d(pnt1);
+            Vector3d v2 = new Vector3d(pnt2);
+            v1.sub(pnt0);
+            v2.sub(pnt0);
+            Vector3d nn = new Vector3d();
+            nn.cross(v1, v2);
+            nn.normalize();
+            
+            nx = nn.x / len;
+            ny = nn.y / len;
+            nz = nn.z / len;
+            dist = nn.dot(pnt0); 
+            
+        }
+
+        /**
+         * Plane is defined via external normal and a point on the plane
+         *
+         * @param normal The normal to the plane
+         * @param pointOnPlane the point on the plane
+         */
+        public Plane(Vector3d normal, Vector3d pointOnPlane){
+
+            normal.normalize();
+            nx = normal.x;
+            ny = normal.y;
+            nz = normal.z;
+            dist = (normal.dot(pointOnPlane));
+            
+        }
+
         public Vector3d getNormal(){
             return new Vector3d(nx, ny, nz);
         }
