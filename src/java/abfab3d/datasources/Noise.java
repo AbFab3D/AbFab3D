@@ -112,7 +112,7 @@ public class Noise extends TransformableDataSource {  // Periodic noise in 3D
     public String getBufferLabel() {
         // TODO: Taking account m_gradients which is not part of params is klunky
         String st = BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparam);
-        if (m_gradients != null) m_gradients.toString();
+        if (m_gradients != null) st += m_gradients.toString();
         return st;
     }
 

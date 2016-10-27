@@ -2,6 +2,7 @@ package abfab3d.shapejs;
 
 import abfab3d.core.Color;
 import abfab3d.core.DataSource;
+import abfab3d.core.MaterialShader;
 import abfab3d.param.BaseParameterizable;
 
 /**

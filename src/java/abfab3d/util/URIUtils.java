@@ -27,6 +27,8 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class URIUtils {
+    private static final boolean DEBUG = false;
+
     public static String downloadURI(String paramName, String urlStr) throws URISyntaxException, IOException {
         String workingDirPath = Files.createTempDirectory("downloadURI").toString();
         return writeUrlToFile(paramName, urlStr, workingDirPath);
@@ -36,9 +38,11 @@ public class URIUtils {
         // Convert to a URI to encode any special characters
         URL yourl = new URL(urlStr);
         URI uri = new URI(yourl.getProtocol(), yourl.getUserInfo(), yourl.getHost(), yourl.getPort(), yourl.getPath(), yourl.getQuery(), yourl.getRef());
+        if (DEBUG) printf("Write url to file.  urlStr: %s  convUrl: %s  %s: uri\n",urlStr,yourl,uri);
 
 
         String filename = getFileName(paramName, uri);
+        if (DEBUG) printf("file is: %s\n",filename);
         File file = new File(destDir + "/" + filename);
         int retries = 0;
         int max_retries = 3;

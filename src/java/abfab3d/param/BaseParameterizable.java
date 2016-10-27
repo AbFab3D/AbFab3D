@@ -13,6 +13,7 @@ package abfab3d.param;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
@@ -23,7 +24,6 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class BaseParameterizable implements Parameterizable, SNode {
-
     protected Map<String, Parameter> params = new LinkedHashMap<String,Parameter>();
 
     /**
@@ -178,6 +178,27 @@ public class BaseParameterizable implements Parameterizable, SNode {
         }
 
         sb.append(add);
+        return sb.toString();
+    }
+
+    /**
+     * saves array of parameters into a string
+     * @noRefGuide
+     */
+    public static String getParamString(String name,Set<String> ignore,Parameterizable pnode){
+        StringBuilder sb = new StringBuilder();
+        sb.append(name);
+        sb.append(":");
+
+        Map<String,Parameter> map = pnode.getParamMap();
+        for(Parameter p : map.values()){
+            if (ignore.contains(p.getName())) continue;
+            sb.append(p.getName());
+            sb.append("=\"");
+            String ps = p.getParamString();
+            sb.append(ps);
+            sb.append("\";");
+        }
         return sb.toString();
     }
 

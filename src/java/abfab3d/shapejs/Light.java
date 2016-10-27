@@ -29,7 +29,7 @@ public class Light extends BaseParameterizable {
     private DoubleParameter mp_ambientIntensity = new DoubleParameter("ambientIntensity","Ambient light", 0);
     private BooleanParameter mp_castShadows = new BooleanParameter("castShadows","CastShadows",false);
     private IntParameter mp_samples = new IntParameter("samples","Samples", 1);
-    private DoubleParameter mp_radius = new DoubleParameter("radius","Radius", 1);
+    private DoubleParameter mp_radius = new DoubleParameter("radius","Radius", 0);
     private BooleanParameter mp_fixedPosition = new BooleanParameter("fixedPosition","Do not move with camera",false);
 
     private Parameter m_aparam[] = new Parameter[]{

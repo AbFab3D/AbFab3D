@@ -11,6 +11,7 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
+import abfab3d.core.Material;
 import abfab3d.io.input.URIMapper;
 import abfab3d.util.URIUtils;
 import abfab3d.param.Parameter;
@@ -24,9 +25,7 @@ import com.google.common.cache.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -71,6 +70,7 @@ public class ScriptManager {
         aMap.put("urn:shapeways:stockImage:allblack", IMAGES_DIR + "/allblack.jpg");
         aMap.put("urn:shapeways:stockImage:allwhite", IMAGES_DIR + "/allwhite.jpg");
         aMap.put("urn:shapeways:stockImage:gradient", IMAGES_DIR + "/gradient.jpg");
+        aMap.put("urn:shapeways:stockImage:envmap_rays", IMAGES_DIR + "/envmap_rays.png");
         aMap.put("urn:shapeways:stockModel:smallbox", MODELS_DIR + "/box_10mm.x3db");
         aMap.put("urn:shapeways:stockModel:box", MODELS_DIR + "/box_20mm.x3db");
         aMap.put("urn:shapeways:stockModel:smallsphere", MODELS_DIR + "/sphere_10mm.x3db");
@@ -332,7 +332,7 @@ public class ScriptManager {
 
                 if (result != null && result.getScene() != null) {
                     if (matSt.equals("None")) {
-                        result.getScene().setMaterial(0,new DefaultMaterial());
+                        result.getScene().setMaterial(0,DefaultMaterial.getInstance());
                         result.getScene().setLightingRig(Scene.LightingRig.THREE_POINT_COLORED);
                     } else if (matMapper != null) {
                         Material rm = matMapper.getImplementation(matSt);
@@ -406,6 +406,7 @@ public class ScriptManager {
 
                     String localPath = null;
 
+                    // TODO: We should really be parsing the URI into components instead of using starts and ends with
 //                	System.out.println("*** uri, " + key + " : " + urlStr);
                     if (urlStr.startsWith("http://") || urlStr.startsWith("https://")) {
                         if (workingDirName == null) {
@@ -415,11 +416,12 @@ public class ScriptManager {
                         localPath = URIUtils.writeUrlToFile(key, urlStr, workingDirPath);
                         if (localPath == null) {
                             printf("Could not save url.  key: %s  url: %s  dir: %s\n",key,urlStr,workingDirPath);
+                            throw new IllegalArgumentException("Could not resolve uri: %s to disk: " + urlStr);
                         }
 
                         // TODO: This handles a case with portal needing to write base64 file data to a
                         // .base64 file. Will want to rethink this in the future.
-                        if (urlStr.endsWith(BASE64_FILE_EXTENSION)) {
+                        if (localPath.endsWith(BASE64_FILE_EXTENSION)) {
                         	String base64 = FileUtils.readFileToString(new File(localPath), "UTF-8");
 
                             if (base64 == null || base64.length() == 0) {
@@ -454,7 +456,7 @@ public class ScriptManager {
                     }
 
                     // Do not cache data URI
-                    if (localPath != null && !urlStr.startsWith("data:") && !urlStr.endsWith(BASE64_FILE_EXTENSION)) {
+                    if (localPath != null && !urlStr.startsWith("data:") && !localPath.endsWith(BASE64_FILE_EXTENSION)) {
                         ShapeJSGlobal.mapURLToFile(urlStr, localPath);
                     }
 

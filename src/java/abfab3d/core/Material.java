@@ -1,13 +1,11 @@
-package abfab3d.shapejs;
-
-import abfab3d.param.Parameterizable;
+package abfab3d.core;
 
 /**
  * A physical printing material
  *
  * @author Alan Hudson
  */
-public interface Material extends Parameterizable {
+public interface Material {
     /**
      * Get a shader for rendering
      * @return

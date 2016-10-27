@@ -10,17 +10,14 @@
  *
  ****************************************************************************/
 
-package abfab3d.shapejs;
-
-import abfab3d.param.Parameterizable;
-import abfab3d.core.DataSource;
+package abfab3d.core;
 
 /**
  * Specified material for rendering.  Two params:  source and renderingParams
  *
  * @author Alan Hudson
  */
-public interface MaterialShader extends Parameterizable {
+public interface MaterialShader {
 
     /**
      * Get the rendering source for this content.
@@ -29,5 +26,6 @@ public interface MaterialShader extends Parameterizable {
      */
     public DataSource getRenderingSource(DataSource source);
 
-    public RenderingParams getShaderParams();
+    // TODO: THis should be Parameterizable but its not core
+    public Object getShaderParams();
 }

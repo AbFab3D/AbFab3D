@@ -12,6 +12,7 @@
 package abfab3d.shapejs;
 
 import abfab3d.core.Color;
+import abfab3d.core.Material;
 import abfab3d.param.*;
 import abfab3d.util.Unit;
 
@@ -98,6 +99,7 @@ public class ShapeJSEvaluator {
     private static HashSet<String> errorFields;
 
     private static final HashSet<String> restrictedPackages;
+    private static MaterialMapper matMapper;
 
     static {
 
@@ -114,7 +116,7 @@ public class ShapeJSEvaluator {
         // Create imports
 
         defaultParams = new HashMap<String,Parameter>();
-        EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None","WSF","Stainless","Premium Silver","14K Gold","18K Gold","Ceramics","WSFP","White"},"None");
+        EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None"},"None");
         matParam.setLabel("Material");
         matParam.setOnChange("main");
         defaultParams.put("material",matParam);
@@ -169,12 +171,15 @@ public class ShapeJSEvaluator {
 
         classImports.add("abfab3d.shapejs.Scene");
         classImports.add("abfab3d.shapejs.Light");
+        classImports.add("abfab3d.shapejs.Viewpoint");
+        classImports.add("abfab3d.shapejs.Background");
         classImports.add("abfab3d.io.input.ModelLoader");
 
         classImports.add("abfab3d.core.MathUtil");
         classImports.add("abfab3d.core.Color");
         classImports.add("abfab3d.core.Bounds");
         classImports.add("abfab3d.core.Vec");
+        classImports.add("abfab3d.param.Shape");
         classImports.add("abfab3d.util.PointSetArray");
         classImports.add("abfab3d.util.Complex");
         classImports.add("abfab3d.util.ShapeProducer");
@@ -241,6 +246,25 @@ public class ShapeJSEvaluator {
 
         imports = bldr.toString();
         //printf("Initializing Header.  len: %d   imports: %d\n",headerLines,imports.length());
+    }
+
+    public static void setMaterialMapper(MaterialMapper mm) {
+        matMapper = mm;
+
+        EnumParameter matParam = (EnumParameter) defaultParams.get("material");
+        Map<String,Material> mats = mm.getMaterials();
+        String[] ovals = matParam.getValues();
+        String[] nvals = new String[ovals.length + mats.size()];
+
+        for(int i=0; i < ovals.length;i++) {
+            nvals[i] = ovals[i];
+        }
+        int idx = ovals.length;
+        for(Material mat : mats.values()) {
+            nvals[idx++] = mat.getName();
+        }
+
+        matParam.setValues(nvals);
     }
 
     public static void configureSecurity(List<String> pwl, List<String> cwl, List<String> ci, List<String> si) {
