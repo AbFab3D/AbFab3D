@@ -336,10 +336,13 @@ public class ScriptManager {
                         result.getScene().setLightingRig(Scene.LightingRig.THREE_POINT_COLORED);
                     } else if (matMapper != null) {
                         Material rm = matMapper.getImplementation(matSt);
+                        if (rm == null) rm = sr.eval.getImplementation(matSt);
+
                         if (rm != null) {
                             result.getScene().setMaterial(0,rm);
                             result.getScene().setLightingRig(Scene.LightingRig.THREE_POINT);
                         }
+
                     }
                 }
             }
