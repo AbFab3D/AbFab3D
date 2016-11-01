@@ -73,7 +73,7 @@ import static java.lang.Math.sqrt;
  */
 public class Image3D extends TransformableDataSource {
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
     final static boolean DEBUG_VIZ = false;
 
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
