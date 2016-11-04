@@ -41,7 +41,7 @@ import static abfab3d.core.Output.fmt;
  *
  * @author Alan Hudson
  */
-public class ShapeJSEvaluator {
+public class ShapeJSEvaluator implements MaterialMapper {
 
     final static boolean DEBUG = false;
 
@@ -100,6 +100,7 @@ public class ShapeJSEvaluator {
 
     private static final HashSet<String> restrictedPackages;
     private static MaterialMapper matMapper;
+    private static LinkedHashMap<String,Material> materials = new LinkedHashMap<String,Material>();
 
     static {
 
@@ -116,10 +117,14 @@ public class ShapeJSEvaluator {
         // Create imports
 
         defaultParams = new HashMap<String,Parameter>();
-        EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None"},"None");
+        EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None","White"},"None");
         matParam.setLabel("Material");
         matParam.setOnChange("main");
         defaultParams.put("material",matParam);
+
+        materials = new LinkedHashMap<String,Material>();
+        materials.put(WhiteMaterial.getInstance().getName(),WhiteMaterial.getInstance());
+
         setupSecurity();
     }
 
@@ -287,6 +292,16 @@ public class ShapeJSEvaluator {
         initHeader();
 
         securitySetup = true;
+    }
+
+    @Override
+    public Material getImplementation(String mat) {
+        return materials.get(mat);
+    }
+
+    @Override
+    public Map<String, Material> getMaterials() {
+        return materials;
     }
 
     /**
