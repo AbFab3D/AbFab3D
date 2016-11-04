@@ -96,6 +96,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     BooleanParameter mp_useMultiPass = new BooleanParameter("useMultiPass", "use Multi Pass algorithm in distance sweeping",false);
     IntParameter mp_interpolationType = new IntParameter("interpolationType", "0 - box, 1 - linear",INTERPOLATION_LINEAR);
     BooleanParameter mp_useThinLayer = new BooleanParameter("useThinLayer", "use thin layer representation",false);
+    BooleanParameter mp_extendDistance = new BooleanParameter("extendDistance", "whether to extend distance outside of grid",true);
     DoubleParameter mp_thinLayerHalfThickness = new DoubleParameter("thinLayerHalfThickness", "half thickness of thin layer (in voxels)",2.0);
 
     protected long m_maxGridSize = 1000L*1000L*1000L;
@@ -112,7 +113,8 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         mp_surfaceVoxelSize,
         mp_interpolationType,
         mp_useThinLayer,
-        mp_thinLayerHalfThickness
+        mp_thinLayerHalfThickness,
+        mp_extendDistance
     };
 
     
@@ -160,6 +162,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
                                                                         mp_shellHalfThickness.getValue(),
                                                                         false, // preserveZero 
                                                                         mp_useMultiPass.getValue(), 
+                                                                        mp_extendDistance.getValue(),
                                                                         threadCount);
         //TODO
         // handle mutli resolution case 
@@ -254,6 +257,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
                                                                 double shellHalfThickness,
                                                                 boolean preserveZero,
                                                                 boolean useMultiPass, 
+                                                                boolean extendDistance, 
                                                                 int threadCount
                                                                 ){
         long t0 = time();
@@ -321,7 +325,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         
         setInteriorMask(indexGrid, interiorGrid, INTERIOR_MASK, preserveZero);
 
-        return new IndexedDistanceInterpolator(pnts, indexGrid, maxDistance);        
+        return new IndexedDistanceInterpolator(pnts, indexGrid, maxDistance, extendDistance);        
 
     }
 

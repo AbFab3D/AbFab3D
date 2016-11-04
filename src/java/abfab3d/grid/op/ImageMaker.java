@@ -1,4 +1,4 @@
-/* -*- Mode: java; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/******************************************************************************
  *                        Shapeways, Inc Copyright (c) 2012-2014
  *                               Java Source
  *
@@ -23,17 +23,21 @@ import static abfab3d.util.ImageUtil.makeARGB;
 
 
 /**
-   class to render images via PixelRenderer interface 
+   class to render images via DataSource interface 
    
    
  */
 public class ImageMaker {
     
-    protected int m_treadCount = 0;
+    protected int m_threadCount = 0;
 
-    public ImageMaker(){
-        
+    public ImageMaker(){        
     }
+
+    public void setThreadCount(int threadCount){        
+        m_threadCount = threadCount;
+    }
+
 
     /**
        creates and renders in default TYPE_INT_ARGB format 
@@ -51,7 +55,9 @@ public class ImageMaker {
 
     void renderImage(int width, int height, Bounds bounds, DataSource renderer, int [] imageData){
 
-        //TODO make MT 
+        //
+        // TODO make it MT 
+        //
         Vec pnt = new Vec(3);
         Vec data = new Vec(4);
         double du = bounds.getSizeX()/width;

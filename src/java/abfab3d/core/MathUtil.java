@@ -99,7 +99,7 @@ public class MathUtil {
     }
 
     /**
-       distance between 3D points 
+       distance between two 3D points 
     */
     public static final double getDistance(double vx, double vy, double vz, double px, double py, double pz){
         vx -= px;
@@ -1648,6 +1648,14 @@ public class MathUtil {
             return dd + w*blendQuadric(d/w);
         else 
             return dd;
+    }
+
+
+    /**
+       stores double as float into int
+     */
+    public static int floatToInt(double v){
+        return Float.floatToIntBits((float)v);
     }
 
 }

@@ -22,6 +22,7 @@ import abfab3d.core.AttributeGrid;
 import static abfab3d.core.MathUtil.lerp3;
 import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.core.MathUtil.getDistance;
+import static abfab3d.core.MathUtil.floatToInt;
 
 
 /**
@@ -69,7 +70,9 @@ public class IndexedDistanceInterpolator implements DataSource {
     private  double maxDistance;
     // interpolation to use between voxels 
     private  int interpolationType = INTERPOLATION_LINEAR;
-    
+    // extend distance beyond grid 
+    private boolean extendDistance = false;
+
     // optional low res data for calculation of missing data in the grid 
     DataSource lowResData;
     
@@ -82,7 +85,7 @@ public class IndexedDistanceInterpolator implements DataSource {
        pnts[4][] - v cordinates (optional, used for texture or color coord)
        pnts[5][] - w cordinates (optional, used for color coord)        
      */
-    public IndexedDistanceInterpolator(double pnts[][], AttributeGrid indexGrid, double maxDistance){
+    public IndexedDistanceInterpolator(double pnts[][], AttributeGrid indexGrid, double maxDistance, boolean extendDistance){
         
         this.pnts = pnts;
         this.indexGrid = indexGrid;
@@ -106,14 +109,23 @@ public class IndexedDistanceInterpolator implements DataSource {
         this.xmax1 = bounds.xmax - vs2;
         this.ymax1 = bounds.ymax - vs2;
         this.zmax1 = bounds.zmax - vs2;
+
+        this.extendDistance = extendDistance;
         
     }
     
+    public boolean getExtendDistance(){
+
+        return extendDistance; 
+
+    }
     
     public int getDataDimension(){
+
         return m_dataDimension;
 
     }
+
     public int getPointCount(){
 
         return pnts[0].length;
@@ -136,10 +148,62 @@ public class IndexedDistanceInterpolator implements DataSource {
         }
     }
 
+    /**
+       @return index grid
+     */
     public AttributeGrid getIndexGrid(){
         return indexGrid;
     }
 
+    /**
+       @return size of int array to store index grid
+     */
+    public int getIndexDataSize(){
+        return indexGrid.getWidth() * indexGrid.getDepth() * indexGrid.getHeight();
+    }
+
+    /**
+       stores index data into preallocated array
+       data is stored in YXZ order 
+       
+     */
+    public void getIndexData(int indexData[]){
+        
+        int nx = indexGrid.getWidth();
+        int ny = indexGrid.getHeight();
+        int nz = indexGrid.getDepth();
+        int nxz = nx*nz;
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                for(int z = 0; z < nz; z++){
+                    indexData[z + nz*x + nxz * y] = (int)indexGrid.getAttribute(x,y,z);
+                }
+            }
+        }
+
+    }
+
+    /**
+       @return size of array to store coord data 
+     */
+    public int getCoordDataSize(){
+        return m_dataDimension * pnts[0].length;
+    }
+
+    /**
+       stores coord data as floats into prealocated int array 
+       data for each point stored in sequential array elements 
+     */
+    public void getCoordData(int coordData[]){
+
+        int size = pnts[0].length;
+        int dim = m_dataDimension;
+        for(int i = 0; i < size; i++){
+            for(int d = 0; d < dim; d++){               
+                coordData[i*dim + d] = floatToInt(pnts[d][i]);
+            }
+        }
+    }
 
     /**
        method of DataSource interface 
@@ -201,25 +265,34 @@ public class IndexedDistanceInterpolator implements DataSource {
     */
     public int getValueLinear(Vec pnt, Vec data){
         
+        // original point 
         double 
             x = pnt.v[0],
             y = pnt.v[1],
             z = pnt.v[2];
-        
+
+        // clampedPoint inside of bounding box
+        double 
+            xc = clamp(x, xmin1, xmax1),
+            yc = clamp(y, ymin1, ymax1),
+            zc = clamp(z, zmin1, zmax1);
+
+        // point in grid units
         double   
-            gx = (pnt.v[0] - xmin)*scale - HALF,
-            gy = (pnt.v[1] - ymin)*scale  - HALF,
-            gz = (pnt.v[2] - zmin)*scale - HALF;
+            gx = (xc - xmin1)*scale,
+            gy = (yc - ymin1)*scale,
+            gz = (zc - zmin1)*scale;
+        // corner of cell 
         int 
             ix = (int)gx,
             iy = (int)gy,
             iz = (int)gz;
-        
+        // offcet in cell 
         double 
             dx = gx - ix,
             dy = gy - iy,
             dz = gz - iz;
-        
+        // distance values in 8 corner voxels 
         double 
             d000 = distanceToVoxel(ix  , iy,   iz),
             d100 = distanceToVoxel(ix+1, iy,   iz),
@@ -229,8 +302,15 @@ public class IndexedDistanceInterpolator implements DataSource {
             d101 = distanceToVoxel(ix+1, iy,   iz+1),
             d111 = distanceToVoxel(ix+1, iy+1, iz+1),
             d011 = distanceToVoxel(ix  , iy+1, iz+1);
+        // interpolated distance 
+        double dist = lerp3(d000,d100,d010,d110,d001,d101,d011,d111,dx, dy, dz);
         
-        data.v[0] = lerp3(d000,d100,d010,d110,d001,d101,d011,d111,dx, dy, dz);
+        if(extendDistance){
+            // aproximate distance outside of grid calculated as distance to clampedPoint + distance from originalPoint to clampedPoint 
+            dist += getDistance(x,y,z,xc, yc, zc); 
+        }
+
+        data.v[0] = dist;
             
         return ResultCodes.RESULT_OK;
         
@@ -346,9 +426,9 @@ public class IndexedDistanceInterpolator implements DataSource {
             return sign*maxDistance;
         } else {
             // coord of voxel center 
-            double vx = (ix+HALF)*voxelSize + xmin;
-            double vy = (iy+HALF)*voxelSize + ymin;
-            double vz = (iz+HALF)*voxelSize + zmin;            
+            double vx = ix*voxelSize + xmin1;
+            double vy = iy*voxelSize + ymin1;
+            double vz = iz*voxelSize + zmin1;            
             return sign*getDistance(vx,vy,vz, pnts[0][ind],pnts[1][ind],pnts[2][ind]);
         }        
     }        

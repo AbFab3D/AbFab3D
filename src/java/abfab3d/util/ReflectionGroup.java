@@ -181,9 +181,9 @@ public class ReflectionGroup {
             nn.cross(v1, v2);
             nn.normalize();
             
-            nx = nn.x / len;
-            ny = nn.y / len;
-            nz = nn.z / len;
+            nx = nn.x;
+            ny = nn.y;
+            nz = nn.z;
             dist = nn.dot(pnt0); 
             
         }

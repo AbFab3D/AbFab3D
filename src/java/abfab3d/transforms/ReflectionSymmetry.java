@@ -219,6 +219,28 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
     }
 
     /**
+     * makes is defined via 3 points on the plane oriented counter clock wise
+     *
+     * @param pnt0 point in the plane
+     * @param pnt1 point in the plane
+     * @param pnt2 point in the plane
+     */
+    public static ReflectionGroup.SPlane getPlane(Vector3d pnt0,Vector3d pnt1,Vector3d pnt2){
+        return new ReflectionGroup.Plane(pnt0, pnt1, pnt2);
+    }
+
+
+    /**
+     * makes plane defined via external normal and a point on the plane
+     *
+     * @param normal The normal to the plane
+     * @param pointOnPlane the point on the plane
+     */
+    public static ReflectionGroup.SPlane getPlane(Vector3d normal,Vector3d pointOnPlane){
+        return new ReflectionGroup.Plane(normal, pointOnPlane);
+    }
+
+    /**
        makes sphere defined via center and radius
        @param center  sphere center
        @param radius 
