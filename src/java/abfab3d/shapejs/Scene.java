@@ -24,8 +24,13 @@ import abfab3d.datasources.ShapeList;
 import abfab3d.param.Shape;
 import abfab3d.datasources.ImageColorMap;
 import abfab3d.datasources.TransformableDataSource;
+
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameterizable;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.IntParameter;
+import abfab3d.param.Parameter;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,10 +63,6 @@ public class Scene extends BaseParameterizable {
     final public static LightingRig DEFAULT_LIGHTING_RIG = LightingRig.THREE_POINT_COLORED;
 
     protected Bounds m_bounds = DEFAULT_BOUNDS;
-    protected double m_errorFactor = DEFAULT_ERROR_FACTOR;
-    protected double m_smoothingWidth = DEFAULT_SMOOTHING_WIDTH;
-    protected double m_minShellVolume = 0;
-    protected int m_maxPartsCount = DEFAULT_MAX_PARTS_COUNT;
     protected String m_name = "ShapeJS";
     protected SceneLights m_lights = new SceneLights();
 
@@ -76,11 +77,29 @@ public class Scene extends BaseParameterizable {
     protected Camera camera = new SimpleCamera();
     protected boolean m_userSetLights = false;
     protected Background m_background = new Background();
-    protected double m_gradientStep = 0.001;
     protected int m_lastMaterial = 0;
 
     protected MaterialType m_materialType = MaterialType.SINGLE_MATERIAL;
 
+    DoubleParameter mp_gradientStep = new DoubleParameter("gradientStep", "gradient step (in meters)", 0.001);
+    DoubleParameter mp_distanceStepFactor = new DoubleParameter("distanceStepFactor", "relative step size in ray syrface intersection", 0.95);
+    DoubleParameter mp_surfacePrecision = new DoubleParameter("surfacePrecision", "surface precision (in meters)", 1.e-4);
+    DoubleParameter mp_meshErrorFactor = new DoubleParameter("meshErrorFactor", "relative mesh error factor", DEFAULT_ERROR_FACTOR);
+    DoubleParameter mp_meshSmoothingWidth = new DoubleParameter("meshSmoothingWidth", "relative mesh smooting width", DEFAULT_SMOOTHING_WIDTH);
+    DoubleParameter mp_minShellVolume = new DoubleParameter("minShellVolume", "min shell volume to export", 0);
+    IntParameter mp_maxPartsCount = new IntParameter("maxPartsCount", "max parts count to export", DEFAULT_MAX_PARTS_COUNT);
+
+    // local params 
+    protected Parameter m_aparam[] = new Parameter[]{
+        mp_gradientStep,
+        mp_distanceStepFactor,
+        mp_surfacePrecision,
+        mp_meshErrorFactor,
+        mp_meshSmoothingWidth,
+        mp_minShellVolume,
+        mp_maxPartsCount,
+
+    };
     
     public Scene(String name){
         m_name = name;
@@ -349,43 +368,43 @@ public class Scene extends BaseParameterizable {
     }
 
     public void setMeshErrorFactor(double value){
-        m_errorFactor = value;
+        mp_meshErrorFactor.setValue(value);
     }
 
     public double getMeshErrorFactor(){
-        return m_errorFactor;
+        return mp_meshErrorFactor.getValue();
     }
 
     public void setMeshSmoothingWidth(double value){
-        m_smoothingWidth = value;
+        mp_meshSmoothingWidth.setValue(value);
     }
 
     public double getMeshSmoothingWidth(){
-        return m_smoothingWidth;
+        return mp_meshSmoothingWidth.getValue();
     }
 
     public void setGradientStep(double val) {
-        m_gradientStep = val;
+        mp_gradientStep.setValue(val);
     }
 
     public double getGradientStep() {
-        return m_gradientStep;
+        return mp_gradientStep.getValue();
     }
 
     public void setMinShellVolume(double value){
-        m_minShellVolume = value;
+        mp_minShellVolume.setValue(value);
     }
 
     public double getMinShellVolume(){
-        return m_minShellVolume;
+        return mp_minShellVolume.getValue();
     }
 
     public int getMaxPartsCount() {
-        return m_maxPartsCount;
+        return mp_maxPartsCount.getValue();
     }
 
     public void setMaxPartsCount(int maxPartsCount) {
-        m_maxPartsCount = maxPartsCount;
+        mp_maxPartsCount.setValue(maxPartsCount);
     }
 
     /**
@@ -542,6 +561,7 @@ public class Scene extends BaseParameterizable {
         addParams(m_materials.getParams());
         addParams(m_viewpoints.getParams());
         addParams(m_background.getParams());
+        addParams(m_aparam);
     }
 
     public String toString(){
