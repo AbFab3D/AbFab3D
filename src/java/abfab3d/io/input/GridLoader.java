@@ -505,23 +505,34 @@ public class GridLoader {
         double voxelSize = bounds.getVoxelSize();
 
         AttributeGrid grid = (AttributeGrid)m_distRGBGridTemplate.createEmpty(nx, ny, nz, voxelSize, voxelSize);
-        grid.setGridBounds(bounds);
-        int distBits = 8;
-        int colorBits = 8;
-        // distance channel value 0 corresponds to maxOutDIstance
-        // distance channel value FF corresponds to -maxInDIstance
-        // this makes interior of shapes have value FF which is convenient to be used as alpha channel in 32 bit png 
-        GridDataChannel dist = new GridDataChannel(GridDataChannel.DISTANCE,    "dist", distBits,         0, m_maxOutDistance, -m_maxInDistance);
-        GridDataChannel red = new GridDataChannel(GridDataChannel.COLOR_RED,    "red",  colorBits, distBits,               0.,1.);
-        GridDataChannel green = new GridDataChannel(GridDataChannel.COLOR_GREEN,"green",colorBits, distBits +   colorBits, 0.,1.);
-        GridDataChannel blue = new GridDataChannel(GridDataChannel.COLOR_BLUE,  "blue", colorBits, distBits + 2*colorBits, 0.,1.);
-
-        grid.setDataDesc(new GridDataDesc(dist, red, green, blue));
+        grid.setGridBounds(bounds);        
+        if(m_distanceBitCount == 16) {
+            grid.setDataDesc(makeColorDesc(m_maxInDistance, m_maxOutDistance, 16, 5, 6, 5));
+        } else {
+            grid.setDataDesc(makeColorDesc(m_maxInDistance, m_maxOutDistance, 8, 8, 8, 8));
+        }
         
         return grid;
-
+        
     }
 
+    protected GridDataDesc makeColorDesc(double maxInDist, double maxOutDist, int distBits, int redBits, int greenBits, int blueBits) {
+
+        // distance channel value 0 corresponds to maxOutDIstance
+        // distance channel value FF corresponds to -maxInDIstance
+        // in case if (distBits == 8) this makes interior of shapes have value FF which is convenient to be used as alpha channel in 32 bit png
+        int offset = 0;
+        GridDataChannel dist = new GridDataChannel(GridDataChannel.DISTANCE,    "dist", distBits,  offset, maxOutDist, -maxInDist);
+        offset += distBits;
+        GridDataChannel red = new GridDataChannel(GridDataChannel.COLOR_RED,    "red",  redBits,   offset,    0.,1.);
+        offset += redBits;
+        GridDataChannel green = new GridDataChannel(GridDataChannel.COLOR_GREEN,"green",greenBits, offset, 0.,1.);
+        offset += greenBits;
+        GridDataChannel blue = new GridDataChannel(GridDataChannel.COLOR_BLUE,  "blue", blueBits,  offset, 0.,1.);
+
+        return new GridDataDesc(dist, red, green, blue);
+
+    }
 
 
     /**
