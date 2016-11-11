@@ -165,7 +165,6 @@ public class Cone extends TransformableDataSource {
 
         this.m_normalA = -sin(angle);
         this.m_normalO = cos(angle);
-        printf("m_normalA: %7.5f m_normalO: %7.5f\n", m_normalA, m_normalO);
 
         return ResultCodes.RESULT_OK;
     }

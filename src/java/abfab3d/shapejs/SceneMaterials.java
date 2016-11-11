@@ -26,7 +26,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class SceneMaterials extends BaseParameterizable {
-    protected static final int MAX_MATERIALS = 4;
+    public static final int MAX_MATERIALS = 4;
     protected SNodeListParameter mp_materials = new SNodeListParameter("materials");
 
     public SceneMaterials() {

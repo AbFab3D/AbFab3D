@@ -20,15 +20,7 @@ import abfab3d.datasources.AttributeGridSourceWrapper;
 import abfab3d.datasources.ThinLayerDataSource;
 import abfab3d.datasources.DistanceToMeshDataSource;
 
-import abfab3d.param.BaseParameterizable;
-import abfab3d.param.BooleanParameter;
-import abfab3d.param.DoubleParameter;
-import abfab3d.param.IntParameter;
-import abfab3d.param.LongParameter;
-import abfab3d.param.EnumParameter;
-import abfab3d.param.ObjectParameter;
-import abfab3d.param.ParamCache;
-import abfab3d.param.Parameter;
+import abfab3d.param.*;
 import abfab3d.core.MaterialType;
 import abfab3d.util.URIUtils;
 import com.google.common.io.Files;
@@ -426,7 +418,19 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         if (m_vhash != null) return m_vhash;
 
         // TODO: transform should likely be a parameter but need to think through
-        m_vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparam, m_transform == null ? "trans=null" : m_transform.toString());
+        // TODO: we need to get a value hash of trans not its default memory address
+        String trans = null;
+        if (m_transform instanceof ValueHash) {
+            trans = ((ValueHash)m_transform).getParamString();
+        } else {
+            if (m_transform == null) {
+                trans = "null";
+            } else {
+                trans = m_transform.toString();
+            }
+        }
+
+        m_vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparam, m_transform == null ? "trans=null" : "trans=" + trans);
         return m_vhash;
     }
 

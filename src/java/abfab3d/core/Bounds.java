@@ -191,8 +191,19 @@ public class Bounds implements Cloneable {
     public Vector3d getSize(){
         return new Vector3d((xmax-xmin),(ymax-ymin),(zmax-zmin));
     }
+    public void getSize(Vector3d size){
+        size.x = (xmax-xmin);
+        size.y = (ymax-ymin);
+        size.z = (zmax-zmin);
+    }
+
     public Vector3d getCenter(){
         return new Vector3d((xmax+xmin)/2.,(ymax+ymin)/2.,(zmax+zmin)/2.);
+    }
+    public void getCenter(Vector3d center){
+        center.x = (xmax+xmin)/2.;
+        center.y = (ymax+ymin)/2.;
+        center.z = (zmax+zmin)/2.;
     }
 
     /**

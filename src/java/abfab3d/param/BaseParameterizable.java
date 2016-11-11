@@ -199,6 +199,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
             sb.append(ps);
             sb.append("\";");
         }
+
         return sb.toString();
     }
 

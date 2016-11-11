@@ -21,6 +21,7 @@ import abfab3d.core.VecTransform;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeListParameter;
+import abfab3d.param.ValueHash;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.util.Symmetry.toFundamentalDomain;
@@ -32,7 +33,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    
    @author Vladimir Bulatov   
  */
-public class CompositeTransform extends BaseTransform implements VecTransform, Initializable {
+public class CompositeTransform extends BaseTransform implements VecTransform, Initializable, ValueHash {
         
     private VecTransform aTransforms[]; // array of transforms used in calculations 
 
@@ -201,4 +202,23 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
         return ret;
     }
 
+    /**
+     * Implement this as a value
+     * @return
+     */
+    public String getParamString() {
+        StringBuilder sb = new StringBuilder();
+        List list = mp_transforms.getValue();
+        int len = list.size();
+        for(int i=0; i < len; i++) {
+            VecTransform vt = (VecTransform) list.get(i);
+            if (vt instanceof ValueHash) {
+                sb.append(((ValueHash) vt).getParamString());
+            } else {
+                sb.append(vt.toString());
+            }
+        }
+
+        return sb.toString();
+    }
 }  // class CompositeTransform

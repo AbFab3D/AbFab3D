@@ -751,9 +751,6 @@ public class Image3D extends TransformableDataSource {
         m_gradXfactor = m_tilesX*m_imageThickness*m_xfactor/2;
         m_gradYfactor = m_tilesY*m_imageThickness*m_yfactor/2;
 
-        printf("m_imageThickness:%7.5f\n", m_imageThickness);
-        printf("m_baseThickness:%7.5f\n", m_baseThickness);
-        
         return ResultCodes.RESULT_OK;
     }
 
