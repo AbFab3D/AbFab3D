@@ -123,4 +123,13 @@ public class Translation extends BaseTransform implements ValueHash {
 
         return sb.toString();
     }
+    /**
+     * Implement this as a value
+     * @return
+     */
+    public void getParamString(StringBuilder sb) {
+        sb.append("translation=\"");
+        sb.append(mp_trans.getValue().toString());
+        sb.append("\"");
+    }
 } // class Translation

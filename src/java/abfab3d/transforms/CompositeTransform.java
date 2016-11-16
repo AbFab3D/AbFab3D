@@ -221,4 +221,20 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
 
         return sb.toString();
     }
+    /**
+     * Implement this as a value
+     * @return
+     */
+    public void getParamString(StringBuilder sb) {
+        List list = mp_transforms.getValue();
+        int len = list.size();
+        for(int i=0; i < len; i++) {
+            VecTransform vt = (VecTransform) list.get(i);
+            if (vt instanceof ValueHash) {
+                sb.append(((ValueHash) vt).getParamString());
+            } else {
+                sb.append(vt.toString());
+            }
+        }
+    }
 }  // class CompositeTransform

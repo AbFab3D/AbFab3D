@@ -22,8 +22,8 @@ import abfab3d.param.Parameterizable;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeListParameter;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import static abfab3d.core.MathUtil.blendMin;
 
@@ -35,7 +35,7 @@ import static abfab3d.core.MathUtil.blendMin;
  */
 public class ShapeList extends TransformableDataSource implements SNode {
 
-    Vector<Shape> shapes = new Vector<Shape>();
+    ArrayList<Shape> shapes = new ArrayList<Shape>(4);
 
     SNodeListParameter mp_shapes = new SNodeListParameter("shapes", ShapesFactory.getInstance());
 

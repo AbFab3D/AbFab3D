@@ -195,8 +195,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
             if (ignore.contains(p.getName())) continue;
             sb.append(p.getName());
             sb.append("=\"");
-            String ps = p.getParamString();
-            sb.append(ps);
+            p.getParamString(sb);
             sb.append("\";");
         }
 
@@ -216,8 +215,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
         for(Parameter p : map.values()){
             sb.append(p.getName());
             sb.append("=\"");
-            String ps = p.getParamString();
-            sb.append(ps);
+            p.getParamString(sb);
             sb.append("\";");
         }
         return sb.toString();
@@ -246,7 +244,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
             Parameter p = aparam[i];
             sb.append(p.getName());
             sb.append("=\"");
-            sb.append(p.getParamString());
+            p.getParamString(sb);
             sb.append("\";");
         }
         sb.append("]");
@@ -264,7 +262,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
         for(Parameter p : params.values()) {
             sb.append(p.getName());
             sb.append("=\"");
-            sb.append(p.getParamString());
+            p.getParamString(sb);
             sb.append("\";");
         }
         sb.append("]");

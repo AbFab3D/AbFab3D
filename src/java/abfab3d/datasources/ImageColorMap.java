@@ -74,9 +74,13 @@ public class ImageColorMap extends TransformableDataSource {
             mp_repeatZ,
     };
 
+    /** Params which require changes in the underlying image */
+    private Parameter[] imageParams = new Parameter[] {
+            mp_imageSource
+    };
+
     // 
     private ImageColor m_imageData;
-    private String m_savedParamString = "";
 
     /**
      * Creates ImageColorMap from a file
@@ -209,40 +213,52 @@ public class ImageColorMap extends TransformableDataSource {
         // this may be different depending on the image 
         m_channelsCount = 3;
 
-        if (needToPrepareImage()) {
+        String vhash = getParamString(imageParams);
 
+        Object co = ParamCache.getInstance().get(vhash);
+        if (co == null) {
+            long t0 = time();
             int res = prepareImage();
-            if (res != ResultCodes.RESULT_OK) {
-                // something wrong with the image 
+
+            printf("sizeX: %f\n", m_sizeX);
+            printf("sizeY: %f\n", m_sizeY);
+            printf("sizeZ: %f\n", m_sizeZ);
+            printf("originX: %f\n", m_originX);
+            printf("originY: %f\n", m_originY);
+            printf("originZ: %f\n", m_originZ);
+            printf("imageSizeX: %d\n", m_imageSizeX);
+            printf("imageSizeY: %d\n", m_imageSizeY);
+
+            printf("ImageColorMap.prepareImage() time: %d ms\n", (time() - t0));
+
+            if(res != ResultCodes.RESULT_OK){
+                // something wrong with the image
                 throw new IllegalArgumentException("undefined image");
             }
-            saveImageData();
+
+            ParamCache.getInstance().put(vhash, m_imageData);
+
+        } else {
+            m_imageData = (ImageColor) co;
         }
+
+        Vector3d center = (Vector3d) mp_center.getValue();
+        Vector3d size = (Vector3d) mp_size.getValue();
+        m_originX = center.x - size.x / 2;
+        m_originY = center.y - size.y / 2;
+        m_originZ = center.z - size.z / 2;
+        m_sizeX = size.x;
+        m_sizeY = size.y;
+        m_sizeZ = size.z;
+
+        m_imageSizeX = m_imageData.getWidth();
+        m_imageSizeY = m_imageData.getHeight();
+        m_repeatX = mp_repeatX.getValue();
+        m_repeatY = mp_repeatY.getValue();
 
         return ResultCodes.RESULT_OK;
 
     }
-
-    /**
-     checks if params used to generate image have chaned
-     * @noRefGuide
-     */
-    protected boolean needToPrepareImage() {
-        return
-                (m_imageData == null) ||
-                        !m_savedParamString.equals(getParamString(this.getClass().getSimpleName(), m_aparams));
-
-    }
-
-    /**
-     saves params used to generate the image
-     * @noRefGuide
-     */
-    protected void saveImageData() {
-        m_savedParamString = getParamString(m_aparams);
-        if (DEBUG) printf("ImageColorMap.savedParamString:\n%s\n", m_savedParamString);
-    }
-
 
     /**
      * @noRefGuide
@@ -301,30 +317,7 @@ public class ImageColorMap extends TransformableDataSource {
             throw new IllegalArgumentException("Unhandled imageSource: " + imageSource + " class: " + imageSource.getClass());
         }
 
-        Vector3d center = (Vector3d) mp_center.getValue();
-        Vector3d size = (Vector3d) mp_size.getValue();
-        m_originX = center.x - size.x / 2;
-        m_originY = center.y - size.y / 2;
-        m_originZ = center.z - size.z / 2;
-        m_sizeX = size.x;
-        m_sizeY = size.y;
-        m_sizeZ = size.z;
 
-        m_imageSizeX = m_imageData.getWidth();
-        m_imageSizeY = m_imageData.getHeight();
-        m_repeatX = mp_repeatX.getValue();
-        m_repeatY = mp_repeatY.getValue();
-
-        printf("sizeX: %f\n", m_sizeX);
-        printf("sizeY: %f\n", m_sizeY);
-        printf("sizeZ: %f\n", m_sizeZ);
-        printf("originX: %f\n", m_originX);
-        printf("originY: %f\n", m_originY);
-        printf("originZ: %f\n", m_originZ);
-        printf("imageSizeX: %d\n", m_imageSizeX);
-        printf("imageSizeY: %d\n", m_imageSizeY);
-
-        printf("ImageColorMap.prepareImage() time: %d ms\n", (time() - t0));
 
         return ResultCodes.RESULT_OK;
     }

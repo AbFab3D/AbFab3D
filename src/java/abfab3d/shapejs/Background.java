@@ -170,7 +170,9 @@ public class Background extends BaseParameterizable implements Initializable {
     }
 
     public ImageColor getLoadedImage() {
-        if (needToPrepareImage()) initialize();
+        if (needToPrepareImage()) {
+            initialize();
+        }
 
         return m_imageData;
     }
@@ -203,7 +205,8 @@ public class Background extends BaseParameterizable implements Initializable {
      * @noRefGuide
      */
     protected boolean needToPrepareImage() {
-        return (m_imageData == null || mp_imageSource.hasChanged());
+        boolean hc = mp_imageSource.hasChanged();
+        return (m_imageData == null || hc);
     }
 
     /**

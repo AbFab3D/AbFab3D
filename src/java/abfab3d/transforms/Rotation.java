@@ -202,5 +202,16 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
 
         return sb.toString();
     }
+    /**
+     * Implement this as a value
+     * @return
+     */
+    public void getParamString(StringBuilder sb) {
+        sb.append("center=\"");
+        sb.append(mp_center.getValue().toString());
+        sb.append("\";rotation=\"");
+        sb.append(mp_rotation.getValue().toString());
+        sb.append("\"");
+    }
 
 } // class Rotation

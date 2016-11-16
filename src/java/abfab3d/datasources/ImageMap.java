@@ -89,7 +89,7 @@ public class ImageMap extends TransformableDataSource {
     DoubleParameter  mp_blackDisp = new DoubleParameter("blackDisplacement","displacement for black level", 1*MM);
     DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
 
-    Parameter m_aparams[] = new Parameter[]{
+    private final Parameter m_aparams[] = new Parameter[]{
         mp_imageSource, 
         mp_center,
         mp_size,
@@ -102,14 +102,14 @@ public class ImageMap extends TransformableDataSource {
     };
 
     /** Params which require changes in the underlying image */
-    private Parameter[] imageParams;
+    private final Parameter[] imageParams = new Parameter[] {
+            mp_imageSource, mp_size, mp_blurWidth
+    };
 
     // 
     private Grid2D m_imageGrid;
     // converted to get physical value from grid attribute
     protected GridDataChannel m_dataChannel;
-
-    private String m_savedParamString = "";    
 
     /**
      * Creates ImageMap from a file
@@ -133,10 +133,6 @@ public class ImageMap extends TransformableDataSource {
      */
     protected void initParams(){
         super.addParams(m_aparams);
-
-        imageParams = new Parameter[] {
-                mp_imageSource, mp_size, mp_blurWidth
-        };
     }
 
 
@@ -350,8 +346,8 @@ public class ImageMap extends TransformableDataSource {
         m_valueOffset = black;
         m_valueFactor = white - black;
 
+        long t0 = System.currentTimeMillis();
         String vhash = getParamString(imageParams);
-
         Object co = ParamCache.getInstance().get(vhash);
         if (co == null) {
             int res = prepareImage();

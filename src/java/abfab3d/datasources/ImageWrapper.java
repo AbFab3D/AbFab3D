@@ -77,4 +77,11 @@ public class ImageWrapper implements SourceWrapper {
         return source;
     }
 
+    public void getParamString(StringBuilder sb) {
+        if (source == null) {
+            sb.append(toString());
+            return;
+        }
+        sb.append(source);
+    }
 }

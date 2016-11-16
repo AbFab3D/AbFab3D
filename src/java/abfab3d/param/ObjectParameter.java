@@ -55,7 +55,6 @@ public class ObjectParameter extends BaseParameter {
 
     @Override
     public String getParamString() {
-
         if (value instanceof SourceWrapper) {
             return ((SourceWrapper)value).getParamString();
         }
@@ -70,7 +69,31 @@ public class ObjectParameter extends BaseParameter {
             return (String) value;
         }
 
-        //return value.toString();
         return value.getClass().getSimpleName() + "@" + Integer.toHexString(value.hashCode());
     }
+
+    public void getParamString(StringBuilder sb) {
+        if (value instanceof SourceWrapper) {
+            ((SourceWrapper)value).getParamString(sb);
+            return;
+        }
+
+        if (value instanceof ExpensiveInitializable) {
+            ((ExpensiveInitializable)value).getParamString(sb);
+            return;
+        }
+
+        if (value == null) {
+            sb.append("null");
+            return;
+        }
+
+        if (value instanceof String) {
+            sb.append((String) value);
+            return;
+        }
+
+        sb.append(value.getClass().getSimpleName() + "@" + Integer.toHexString(value.hashCode()));
+    }
+
 }
