@@ -12,4 +12,5 @@ public interface SourceWrapper {
     public void setSource(String val);
 
     public String getParamString();
+    public void getParamString(StringBuilder sb);
 }

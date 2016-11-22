@@ -186,6 +186,13 @@ public class GridSourceWrapper extends BaseWrapper implements SourceWrapper {
         if (source == null) return toString();
         return source;
     }
+    public void getParamString(StringBuilder sb) {
+        if (source == null) {
+            sb.append(toString());
+            return;
+        }
+        sb.append(source);
+    }
 
     public Object clone() {
         return super.clone();

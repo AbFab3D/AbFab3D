@@ -441,4 +441,8 @@ public class Text2D extends BaseParameterizable implements ExpensiveInitializabl
         return BaseParameterizable.getParamString("Text2D",getParams());
     }
 
+    public void getParamString(StringBuilder sb) {
+        sb.append(BaseParameterizable.getParamString("Text2D", getParams()));
+    }
+
 }  // class Text2D 

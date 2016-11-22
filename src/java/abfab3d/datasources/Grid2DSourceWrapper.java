@@ -108,4 +108,9 @@ public class Grid2DSourceWrapper implements Grid2D, SourceWrapper {
         if (source == null) return toString();
         return source;
     }
+
+    public void getParamString(StringBuilder sb) {
+        if (source == null) sb.append(toString());
+        sb.append(source);
+    }
 }

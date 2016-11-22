@@ -52,10 +52,10 @@ public class ImageSetup implements Cloneable {
 
     /** How many ray samples for lights */
     public int lightSamples;
-
     public int maxRayBounces;
-
     public RenderingStyle renderingStyle;
+    /** Should we flip the image vertically */
+    public boolean flipImage;
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality,
                       int aa, boolean bumpMaps,
@@ -180,6 +180,10 @@ public class ImageSetup implements Cloneable {
         maxRayBounces = 0;
         this.objTrans = new Matrix4f();
         objTrans.setIdentity();
+    }
+
+    public void setFlipImage(boolean val) {
+        flipImage = val;
     }
 
     /**

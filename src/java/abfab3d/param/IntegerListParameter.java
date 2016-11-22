@@ -103,4 +103,15 @@ public class IntegerListParameter extends ListParameter {
 
         return sb.toString();
     }
+
+    public void getParamString(StringBuilder sb) {
+        sb.append("(");
+        int len = ((List)value).size();
+        for(int i=0; i < len; i++) {
+            IntParameter ip = (IntParameter) ((List)value).get(i);
+            sb.append(ip.getParamString());
+            if (i < len -1 ) sb.append(",");
+        }
+        sb.append(")");
+    }
 }

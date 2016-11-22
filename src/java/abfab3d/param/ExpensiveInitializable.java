@@ -13,4 +13,6 @@ public interface ExpensiveInitializable extends Initializable {
      * @return
      */
     public String getParamString();
+
+    public void getParamString(StringBuilder sb);
 }

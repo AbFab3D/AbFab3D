@@ -13,6 +13,8 @@ package abfab3d.param;
 
 // External Imports
 
+import org.web3d.util.DoubleToString;
+
 import javax.vecmath.Vector3d;
 
 /**
@@ -78,5 +80,38 @@ public class Vector3dParameter extends NumberParameter {
 
     public Vector3dParameter clone() {
         return (Vector3dParameter) super.clone();
+    }
+
+    /**
+     * Get the string value to use for parameter hashes, append value to existing string builder to lower garbage
+     * @return
+     */
+    public void getParamString(StringBuilder sb) {
+        if (value == null) {
+            sb.append("null");
+            return;
+        }
+
+        Vector3d val = (Vector3d) value;
+        DoubleToString.appendFormatted(sb, (Double) val.x, 6);
+        sb.append(",");
+        DoubleToString.appendFormatted(sb, (Double) val.y, 6);
+        sb.append(",");
+        DoubleToString.appendFormatted(sb, (Double) val.z, 6);
+    }
+
+    public String getParamString() {
+        if (value == null) return "null";
+
+        StringBuilder sb = new StringBuilder();
+        Vector3d val = (Vector3d) value;
+
+        DoubleToString.appendFormatted(sb, (Double) val.x, 6);
+        sb.append(",");
+        DoubleToString.appendFormatted(sb, (Double) val.y, 6);
+        sb.append(",");
+        DoubleToString.appendFormatted(sb, (Double) val.z, 6);
+
+        return sb.toString();
     }
 }

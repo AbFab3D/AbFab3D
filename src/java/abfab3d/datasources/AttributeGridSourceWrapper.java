@@ -189,6 +189,14 @@ public class AttributeGridSourceWrapper extends BaseAttributeWrapper implements 
         return source;
     }
 
+    public void getParamString(StringBuilder sb) {
+        if (source == null) {
+            sb.append(toString());
+            return;
+        }
+        sb.append(source);
+    }
+
     public Object clone() {
         return super.clone();
     }

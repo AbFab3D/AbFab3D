@@ -57,9 +57,8 @@ public class IntEditor extends BaseEditor implements ChangeListener {
     private void setSpinnerModel() {
 
         double def_val = m_dparam.getValue();
-        //TODO proper range 
-        double min_val = -100;//m_dparam.getMinRange();
-        double max_val = 100;//m_dparam.getMaxRange();
+        double min_val = m_dparam.getMinRange();
+        double max_val = m_dparam.getMaxRange();
         double step = 1;
         spinnerModel = new SpinnerNumberModel(def_val, min_val, max_val, step);
     }

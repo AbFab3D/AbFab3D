@@ -82,12 +82,15 @@ public class Scene extends BaseParameterizable {
     protected MaterialType m_materialType = MaterialType.SINGLE_MATERIAL;
 
     DoubleParameter mp_gradientStep = new DoubleParameter("gradientStep", "gradient step (in meters)", 0.001);
-    DoubleParameter mp_distanceStepFactor = new DoubleParameter("distanceStepFactor", "relative step size in ray syrface intersection", 0.95);
+    DoubleParameter mp_distanceStepFactor = new DoubleParameter("distanceStepFactor", "relative step size in ray surface intersection", 0.95);
     DoubleParameter mp_surfacePrecision = new DoubleParameter("surfacePrecision", "surface precision (in meters)", 1.e-4);
     DoubleParameter mp_meshErrorFactor = new DoubleParameter("meshErrorFactor", "relative mesh error factor", DEFAULT_ERROR_FACTOR);
     DoubleParameter mp_meshSmoothingWidth = new DoubleParameter("meshSmoothingWidth", "relative mesh smooting width", DEFAULT_SMOOTHING_WIDTH);
     DoubleParameter mp_minShellVolume = new DoubleParameter("minShellVolume", "min shell volume to export", 0);
     IntParameter mp_maxPartsCount = new IntParameter("maxPartsCount", "max parts count to export", DEFAULT_MAX_PARTS_COUNT);
+
+    ShapeList root = new ShapeList();
+    Material mats[] = new Material[SceneMaterials.MAX_MATERIALS];
 
     // local params 
     protected Parameter m_aparam[] = new Parameter[]{
@@ -253,9 +256,16 @@ public class Scene extends BaseParameterizable {
      * @return
      */
     public Parameterizable getRenderingSource(boolean draftMode) {
-        ShapeList root = new ShapeList();
+        if (root == null) {
+            root = new ShapeList();
+        } else {
+            root.clear();
+        }
 
-        Material mats[] = new Material[SceneMaterials.MAX_MATERIALS];
+        for(int i=0; i < mats.length; i++) {
+            mats[i] = null;
+        }
+
         int midx = 0;
         for(Shape shape : m_shapes) {
             Parameterizable p = (Parameterizable) shape.getSource();

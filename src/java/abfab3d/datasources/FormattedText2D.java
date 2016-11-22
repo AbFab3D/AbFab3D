@@ -193,4 +193,8 @@ public class FormattedText2D extends BaseParameterizable implements ExpensiveIni
         return BaseParameterizable.getParamString("Text2D", getParams());
     }
 
+    public void getParamString(StringBuilder sb) {
+        sb.append(BaseParameterizable.getParamString("Text2D", getParams()));
+    }
+
 }  // class Text2D 

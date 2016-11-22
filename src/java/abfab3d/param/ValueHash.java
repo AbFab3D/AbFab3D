@@ -7,4 +7,5 @@ package abfab3d.param;
  */
 public interface ValueHash {
     public String getParamString();
+    public void getParamString(StringBuilder sb);
 }
