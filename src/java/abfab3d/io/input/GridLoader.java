@@ -505,9 +505,13 @@ public class GridLoader {
         double voxelSize = bounds.getVoxelSize();
 
         AttributeGrid grid = (AttributeGrid)m_distRGBGridTemplate.createEmpty(nx, ny, nz, voxelSize, voxelSize);
-        grid.setGridBounds(bounds);        
+        grid.setGridBounds(bounds);  
         if(m_distanceBitCount == 16) {
             grid.setDataDesc(makeColorDesc(m_maxInDistance, m_maxOutDistance, 16, 5, 6, 5));
+        } else if(m_distanceBitCount == 24) {
+            grid.setDataDesc(makeColorDesc(m_maxInDistance, m_maxOutDistance, 24, 3, 3, 2));
+        } else if(m_distanceBitCount == 29) {
+            grid.setDataDesc(makeColorDesc(m_maxInDistance, m_maxOutDistance, 29, 1, 1, 1));
         } else {
             grid.setDataDesc(makeColorDesc(m_maxInDistance, m_maxOutDistance, 8, 8, 8, 8));
         }
@@ -517,6 +521,8 @@ public class GridLoader {
     }
 
     protected GridDataDesc makeColorDesc(double maxInDist, double maxOutDist, int distBits, int redBits, int greenBits, int blueBits) {
+
+        if(DEBUG)printf("makeColorDesc(%d, %d, %d, %d)\n", distBits, redBits, greenBits, blueBits);
 
         // distance channel value 0 corresponds to maxOutDIstance
         // distance channel value FF corresponds to -maxInDIstance

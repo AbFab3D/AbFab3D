@@ -382,7 +382,6 @@ public class ImageMap extends TransformableDataSource {
 
         long t0 = time();
 
-
         Object imageSource = mp_imageSource.getValue();
         if (DEBUG) printf("ImageMap.prepareImage().  source: %s\n",imageSource);
 

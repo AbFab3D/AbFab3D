@@ -224,7 +224,7 @@ public class ImageColorMap extends TransformableDataSource {
     }
 
     /**
-     checks if params used to generate image have chaned
+     checks if params used to generate image have been changed
      * @noRefGuide
      */
     protected boolean needToPrepareImage() {

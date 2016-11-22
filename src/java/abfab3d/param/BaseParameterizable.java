@@ -24,8 +24,9 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class BaseParameterizable implements Parameterizable, SNode {
-    protected Map<String, Parameter> params = new LinkedHashMap<String,Parameter>();
 
+    protected Map<String, Parameter> m_paramMap = new LinkedHashMap<String,Parameter>();
+    protected Parameter m_paramArray[];
     /**
      * Get the parameter definition and value.
      *
@@ -33,7 +34,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * @return The param or IllegalArgumentException if not found
      */
     public Parameter getParam(String param) {
-        Parameter ret = params.get(param);
+        Parameter ret = m_paramMap.get(param);
         if (ret == null) throw new IllegalArgumentException("Cannot find parameter: " + param);
         // we return actual param to be able to modify it VB 
         return ret;
@@ -44,17 +45,24 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * @return The array of parameters
      */
     public Parameter[] getParams() {
-        Parameter[] ret = new Parameter[params.size()];
+        initParamArray();
+        return m_paramArray;
+    }
 
-        int len = params.size();
+    void initParamArray(){
+        
+        if(m_paramArray == null || m_paramArray.length != m_paramMap.size()){
 
-        int idx = 0;
-        for(Parameter p : params.values()) {
-            // we return actual param to be able to modify it VB 
-            ret[idx++] = p;
+            m_paramArray = new Parameter[m_paramMap.size()];        
+            
+            int len = m_paramMap.size();
+            
+            int idx = 0;
+            for(Parameter p : m_paramMap.values()) {
+                // we return actual param to be able to modify it VB 
+                m_paramArray[idx++] = p;
+            }
         }
-
-        return ret;
     }
 
     /**
@@ -62,7 +70,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * @return
      */
     public Map<String,Parameter> getParamMap() {
-        return params;
+        return m_paramMap;
     }
 
     /**
@@ -72,34 +80,40 @@ public class BaseParameterizable implements Parameterizable, SNode {
     public void addParams(Parameter aparam[]){
         for(int i = 0; i < aparam.length; i++){
             String pname = aparam[i].getName();
-            if(params.get(pname) != null){
+            if(m_paramMap.get(pname) != null){
                 throw new RuntimeException(fmt("duplicate param name: %s",pname));
             }
-            params.put(aparam[i].getName(),aparam[i]);
+            m_paramMap.put(aparam[i].getName(),aparam[i]);            
         }        
+        m_paramArray = null;
+        initParamArray();
     }
 
     /**
      adds parameters from the array to the params table
-     @param aparam  - array of parameters to add
+     @param mparam  - map of parameters to add
      */
-    public void addParams(Map<String,Parameter> aparam){
-        params.putAll(aparam);
+    public void addParams(Map<String,Parameter> mparam){
+        m_paramMap.putAll(mparam);
+        m_paramArray = null;
     }
 
     public void addParam(Parameter p) {
-        params.put(p.getName(),p);
+        m_paramMap.put(p.getName(),p);
+        m_paramArray = null;
     }
 
     public void removeParam(String name) {
-        params.remove(name);
+        m_paramMap.remove(name);
+        m_paramArray = null;
     }
 
     /**
        remove all existng params 
      */
     public void clearParams(){
-        params.clear();
+        m_paramMap.clear();
+        m_paramArray = null;
     }
 
     /**
@@ -133,8 +147,12 @@ public class BaseParameterizable implements Parameterizable, SNode {
         return null;
     }
 
+    public String getParamString(){
+        return getParamString(this);
+    }
+
     public String getParamString(Parameterizable pnode){
-        return getParamString(getClass().getSimpleName(),pnode);
+        return getParamString(pnode.getClass().getSimpleName(),pnode);
     }
 
     public String getParamString(Parameter[] aparam){
@@ -292,19 +310,4 @@ public class BaseParameterizable implements Parameterizable, SNode {
         return sb.toString();
     }
 
-    /**
-     * Output the hash and params for toString()
-     * @return
-     */
-    /*
-    // This messes up debug displays as its very large, moved functionality to getParamString
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(super.toString());
-        sb.append(",");
-        sb.append(getParamString(getClass().getSimpleName(),params));
-
-        return sb.toString();
-    }
-    */
 }
