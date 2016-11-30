@@ -12,12 +12,13 @@
 package abfab3d.io.input;
 
 import abfab3d.core.AttributeGrid;
+import abfab3d.core.Bounds;
 import abfab3d.core.GridProducer;
 import abfab3d.core.Initializable;
+import abfab3d.core.LabeledBuffer;
 import abfab3d.core.VecTransform;
 
 import abfab3d.datasources.AttributeGridSourceWrapper;
-import abfab3d.datasources.ThinLayerDataSource;
 import abfab3d.datasources.DistanceToMeshDataSource;
 
 import abfab3d.param.*;
@@ -46,10 +47,11 @@ import static abfab3d.core.Output.printf;
  *
  * @author Alan Hudson
  */
-public class ModelLoader extends BaseParameterizable implements GridProducer {
+public class ModelLoader extends BaseParameterizable implements GridProducer, ExpensiveInitializable {
     private static final boolean DEBUG = true;
+    private static final boolean DEBUG_TIMING = true;
 
-    private static final long MAX_ATRRIBUTED_SIZE = 800l * 800 * 800;
+    private static final long MAX_ATTRIBUTED_SIZE = 800l * 800 * 800;
 
     DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize","size of voxels", 0.1*MM);
     DoubleParameter mp_shellHalfThickness = new DoubleParameter("shellHalfThickness","half thickness of initial shell in voxels", 2.);
@@ -224,8 +226,8 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         m_vhash = null;
 
         if (val) {
-            if (mp_maxGridSize.getValue() > MAX_ATRRIBUTED_SIZE) {
-                mp_maxGridSize.setValue(MAX_ATRRIBUTED_SIZE);
+            if (mp_maxGridSize.getValue() > MAX_ATTRIBUTED_SIZE) {
+                mp_maxGridSize.setValue(MAX_ATTRIBUTED_SIZE);
             }
         }
     }
@@ -260,8 +262,8 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         m_vhash = null;
 
         if (mp_attributeLoading.getValue()) {
-            if (mp_maxGridSize.getValue() > MAX_ATRRIBUTED_SIZE) {
-                mp_maxGridSize.setValue(MAX_ATRRIBUTED_SIZE);
+            if (mp_maxGridSize.getValue() > MAX_ATTRIBUTED_SIZE) {
+                mp_maxGridSize.setValue(MAX_ATTRIBUTED_SIZE);
             }
         }
     }
@@ -317,7 +319,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
        return grid for loaded model 
      */
     public AttributeGrid getGrid() {
-
+        long t0 = System.currentTimeMillis();
         AttributedMesh mesh = null;
         AttributeGrid grid = null;
         AttributedMeshReader reader = null;
@@ -388,14 +390,16 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
         m_materialType = makeMaterialType(dim);
 
-        if (DEBUG) printf("Dim: %d\n",dim);
-
         grid = new AttributeGridSourceWrapper(m_vhash,grid);
         if(mp_useCaching.getValue()){
             printf("Caching file: " + m_vhash);
             ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(grid, mesh, reader,m_materialType));
+
+            LabeledBuffer<double[]> boundsBuffer = new LabeledBuffer<double[]>(m_vhash,grid.getGridBounds().getArray());
+            CPUCache.getInstance().put(boundsBuffer);
         }
 
+        if (DEBUG_TIMING) printf("ModelLoader.getGrid time: %d ms\n",(System.currentTimeMillis() - t0));
         return grid;
     }
 
@@ -408,9 +412,25 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
     }
 
+    public Bounds getGridBounds() {
+        String vhash = getValueHash();
+        CPUCache cache = CPUCache.getInstance();
+
+        LabeledBuffer<double[]> boundsBuffer = cache.get(vhash);
+        if (boundsBuffer == null) {
+            if (DEBUG) printf("***Failed to get getGridBounds via cache\n");
+            // oh well, load the damn thing
+            AttributeGrid grid = getGrid();
+            Bounds ret_val = grid.getGridBounds();
+            return ret_val;
+        } else {
+            Bounds bnds = new Bounds(boundsBuffer.getBuffer());
+            if (DEBUG) printf("***Got getGridBounds via cache: %s\n",bnds);
+            return bnds;
+        }
+    }
 
     public MaterialType getMaterialType() {
-        if (DEBUG) printf("MaterialType: %s\n",m_materialType);
         return m_materialType;
     }
 
@@ -524,5 +544,21 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             this.uri = uri;
             this.filename = filename;
         }
+    }
+
+    /**
+     * Implement this as a value
+     * @return
+     */
+    public String getParamString() {
+        return BaseParameterizable.getParamString("ModelLoader", getParams());
+    }
+
+    public void getParamString(StringBuilder sb) {
+        sb.append(BaseParameterizable.getParamString("ModelLoader", getParams()));
+    }
+    @Override
+    public int initialize() {
+        return 0;
     }
 }

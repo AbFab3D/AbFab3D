@@ -27,21 +27,21 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class URIUtils {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     public static String downloadURI(String paramName, String urlStr) throws URISyntaxException, IOException {
         String workingDirPath = Files.createTempDirectory("downloadURI").toString();
-        return writeUrlToFile(paramName, urlStr, workingDirPath);
+        return writeUrlToFile(paramName, urlStr, workingDirPath, false);
     }
 
-    public static String writeUrlToFile(String paramName, String urlStr, String destDir) throws URISyntaxException, IOException {
+    public static String writeUrlToFile(String paramName, String urlStr, String destDir, boolean fixedNaming) throws URISyntaxException, IOException {
         // Convert to a URI to encode any special characters
         URL yourl = new URL(urlStr);
         URI uri = new URI(yourl.getProtocol(), yourl.getUserInfo(), yourl.getHost(), yourl.getPort(), yourl.getPath(), yourl.getQuery(), yourl.getRef());
         if (DEBUG) printf("Write url to file.  urlStr: %s  convUrl: %s  %s: uri\n",urlStr,yourl,uri);
 
 
-        String filename = getFileName(paramName, uri);
+        String filename = getFileName(paramName, uri, fixedNaming);
         if (DEBUG) printf("file is: %s\n",filename);
         File file = new File(destDir + "/" + filename);
         int retries = 0;
@@ -87,6 +87,31 @@ public class URIUtils {
         }
 
         return null;
+    }
+
+    public static String getUrlFilename(String paramName, String urlStr, String destDir, boolean fixedNaming) throws URISyntaxException, IOException {
+        // Convert to a URI to encode any special characters
+        URL yourl = new URL(urlStr);
+        URI uri = new URI(yourl.getProtocol(), yourl.getUserInfo(), yourl.getHost(), yourl.getPort(), yourl.getPath(), yourl.getQuery(), yourl.getRef());
+        if (DEBUG) printf("Write url to file.  urlStr: %s  convUrl: %s  %s: uri\n",urlStr,yourl,uri);
+
+
+        String filename = getFileName(paramName, uri, fixedNaming);
+        if (DEBUG) printf("file is: %s\n",filename);
+        File file = new File(destDir + "/" + filename);
+
+        if (file.exists()) {
+            // If zip file, copy to tmp dir and unzip
+            // If not zip file, return path as is
+            if (filename.endsWith(".zip")) {
+                return destDir;
+            } else {
+                return file.getAbsolutePath();
+            }
+        } else {
+            printf("Couldn't find file at: %s\n",file.getAbsolutePath());
+            return null;
+        }
     }
 
     public static String writeDataURIToFile(String paramName, String urlStr, String destDir) throws IOException {
@@ -224,7 +249,7 @@ public class URIUtils {
      * @return
      * @throws Exception
      */
-    private static String getFileName(String paramName, URI uri) {
+    private static String getFileName(String paramName, URI uri, boolean fixedNaming) {
         String filename = Paths.get(uri.getPath()).getFileName().toString();
         String ext = FilenameUtils.getExtension(filename);
 
@@ -233,7 +258,11 @@ public class URIUtils {
         }
 
         try {
-            return Files.createTempFile(paramName, ext).getFileName().toString();
+            if (!fixedNaming) {
+                return Files.createTempFile(paramName, ext).getFileName().toString();
+            } else {
+                return filename;
+            }
         } catch(IOException ioe) {
             throw new IllegalStateException("Failed to create temp file for: " + paramName + " ext: " + ext);
         }

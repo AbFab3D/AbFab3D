@@ -229,8 +229,6 @@ public class Text2D extends BaseParameterizable implements ExpensiveInitializabl
 
     public void setSpacing(double val) {
         m_bitmap = null;
-
-        System.out.println("Inside setspacing: " + val + " isNaN: " + Double.isNaN(val));
         mp_spacing.setValue(val);
     }
 

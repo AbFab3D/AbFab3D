@@ -28,6 +28,7 @@ import abfab3d.core.AttributePacker;
 import abfab3d.param.IntParameter;
 import abfab3d.param.ObjectParameter;
 import abfab3d.param.Parameter;
+import abfab3d.param.SourceWrapper;
 
 
 import static abfab3d.core.Output.printf;
@@ -68,6 +69,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     protected int m_interpolationType = INTERPOLATION_LINEAR;
 
 
+    protected boolean m_initialized;
     protected AttributeGrid m_grid;
 
     // packer to pack data into data buffer
@@ -136,7 +138,9 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     }
 
     public DataSourceGrid(GridProducer prod)  {
-        this(prod.getGrid(),null,1);
+        super.addParams(m_aparam);
+
+        mp_grid.setValue(prod);
     }
 
     public void setGrid(AttributeGrid grid){
@@ -144,14 +148,29 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         printf("setGrid(%d x %d x %d) \n", grid.getWidth(), grid.getHeight(), grid.getDepth());
 
         mp_grid.setValue(grid);
-        
-        m_grid = grid;
-        
+    }
+
+    /**
+     * Load the underlying grid
+     */
+    private void loadGrid() {
+        if (m_grid != null) return;
+
+        Object src = mp_grid.getValue();
+
+        if (src instanceof GridProducer) {
+            m_grid = ((GridProducer)src).getGrid();
+        } else if (src instanceof AttributeGrid) {
+            m_grid = (AttributeGrid)src;
+        } else {
+            throw new IllegalArgumentException("Unknown type for Grid source: " + src);
+        }
+
         Bounds bounds = m_grid.getGridBounds();
-        
-        m_nx = grid.getWidth();
-        m_ny = grid.getHeight();
-        m_nz = grid.getDepth();
+
+        m_nx = m_grid.getWidth();
+        m_ny = m_grid.getHeight();
+        m_nz = m_grid.getDepth();
 
         m_nx1 = m_nx-1;
         m_ny1 = m_ny-1;
@@ -163,10 +182,9 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
         m_xscale = m_nx / bounds.getSizeX();
         m_yscale = m_ny / bounds.getSizeY();
-        m_zscale = m_nz / bounds.getSizeZ();        
-            
-    }
+        m_zscale = m_nz / bounds.getSizeZ();
 
+    }
     /**
      * @noRefGuide
      */
@@ -193,7 +211,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
      * @noRefGuide
      * Gets type used for intervoxel interpolation
      */
-    public int getInpolationType() {
+    public int getInterpolationType() {
         return m_interpolationType;
     }
 
@@ -202,6 +220,14 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
      * @return
      */
     public Bounds getGridBounds(){
+        Object src = mp_grid.getValue();
+
+        if (src instanceof GridProducer) {
+            return ((GridProducer) src).getGridBounds();
+        }
+
+        loadGrid();
+
         return m_grid.getGridBounds();
     }
 
@@ -210,6 +236,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
      * @return
      */
     public int getGridWidth(){
+        loadGrid();
+
         return m_nx;
     }
 
@@ -218,6 +246,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
      * @return
      */
     public int getGridHeight(){
+        loadGrid();
+
         return m_ny;
     }
 
@@ -226,6 +256,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
      * @return
      */
     public int getGridDepth(){
+        loadGrid();
+
         return m_nz;
     }
 
@@ -248,9 +280,9 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     //}
     
     public GridDataDesc getGridDataDesc(){
+        loadGrid();
 
         return m_grid.getDataDesc();
-
     }
 
     /**
@@ -258,6 +290,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
        returns buffer data description 
      */
     public GridDataDesc getBufferDataDesc(){
+
+        loadGrid();
 
         //int dds = getGridDataTypeSize();
         GridDataDesc gdd = m_grid.getDataDesc();
@@ -366,6 +400,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
      */
     public void getBuffer(int data[], GridDataDesc bufferDataDesc){
 
+        loadGrid();
+
         AttributePacker packer = bufferDataDesc.getAttributePacker();
         int nx = m_nx;
         int ny = m_ny;
@@ -393,7 +429,9 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
        return grid data as array of bytes packed into array of ints
      */
     protected void getGridDataUByte(int data[], AttributePacker unpacker, AttributePacker packer){
-        
+
+        loadGrid();
+
         if(DEBUG)printf("getGridDataUByte()  packer: %s  unpacker: %s\n",packer,unpacker);
         final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = m_nx*m_nz;
         Vec value = new Vec(MAX_DATA_DIMENSION);
@@ -432,6 +470,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
        return grid data as array of shorts packed into array of ints
      */
      protected void getGridDataUShort(int data[], AttributePacker unpacker, AttributePacker packer){
+         loadGrid();
 
          if(DEBUG)printf("getGridDataUShort()\n");
          final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = m_nx*m_nz;
@@ -461,7 +500,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
        return grid data as array of ints
      */
      protected void getGridDataUInt(int data[], AttributePacker unpacker, AttributePacker packer){
-         
+         loadGrid();
+
          if(DEBUG)printf("getGridDataUInt()\n");
          final int nx = m_nx, ny = m_ny, nz = m_nz, nxz = m_nx*m_nz;
          Vec value = new Vec(MAX_DATA_DIMENSION);
@@ -500,6 +540,18 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         //    m_bufferDataPacker = m_grid.getDataDesc().getAttributePacker();
         //}
         
+        return ResultCodes.RESULT_OK;
+
+    }
+
+    /**
+     * Real initialization when we have too, this uses lazy init.
+     */
+    private void realInitialize() {
+        if (m_initialized) return;
+
+        loadGrid();
+
         GridDataDesc gridDataDesc = m_grid.getDataDesc();
         m_channelsCount = gridDataDesc.size();
         m_dataChannels = new GridDataChannel[m_channelsCount];
@@ -508,10 +560,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
             m_dataChannels[i] = gridDataDesc.getChannel(i);
             if(DEBUG)printf("m_dataChannels[%d]:%s\n",i, m_dataChannels[i]);
         }
-        return ResultCodes.RESULT_OK;
 
     }
-
     /**
      * returns 1 if pnt is inside of grid
      * returns 0 if pont is poutsid eof grid
@@ -519,6 +569,10 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
       @noRefGuide            
      */
     public int getBaseValue(Vec pnt, Vec data) {
+
+        if (!m_initialized) {
+            realInitialize();
+        }
 
         getLinearInterpolatedValue(pnt, data);
 
@@ -623,6 +677,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
        
      */
     public void colorize(){
+
+        loadGrid();
 
         if(DEBUG)printf("DataSourceGrid.colorize()");
         double vs = m_grid.getVoxelSize();

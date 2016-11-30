@@ -25,6 +25,8 @@ import com.google.common.cache.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashMap;
@@ -412,14 +414,46 @@ public class ScriptManager {
                     // TODO: We should really be parsing the URI into components instead of using starts and ends with
 //                	System.out.println("*** uri, " + key + " : " + urlStr);
                     if (urlStr.startsWith("http://") || urlStr.startsWith("https://")) {
-                        if (workingDirName == null) {
-                            workingDirPath = Files.createTempDirectory("downloaduri").toAbsolutePath().toString();
+                        if (urlStr.contains("www.shapeways.com/models/get-base")) {
+                            URL yourl = new URL(urlStr);
+                            // Remove query params
+                            URI uri = new URI(yourl.getProtocol(), yourl.getUserInfo(), yourl.getHost(), yourl.getPort(), yourl.getPath(), "", yourl.getRef());
+
+                            // TODO: this will get cleaned regularly?  not sure what todo here
+                            String basedir = System.getProperty("java.io.tmpdir") + "shapeways";
+                            File f = new File(basedir);
+                            f.mkdirs();
+                            String filename = uri.toString().replaceAll("[:\\\\/*\"?|<>'.;]", "");
+
+                            workingDirPath = basedir + File.separator + filename;
+
+                            f = new File(workingDirPath);
+                            if (f.exists()) {
+                                // already downloaded, assume its all good
+                                localPath = URIUtils.getUrlFilename(key,urlStr,workingDirPath,true);
+                                printf("Found local copy, localPath is: %s\n",localPath);
+                            } else {
+                                printf("Can't find local copy.  url: %s  path: %s\n", urlStr, workingDirPath);
+
+                                long t0 = System.currentTimeMillis();
+                                localPath = URIUtils.writeUrlToFile(key, urlStr, workingDirPath,true);
+                                printf("Download of: %s took: %s ms\n", urlStr, (System.currentTimeMillis() - t0));
+                                if (localPath == null) {
+                                    printf("Could not save url.  key: %s  url: %s  dir: %s\n", key, urlStr, workingDirPath);
+                                    throw new IllegalArgumentException("Could not resolve uri: %s to disk: " + urlStr);
+                                }
+                            }
                         }
 
-                        localPath = URIUtils.writeUrlToFile(key, urlStr, workingDirPath);
                         if (localPath == null) {
-                            printf("Could not save url.  key: %s  url: %s  dir: %s\n",key,urlStr,workingDirPath);
-                            throw new IllegalArgumentException("Could not resolve uri: %s to disk: " + urlStr);
+                            workingDirPath = Files.createTempDirectory("downloaduri").toAbsolutePath().toString();
+                            long t0 = System.currentTimeMillis();
+                            localPath = URIUtils.writeUrlToFile(key, urlStr, workingDirPath,false);
+                            printf("Download of: %s took: %s ms\n", urlStr, (System.currentTimeMillis() - t0));
+                            if (localPath == null) {
+                                printf("Could not save url.  key: %s  url: %s  dir: %s\n", key, urlStr, workingDirPath);
+                                throw new IllegalArgumentException("Could not resolve uri: %s to disk: " + urlStr);
+                            }
                         }
 
                         // TODO: This handles a case with portal needing to write base64 file data to a
