@@ -408,7 +408,7 @@ public class ScriptManager {
                     }
 
                     String localPath = null;
-
+                    boolean cache = false;
                     // TODO: We should really be parsing the URI into components instead of using starts and ends with
 //                	System.out.println("*** uri, " + key + " : " + urlStr);
                     if (urlStr.startsWith("http://") || urlStr.startsWith("https://")) {
@@ -433,6 +433,8 @@ public class ScriptManager {
                                 printf("Failed to parse base64: %s  from file: %s\n",base64,localPath);
                             }
                         	localPath = URIUtils.writeDataURIToFile(key, base64, workingDirPath);
+                        } else {
+                            cache = true;
                         }
                         
                         up.setValue(localPath);
@@ -458,10 +460,15 @@ public class ScriptManager {
                         }
 
                         up.setValue(localPath);
+                        cache = true;
                     }
 
                     // Do not cache data URI
                     if (localPath != null && !urlStr.startsWith("data:") && !localPath.endsWith(BASE64_FILE_EXTENSION)) {
+                        up.setValue(localPath);
+                    }
+
+                    if (cache) {
                         localPath = ShapeJSGlobal.putURL(urlStr, localPath);
                         up.setValue(localPath);
                     }
