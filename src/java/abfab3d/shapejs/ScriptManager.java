@@ -399,7 +399,7 @@ public class ScriptManager {
                         urlStr = uriMapper.mapURI(urlStr);
                     }
 
-                    String file = ShapeJSGlobal.isURLCached(urlStr);
+                    String file = ShapeJSGlobal.getURL(urlStr);
 
                     // If urlStr is in cache, make sure cached file exists
                     if (file != null && (new File(file)).exists()) {
@@ -416,7 +416,9 @@ public class ScriptManager {
                             workingDirPath = Files.createTempDirectory("downloaduri").toAbsolutePath().toString();
                         }
 
+                        long t0 = System.currentTimeMillis();
                         localPath = URIUtils.writeUrlToFile(key, urlStr, workingDirPath);
+                        printf("Downloaded file: %s.  time: %d ms\n",urlStr,(System.currentTimeMillis() - t0));
                         if (localPath == null) {
                             printf("Could not save url.  key: %s  url: %s  dir: %s\n",key,urlStr,workingDirPath);
                             throw new IllegalArgumentException("Could not resolve uri: %s to disk: " + urlStr);
@@ -460,7 +462,8 @@ public class ScriptManager {
 
                     // Do not cache data URI
                     if (localPath != null && !urlStr.startsWith("data:") && !localPath.endsWith(BASE64_FILE_EXTENSION)) {
-                        ShapeJSGlobal.mapURLToFile(urlStr, localPath);
+                        localPath = ShapeJSGlobal.putURL(urlStr, localPath);
+                        up.setValue(localPath);
                     }
 
                 } else if (param.getType() == ParameterType.URI_LIST) {
