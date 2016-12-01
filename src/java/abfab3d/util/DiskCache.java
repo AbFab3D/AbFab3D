@@ -275,9 +275,9 @@ public class DiskCache {
         }
 
         me.path = entry.getAbsolutePath();
-        if (DEBUG) printf("Loaded entry: %s -> %s size: %d\n",me.key,me.path,entry.length());
+        if (DEBUG) printf("Loaded entry: %s -> %s size: %d\n",me.key,me.path,me.size);
         entries.put(me.key, me);
-        currentSize += entry.length();
+        currentSize += me.size;
     }
 
     /**
