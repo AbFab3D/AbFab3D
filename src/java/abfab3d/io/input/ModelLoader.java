@@ -317,85 +317,102 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
        return grid for loaded model 
      */
     public AttributeGrid getGrid() {
-
-        AttributedMesh mesh = null;
         AttributeGrid grid = null;
-        AttributedMeshReader reader = null;
-        if(mp_useCaching.getValue()){
-            String vhash = getValueHash();
-            if (DEBUG) printf("ML.getGrid() Checking cache: %s\n",vhash);
+        try {
+            AttributedMesh mesh = null;
+            AttributedMeshReader reader = null;
+            if (mp_useCaching.getValue()) {
+                String vhash = getValueHash();
+                if (DEBUG) printf("ML.getGrid() Checking cache: %s\n", vhash);
 
-            ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(vhash);
-            if (co != null) {
-                if (DEBUG) printf("Found a cache entry: %s\n",vhash);
-                if (co.grid != null) {
-                    if (DEBUG) printf("Found cached grid: %s\n",getValueHash());
-                    m_materialType = co.materialType;
-                    return co.grid;
-                } else if (co.mesh != null) {
-                    mesh = co.mesh;
-                    reader = co.reader;
-                    printf("Found a mesh cached2, returning\n");
-                    if (reader == null) throw new IllegalArgumentException("reader cannot be null");
-                }
-            } else {
-                if (DEBUG) printf("No cache for grid: %s\n",getValueHash());
-            }
-        }
-
-        GridLoader loader = new GridLoader();
-        loader.setMaxGridSize(mp_maxGridSize.getValue());
-        loader.setMinGridSize(mp_minGridSize.getValue());
-        loader.setDensityBitCount(mp_densityBitCount.getValue());
-        loader.setDistanceBitCount(mp_distanceBitCount.getValue());
-        loader.setPreferredVoxelSize(mp_voxelSize.getValue());
-        loader.setDistanceAlgorithm(mp_distanceAlgorithm.getValue()); 
-        loader.setDensityAlgorithm(mp_densityAlgorithm.getValue());
-        loader.setMaxInDistance(mp_maxInDistance.getValue());
-        loader.setMaxOutDistance(mp_maxOutDistance.getValue());
-        loader.setMargins(mp_margins.getValue());
-        loader.setShellHalfThickness(mp_shellHalfThickness.getValue());
-        loader.setThreadCount(mp_threadCount.getValue());
-        loader.setUseMultiPass(mp_useMultiPass.getValue());
-
-        int dim;
-
-        if (DEBUG) printf("Getting grid: %s  attributed: %b\n",m_path,mp_attributeLoading.getValue());
-        if (mp_attributeLoading.getValue()) {
-            // textured or colored mesh loading 
-            if (mesh != null) {
-                grid = loader.rasterizeAttributedTriangles(mesh, reader.getAttributeCalculator());
-                dim = reader.getDataDimension();
-            } else {
-                reader = new AttributedMeshReader(m_path);
-                reader.setTransform(m_transform);
-                grid = loader.rasterizeAttributedTriangles(reader);
-                dim = reader.getDataDimension();
-            }
-        } else {
-            // plain mesh loading 
-            dim = 3;
-            if (mesh != null) {
-                grid = loader.loadDistanceGrid(mesh);
-            } else {
-                if (m_transform != null) {
-                    grid = loader.loadDistanceGrid(m_path, m_transform);
+                ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(vhash);
+                if (co != null) {
+                    if (DEBUG) printf("Found a cache entry: %s\n", vhash);
+                    if (co.grid != null) {
+                        if (DEBUG) printf("Found cached grid: %s\n", getValueHash());
+                        m_materialType = co.materialType;
+                        return co.grid;
+                    } else if (co.mesh != null) {
+                        mesh = co.mesh;
+                        reader = co.reader;
+                        printf("Found a mesh cached2, returning\n");
+                        if (reader == null) throw new IllegalArgumentException("reader cannot be null");
+                    }
                 } else {
-                    grid = loader.loadDistanceGrid(m_path);
+                    if (DEBUG) printf("No cache for grid: %s\n", getValueHash());
                 }
             }
+
+            GridLoader loader = new GridLoader();
+            loader.setMaxGridSize(mp_maxGridSize.getValue());
+            loader.setMinGridSize(mp_minGridSize.getValue());
+            loader.setDensityBitCount(mp_densityBitCount.getValue());
+            loader.setDistanceBitCount(mp_distanceBitCount.getValue());
+            loader.setPreferredVoxelSize(mp_voxelSize.getValue());
+            loader.setDistanceAlgorithm(mp_distanceAlgorithm.getValue());
+            loader.setDensityAlgorithm(mp_densityAlgorithm.getValue());
+            loader.setMaxInDistance(mp_maxInDistance.getValue());
+            loader.setMaxOutDistance(mp_maxOutDistance.getValue());
+            loader.setMargins(mp_margins.getValue());
+            loader.setShellHalfThickness(mp_shellHalfThickness.getValue());
+            loader.setThreadCount(mp_threadCount.getValue());
+            loader.setUseMultiPass(mp_useMultiPass.getValue());
+
+            int dim;
+
+            if (DEBUG) printf("Getting grid: %s  attributed: %b\n", m_path, mp_attributeLoading.getValue());
+            if (mp_attributeLoading.getValue()) {
+                // textured or colored mesh loading
+                if (mesh != null) {
+                    grid = loader.rasterizeAttributedTriangles(mesh, reader.getAttributeCalculator());
+                    dim = reader.getDataDimension();
+                } else {
+                    reader = new AttributedMeshReader(m_path);
+                    reader.setTransform(m_transform);
+                    grid = loader.rasterizeAttributedTriangles(reader);
+                    dim = reader.getDataDimension();
+                }
+            } else {
+                // plain mesh loading
+                dim = 3;
+                if (mesh != null) {
+                    grid = loader.loadDistanceGrid(mesh);
+                } else {
+                    if (m_transform != null) {
+                        grid = loader.loadDistanceGrid(m_path, m_transform);
+                    } else {
+                        grid = loader.loadDistanceGrid(m_path);
+                    }
+                }
+            }
+
+            m_materialType = makeMaterialType(dim);
+
+            if (DEBUG) printf("Dim: %d\n", dim);
+
+            grid = new AttributeGridSourceWrapper(m_vhash, grid);
+            if (mp_useCaching.getValue()) {
+                printf("Caching file: " + m_vhash);
+                ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(grid, mesh, reader, m_materialType));
+            }
+        } catch (Exception e) {
+            // HACK: Delete cached files in this case
+            // hmm, cant get at ShapeJSGlobal
+
+            String prefix = "urlcache";  // Well known name shared with ShapeJSGlobal
+            if (m_path.contains(prefix)) {
+                // Bad apple, remove it from disk
+                printf("Invalid file, removing from disk, HACK: %s\n",m_path);
+                if (!new File(m_path).delete()) {
+                    printf("Could not delete bad file: %s\n",m_path);
+                }
+
+            }  else {
+                printf("Leaving bad file alone: %s\n",m_path);
+            }
+            throw new IllegalArgumentException("Model file invalid: " + m_path);
+
         }
-
-        m_materialType = makeMaterialType(dim);
-
-        if (DEBUG) printf("Dim: %d\n",dim);
-
-        grid = new AttributeGridSourceWrapper(m_vhash,grid);
-        if(mp_useCaching.getValue()){
-            printf("Caching file: " + m_vhash);
-            ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(grid, mesh, reader,m_materialType));
-        }
-
         return grid;
     }
 

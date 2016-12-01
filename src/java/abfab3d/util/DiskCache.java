@@ -179,9 +179,9 @@ public class DiskCache {
      * @return
      */
     private String addEntry(String key,File path) throws IOException {
-        String filename = convKeyToFilename(key);
 
         if (path.isDirectory()) {
+            String filename = convKeyToFilename(key,null);
             File dest = new File(dir,filename);
             FileUtils.moveDirectory(path,dest);
 
@@ -199,6 +199,7 @@ public class DiskCache {
             CacheEntry.update(meta,ce);
             return ret_val;
         } else {
+            String filename = convKeyToFilename(key,FilenameUtils.getExtension(path.toString()));
             File dest = new File(dir,filename);
 
             if (DEBUG) printf("Moving: %s to: %s\n",path,dest);
@@ -227,7 +228,7 @@ public class DiskCache {
      * @param key
      * @return
      */
-    protected String convKeyToFilename(String key) {
+    protected String convKeyToFilename(String key, String ext) {
         // replace bad directory characters
         String ret_val = key.replaceAll("[ :\\\\/*\"?|<>'.;#$]", "");
 
@@ -238,7 +239,10 @@ public class DiskCache {
         String crcSt = Long.toHexString(crc.getValue());
 
         sb.setLength(0);
-        int len = ret_val.length() + crcSt.length() + 1;
+        int elen = 0;
+        if (ext != null) elen = ext.length() + 1;
+
+        int len = ret_val.length() + crcSt.length() + 1 + elen;
         if (len > MAX_FILENAME_LENGTH) {
             int start = len - MAX_FILENAME_LENGTH;
             ret_val = ret_val.substring(start);
@@ -247,6 +251,10 @@ public class DiskCache {
         sb.append("_");
         sb.append(crcSt);
 
+        if (ext != null) {
+            sb.append(".");
+            sb.append(ext);
+        }
         return sb.toString();
     }
 

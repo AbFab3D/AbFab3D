@@ -44,13 +44,28 @@ public class TestDiskCache extends TestCase {
         DiskCache dc = new DiskCache(dir);
         String key = "http://www.shapeways.com/models/get-base/9999999/9999999.v0.visual_mesh_converter.sh.x3db.zip?token=abdcefghijklmnopqrstuvwxyz1234567890";
 
-        String newKey = dc.convKeyToFilename(key);
+        String newKey = dc.convKeyToFilename(key,null);
 
         printf("newKey: %s\n", newKey);
         assertNotNull("key null", newKey);
 
         printf("Key len: %d\n",newKey.length());
         assertTrue("key len", newKey.length() <= 108);
+    }
+
+    public void testConvKeyToFilenameKeepExt() {
+        DiskCache dc = new DiskCache(dir);
+        String key = "C:\\Users\\giles\\AppData\\Local\\Temp\\downloaduri5690294239212912741\\model8708582718597325402.x3db";
+
+        String newKey = dc.convKeyToFilename(key,"x3db");
+
+        printf("newKey: %s\n", newKey);
+        assertNotNull("key null", newKey);
+
+        printf("Key len: %d\n",newKey.length());
+        assertTrue("key len", newKey.length() <= 108);
+
+        assertTrue("file ending",newKey.endsWith(".x3db"));
     }
 
     public void testAddFile() throws IOException {
