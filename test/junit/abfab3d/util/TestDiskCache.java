@@ -94,6 +94,9 @@ public class TestDiskCache extends TestCase {
 
         assertNotNull("Entry null", rpath);
         assertTrue("File doesnt exist", new File(rpath).exists());
+
+        assertTrue("Size too small",dc.getCurrentSize() >= 10);
+
     }
 
     public void testAddDirectory() throws IOException {
@@ -130,6 +133,9 @@ public class TestDiskCache extends TestCase {
         assertNotNull("Entry null", rpath);
         assertTrue("Not directory", result.isDirectory());
         assertEquals("Needs 2 files", result.listFiles().length, 2);
+
+        printf("Current Size: %d\n", dc.getCurrentSize());
+        assertTrue("Size too small",dc.getCurrentSize() > 20);
     }
 
     public void testMaxSize() throws IOException {

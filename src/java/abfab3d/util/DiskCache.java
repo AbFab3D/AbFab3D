@@ -254,7 +254,7 @@ public class DiskCache {
         sb.append("_");
         sb.append(crcSt);
 
-        if (ext != null) {
+        if (ext != null && ext.length() > 0) {
             sb.append(".");
             sb.append(ext);
         }
@@ -300,6 +300,10 @@ public class DiskCache {
         }
     }
 
+    public long getCurrentSize() {
+        return currentSize;
+    }
+
     static class CacheEntry implements Comparator {
         public long lastAccess;
         public String key;
@@ -318,9 +322,17 @@ public class DiskCache {
                 CacheEntry me = new CacheEntry();
                 me.lastAccess = ((Number) val.get("lastAccess")).longValue();
                 me.key = (String) val.get("key");
-                me.path = f.getAbsolutePath();
+                String metaPath = f.getAbsolutePath();
+                String filePath = null;
+                int idx = metaPath.indexOf(".meta");
+                if (idx > 0) {
+                    filePath = metaPath.substring(0,idx);
+                } else {
+                    filePath = metaPath;
+                }
 
-                File df = new File(me.path);
+                printf("checking filepath: %s\n",filePath);
+                File df = new File(filePath);
                 if (!df.isDirectory()) {
                     me.size = df.length();
                 } else {
