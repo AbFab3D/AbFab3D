@@ -113,6 +113,9 @@ public class DiskCache {
 
         CacheEntry me = entries.get(key);
         if (me != null) {
+            File f = new File(me.path);
+            if (!f.exists()) return null;
+
             updateAccessTime(me);
             return me.path;
         }
