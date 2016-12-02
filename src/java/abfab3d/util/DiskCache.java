@@ -255,7 +255,7 @@ public class DiskCache {
      */
     protected String convKeyToFilename(String key, String ext) {
         // replace bad directory characters
-        String ret_val = key.replaceAll("[ :\\\\/*\"?|<>'.;#$]", "");
+        String ret_val = key.replaceAll("[ :\\\\/*\"?|<>'.;#$=]", "");
 
         // Add a crc to insure uniqueness
         crc.reset();
