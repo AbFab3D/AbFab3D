@@ -129,6 +129,8 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     }
 
     public void setSource(String uri) {
+        if (uri == null) throw new IllegalArgumentException("Source cannot be null");
+
         String path = null;
         m_vhash = null;
 
@@ -147,7 +149,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
                 if (DEBUG) printf("Found cached file for: %s its: %s\n", uri, uri);
                 File f = new File(m_path);
                 if (f.exists()) {
-                    mp_source.setValue(path);
+                    mp_source.setValue(m_path);
                     return;
                 }
                 if (DEBUG) printf("File gone for url: %s\n", uri);
@@ -176,7 +178,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
                 if (DEBUG) printf("Found cached file for: %s its: %s\n", uri, uri);
                 File f = new File(m_path);
                 if (f.exists()) {
-                    mp_source.setValue(path);
+                    mp_source.setValue(m_path);
                     return;
                 }
                 if (DEBUG) printf("File gone for url: %s\n", uri);

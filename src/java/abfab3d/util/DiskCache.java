@@ -97,8 +97,9 @@ public class DiskCache {
 
         File md = new File(ce.path + ".meta");
         if (!md.delete()) printf("Delete failed: %s\n",md);
+
         File df = new File(ce.path);
-        if (!df.delete()) printf("Delete failed: %s\n",df);
+        FileUtils.deleteQuietly(df);
 
         entries.remove(key);
         currentSize -= ce.size;
