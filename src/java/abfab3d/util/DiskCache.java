@@ -2,6 +2,7 @@ package abfab3d.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -125,7 +126,18 @@ public class DiskCache {
             File f = new File(me.path);
             if (!f.exists()) return null;
 
+            // Update the access time in the entry
             updateAccessTime(me);
+            
+            // Update the access time in the meta file
+            File meta = new File(me.path + ".meta");
+            try {
+            	CacheEntry.update(meta,me);
+            } catch (IOException ioe) {
+            	printf("*** Failed to update last access time in meta file.  File: %s\n", meta.getAbsolutePath());
+            	printf("    Ignoring update of meta file\n");
+            }
+            
             return me.path;
         }
 
