@@ -79,7 +79,11 @@ public class DiskCache {
         } else {
             size = f.length();
         }
-        insureCapacity(size);
+
+        if (!insureCapacity(size)) {
+            // Return the orignal path without storing
+            return path;
+        }
 
         return addEntry(key, f);
     }
@@ -88,12 +92,12 @@ public class DiskCache {
      * Remove an entry
      * @param key
      */
-    public void remove(String key) {
+    public boolean remove(String key) {
         if (DEBUG) printf("Removing: %s\n",key);
 
         CacheEntry ce = entries.get(key);
 
-        if (ce == null) return;
+        if (ce == null) return true;
 
         File md = new File(ce.path + ".meta");
         if (!md.delete()) printf("Delete failed: %s\n",md);
@@ -101,8 +105,12 @@ public class DiskCache {
         File df = new File(ce.path);
         FileUtils.deleteQuietly(df);
 
+        if (df.exists()) return false;
+
         entries.remove(key);
         currentSize -= ce.size;
+
+        return true;
     }
 
     /**
@@ -154,26 +162,27 @@ public class DiskCache {
      * Insure there is capacity for an object
      * @param size
      */
-    private void insureCapacity(long size) {
+    private boolean insureCapacity(long size) {
         printf("Insuring capacity, current size: %d  max: %d req: %d\n",currentSize,maxSize,(currentSize + size));
 
-        if (currentSize + size <= maxSize) return;
+        if (currentSize + size <= maxSize) return true;
 
 
-        printf("Removing entries\n");
         List<Map.Entry<String, CacheEntry>> sorted = new ArrayList(entries.entrySet());
         Collections.sort(sorted, new Comparator<Map.Entry<String, CacheEntry>>() {
             public int compare(Map.Entry<String, CacheEntry> o1, Map.Entry<String, CacheEntry> o2) {
                 return Long.compare(o1.getValue().lastAccess, o2.getValue().lastAccess);
             }
         });
-        printf("Sorted: %s\n",sorted);
 
         for(Map.Entry<String,CacheEntry> entry : sorted) {
             remove(entry.getKey());
 
             if (currentSize + size <= maxSize) break;
         }
+
+        if (currentSize <= maxSize) return true;
+        return false; // Couldnt do it
     }
 
     /**

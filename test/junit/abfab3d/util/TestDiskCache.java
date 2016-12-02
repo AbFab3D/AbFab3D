@@ -191,11 +191,64 @@ public class TestDiskCache extends TestCase {
         String key = "helloworld";
 
         String newPath = dc.put(key, path);
+        assertTrue("file there", new File(newPath).exists());
+        File meta = new File(newPath + ".meta");
+        assertTrue("meta there", meta.exists());
 
         assertNotNull("key kept", dc.get(key));
         dc.remove(key);
 
         assertNull("key removed", dc.get(key));
+        assertFalse("file still there", new File(newPath).exists());
+        assertFalse("meta still there", meta.exists());
     }
+
+    public void testRemoveDirectory() throws IOException {
+        DiskCache dc = new DiskCache(dir);
+        dc.clear();
+
+        String path = Files.createTempDirectory("dirtest").toString();
+        File origFile = new File(path);
+
+        File file1 = new File(path,"file1.x3d");
+        FileOutputStream fos = new FileOutputStream(file1);
+        fos.write("HelloWorld".getBytes());
+        fos.close();
+
+        File file2 = new File(path,"file2.x3db");
+        FileOutputStream fos2 = new FileOutputStream(file2);
+        fos2.write("HelloWorld2".getBytes());
+        fos2.close();
+
+        assertTrue("orig file", origFile.exists());
+        String key = "disktest";
+
+        String newPath = dc.put(key, path);
+
+        assertNotNull("No file returned", newPath);
+
+        File ffile = new File(newPath);
+        assertTrue(ffile.exists());
+        assertFalse(origFile.exists());
+
+        String rpath = dc.get(key);
+        File result = new File(rpath);
+
+        assertNotNull("Entry null", rpath);
+        assertTrue("Not directory", result.isDirectory());
+        assertEquals("Needs 2 files", result.listFiles().length, 2);
+
+        printf("Current Size: %d\n", dc.getCurrentSize());
+        assertTrue("Size too small",dc.getCurrentSize() > 20);
+
+        dc.remove(key);
+
+        File meta = new File(newPath + ".meta");
+        assertNull("key removed", dc.get(key));
+        assertFalse("file still there", new File(newPath).exists());
+        assertFalse("meta still there", meta.exists());
+
+    }
+
 
 }
