@@ -43,7 +43,7 @@ import static abfab3d.core.Output.printf;
 public class MeshRasterizer implements TriangleCollector {
 
     int exceptionCount = 100;
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     // shift to break possible exact symmetry 
     static final double EPSILON_SHIFT = 1.2345e-10;
 
@@ -68,12 +68,16 @@ public class MeshRasterizer implements TriangleCollector {
        @param gridZ depth of grid 
      */
     public MeshRasterizer(Bounds bounds, int gridX, int gridY, int gridZ){
-
+        
+        //int gridX = bounds.getGridWidth();
+        //int gridY = bounds.getGridHeight();
+        //int gridZ = bounds.getGridDepth();
         m_zbuffer = new ZBuffer(gridX, gridY, gridZ);
         
         m_nx = gridX;
         m_ny = gridY;
         m_nz = gridZ;
+        //double ss = 1./bounds.getVoxelSize();
         
         m_sx = gridX/bounds.getSizeX();
         m_sy = gridY/bounds.getSizeY();
@@ -83,12 +87,13 @@ public class MeshRasterizer implements TriangleCollector {
         m_ty = -m_sy*bounds.ymin;
         m_tz = -m_sz*bounds.zmin; 
         
-        // break possble symmetry (dirty hack)
+        // break possible symmetry (dirty hack)
         m_tx += EPSILON_SHIFT;
         if(DEBUG){
             printf("MeshRasterizer()\n");
             printf("grid: [%d %d %d]\n", m_nx, m_ny, m_nz);
-            printf("sx: [%10.7f, %10.7f, %10.7f]\n", m_sx, m_sy, m_sz);
+            printf("bounds: [%10.7f %10.7f;%10.7f %10.7f;%10.7f %10.7f;]\n", bounds.xmin, bounds.xmax, bounds.ymin, bounds.ymax, bounds.zmin, bounds.zmax );
+            printf("scale: [%10.7f, %10.7f, %10.7f]\n", m_sx, m_sy, m_sz);
             printf("tx: [%10.7f, %10.7f, %10.7f]\n", m_tx, m_ty, m_tz);
         }
     }
@@ -97,7 +102,7 @@ public class MeshRasterizer implements TriangleCollector {
 
         this(new Bounds(bounds), gridX, gridY, gridZ);
     }
-
+    
     /**
        set value used for shape interior
      */

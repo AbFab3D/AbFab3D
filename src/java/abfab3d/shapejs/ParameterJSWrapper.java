@@ -12,6 +12,7 @@
 package abfab3d.shapejs;
 
 import abfab3d.param.Parameter;
+import abfab3d.param.Editor;
 import abfab3d.param.ParameterType;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptRuntime;
@@ -43,6 +44,10 @@ public class ParameterJSWrapper extends ScriptableObject implements JSWrapper, P
 
     public Parameter getParameter() {
         return param;
+    }
+
+    public void addEditor(Editor editor){
+        // do nothing 
     }
 
     @Override

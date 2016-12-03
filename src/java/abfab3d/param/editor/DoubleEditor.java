@@ -66,6 +66,13 @@ public class DoubleEditor extends BaseEditor implements ChangeListener {
         step = 0.1 * Units.MM;
         spinnerModel = new SpinnerNumberModel(def_val, min_val, max_val, step);
     }
+
+    /**
+       @override 
+     */
+    public void updateUI(){
+        //TODO 
+    }
     
     public SpinnerModel getModel() {
     	return spinnerModel;

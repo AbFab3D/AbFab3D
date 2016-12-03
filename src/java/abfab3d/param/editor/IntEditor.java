@@ -66,4 +66,11 @@ public class IntEditor extends BaseEditor implements ChangeListener {
     public SpinnerModel getModel() {
     	return spinnerModel;
     }
+
+    /**
+       @Override 
+     */
+    public void updateUI(){
+        //TODO 
+    }
 }

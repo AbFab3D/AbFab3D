@@ -9,15 +9,32 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.param.editor;
+package abfab3d.param;
 
-import abfab3d.param.Parameter;
+import java.awt.Component;
+import java.util.Vector;
+
 
 /**
- * Called when an editor changes a parameter
+ * Editor for a parameter
  *
  * @author Alan Hudson
  */
-public interface ParamChangedListener {
-    public void paramChanged(Parameter param);
+public interface Editor {
+    /**
+     * Get the AWT component for editing this item
+     * @return
+     */
+    public Component getComponent();
+
+    /**
+     * Get notification of any parameter changes from this editor
+     * @param listener
+     */
+    public void addParamChangedListener(ParamChangedListener listener);
+
+    public void addParamChangedListeners(Vector<ParamChangedListener> listeners);
+
+    public void updateUI();
+
 }

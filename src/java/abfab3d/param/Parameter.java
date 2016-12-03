@@ -112,4 +112,11 @@ public interface Parameter extends Cloneable {
      */
     public boolean hasChanged();
 
+
+    /**
+       adds editor to the parameter
+       used to update editor UI in case of param change 
+     */
+    public void addEditor(Editor editor);
+
 }

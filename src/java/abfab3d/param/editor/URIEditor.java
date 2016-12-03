@@ -119,4 +119,12 @@ public class URIEditor extends BaseEditor implements ActionListener {
         return panel;
         
     }
+
+    /**
+       @Override 
+     */
+    public void updateUI(){
+        //TODO 
+    }
+
 }

@@ -61,4 +61,13 @@ public class DefaultEditor extends BaseEditor implements ActionListener {
         return m_textField;
         
     }
+
+
+    /**
+       @Override 
+     */
+    public void updateUI(){
+        //TODO 
+    }
+
 }

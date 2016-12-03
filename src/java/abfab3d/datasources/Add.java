@@ -139,6 +139,7 @@ public class Add extends TransformableDataSource {
     public int initialize(){
 
         super.initialize();
+
         dataSource1 = (DataSource)mp_d1.getValue();
         dataSource2 = (DataSource)mp_d2.getValue();
 

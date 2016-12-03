@@ -239,7 +239,7 @@ public class SNodeListEditor extends BaseEditor {
         }
     }
 
-    protected void updateUI(){
+    public void updateUI(){
 
         updateList();
         // 

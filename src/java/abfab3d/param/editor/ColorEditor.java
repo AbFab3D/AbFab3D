@@ -84,4 +84,13 @@ public class ColorEditor extends BaseEditor implements ActionListener {
         return panel;
         
     }
+
+    /**
+       @Override 
+     */
+    public void updateUI(){
+        //TODO 
+    }
+
+
 }

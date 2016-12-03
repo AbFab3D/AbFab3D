@@ -14,6 +14,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Vector;
 
+import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 
@@ -21,7 +22,8 @@ import static abfab3d.core.Output.printf;
 public class ScrollTextField extends TextField {
     
     private double m_currentIncrement = 0.0001;
-    private String m_currentFormat = "%7.4f";
+    static final int MIN_DIGITS = 6;
+    private String m_currentFormat = "%8.6f";
     double value_down;
     double m_value;
     int y_down, y_old;
@@ -166,10 +168,13 @@ public class ScrollTextField extends TextField {
         
     }
 
-    
+    /**
+       update value from current text 
+     */
     public void updateValue(){
 
-        double newVal = Double.parseDouble(extractNumber());
+        double newVal = clamp(Double.parseDouble(extractNumber()), m_minValue, m_maxValue);
+        
         if (newVal != m_value) {
             m_value = newVal;
             //setText(fmt(m_currentFormat,m_value));
@@ -285,9 +290,10 @@ public class ScrollTextField extends TextField {
         }
         
         m_currentIncrement = delta;
-        int digits = (int)Math.max(0.,-Math.floor(Math.log10(m_currentIncrement)));
+        int digits = (int)Math.max(0.,-Math.floor(Math.log10(m_currentIncrement))) + 1;
+        digits = Math.max(MIN_DIGITS,digits);
         //printf("digits: %d\n", digits);
-
+        // format change creates problems
         m_currentFormat = "%" + (digits+2) + "." + digits+"f";
         
     }

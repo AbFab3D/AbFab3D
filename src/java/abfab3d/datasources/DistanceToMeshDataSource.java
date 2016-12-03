@@ -160,10 +160,10 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         
         super.initialize();
         if(!paramChanged()){
-            if(DEBUG)printf("initialize() - no change\n"); 
+            if(false)printf("initialize() - no change\n"); 
             return ResultCodes.RESULT_OK;
         }
-        if(DEBUG)printf("initialize() - full calculation\n"); 
+        if(DEBUG)printf("DistanceToMeshDataSo.initialize() - full calculation\n"); 
         
         long t0 = time();
         TriangleProducer producer = (TriangleProducer)mp_meshProducer.getValue();
@@ -235,7 +235,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         surfaceBounds.setVoxelSize(svs);
         if((svratio & 1) == 0){ // even ratio
             double shift = svs/2;
-            // shift grid of surface rasterization by half voxel to align centers of surface grid with center of voliume grid
+            // shift grid of surface rasterization by half voxel to align centers of surface grid with center of volume grid
             surfaceBounds.translate(shift,shift,shift);
         }
 
@@ -347,6 +347,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
             voxelSize = Math.pow(gridVolume/m_minGridSize, 1./3);
         }
         gridBounds.setVoxelSize(voxelSize);
+        gridBounds.roundBounds();
         if(DEBUG){
             printf("DistanceToMeshDataSource()  grid:[%d x %d x %d] voxelSize: %7.3f mm\n",ng[0],ng[1],ng[2],voxelSize/MM);
             printf("                      meshBounds: (%s)\n",m_meshBounds);

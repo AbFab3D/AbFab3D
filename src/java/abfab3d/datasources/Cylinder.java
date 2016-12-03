@@ -158,9 +158,9 @@ public class Cylinder extends TransformableDataSource {
       @noRefGuide     
      */
     public int initialize() {
-
-        
+      
         super.initialize();
+
         Vector3d v0 = mp_v0.getValue();
         Vector3d v1 = mp_v1.getValue();
         Vector3d center = new Vector3d();

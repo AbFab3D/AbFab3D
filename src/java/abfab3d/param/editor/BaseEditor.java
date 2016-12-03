@@ -3,6 +3,9 @@ package abfab3d.param.editor;
 import java.util.Vector;
 
 import abfab3d.param.Parameter;
+import abfab3d.param.Editor;
+import abfab3d.param.ParamChangedListener;
+
 import static abfab3d.core.Output.printf;
 
 /**
@@ -17,6 +20,7 @@ public abstract class BaseEditor implements Editor {
 
     public BaseEditor(Parameter param){
         m_param = param;
+        m_param.addEditor(this);
     }
 
     public Vector<ParamChangedListener> getParamChangedListeners(){
@@ -50,4 +54,13 @@ public abstract class BaseEditor implements Editor {
             }
         }
     }
+
+
+    /**
+       upodate UI of this editor 
+     */
+    //public void updateUI();
+        // subclass has to update UI 
+    //} 
+
 }

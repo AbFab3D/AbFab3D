@@ -57,6 +57,7 @@ public class DoubleEditorScroll extends BaseEditor {
         
         m_scroller = new NumberScroller(m_dparam.getValue(),m_dparam.getMinRange(),m_dparam.getMaxRange(),  0.);
         m_scroller.addChangedListener(new NumberChangedListener());
+        updateUI();
         
     }
     
@@ -68,11 +69,19 @@ public class DoubleEditorScroll extends BaseEditor {
     public void setParam(DoubleParameter parameter){
         
         m_dparam = parameter;
-        m_scroller.setValue(m_dparam.getValue().doubleValue());  
-        //TODO update range 
+        updateUI();
         
     }
            
+
+    public void updateUI(){
+
+        //TODO update range 
+        m_scroller.setValue(m_dparam.getValue().doubleValue()); 
+
+    }
+    
+
     /**
        listener of value changed in NumberScroller
      */
