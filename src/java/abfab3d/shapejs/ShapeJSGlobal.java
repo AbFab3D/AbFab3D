@@ -24,6 +24,7 @@ import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.io.input.AttributedMeshReader;
 import abfab3d.io.input.GridLoader;
 import abfab3d.io.input.URIMapper;
+import abfab3d.util.DiskCache;
 import abfab3d.util.URIUtils;
 import abfab3d.io.input.X3DReader;
 import abfab3d.io.input.SVXReader;
@@ -136,8 +137,7 @@ public class ShapeJSGlobal {
     private static LoadingCache<String, ModelDistanceCacheEntry> modelDistanceCache;
     private static ConcurrentHashMap<String, URLToFileCacheEntry> urlToFileCache;
     private static ConcurrentHashMap<String, String> fileToUrlCache;
-
-    private static HashMap<String, Object> sm_dataCache = new HashMap<String, Object>();
+    private static DiskCache urlCache;
 
     // Keep loadURL from being used to attack servers.  Every period number of requests to the same host we back off by delay * requests
     // based on window time
@@ -156,6 +156,8 @@ public class ShapeJSGlobal {
             printf("*** ShapeJSGlobal caching turned off\n");
             new Exception().printStackTrace();
         }
+
+        urlCache = new DiskCache("/var/www/html/urlcache");
     }
 
     public static void addContentHandler(String ext, URLHandler handler) {
@@ -1352,11 +1354,20 @@ public class ShapeJSGlobal {
     }
 
 
+    public static String putURL(String key, String path) throws IOException {
+        return urlCache.put(key, path);
+    }
+
+    public static String getURL(String key) {
+        return urlCache.get(key);
+    }
+
     /**
      * Associate a url with a local filename.
      * @param url
      * @param filename
      */
+    /*
     public static void mapURLToFile(String url, String filename) {
         if (!CACHE_URLS) return;
 
@@ -1366,12 +1377,13 @@ public class ShapeJSGlobal {
         urlToFileCache.put(url, ce);
         fileToUrlCache.put(filename, url);
     }
-
+    */
     /**
      * Is this URL cached already.  If so we won't download it again.
      * @param url
      * @return The local filename or null if not cached
      */
+    /*
     public static String isURLCached(String url) {
         if (url == null) return null;
 
@@ -1380,7 +1392,7 @@ public class ShapeJSGlobal {
         if (ce == null) return null;
         return ce.filename;
     }
-
+    */
     // URL Caching Section
 
 

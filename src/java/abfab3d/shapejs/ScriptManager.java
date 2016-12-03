@@ -399,7 +399,7 @@ public class ScriptManager {
                         urlStr = uriMapper.mapURI(urlStr);
                     }
 
-                    String file = ShapeJSGlobal.isURLCached(urlStr);
+                    String file = ShapeJSGlobal.getURL(urlStr);
 
                     // If urlStr is in cache, make sure cached file exists
                     if (file != null && (new File(file)).exists()) {
@@ -408,7 +408,7 @@ public class ScriptManager {
                     }
 
                     String localPath = null;
-
+                    boolean cache = false;
                     // TODO: We should really be parsing the URI into components instead of using starts and ends with
 //                	System.out.println("*** uri, " + key + " : " + urlStr);
                     if (urlStr.startsWith("http://") || urlStr.startsWith("https://")) {
@@ -416,7 +416,9 @@ public class ScriptManager {
                             workingDirPath = Files.createTempDirectory("downloaduri").toAbsolutePath().toString();
                         }
 
+                        long t0 = System.currentTimeMillis();
                         localPath = URIUtils.writeUrlToFile(key, urlStr, workingDirPath);
+                        printf("Downloaded file: %s.  time: %d ms\n",urlStr,(System.currentTimeMillis() - t0));
                         if (localPath == null) {
                             printf("Could not save url.  key: %s  url: %s  dir: %s\n",key,urlStr,workingDirPath);
                             throw new IllegalArgumentException("Could not resolve uri: %s to disk: " + urlStr);
@@ -431,6 +433,8 @@ public class ScriptManager {
                                 printf("Failed to parse base64: %s  from file: %s\n",base64,localPath);
                             }
                         	localPath = URIUtils.writeDataURIToFile(key, base64, workingDirPath);
+                        } else {
+                            cache = true;
                         }
                         
                         up.setValue(localPath);
@@ -456,11 +460,17 @@ public class ScriptManager {
                         }
 
                         up.setValue(localPath);
+                        cache = true;
                     }
 
                     // Do not cache data URI
                     if (localPath != null && !urlStr.startsWith("data:") && !localPath.endsWith(BASE64_FILE_EXTENSION)) {
-                        ShapeJSGlobal.mapURLToFile(urlStr, localPath);
+                        up.setValue(localPath);
+                    }
+
+                    if (cache) {
+                        localPath = ShapeJSGlobal.putURL(urlStr, localPath);
+                        up.setValue(localPath);
                     }
 
                 } else if (param.getType() == ParameterType.URI_LIST) {
