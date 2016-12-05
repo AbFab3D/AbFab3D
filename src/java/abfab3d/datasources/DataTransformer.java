@@ -20,6 +20,7 @@ import abfab3d.param.SNodeParameter;
 import abfab3d.core.DataSource;
 import abfab3d.core.Initializable;
 import abfab3d.core.Vec;
+import abfab3d.core.VecTransform;
 
 
 /**
@@ -49,6 +50,14 @@ public class DataTransformer extends TransformableDataSource {
     public DataTransformer(DataSource ds) {
         super.addParams(m_aparam);
         mp_source.setValue(ds);
+    }
+
+    public DataTransformer(DataSource ds, VecTransform transform) {
+        super.addParams(m_aparam);
+
+        mp_source.setValue(ds);
+        setTransform(transform);
+
     }
 
     /**
