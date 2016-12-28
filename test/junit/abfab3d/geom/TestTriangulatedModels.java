@@ -139,7 +139,9 @@ public class TestTriangulatedModels extends TestCase {
         
         int n = 10;
 
-        TriangulatedModels.Sphere s = new  TriangulatedModels.Sphere(50*MM, new Vector3d(0,0,0), 10, 0.001*MM);
+        TriangulatedModels.Sphere s = new  TriangulatedModels.Sphere(50*MM, new Vector3d(0,0,0), 10);
+        s.setTolerance(0.001*MM);
+
         s.getTriangles(stl);
 
         stl.close();              

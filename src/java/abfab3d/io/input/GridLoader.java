@@ -424,13 +424,16 @@ public class GridLoader {
      */
     protected Bounds getModelBounds(TriangleProducer triProducer){
 
+        //if(DEBUG)printf("getModelBounds(%s)\n", triProducer);
         long t0 = time();
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         triProducer.getTriangles(bb);
         m_triangleCount = bb.getTriangleCount();
-
-        //if(DEBUG)printf("model read time time: %d ms\n", (time() - t0));
+        if(DEBUG)printf("model triangle count: %d\n", m_triangleCount);
+        if(DEBUG)printf("model read time time: %d ms\n", (time() - t0));
+        if(m_triangleCount <= 0) throw new RuntimeException(fmt("bad mesh triangle count: %d\n", m_triangleCount));
         Bounds modelBounds = bb.getBounds(); 
+        if(DEBUG)printf("modelBounds: %s\n", modelBounds);
         Bounds gridBounds = modelBounds.clone();
         double voxelSize = m_preferredVoxelSize;
 

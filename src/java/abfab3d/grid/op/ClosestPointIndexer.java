@@ -1338,18 +1338,19 @@ public class ClosestPointIndexer {
        pnts[0] - x-coordinates 
        pnts[1] - y-coordinates 
        pnts[2] - z-coordinates 
-       pnts[3] - attribute channel 0
-       pnts[4] - attribute channel 1
+       pnts[3] - texture coord 0
+       pnts[4] - texture coord 1
+       pnts[5] - texture coord 2
        ..............
        @param interiorGrid if not null contain non-zero value for interior voxels. It is used to assign negative distance value to interior voxels 
        @param minDistance  minimal signed distance value to store in the grid. Values smaller than  minDistance are assigned value minDistance.
        @param maxDistance  maximal signed distance value to store in the grid. Voxels with distances larger than maxDistance are
-       @param colorizer optional converter from points attributes into grid channel attributes.
+       @param colorizer optional converter from points texture coordinates into grid data color channels values.
        Particular use case when points attributes contain 2D textre coordinates and they need to be converted into 3D color components. 
        If attributeColorizer is null, identity DataSource is used instead.
 
        @param outGrid output grid which contains calculated attributes 
-       outGrid data description, obtained via outGrid.gridDataDesc() method shall return appropriate GridDataDesc which can be used to convert (distance, att0, att1, att2, ...) 
+       outGrid GridDataDesc, obtained via outGrid.gridDataDesc() shall return appropriate GridDataDesc which can be used to convert (distance, channel0, channel1, channel2, ...) 
        into grid attribute value.              
        
     */
@@ -1442,11 +1443,11 @@ public class ClosestPointIndexer {
                         double coordz = zmin + vs*z;
                         double dist2 = distance2(coordx,coordy,coordz, pntx[ind],pnty[ind],pntz[ind]);
                         double dist = sqrt(dist2);
-                        
+                        // assign data point trexture coordinates of closes point 
                         pntData.v[0] = pntu[ind];
                         pntData.v[1] = pntv[ind];
                         pntData.v[2] = pntw[ind];
-
+                        // calculate color of the closest point using colorizer
                         if (colorizer != null) {
                             colorizer.getDataValue(pntData, colorData);
                         }

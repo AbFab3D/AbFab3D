@@ -26,8 +26,8 @@ import static abfab3d.util.ImageUtil.makeARGB;
 
 
 /**
-   class to render sice of DataSource channel into image 
-      
+   class to render simgle slice of DataSource channel into image 
+   it is mainly used for testing and measurements
  */
 public class SliceMaker {
     

@@ -83,8 +83,8 @@ public class TestTriangleQualityCalculator extends TestCase {
     
     public void testSphereQuality(){
         
-        TriangulatedModels.Sphere s = new  TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 10, 0.01*MM);
-
+        TriangulatedModels.Sphere s = new  TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 10);
+        s.setTolerance(0.01*MM);
         TriangleQualityCalculator tq = new TriangleQualityCalculator(10);
 
         s.getTriangles(tq);
