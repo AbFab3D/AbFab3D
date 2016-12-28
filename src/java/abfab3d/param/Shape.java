@@ -23,13 +23,13 @@ public class Shape extends BaseParameterizable implements Initializable {
     //private MaterialShader m_shader;
     //private int m_id;
     // transformation which is applied to the data point before the calculation of data value
-    //protected VecTransform m_transform = null;
+    protected VecTransform m_transform = null;
 
     protected SNodeParameter mp_source = new SNodeParameter("source");
     protected SNodeParameter mp_material = new SNodeParameter("material");
     protected SNodeParameter mp_shader = new SNodeParameter("shader");
     protected IntParameter mp_id = new IntParameter("id",0);
-    //SNodeListParameter mp_transform = new SNodeListParameter("transform", "Transform");
+    SNodeListParameter mp_transform = new SNodeListParameter("transform", "Transform");
 
 
     Parameter m_aparam[] = new Parameter[]{
@@ -92,7 +92,7 @@ public class Shape extends BaseParameterizable implements Initializable {
      */
     
     public void setTransform(VecTransform transform){
-        //mp_transform.set((Parameterizable)transform);
+        mp_transform.set((Parameterizable)transform);
     }
 
     /**
@@ -101,11 +101,10 @@ public class Shape extends BaseParameterizable implements Initializable {
      */
    
     public VecTransform getTransform() {
-        return null;//m_transform;
+        return m_transform;
     }
 
     public VecTransform makeTransform() {
-        /*
         List list = mp_transform.getValue();
 
         Object tr[] = list.toArray();
@@ -116,8 +115,6 @@ public class Shape extends BaseParameterizable implements Initializable {
         } else {
             throw new IllegalArgumentException("Composite transforms not supported");
         }
-        */
-        return null;
     }
     
     
@@ -127,12 +124,12 @@ public class Shape extends BaseParameterizable implements Initializable {
         if (source instanceof Initializable) {
             ((Initializable)source).initialize();
         }
-        /*
+        
         m_transform = makeTransform();
         if(m_transform != null && m_transform  instanceof Initializable){
             ((Initializable)m_transform).initialize();
         }
-        */
+        
         return ResultCodes.RESULT_OK;
     }
 }
