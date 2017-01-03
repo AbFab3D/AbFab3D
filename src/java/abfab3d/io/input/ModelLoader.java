@@ -308,8 +308,10 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
         reader.getAttTriangles(mesh);
 
         mesh.setDataDimension(reader.getDataDimension());
-
         m_materialType = makeMaterialType(reader.getDataDimension());
+        if(m_materialType != MaterialType.SINGLE_MATERIAL){
+            mesh.setAttributeCalculator(reader.getAttributeCalculator());
+        }
 
         if(mp_useCaching.getValue()){
             ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(null, mesh, reader,m_materialType));
@@ -404,6 +406,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
         }
 
         } catch (Exception e) {
+			e.printStackTrace();
             // HACK: Delete cached files in this case
             // hmm, cant get at ShapeJSGlobal
 
@@ -430,7 +433,12 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
      */
     public DistanceToMeshDataSource getDistanceToMeshDataSource() {
         
-        return new DistanceToMeshDataSource(getMesh()); 
+        if(mp_attributeLoading.getValue()){  
+            AttributedMesh mesh = getMesh();
+            return new DistanceToMeshDataSource(mesh, mesh.getAttributeCalculator()); 
+        } else {
+            return new DistanceToMeshDataSource(getMesh()); 
+        }
 
     }
 

@@ -13,9 +13,12 @@
 package abfab3d.util;
 
 import abfab3d.core.AttributedTriangleCollector;
+import abfab3d.core.TriangleCollector;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.AttributedTriangleProducer;
+
 import abfab3d.core.Bounds;
 import abfab3d.core.MathUtil;
-import abfab3d.core.TriangleCollector;
 import abfab3d.core.Vec;
 
 import javax.vecmath.Vector3d;
@@ -131,5 +134,18 @@ public class BoundingBoxCalculator implements TriangleCollector, AttributedTrian
     public int getTriangleCount() {
         return triCount;
     }
+
+    public static Bounds getBounds(TriangleProducer tProducer){
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        tProducer.getTriangles(bb);
+        return bb.getBounds();
+    }
+
+    public static Bounds getBounds(AttributedTriangleProducer atProducer){
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        atProducer.getAttTriangles(bb);
+        return bb.getBounds();
+    }
+
 }
 

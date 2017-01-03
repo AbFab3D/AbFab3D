@@ -120,10 +120,12 @@ public class DevTestWaveletRasterizer {
     }
     
     public static void testSphere()throws Exception {
+        double tol = 0.001*MM;
+        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(5.05*MM, new Vector3d(0,0,0), 10);
+        source.setTolerance(tol);
+        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(5.*MM, new Vector3d(0,0,0), 10);
+        target.setTolerance(tol);
         
-        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(5.05*MM, new Vector3d(0,0,0), 10, 0.001*MM);
-        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(5.*MM, new Vector3d(0,0,0), 10, 0.001*MM);
-              
         MeshDistance md = new MeshDistance();
         md.setMaxTriangleSize(0.2*MM);
         md.setTriangleSplit(true);

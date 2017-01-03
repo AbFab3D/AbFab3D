@@ -15,6 +15,7 @@ import javax.vecmath.Vector3d;
 
 import abfab3d.core.TriangleProducer;
 import abfab3d.core.AttributedTriangleProducer;
+import abfab3d.core.AttributedTriangleCollector;
 import abfab3d.core.DataSource;
 import abfab3d.core.ResultCodes;
 import abfab3d.core.Vec;
@@ -28,6 +29,7 @@ import abfab3d.util.PointSetCoordArrays;
 import abfab3d.util.MeshRasterizer;
 
 import abfab3d.util.TriangleMeshSurfaceBuilder;
+import abfab3d.util.AttributedTriangleMeshSurfaceBuilder;
 
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.GridMask;
@@ -50,6 +52,7 @@ import static java.lang.Math.min;
 import static java.lang.Math.abs;
 import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.time;
 
 
@@ -71,7 +74,7 @@ import static abfab3d.core.Output.time;
  */
 public class DistanceToMeshDataSource extends TransformableDataSource {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static final double DEFAULT_VOXEL_SIZE = 0.2*MM;
     static final double DEFAULT_SURFACE_VOXEL_SIZE  = 0.5;
     static final double DEFAULT_SHELL_HALF_THICKNESS = 2.6;
@@ -87,6 +90,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     static final double MAX_DISTANCE_UNDEFINED = 1.e10;
     
     ObjectParameter mp_meshProducer = new ObjectParameter("meshProducer", "mesh producer", null);
+    ObjectParameter mp_meshColorizer = new ObjectParameter("meshColorizer", "mesh colorizer", null);
     DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize", "size of rasterization voxel", DEFAULT_VOXEL_SIZE);
     DoubleParameter mp_surfaceVoxelSize = new DoubleParameter("surfaceVoxelSize", "surface voxel size", 1.);
     DoubleParameter mp_margins = new DoubleParameter("margins", "width of margins around model", DEFAULT_VOXEL_SIZE);
@@ -101,9 +105,11 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
     protected long m_maxGridSize = 1000L*1000L*1000L;
     protected long m_minGridSize = 1000L;
+    protected double m_maxDistance;
 
     Parameter[] m_aparams = new Parameter[]{
         mp_meshProducer,
+        mp_meshColorizer,
         mp_voxelSize,
         mp_margins,
         mp_maxDistance, 
@@ -120,11 +126,20 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     protected String m_savedParamString = "";
     protected Bounds m_meshBounds;
     
-    public DistanceToMeshDataSource(TriangleProducer meshProducer){
+    public DistanceToMeshDataSource(Object meshProducer){
 
         super.addParams(m_aparams);
 
         mp_meshProducer.setValue(meshProducer);
+
+    }
+
+    public DistanceToMeshDataSource(Object meshProducer, DataSource colorizer){
+
+        super.addParams(m_aparams);
+
+        mp_meshProducer.setValue(meshProducer);
+        mp_meshColorizer.setValue(colorizer);
 
     }
 
@@ -140,10 +155,9 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
      */
     public Bounds getMeshBounds(){
         
-        TriangleProducer producer = (TriangleProducer)mp_meshProducer.getValue();
-        BoundingBoxCalculator bb = new BoundingBoxCalculator();
-        producer.getTriangles(bb);
-        m_meshBounds = bb.getBounds();
+        if(m_meshBounds == null)
+            initialize();
+            
         return m_meshBounds;
 
     }
@@ -164,19 +178,59 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
             return ResultCodes.RESULT_OK;
         }
         if(DEBUG)printf("DistanceToMeshDataSo.initialize() - full calculation\n"); 
+
         
         long t0 = time();
-        TriangleProducer producer = (TriangleProducer)mp_meshProducer.getValue();
+        Object producer = mp_meshProducer.getValue();
+
+        if(producer instanceof AttributedTriangleProducer){
+            AttributedTriangleProducer atp = (AttributedTriangleProducer)producer;
+            //if(atp.getDataDimension() == 3) 
+            //    return initPlainMesh((TriangleProducer)producer);            
+            //else 
+            return initAttributedMesh((AttributedTriangleProducer)producer);
+        } else if(producer instanceof TriangleProducer){
+            return initPlainMesh((TriangleProducer)producer);            
+        }
+        throw new RuntimeException(fmt("don't know how tro handle mesh %s",producer));
+    }
+
+    protected int initAttributedMesh(AttributedTriangleProducer atProducer){
+
+        if(DEBUG)printf("%s.initAttributedMesh(%s)\n", getClass().getName(),atProducer);
 
         int threadCount = 8;
         // find mesh bounds
-        Bounds gridBounds = calculateGridBounds(producer);
+        Bounds gridBounds = calculateGridBounds(BoundingBoxCalculator.getBounds(atProducer));
         super.setBounds(gridBounds);
 
-        double maxDistance = mp_maxDistance.getValue();
-        if(maxDistance == MAX_DISTANCE_UNDEFINED)         
-            maxDistance = gridBounds.getSizeMax()/2;        
+        if(DEBUG)printf("gridBounds: %s\n", gridBounds);
+        double maxDistance = getMaxDistance(gridBounds);
+        DataSource meshColorizer = (DataSource)mp_meshColorizer.getValue();
+        IndexedDistanceInterpolator distData = makeAttributedDistanceInterpolator(atProducer, meshColorizer,
+                                                                                  gridBounds, maxDistance, 
+                                                                                  mp_surfaceVoxelSize.getValue(), 
+                                                                                  mp_shellHalfThickness.getValue(),
+                                                                                  false, // preserveZero 
+                                                                                  mp_useMultiPass.getValue(), 
+                                                                                  mp_extendDistance.getValue(),
+                                                                                  threadCount);
+        
+        m_distCalc = distData;
+        
+        m_savedParamString = getParamString();
+        
+        return ResultCodes.RESULT_OK;
+        
+    }
 
+    protected int initPlainMesh(TriangleProducer producer){
+
+        int threadCount = 8;
+        // find mesh bounds
+        Bounds gridBounds = calculateGridBounds(BoundingBoxCalculator.getBounds(producer));
+        super.setBounds(gridBounds);
+        double maxDistance = getMaxDistance(gridBounds);
         //TODO - use it 
         int interpolationType = mp_interpolationType.getValue();
         
@@ -202,6 +256,19 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         return !m_savedParamString.equals(getParamString());
         
     }
+
+    /**
+       return max distance from param (if is is undefined return half size dof the bounds) 
+     */
+    protected double getMaxDistance(Bounds bounds){
+        
+        double maxDistance = mp_maxDistance.getValue();
+        if(maxDistance == MAX_DISTANCE_UNDEFINED)         
+            maxDistance = bounds.getSizeMax()/2;        
+        return maxDistance;
+    }
+
+
 
     /**
        creates distance interpolator for given triangle mesh 
@@ -244,7 +311,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         
         surfaceBuilder.initialize();
 
-        // aggregator otf 2 triaangle collectors 
+        // aggregator of 2 triangle collectors 
         TC2 tc2 = new TC2(interiorRasterizer, surfaceBuilder);
         
         // get mesh from producer 
@@ -288,6 +355,110 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
     }
 
+    static IndexedDistanceInterpolator makeAttributedDistanceInterpolator(AttributedTriangleProducer atProducer, 
+                                                                          DataSource meshColorizer,
+                                                                          Bounds gridBounds, 
+                                                                          double maxDistance, 
+                                                                          double surfaceVoxelSize,
+                                                                          double shellHalfThickness,
+                                                                          boolean preserveZero,
+                                                                          boolean useMultiPass, 
+                                                                          boolean extendDistance, 
+                                                                          int threadCount
+                                                                          ){
+        long t0 = time();
+        int gridDim[] = gridBounds.getGridSize();
+        // z-buffer rasterizer to get mesh interior 
+        MeshRasterizer interiorRasterizer = new MeshRasterizer(gridBounds, gridDim[0],gridDim[1],gridDim[2]);
+        interiorRasterizer.setInteriorValue(INTERIOR_VALUE);
+        int dataDimension = atProducer.getDataDimension();
+        if(DEBUG) printf("dataDimension: %d\n", dataDimension);
+        Bounds surfaceBounds = gridBounds.clone();
+        double voxelSize = gridBounds.getVoxelSize();
+
+        // surface voxel ratio = volumeVoxelSize/surfaceVoxelSize
+        int svratio = Math.max(1, (int)Math.round(1./surfaceVoxelSize));
+        // surface voxel size 
+        double svs = gridBounds.getVoxelSize()/svratio;
+        surfaceBounds.setVoxelSize(svs);
+        if((svratio & 1) == 0){ // even ratio
+            double shift = svs/2;
+            // shift grid of surface rasterization by half voxel to align centers of surface grid with center of volume grid
+            surfaceBounds.translate(shift,shift,shift);
+        }
+
+        // triangles rasterizer         
+        AttributedTriangleMeshSurfaceBuilder aSurfaceBuilder = new AttributedTriangleMeshSurfaceBuilder(surfaceBounds);        
+        aSurfaceBuilder.setDataDimension(dataDimension);
+        aSurfaceBuilder.initialize();
+
+        // aggregator of 2 triangle collectors 
+        TC2A tc2a = new TC2A(interiorRasterizer, aSurfaceBuilder);
+        
+        // get mesh from producer 
+        atProducer.getAttTriangles(tc2a);
+        
+        int pcount = aSurfaceBuilder.getPointCount();
+        if(DEBUG)printf("DistanceToMeshDataSource pcount: %d\n", pcount);
+        //int pntsDimension = Math.max(dataDimension,6); 
+        int pntsDimension = 6; //xyz + rgb
+        double pnts[][] = new double[pntsDimension][pcount];
+        aSurfaceBuilder.getPoints(pnts);
+        
+        // builder of shell around rasterized points 
+        PointSetShellBuilder shellBuilder = new PointSetShellBuilder(); 
+        shellBuilder.setShellHalfThickness(shellHalfThickness);
+        shellBuilder.setPoints(new PointSetCoordArrays(pnts[0], pnts[1], pnts[2]));
+        shellBuilder.setShellHalfThickness(shellHalfThickness);
+
+        // create index grid 
+        AttributeGrid indexGrid = createIndexGrid(gridBounds, voxelSize);
+        // thicken surface points into thin layer 
+        shellBuilder.execute(indexGrid);
+
+        // create interior grid 
+        AttributeGrid interiorGrid = new GridMask(gridDim[0],gridDim[1],gridDim[2]);        
+
+        interiorRasterizer.getRaster(interiorGrid);
+        printf("surface building time: %d ms\n", time() - t0);
+
+        double maxDistanceVoxels = maxDistance/voxelSize;       
+        if(maxDistanceVoxels > shellHalfThickness){
+            t0 = time();
+            // spread distances to the whole grid 
+            ClosestPointIndexer.getPointsInGridUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
+            ClosestPointIndexerMT.PI3_MT(pnts[0], pnts[1], pnts[2], maxDistanceVoxels, indexGrid, threadCount, useMultiPass);
+            ClosestPointIndexer.getPointsInWorldUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
+            printf("distance sweeping time: %d ms\n", time() - t0);
+        }
+        
+        setInteriorMask(indexGrid, interiorGrid, INTERIOR_MASK, preserveZero);
+        if(meshColorizer != null){
+            if(DEBUG)printf("(meshColorizer != null) conversion from texture coord to colors\n");
+
+            Vec tex = new Vec(3);
+            Vec color = new Vec(3);            
+            for(int i = 1; i < pcount; i++){
+                switch(dataDimension){
+                case 6: tex.v[2] = pnts[5][i]; // no break here
+                case 5: tex.v[1] = pnts[4][i];
+                case 4: tex.v[0] = pnts[3][i];
+                }
+
+                meshColorizer.getDataValue(tex, color);
+                // store rgb color in place of texture coordinates
+                pnts[5][i] = color.v[2]; // no break here
+                pnts[4][i] = color.v[1];
+                pnts[3][i] = color.v[0];
+            }        
+        } else {
+            if(DEBUG)printf("(meshColorizer == null) leaving texture coordinates as is\n");
+        }
+        
+        return new IndexedDistanceInterpolator(pnts, indexGrid, maxDistance, extendDistance, pntsDimension); 
+
+    }
+
     /**
        set mask bits into attributes of grid if interior grid value != 0
        it is used to store information interior and value info in single grid 
@@ -328,14 +499,12 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     }
     
     
-    protected Bounds calculateGridBounds(TriangleProducer producer){
+    protected Bounds calculateGridBounds(Bounds bounds){
         
-        BoundingBoxCalculator bb = new BoundingBoxCalculator();
-        producer.getTriangles(bb);
-        
+        m_meshBounds = bounds;
+
         double margins = mp_margins.getValue();
         double voxelSize = mp_voxelSize.getValue();
-        m_meshBounds = bb.getBounds(); 
         Bounds gridBounds = m_meshBounds.clone();
         gridBounds.expand(margins);
         int ng[] = gridBounds.getGridSize(voxelSize);
@@ -361,8 +530,9 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
        implementation method of TransformableDataSource 
      */
     public int getBaseValue(Vec pnt, Vec data){
-        
-        m_distCalc.getDataValue(pnt, data);
+
+        if(m_distCalc != null)
+            m_distCalc.getDataValue(pnt, data);
 
         return ResultCodes.RESULT_OK;
     }
@@ -394,6 +564,38 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         }
     } // class TC2 
 
+    // aggregator for TriangleCollector and AttributedTriangleCollector 
+
+    static class TC2A implements AttributedTriangleCollector {
+        
+        TriangleCollector m_tc1;
+        AttributedTriangleCollector m_atc2;
+        
+        // work variables 
+        Vector3d m_p0 = new Vector3d();
+        Vector3d m_p1 = new Vector3d();
+        Vector3d m_p2 = new Vector3d();
+
+        TC2A(TriangleCollector tc1, AttributedTriangleCollector atc2){
+            m_tc1 = tc1;
+            m_atc2 = atc2;            
+        }
+        
+        /**
+           interface of triangle consumer 
+        */
+        public boolean addAttTri(Vec v0,Vec v1,Vec v2){
+            
+            v0.get(m_p0);
+            v1.get(m_p1);
+            v2.get(m_p2);
+
+            m_tc1.addTri(m_p0, m_p1, m_p2); 
+            m_atc2.addAttTri(v0, v1, v2);
+            return true;
+            
+        }
+    } // class TC2A 
 
 
 } // class DistanceToMeshDataSource

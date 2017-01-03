@@ -15,18 +15,43 @@ package abfab3d.util;
 import abfab3d.core.MathUtil;
 
 /**
-   class to calculate color fro given densitry value
+   class to calculate color from given densitry value
    densty is expacted in the range (0,1)
    the density is shown as stripes of changing colors from color0 to color1
-   
+   value 0.0 corresponds to color0
+   value 1.0 corresponds to color1
+   if stripeWidth is supplied the values changes will be shown with stripes of 
+
+
+
+
+    |       /      /       color1
+    |     / |    / |  
+    |   /   |  /   |
+    | /     |/     |       color0  
+    |.......|......|..........................
+      stripe 
+       width 
+
 */
 public class ColorMapperDensity implements ColorMapper {
+
+    static final int COLOR_BLACK = 0xFF000000;
+    static final int COLOR_WHITE = 0xFFFFFFFF;
 
     int m_color0;
     int m_color1;
     double m_stripeWidth;
     
     
+    public ColorMapperDensity(){
+        this(COLOR_BLACK, COLOR_WHITE, 1.);
+    }
+
+    public ColorMapperDensity(int color0, int color1){
+        this(color0, color1, 1.);
+    }
+
     public ColorMapperDensity(int color0, int color1, double stripeWidth){
 
         m_color0 = color0;

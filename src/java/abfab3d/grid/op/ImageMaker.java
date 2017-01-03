@@ -24,12 +24,15 @@ import static abfab3d.util.ImageUtil.makeARGB;
 
 /**
    class to render images via DataSource interface 
-   
-   
+   DataSource returns ARBG values which shall be inside interval [0.,1.] for alpha, red, green, blue values
+   image is rendered in the rectangl in the xy plane via center of the Bounds box 
+   the coordinates domain is divided into imgWidth x imgHeight pixels 
+   data values values are calculated in CENTERS of pixels (usng half pixel shift) 
  */
 public class ImageMaker {
     
     protected int m_threadCount = 0;
+    protected int m_imgType = BufferedImage.TYPE_INT_ARGB;
 
     public ImageMaker(){        
     }
@@ -42,18 +45,18 @@ public class ImageMaker {
     /**
        creates and renders in default TYPE_INT_ARGB format 
      */
-    public BufferedImage renderImage(int width, int height, Bounds bounds, DataSource renderer){
+    public BufferedImage renderImage(int width, int height, Bounds bounds, DataSource imgRenderer){
 
-        BufferedImage image =  new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage image =  new BufferedImage(width, height, m_imgType);
         DataBufferInt db = (DataBufferInt)image.getRaster().getDataBuffer();
         int[] imageData = db.getData();
         
-        renderImage(width, height, bounds, renderer, imageData);
+        renderImage(width, height, bounds, imgRenderer, imageData);
         return image;
 
     }
 
-    void renderImage(int width, int height, Bounds bounds, DataSource renderer, int [] imageData){
+    void renderImage(int width, int height, Bounds bounds, DataSource imgRenderer, int [] imageData){
 
         //
         // TODO make it MT 
@@ -63,7 +66,7 @@ public class ImageMaker {
         double du = bounds.getSizeX()/width;
         double dv = bounds.getSizeY()/height;
 
-        double umin = bounds.xmin + du/2;
+        double umin = bounds.xmin + du/2; // half pixel shift 
         double vmin = bounds.ymin + dv/2;
         double wmin = (bounds.zmin + bounds.zmax)/2;
         
@@ -75,7 +78,7 @@ public class ImageMaker {
                 pnt.v[0] = umin + u*du;
                 pnt.v[1] = vmin + v*dv;
                 pnt.v[2] = wmin;
-                renderer.getDataValue(pnt, data);
+                imgRenderer.getDataValue(pnt, data);
                 imageData[u + width*v] = makeARGB(data.v[0],data.v[1],data.v[2],data.v[3]);
             }
         }

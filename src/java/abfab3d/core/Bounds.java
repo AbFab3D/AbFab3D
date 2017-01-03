@@ -189,7 +189,9 @@ public class Bounds implements Cloneable {
 
 
     public Vector3d getSize(){
-        return new Vector3d((xmax-xmin),(ymax-ymin),(zmax-zmin));
+        Vector3d size = new Vector3d();
+        getSize(size);
+        return size;
     }
     public void getSize(Vector3d size){
         size.x = (xmax-xmin);
@@ -221,6 +223,13 @@ public class Bounds implements Cloneable {
     }
 
     /**
+       @return depth of bounds 
+     */
+    public double getSizeZ(){
+        return (zmax-zmin);
+    }
+
+    /**
      * Returns the minimum width, height or depth
      * @return
      */
@@ -243,12 +252,6 @@ public class Bounds implements Cloneable {
         return Math.max(getSizeX(),getSizeZ());
     }
 
-    /**
-       @return depth of bounds 
-     */
-    public double getSizeZ(){
-        return (zmax-zmin);
-    }
 
     /**
        @return  center x
@@ -419,7 +422,7 @@ public class Bounds implements Cloneable {
 
 
     public String toString(){
-        return fmt("%9.7f %9.7f %9.7f %9.7f %9.7f %9.7f",xmin, xmax, ymin, ymax, zmin, zmax);
+        return fmt("%12.7e %12.7e %12.7e %12.7e %12.7e %12.7e; %12.7e",xmin, xmax, ymin, ymax, zmin, zmax, m_voxelSize);
     }
 
     public Bounds clone() {

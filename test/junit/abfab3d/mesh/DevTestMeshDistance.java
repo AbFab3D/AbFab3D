@@ -39,8 +39,10 @@ public class DevTestMeshDistance extends TestCase {
     public static void testTwoSpheres() throws Exception {
         
         
-        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 6, 0.1*MM);
-        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(11*MM, new Vector3d(0,0,0), 6, 0.1*MM);
+        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 6);
+        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(11*MM, new Vector3d(0,0,0), 6);
+        source.setTolerance(0.1*MM);
+        target.setTolerance(0.1*MM);
 
         MeshDistance md = new MeshDistance();
         md.setMaxTriangleSize(0.25*MM);
@@ -56,8 +58,10 @@ public class DevTestMeshDistance extends TestCase {
     public static void testTwoSpheresWithBuckets() throws Exception {
         
         
-        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 6, 0.1*MM);
-        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(11*MM, new Vector3d(0,0,0), 6, 0.1*MM);
+        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 6);
+        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(11*MM, new Vector3d(0,0,0), 6);
+        source.setTolerance(0.1*MM);
+        target.setTolerance(0.1*MM);
 
         MeshDistance md = new MeshDistance();
         md.setMaxTriangleSize(0.25*MM);
@@ -71,7 +75,9 @@ public class DevTestMeshDistance extends TestCase {
     
     public static void makeTwoSpheresHR() throws Exception {
 
-        TriangulatedModels.Sphere sphere = new TriangulatedModels.Sphere(10.3*MM, new Vector3d(0,0,0), 10, 0.0001*MM);
+        TriangulatedModels.Sphere sphere = new TriangulatedModels.Sphere(10.3*MM, new Vector3d(0,0,0), 10);
+        sphere.setTolerance(0.0001*MM);
+
         STLWriter stl = new STLWriter("/tmp/sphere_10.3mm.stl");
         sphere.getTriangles(stl);
         stl.close();
@@ -82,8 +88,10 @@ public class DevTestMeshDistance extends TestCase {
     public static void testTwoSpheresWithBucketsHR() throws Exception {
         
         
-        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 10, 0.0001*MM);
-        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(10.3*MM, new Vector3d(0,0,0), 10, 0.0001*MM);
+        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 10);
+        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(10.3*MM, new Vector3d(0,0,0), 10);
+        source.setTolerance(0.0001*MM);
+        source.setTolerance(0.0001*MM);
 
         MeshDistance md = new MeshDistance();
         md.setMaxTriangleSize(0.2*MM);
@@ -149,9 +157,10 @@ public class DevTestMeshDistance extends TestCase {
         
         double s = 10*MM;
         
-        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 8, 0.1*MM);
+        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 8);
         TriangulatedModels.Parallelepiped target = new TriangulatedModels.Parallelepiped(-s, -s, -s, s, s, s);
-            
+        source.setTolerance(0.1*MM);
+    
 
         MeshDistance md = new MeshDistance();
         md.setMaxTriangleSize(0.1*MM);

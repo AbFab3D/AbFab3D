@@ -104,9 +104,10 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @noRefGuide
      * @param transform General transformation to apply to the object before it is rendered
      */
-    public void setTransform(VecTransform transform){
+    public TransformableDataSource setTransform(VecTransform transform){
         
         mp_transform.set((Parameterizable)transform);
+        return this;
 
     }
 
@@ -116,8 +117,9 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @param transform General transformation to apply to the object before it is rendered
      */
     
-    public void addTransform(VecTransform transform){
-        mp_transform.add((Parameterizable)transform);        
+    public TransformableDataSource addTransform(VecTransform transform){
+        mp_transform.add((Parameterizable)transform); 
+        return this;
     }
     
     /**
@@ -154,16 +156,16 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @param vec
      * @noRefGuide
      */
-    public void translate(Vector3d vec) {
-        addTransform(new Translation(vec));
+    public TransformableDataSource translate(Vector3d vec) {
+        return addTransform(new Translation(vec));
     }
 
     /**
      * Translate the source.  Equivalent to setTransform(new Translation(tx,ty,tz))
      * @noRefGuide
      */
-    public void translate(double tx,double ty, double tz) {
-        addTransform(new Translation(tx,ty,tz));
+    public TransformableDataSource translate(double tx,double ty, double tz) {
+        return addTransform(new Translation(tx,ty,tz));
     }
 
     /**
@@ -171,16 +173,16 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @param vec
      * @noRefGuide
      */
-    public void scale(Vector3d vec) {
-        addTransform(new Scale(vec));
+    public TransformableDataSource scale(Vector3d vec) {
+        return addTransform(new Scale(vec));
     }
 
     /**
      * Scale the source.  Equivalent to setTransform(new Scale(sx,sy,sz))
      * @noRefGuide
      */
-    public void scale(double sx,double sy, double sz) {
-        addTransform(new Scale(sx,sy,sz));
+    public TransformableDataSource scale(double sx,double sy, double sz) {
+        return addTransform(new Scale(sx,sy,sz));
     }
 
     /**
@@ -189,8 +191,18 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @param angle
      * @noRefGuide
      */
-    public void rotate(Vector3d axis, double angle){
-        addTransform( new Rotation(axis,angle));
+    public TransformableDataSource rotate(Vector3d axis, double angle){
+        return addTransform( new Rotation(axis,angle));
+    }
+
+    /**
+     * Rotate the source.  Equivalent to setTransform(new Rotation(axis,angle))
+     * @param axis
+     * @param angle
+     * @noRefGuide
+     */
+    public TransformableDataSource rotate(Vector3d axis, double angle, Vector3d center){
+        return addTransform( new Rotation(axis,angle, center));
     }
 
     /**
@@ -201,8 +213,21 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @param angle  rotation angle is measured in radians
      * @noRefGuide
      */
-    public void rotate(double ax, double ay, double az, double angle){
-        addTransform( new Rotation(ax,ay,az,angle));
+    public TransformableDataSource rotate(double ax, double ay, double az, double angle){
+        return addTransform( new Rotation(ax,ay,az,angle));
+    }
+
+
+    /**
+     * Rotate the source.  Equivalent to setTransform(new Rotation(ax,ay,az,angle))
+     * @param ax  x component of rotation axis
+     * @param ay  y component of rotation axis
+     * @param az  z component of rotation axis
+     * @param angle  rotation angle is measured in radians
+     * @noRefGuide
+     */
+    public TransformableDataSource rotate(double ax, double ay, double az, double angle, double cx, double cy, double cz){
+        return addTransform( new Rotation(new Vector3d(ax,ay,az),angle, new Vector3d(cx, cy, cz)));
     }
 
     /**

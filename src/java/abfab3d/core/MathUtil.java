@@ -1266,7 +1266,7 @@ public class MathUtil {
     }
 
     /**
-       tri-linear interpolation between 4 values 
+       tri-linear interpolation between 8 values in corners of cube 
        
        first layer 
        v010   v110
@@ -1288,6 +1288,21 @@ public class MathUtil {
     }
 
 
+    /**
+       multi dimensional lerp3        
+       each corner contain dimension of data
+     */
+    public static final void multiLerp3(double v000[], double v100[], double v010[], double v110[], 
+                                        double v001[], double v101[], double v011[], double v111[], double x, double y, double z, 
+                                        double result[], int dimension){
+                
+        for(int d = 0; d < dimension; d++){
+            
+            result[d] = lerp(lerp(lerp(v000[d], v100[d], x), lerp(v010[d], v110[d], x), y),
+                             lerp(lerp(v001[d], v101[d], x), lerp(v011[d], v111[d], x), y),z);            
+            
+        }
+    }
 
     /**
        return point where indicator function becomes 0 on the segment (p0,p1) if values of function at he ends of segment are (v0,v1) 

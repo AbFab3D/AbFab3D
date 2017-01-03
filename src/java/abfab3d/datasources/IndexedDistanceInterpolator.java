@@ -19,6 +19,7 @@ import abfab3d.core.Bounds;
 import abfab3d.core.TriangleCollector;
 import abfab3d.core.AttributeGrid;
 
+import static abfab3d.core.MathUtil.multiLerp3;
 import static abfab3d.core.MathUtil.lerp3;
 import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.core.MathUtil.getDistance;
@@ -48,8 +49,10 @@ public class IndexedDistanceInterpolator implements DataSource {
     // coordinates of points 
     double 
         pnts[][]; 
-    // default data dimensomn is 3, but may be 3,5,6 
-    int m_dataDimension = 3; 
+    // default pnts data dimension is 3 (coord only), may be 3,4,5,6, (coord + color) 
+    private int m_dataDimension = 3; 
+    
+    private int m_channelsCount = 1;
     // indices of closest point to each voxel 
     AttributeGrid indexGrid;
     
@@ -71,11 +74,14 @@ public class IndexedDistanceInterpolator implements DataSource {
     // interpolation to use between voxels 
     private  int interpolationType = INTERPOLATION_LINEAR;
     // extend distance beyond grid 
-    private boolean extendDistance = false;
+    private boolean m_extendDistance = false;
 
     // optional low res data for calculation of missing data in the grid 
     DataSource lowResData;
     
+    public IndexedDistanceInterpolator(double pnts[][], AttributeGrid indexGrid, double maxDistance, boolean extendDistance){
+        this(pnts, indexGrid, maxDistance, extendDistance, 3);
+    }
     /**
        @param pnts[][] array of data points 
        pnts[0][] - x cordinates 
@@ -85,7 +91,7 @@ public class IndexedDistanceInterpolator implements DataSource {
        pnts[4][] - v cordinates (optional, used for texture or color coord)
        pnts[5][] - w cordinates (optional, used for color coord)        
      */
-    public IndexedDistanceInterpolator(double pnts[][], AttributeGrid indexGrid, double maxDistance, boolean extendDistance){
+    public IndexedDistanceInterpolator(double pnts[][], AttributeGrid indexGrid, double maxDistance, boolean extendDistance, int dataDimension){
         
         this.pnts = pnts;
         this.indexGrid = indexGrid;
@@ -110,19 +116,28 @@ public class IndexedDistanceInterpolator implements DataSource {
         this.ymax1 = bounds.ymax - vs2;
         this.zmax1 = bounds.zmax - vs2;
 
-        this.extendDistance = extendDistance;
-        
+        m_extendDistance = extendDistance;
+
+        m_dataDimension = dataDimension;
+        m_channelsCount = dataDimension-2;
+
     }
     
     public boolean getExtendDistance(){
 
-        return extendDistance; 
+        return m_extendDistance; 
 
     }
     
     public int getDataDimension(){
 
         return m_dataDimension;
+
+    }
+
+    public void getDataDimension(int dataDimension){
+
+        m_dataDimension = dataDimension;
 
     }
 
@@ -235,8 +250,13 @@ public class IndexedDistanceInterpolator implements DataSource {
     }
     
     public int getChannelsCount(){
-        return 1;
+        return m_channelsCount;
     }
+
+    public void setChannelsCount(int channelsCount){
+        m_channelsCount = channelsCount;
+    }
+
     /**
        calculates distance to arbitrary pnt(x,y,z) as distance to center of nearest voxel 
     */
@@ -251,11 +271,9 @@ public class IndexedDistanceInterpolator implements DataSource {
             ix = (int)((pnt.v[0] - xmin)*scale),
             iy = (int)((pnt.v[1] - ymin)*scale),
             iz = (int)((pnt.v[2] - zmin)*scale);
-        
-        double d000 = distanceToVoxel(ix, iy, iz);
-        
-        data.v[0] = d000;
-        
+    
+        getVoxelValue(ix, iy, iz, data.v);
+                
         return ResultCodes.RESULT_OK;
         
     }
@@ -293,24 +311,46 @@ public class IndexedDistanceInterpolator implements DataSource {
             dy = gy - iy,
             dz = gz - iz;
         // distance values in 8 corner voxels 
-        double 
-            d000 = distanceToVoxel(ix  , iy,   iz),
-            d100 = distanceToVoxel(ix+1, iy,   iz),
-            d110 = distanceToVoxel(ix+1, iy+1, iz),
-            d010 = distanceToVoxel(ix  , iy+1, iz),
-            d001 = distanceToVoxel(ix  , iy,   iz+1),
-            d101 = distanceToVoxel(ix+1, iy,   iz+1),
-            d111 = distanceToVoxel(ix+1, iy+1, iz+1),
-            d011 = distanceToVoxel(ix  , iy+1, iz+1);
-        // interpolated distance 
-        double dist = lerp3(d000,d100,d010,d110,d001,d101,d011,d111,dx, dy, dz);
-        
-        if(extendDistance){
-            // aproximate distance outside of grid calculated as distance to clampedPoint + distance from originalPoint to clampedPoint 
-            dist += getDistance(x,y,z,xc, yc, zc); 
+        if(m_channelsCount == 1){
+            double 
+                d000 = getDistanceToVoxel(ix  , iy,   iz),
+                d100 = getDistanceToVoxel(ix+1, iy,   iz),
+                d110 = getDistanceToVoxel(ix+1, iy+1, iz),
+                d010 = getDistanceToVoxel(ix  , iy+1, iz),
+                d001 = getDistanceToVoxel(ix  , iy,   iz+1),
+                d101 = getDistanceToVoxel(ix+1, iy,   iz+1),
+                d111 = getDistanceToVoxel(ix+1, iy+1, iz+1),
+                d011 = getDistanceToVoxel(ix  , iy+1, iz+1);
+            // interpolated distance 
+            double dist = lerp3(d000,d100,d010,d110,d001,d101,d011,d111,dx, dy, dz);
+            if(m_extendDistance){
+                // approximate distance outside of grid calculated as distance to clampedPoint + distance from originalPoint to clampedPoint 
+                dist += getDistance(x,y,z,xc, yc, zc); 
+            }
+            data.v[0] = dist;
+
+        } else {  // multiChannel case 
+            int nc = m_channelsCount;
+            double[] 
+                d000 = new double[nc],
+                d100 = new double[nc],
+                d110 = new double[nc],
+                d010 = new double[nc],
+                d001 = new double[nc],
+                d101 = new double[nc],
+                d111 = new double[nc],
+                d011 = new double[nc];
+            getVoxelValue(ix  , iy,   iz,  d000);
+            getVoxelValue(ix+1, iy,   iz,  d100);
+            getVoxelValue(ix+1, iy+1, iz,  d110);
+            getVoxelValue(ix  , iy+1, iz,  d010);
+            getVoxelValue(ix  , iy,   iz+1,d001);
+            getVoxelValue(ix+1, iy,   iz+1,d101);
+            getVoxelValue(ix+1, iy+1, iz+1,d111);
+            getVoxelValue(ix  , iy+1, iz+1,d011);
+            multiLerp3(d000,d100,d010,d110,d001,d101,d011,d111,dx, dy, dz, data.v, m_channelsCount);            
         }
 
-        data.v[0] = dist;
             
         return ResultCodes.RESULT_OK;
         
@@ -386,7 +426,7 @@ public class IndexedDistanceInterpolator implements DataSource {
     double combineData(long att, int ix, int iy, int iz, Vec pnt, Vec data){
         
         if(att != UNDEFINED_INDEX){
-            return distanceToVoxel(ix, iy, iz);
+            return getDistanceToVoxel(ix, iy, iz);
         } else {
             // voxel is undefined - use lowResData 
             setCoord(pnt, ix, iy, iz);
@@ -408,7 +448,7 @@ public class IndexedDistanceInterpolator implements DataSource {
     /**
        return distance associated with voxel ix, iy, iz 
     */
-    double distanceToVoxel(int ix, int iy, int iz){
+    double getDistanceToVoxel(int ix, int iy, int iz){
         
         ix = clamp(ix, 0, nxmax);
         iy = clamp(iy, 0, nymax);
@@ -430,6 +470,38 @@ public class IndexedDistanceInterpolator implements DataSource {
             double vy = iy*voxelSize + ymin1;
             double vz = iz*voxelSize + zmin1;            
             return sign*getDistance(vx,vy,vz, pnts[0][ind],pnts[1][ind],pnts[2][ind]);
+        }        
+    }        
+    
+    void getVoxelValue(int ix, int iy, int iz, double value[]){
+        
+        ix = clamp(ix, 0, nxmax);
+        iy = clamp(iy, 0, nymax);
+        iz = clamp(iz, 0, nzmax);
+        
+        long a = indexGrid.getAttribute(ix, iy, iz);        
+        int sign = 1;
+        if((a & INTERIOR_MASK) == INTERIOR_MASK){
+            // interior voxel 
+            sign = -1;
+        }
+        // index of closest point 
+        int ind = (int)(a & INDEX_MASK);
+        if(ind == UNDEFINED_INDEX){
+            value[0] = sign*maxDistance;
+        } else {
+            // coord of voxel center 
+            double vx = ix*voxelSize + xmin1;
+            double vy = iy*voxelSize + ymin1;
+            double vz = iz*voxelSize + zmin1;            
+
+            switch(m_channelsCount){
+            case 4: value[3] = pnts[5][ind];    // no break here 
+            case 3: value[2] = pnts[4][ind];   
+            case 2: value[1] = pnts[3][ind];   
+            }
+            // first data component is always distance 
+            value[0] = sign*getDistance(vx,vy,vz, pnts[0][ind],pnts[1][ind],pnts[2][ind]);
         }        
     }        
 } //  class  IndexedDistanceInterpolator

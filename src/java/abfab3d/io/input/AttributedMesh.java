@@ -29,10 +29,10 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class AttributedMesh implements AttributedTriangleProducer, TriangleProducer, AttributedTriangleCollector, TriangleCollector {
-    private ArrayList<Triangle> tris;
-    private Bounds bounds;
-    private DataSource attributeCalculator;
-    private int dim=3; 
+    private ArrayList<Triangle> m_tris;
+    private Bounds m_bounds;
+    private DataSource m_attributeCalculator;
+    private int m_dim=3; 
 
     public AttributedMesh() {
         this(3);
@@ -48,16 +48,15 @@ public class AttributedMesh implements AttributedTriangleProducer, TriangleProdu
      * @param ntris - Approximate number of triangles
      */
     public AttributedMesh(int dataDimension, int ntris) {
-        this.dim = dataDimension;
-        tris = new ArrayList<Triangle>();
-        tris = new ArrayList<Triangle>(ntris);
+        m_dim = dataDimension;
+        m_tris = new ArrayList<Triangle>(ntris);
     }
 
     public boolean addAttTri(Vec v0, Vec v1, Vec v2) {
         Triangle t = new Triangle(v0,v1,v2);
 
-        tris.add(t);
-        bounds = null;
+        m_tris.add(t);
+        m_bounds = null;
 
         return true;
     }
@@ -65,20 +64,20 @@ public class AttributedMesh implements AttributedTriangleProducer, TriangleProdu
     public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2) {
         Triangle t = new Triangle(v0,v1,v2);
 
-        tris.add(t);
-        bounds = null;
+        m_tris.add(t);
+        m_bounds = null;
 
         return true;
     }
 
     public Bounds getBounds() {
-        if (bounds != null) {
-            return bounds;
+        if (m_bounds != null) {
+            return m_bounds;
         }
 
         BoundsCalculator bc = new BoundsCalculator();
 
-        for(Triangle t : tris) {
+        for(Triangle t : m_tris) {
             bc.addAttTri(t.v0,t.v1,t.v2);
         }
 
@@ -89,23 +88,23 @@ public class AttributedMesh implements AttributedTriangleProducer, TriangleProdu
     }
 
     public int getTriCount() {
-        return tris.size();
+        return m_tris.size();
     }
 
     public DataSource getAttributeCalculator() {
-        return attributeCalculator;
+        return m_attributeCalculator;
     }
 
     public void setAttributeCalculator(DataSource ac) {
-        attributeCalculator = ac;
+        m_attributeCalculator = ac;
     }
 
     public void setDataDimension(int dd) {
-        this.dim = dd;
+        m_dim = dd;
     }
 
     public boolean getAttTriangles(AttributedTriangleCollector tc) {
-        for(Triangle t : tris) {
+        for(Triangle t : m_tris) {
             tc.addAttTri(t.v0, t.v1, t.v2);
         }
 
@@ -113,7 +112,7 @@ public class AttributedMesh implements AttributedTriangleProducer, TriangleProdu
     }
 
     public int getDataDimension() {
-        return dim;
+        return m_dim;
     }
 
     public boolean getTriangles(TriangleCollector tc) {
@@ -121,7 +120,7 @@ public class AttributedMesh implements AttributedTriangleProducer, TriangleProdu
         Vector3d v1 = new Vector3d();
         Vector3d v2 = new Vector3d();
 
-        for(Triangle t : tris) {
+        for(Triangle t : m_tris) {
             v0.x = t.v0.v[0];
             v0.y = t.v0.v[1];
             v0.z = t.v0.v[2];

@@ -569,7 +569,7 @@ public class TriangulatedModels {
         Vector3d center = new Vector3d();
         double radius; 
         int subdivision;
-        double tolerance = 0.;
+        double m_tolerance = 0.;
         
         // corner vertices of octahedron 
         Vector3d 
@@ -580,7 +580,7 @@ public class TriangulatedModels {
             v001 = new Vector3d(0,0,1),
             v00_1 = new Vector3d(0,0,-1);
         
-    
+        
         public Sphere(double radius, Vector3d center, int subdivision){
             
             this.center.set(center);
@@ -590,16 +590,10 @@ public class TriangulatedModels {
             
         }
 
-        public Sphere(double radius, Vector3d center, int subdivision, double tolerance){
-            
-            this.center.set(center);
-
-            this.radius = radius; 
-            this.subdivision = subdivision;
-            this.tolerance = tolerance; 
-            
+        public void setTolerance(double tolerance){
+            m_tolerance = tolerance;
         }
-        
+       
         public boolean getTriangles(TriangleCollector tc){
             
             splitTriangle(tc, v100, v010, v001, subdivision);
@@ -615,7 +609,9 @@ public class TriangulatedModels {
             return true;
         }      
         
-        void splitTriangle(TriangleCollector tc, Vector3d v0, Vector3d v1, Vector3d v2, int subdiv){
+        
+
+        protected void splitTriangle(TriangleCollector tc, Vector3d v0, Vector3d v1, Vector3d v2, int subdiv){
            
             if(subdiv <= 0){
                 addTri(tc, v0, v1, v2);
@@ -640,85 +636,67 @@ public class TriangulatedModels {
                 splitTriangle(tc, v0, v01, v2, subdiv);
                 splitTriangle(tc, v01, v1, v2, subdiv);
                 break;
-        
-        case 2:  // split 12         
-            splitTriangle(tc, v0, v1, v12, subdiv);
-            splitTriangle(tc, v0, v12, v2, subdiv);
-            break;
                 
-        case 4:  // split 20 
-            splitTriangle(tc, v1, v2, v20,subdiv);
-            splitTriangle(tc, v1, v20, v0, subdiv);
-            break;        
-        
-        case 3:  // split 01, 12         
-            splitTriangle(tc, v1, v12, v01,subdiv);
-
-            if(distance(v01, v2) < distance(v0, v12)) {
-                splitTriangle(tc, v01, v12, v2, subdiv);
-                splitTriangle(tc, v0, v01, v2, subdiv);
-            } else {
-                splitTriangle(tc, v01, v12, v0,subdiv);
-                splitTriangle(tc, v0, v12, v2,subdiv);                
-            }
-            break;
-        
-        
-        case 6:  //split 12 20 
-            
-            splitTriangle(tc, v12,v2, v20,subdiv );
-            if(distance(v0, v12) < distance(v1, v20)) {
-                splitTriangle(tc, v0, v12,v20,subdiv);
-                splitTriangle(tc, v0, v1, v12,subdiv);
-            } else {
-                splitTriangle(tc, v0, v1, v20,subdiv);
-                splitTriangle(tc, v1, v12, v20,subdiv);
-            }
-            break;
-            
-        case 5:  // split 01, 20 
-            splitTriangle(tc, v0, v01, v20, subdiv);
-            if(distance(v01, v2) < distance(v1, v20)){
-                splitTriangle(tc, v01, v2, v20,subdiv);
-                splitTriangle(tc, v01, v1, v2, subdiv);
-            } else {
-                splitTriangle(tc, v01, v1, v20,subdiv);                
-                splitTriangle(tc, v1, v2, v20, subdiv);                
-            }
-            break; // split s0, s2       
-        
-        case 7: // split 01, 12, 20       
-            
-            splitTriangle(tc, v0, v01, v20,subdiv);
-            splitTriangle(tc, v1, v12, v01,subdiv);
-            splitTriangle(tc, v2, v20, v12,subdiv);
-            splitTriangle(tc, v01, v12, v20, subdiv);
-            break;                  
-        } // switch()
-            
-            
-
-            /*
-           if(subdiv <= 0){
-                tc.addTri(getScaled(v0), getScaled(v1), getScaled(v2));
-                return;                
-            } else {
-                subdiv--;
-                Vector3d v01 = getSpherePoint(v0, v1);
-                Vector3d v12 = getSpherePoint(v1, v2);
-                Vector3d v20 = getSpherePoint(v2, v0);
+            case 2:  // split 12         
+                splitTriangle(tc, v0, v1, v12, subdiv);
+                splitTriangle(tc, v0, v12, v2, subdiv);
+                break;
+                
+            case 4:  // split 20 
+                splitTriangle(tc, v1, v2, v20,subdiv);
+                splitTriangle(tc, v1, v20, v0, subdiv);
+                break;        
+                
+            case 3:  // split 01, 12         
+                splitTriangle(tc, v1, v12, v01,subdiv);
+                
+                if(distance(v01, v2) < distance(v0, v12)) {
+                    splitTriangle(tc, v01, v12, v2, subdiv);
+                    splitTriangle(tc, v0, v01, v2, subdiv);
+                } else {
+                    splitTriangle(tc, v01, v12, v0,subdiv);
+                    splitTriangle(tc, v0, v12, v2,subdiv);                
+                }
+                break;
+                
+                
+            case 6:  //split 12 20 
+                
+                splitTriangle(tc, v12,v2, v20,subdiv );
+                if(distance(v0, v12) < distance(v1, v20)) {
+                    splitTriangle(tc, v0, v12,v20,subdiv);
+                    splitTriangle(tc, v0, v1, v12,subdiv);
+                } else {
+                    splitTriangle(tc, v0, v1, v20,subdiv);
+                    splitTriangle(tc, v1, v12, v20,subdiv);
+                }
+                break;
+                
+            case 5:  // split 01, 20 
+                splitTriangle(tc, v0, v01, v20, subdiv);
+                if(distance(v01, v2) < distance(v1, v20)){
+                    splitTriangle(tc, v01, v2, v20,subdiv);
+                    splitTriangle(tc, v01, v1, v2, subdiv);
+                } else {
+                    splitTriangle(tc, v01, v1, v20,subdiv);                
+                    splitTriangle(tc, v1, v2, v20, subdiv);                
+                }
+                break; // split s0, s2       
+                
+            case 7: // split 01, 12, 20       
+                
                 splitTriangle(tc, v0, v01, v20,subdiv);
                 splitTriangle(tc, v1, v12, v01,subdiv);
                 splitTriangle(tc, v2, v20, v12,subdiv);
-                splitTriangle(tc, v01, v12, v20,subdiv);
-            }
-            */
-
-        }
+                splitTriangle(tc, v01, v12, v20, subdiv);
+                break;                  
+            } // switch()
+                                   
+        } // void splitTriangle()
 
         void addTri(TriangleCollector tc, Vector3d v0, Vector3d v1, Vector3d v2){
             
-            tc.addTri(getScaled(v0),getScaled(v1),getScaled(v2));
+            tc.addTri(getScaledTri(v0),getScaledTri(v1),getScaledTri(v2));
         }
 
         boolean needSubdivision(Vector3d v0, Vector3d v1, Vector3d v2){
@@ -732,7 +710,7 @@ public class TriangulatedModels {
 
         boolean needSubdivision(Vector3d v0, Vector3d v1){
 
-            return (radius* distance(midPoint(v0, v1), getSpherePoint(v0, v1)) > tolerance);
+            return (radius* distance(midPoint(v0, v1), getSpherePoint(v0, v1)) > m_tolerance);
         }
         
         
@@ -747,7 +725,7 @@ public class TriangulatedModels {
         }
         
         
-        Vector3d getScaled(Vector3d v){
+        Vector3d getScaledTri(Vector3d v){
 
             return new Vector3d(v.x * radius + center.x, v.y * radius + center.y, v.z * radius + center.z);
 
