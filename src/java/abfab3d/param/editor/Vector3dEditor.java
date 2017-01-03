@@ -14,6 +14,8 @@ package abfab3d.param.editor;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.Parameter;
+import abfab3d.param.ParamChangedListener;
+import abfab3d.param.Editor;
 
 import java.awt.Component;
 import java.awt.GridLayout;
@@ -96,5 +98,11 @@ public class Vector3dEditor extends BaseEditor implements ParamChangedListener {
     	return mainPanel;
     }
     
+    /**
+       @Override 
+     */
+    public void updateUI(){
+        //TODO 
+    }
 
 }

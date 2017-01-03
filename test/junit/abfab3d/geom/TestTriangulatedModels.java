@@ -26,6 +26,7 @@ import abfab3d.util.TrianglePrinter;
 import abfab3d.io.output.STLWriter;
 
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
 
@@ -105,6 +106,33 @@ public class TestTriangulatedModels extends TestCase {
 
     }
 
+    public void devTestMakeSpheres()throws Exception {
+
+        //        double c = 0*MM;
+        double r = 50*MM;
+        double cent[][] = new double[][]
+            {
+                {0,0,0},
+            };
+
+        for(int i = 0; i < 5; i++) {
+            makeSpheres(cent, r, fmt("/tmp/1_sphere_%d.stl", i),i);
+        }
+    }
+    
+    public static void makeSpheres(double [][] cent, double rad, String name, int subdivide)throws Exception {
+        
+        STLWriter stl = new STLWriter(name);
+        
+        for(int i = 0; i < cent.length; i++){
+            TriangulatedModels.Sphere s = new  TriangulatedModels.Sphere(rad, new Vector3d(cent[i][0],cent[i][1],cent[i][2]), subdivide);
+            s.getTriangles(stl);            
+        }
+
+        stl.close();              
+        
+    }
+
     public static void makeSphere()throws Exception {
         
         STLWriter stl = new STLWriter("/tmp/sphere_10cm.stl");
@@ -178,7 +206,7 @@ public class TestTriangulatedModels extends TestCase {
 
     public static void main(String[] arg) throws Exception {
 
-        makeSphere();
+        new TestTriangulatedModels().devTestMakeSpheres();
         //new TestTriangulatedModels().testCylinder();
         
 

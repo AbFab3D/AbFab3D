@@ -80,24 +80,28 @@ public class TestDistanceToMeshDataSource extends TestCase {
         double voxelSize = 1*MM;
         double bandWidth = voxelSize;
         //TriangleProducer producer = new TriangulatedModels.Box(0.4*voxelSize,0.4*voxelSize,0.4*voxelSize,sx, sy, sz);
-        TriangleProducer producer = new TriangulatedModels.Sphere(radius, new Vector3d(0,0,0), 6);
+        TriangleProducer producer = new TriangulatedModels.Sphere(radius, new Vector3d(0,0,0), 1);
         
         DistanceToMeshDataSource dmds = new DistanceToMeshDataSource(producer);
         dmds.set("margins", margins);
-        dmds.set("useMultiPass", true);
+        dmds.set("useMultiPass", false);
         dmds.set("voxelSize", voxelSize);
 
-        dmds.set("surfaceVoxelSize", 1./3);
+        //dmds.set("surfaceVoxelSize", 1./3);
         dmds.set("interpolationType", DistanceToMeshDataSource.INTERPOLATION_LINEAR);
-        dmds.set("shellHalfThickness", 2.6);
-        dmds.set("maxDistance", voxelSize*3);
-
+        //dmds.set("shellHalfThickness", 2.6);
+        dmds.set("maxDistance", 10*MM);
+        
+        Bounds mbounds = dmds.getMeshBounds();
+        printf("mesh bounds:(%s)\n", mbounds);
         dmds.initialize();
+        dmds.initialize();
+        
 
         //double s = radius + margins;
         //Bounds bounds = new Bounds(-s, s, -s, s, 0*MM, 0*MM);
-        double s = 20*voxelSize;
-        Bounds bounds = new Bounds(radius-s, radius+s, -s, s, 0*MM, 0*MM);
+        double s = radius + margins + 5*voxelSize;
+        Bounds bounds = new Bounds(-s, +s, -s, s, 0*MM, 0*MM);
 
         int N = 30;
         Vec pnt = new Vec(3);
@@ -119,8 +123,18 @@ public class TestDistanceToMeshDataSource extends TestCase {
         ImageMaker im = new ImageMaker();
 
         ColorMapper colorMapper = new ColorMapperDistance(bandWidth);        
-        BufferedImage img1 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(dmds, colorMapper));        
-        ImageIO.write(img1, "png", new File("/tmp/00_sphere_dist.png"));        
+        if(false){
+            BufferedImage img1 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(dmds, colorMapper));        
+            ImageIO.write(img1, "png", new File("/tmp/00_sphere_dist_java.png"));        
+        }
+        int NN = 50;
+        for(int i  = 0; i <= NN; i++){
+            double vs = voxelSize/2;
+            double z0 = -vs*NN/2;
+            Bounds bnds = new Bounds(-s, +s, -s, s, z0 + vs*i, z0+vs*i);
+            BufferedImage img1 = im.renderImage(imgWidth, imgHeight, bnds, new SliceDistanceColorizer(dmds, colorMapper));        
+            ImageIO.write(img1, "png", new File(fmt("/tmp/00_sphere_dist_java_%03d.png",i)));                            
+        }
         
     }
 

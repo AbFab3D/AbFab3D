@@ -12,10 +12,12 @@
 
 package abfab3d.param;
 
+import java.util.Vector;
+
 import static abfab3d.core.Output.printf;
 
 /**
- * A parameter to a datasource.
+ * A convenient base class for most Parametes
  *
  * @author Alan Hudson
  */
@@ -41,6 +43,8 @@ public abstract class BaseParameter implements Parameter {
     protected String label;
 
     protected boolean changed;
+
+    protected Vector<Editor> m_editors;
 
 	public BaseParameter(String name, String desc) {
 
@@ -145,11 +149,23 @@ public abstract class BaseParameter implements Parameter {
      * @param value
      */
     public void setValue(Object value) {
-
         validate(value);
 
         this.value = value;
         changed = true;
+        updateUI();
+    }
+
+
+    /**
+       
+     */
+    public void updateUI(){
+        if(m_editors != null){
+            for(int i = 0; i < m_editors.size(); i++){
+                m_editors.get(i).updateUI();
+            }
+        }
     }
 
     public String getOnChange() {
@@ -222,4 +238,11 @@ public abstract class BaseParameter implements Parameter {
         return ret_val;
     }
 
+
+    public void addEditor(Editor editor){
+        if(m_editors == null) {
+            m_editors = new Vector<Editor>(1);
+        }
+        m_editors.add(editor);
+    }
 }

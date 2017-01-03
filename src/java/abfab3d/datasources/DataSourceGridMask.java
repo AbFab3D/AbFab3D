@@ -77,6 +77,7 @@ public class DataSourceGridMask extends TransformableDataSource {
         return ResultCodes.RESULT_OK;
         
     }
+    
 
     private int getBoxInterpolatedValue(Vec pnt, Vec data){
 

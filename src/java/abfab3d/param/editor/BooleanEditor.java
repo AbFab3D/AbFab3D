@@ -55,4 +55,11 @@ public class BooleanEditor extends BaseEditor implements ActionListener {
         return m_cbox;
     }
 
+    /**
+       @Override 
+     */
+    public void updateUI(){
+        m_cbox.setSelected(m_bparam.getValue());
+    }
+
 }

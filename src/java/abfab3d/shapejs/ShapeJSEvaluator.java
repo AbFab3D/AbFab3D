@@ -208,6 +208,10 @@ public class ShapeJSEvaluator implements MaterialMapper {
         classImports.add("material.StainlessMaterial");
         classImports.add("material.CeramicsMaterial");
 */
+        classImports.add("material.BlueSFPMaterial");
+        classImports.add("material.RedSFPMaterial");
+        classImports.add("material.PurpleSFPMaterial");
+        classImports.add("material.BlueGemMaterial");
 
         classWhiteList = new HashSet<String>();
         classWhiteList.add("java.lang.Boolean");

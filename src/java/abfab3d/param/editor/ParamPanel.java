@@ -13,6 +13,8 @@ package abfab3d.param.editor;
 
 import abfab3d.param.Parameterizable;
 import abfab3d.param.Parameter;
+import abfab3d.param.ParamChangedListener;
+import abfab3d.param.Editor;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -47,9 +49,7 @@ public class ParamPanel extends Frame {
         setLayout(new GridBagLayout());
         m_node = new ArrayList<>();
         m_node.add(node);
-        if(sm_factory == null)
-            sm_factory = new EditorFactory();
-
+        createFactory();
         Component parametersPanel = makeParamPanel(m_node);
         WindowUtils.constrain(this, parametersPanel, 0,0,1,1,
                 GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
@@ -67,8 +67,7 @@ public class ParamPanel extends Frame {
         editors = new ArrayList<Editor>();
         setLayout(new GridBagLayout());
         m_node = node;
-        if(sm_factory == null)
-            sm_factory = new EditorFactory();
+        createFactory();
 
         Component parametersPanel = makeParamPanel(m_node);
         JScrollPane scrollPane = new JScrollPane(parametersPanel);
@@ -112,7 +111,7 @@ public class ParamPanel extends Frame {
     }
 
 
-    Component makeParamPanel(java.util.List<Parameterizable> nodes){
+    protected Component makeParamPanel(java.util.List<Parameterizable> nodes){
 
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
@@ -149,6 +148,36 @@ public class ParamPanel extends Frame {
         return panel;
                 
     }
+
+    public static Component makePanel(Parameter param[], ParamChangedListener listener){
+
+        createFactory();
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        
+        for (int i = 0; i < param.length; i++) {
+            
+            double hWeight = (i <  param.length - 1) ? (0.) : (1.);
+            
+            WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, i, 1, 1,
+                                  GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 0., hWeight, SPACE, SPACE, SPACE, 0);
+            
+            Editor editor = sm_factory.createEditor(param[i]);
+            editor.addParamChangedListener(listener);
+            
+            WindowUtils.constrain(panel, editor.getComponent(), 1, i, 1, 1,
+                                  GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH, 1., hWeight, SPACE, SPACE, SPACE, 0);
+                        
+        }    
+        return panel;
+                
+    }
+
+    protected static void createFactory(){
+        if(sm_factory == null)
+            sm_factory = new EditorFactory();
+    }
+
 
     public void closeWithChildren(){
         //TODO 

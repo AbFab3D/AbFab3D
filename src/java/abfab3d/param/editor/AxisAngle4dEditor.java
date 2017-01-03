@@ -14,6 +14,8 @@ package abfab3d.param.editor;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.AxisAngle4dParameter;
 import abfab3d.param.Parameter;
+import abfab3d.param.ParamChangedListener;
+import abfab3d.param.Editor;
 
 import java.awt.Component;
 import java.awt.GridLayout;
@@ -104,5 +106,11 @@ public class AxisAngle4dEditor extends BaseEditor implements ParamChangedListene
     	return mainPanel;
     }
     
+    /**
+       @Override 
+     */
+    public void updateUI(){
+        //TODO 
+    }
 
 }

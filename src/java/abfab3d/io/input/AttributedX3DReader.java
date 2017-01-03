@@ -233,7 +233,18 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
                         if (out != null) addTrianglesColor(coord, coordIndex, c, out);
                         m_calcs[cnt] = new InterpolatedAttributeCalculator();
                     } else {
-                        throw new IllegalArgumentException("Unsupported path");
+                        // assume default diffuseColor if it doesn't exist
+                        Vec c = new Vec(3);
+                        c.set(0.8f,0.8f,0.8f);
+                        if (matNode != null) {
+                            ArrayData ad = (ArrayData) matNode.getValue("diffuseColor");
+                            if (ad != null && ad.data != null) {
+                                c.set(((float[])ad.data)[0],((float[])ad.data)[1],((float[])ad.data)[2]);
+                            }
+                        }
+
+                        if (out != null) addTrianglesColor(coord, coordIndex, c, out);
+                        m_calcs[cnt] = new InterpolatedAttributeCalculator();
                     }
                     break;
             }

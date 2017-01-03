@@ -160,6 +160,7 @@ public class Mix extends TransformableDataSource{
     public int initialize(){
 
         super.initialize();
+
         m_dataSource1 = (DataSource)mp_d1.getValue();
         m_dataSource2 = (DataSource)mp_d2.getValue();
         m_mixer = (DataSource)mp_mixer.getValue();

@@ -45,7 +45,7 @@ public class URIUtils {
         if (DEBUG) printf("file is: %s\n",filename);
         File file = new File(destDir + "/" + filename);
         int retries = 0;
-        int max_retries = 3;
+        int max_retries = 2;
 
         while(retries < max_retries) {
             try {
@@ -63,12 +63,17 @@ public class URIUtils {
                         }
                     }
 
-                    System.out.println("      saved file " + file);
-
+                    if (retries > 0) {
+                        System.out.println("      saved file " + file + " retried: " + retries);
+                    } else {
+                        System.out.println("      saved file " + file);
+                    }
                     // If zip file, copy to tmp dir and unzip
                     // If not zip file, return path as is
                     if (filename.endsWith(".zip")) {
                         unzip(file, new File(destDir));
+                        file.delete();
+
                         return destDir;
                     } else {
                         return file.getAbsolutePath();

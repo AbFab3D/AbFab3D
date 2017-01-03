@@ -48,7 +48,7 @@ public class NumberScroller extends  JPanel {
     static int dragCutoff = 5;
 
     final Dimension sliderDimension = new Dimension(15,25);
-    double m_currentIncrement = 0.0001;
+    double m_currentIncrement = 0.000001;
 
     protected boolean m_doIntegers = false;
     
@@ -103,8 +103,10 @@ public class NumberScroller extends  JPanel {
     }
 
     public void setValue(double value){
-        //TODO update UI 
+
         m_value = value;
+        m_textField.setValue(m_value);
+
     }
     
    

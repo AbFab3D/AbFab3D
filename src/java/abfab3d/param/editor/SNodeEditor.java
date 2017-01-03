@@ -120,7 +120,8 @@ public class SNodeEditor extends BaseEditor  {
 
     String makeDisplayString(){
         Object value = m_param.getValue();
-        return value.getClass().getSimpleName();        
+        if(value != null) return value.getClass().getSimpleName();        
+        else return "null";
     }
 
     protected JComponent makeComponent(){
@@ -152,7 +153,7 @@ public class SNodeEditor extends BaseEditor  {
 
     }
 
-    protected void updateUI(){
+    public void updateUI(){
                 
     }
 

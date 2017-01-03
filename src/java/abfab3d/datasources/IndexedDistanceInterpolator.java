@@ -416,7 +416,7 @@ public class IndexedDistanceInterpolator implements DataSource {
         
         long a = indexGrid.getAttribute(ix, iy, iz);        
         int sign = 1;
-        if((a & INTERIOR_MASK) != 0){
+        if((a & INTERIOR_MASK) == INTERIOR_MASK){
             // interior voxel 
             sign = -1;
         }

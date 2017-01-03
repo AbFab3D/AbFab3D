@@ -69,4 +69,13 @@ public class FormattedTextEditor extends BaseEditor implements FocusListener {
         return m_textArea;
         
     }
+
+
+    /**
+       @Override 
+     */
+    public void updateUI(){
+        //TODO 
+    }
+
 }

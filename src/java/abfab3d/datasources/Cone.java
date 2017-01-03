@@ -148,6 +148,8 @@ public class Cone extends TransformableDataSource {
      */
     public int initialize() {
 
+        super.initialize();
+
         m_rounding = mp_rounding.getValue();
         Vector3d naxis = mp_axis.getValue();
         

@@ -12,6 +12,7 @@
 package abfab3d.param.editor;
 
 import abfab3d.param.Parameter;
+import abfab3d.param.Editor;
 
 /**
  * Creates editord for a parameter type

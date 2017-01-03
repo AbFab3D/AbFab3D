@@ -69,6 +69,7 @@ public class Plane extends TransformableDataSource {
      */
     public Plane(Vector3d normal, double distance){
         initParams();
+        normal = new Vector3d(normal);
         normal.normalize();
         mp_normal.setValue(normal);
         mp_dist.setValue(distance);
@@ -84,6 +85,7 @@ public class Plane extends TransformableDataSource {
     public Plane(Vector3d normal, Vector3d pointOnPlane){
         initParams();
 
+        normal = new Vector3d(normal);
         normal.normalize();
         mp_normal.setValue(normal);
         mp_dist.setValue(normal.dot(pointOnPlane));

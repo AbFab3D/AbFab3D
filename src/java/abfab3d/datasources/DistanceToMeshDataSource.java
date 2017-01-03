@@ -117,6 +117,8 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         mp_extendDistance
     };
 
+    protected String m_savedParamString = "";
+    protected Bounds m_meshBounds;
     
     public DistanceToMeshDataSource(TriangleProducer meshProducer){
 
@@ -132,7 +134,22 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     public IndexedDistanceInterpolator getDistanceInterpolator(){
         return m_distCalc;
     }
+
+    /**
+       @return physical bounds of the mesh
+     */
+    public Bounds getMeshBounds(){
+        
+        TriangleProducer producer = (TriangleProducer)mp_meshProducer.getValue();
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        producer.getTriangles(bb);
+        m_meshBounds = bb.getBounds();
+        return m_meshBounds;
+
+    }
+
     
+    // interpolator used to calculate distances 
     IndexedDistanceInterpolator m_distCalc;
 
     /**
@@ -142,6 +159,12 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     public int initialize(){
         
         super.initialize();
+        if(!paramChanged()){
+            if(false)printf("initialize() - no change\n"); 
+            return ResultCodes.RESULT_OK;
+        }
+        if(DEBUG)printf("DistanceToMeshDataSo.initialize() - full calculation\n"); 
+        
         long t0 = time();
         TriangleProducer producer = (TriangleProducer)mp_meshProducer.getValue();
 
@@ -168,80 +191,16 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         // handle mutli resolution case 
         
         m_distCalc = distData;
+        
+        m_savedParamString = getParamString();
 
         return ResultCodes.RESULT_OK;
-            /*
+    }
 
-        int gridDim[] = gridBounds.getGridSize();
+    private boolean paramChanged(){
         
-        // z-buffer rasterizer to get mesh interior 
-        MeshRasterizer interiorRasterizer = new MeshRasterizer(gridBounds, gridDim[0],gridDim[1],gridDim[2]);
-        interiorRasterizer.setInteriorValue(INTERIOR_VALUE);
-                
-        Bounds surfaceBounds = gridBounds.clone();
-        double voxelSize = gridBounds.getVoxelSize();
-
-        // surface voxel ratio = volumeVoxelSize/surfaceVoxelSize
-        int svratio = Math.max(1, (int)Math.round(1./mp_surfaceVoxelSize.getValue()));
-        // surface voxel size 
-        double svs = gridBounds.getVoxelSize()/svratio;
-        surfaceBounds.setVoxelSize(svs);
-        if((svratio & 1) == 0){ // even ratio
-            double shift = svs/2;
-            // shift grid of surface rasterization by half voxel to align centers of surface grid with center of voliume grid
-            surfaceBounds.translate(shift,shift,shift);
-        }
-
-        // triangles rasterizer         
-        TriangleMeshSurfaceBuilder surfaceBuilder = new TriangleMeshSurfaceBuilder(surfaceBounds);        
+        return !m_savedParamString.equals(getParamString());
         
-        surfaceBuilder.initialize();
-
-        // aggregator otf 2 triangle collectors 
-        TC2 tc2 = new TC2(interiorRasterizer, surfaceBuilder);
-        
-        // get mesh from producer 
-        producer.getTriangles(tc2);
-
-        int pcount = surfaceBuilder.getPointCount();
-        if(DEBUG)printf("DistanceToMeshDataSource pcount: %d\n", pcount);
-        double pnts[][] = new double[3][pcount];
-        surfaceBuilder.getPoints(pnts[0], pnts[1], pnts[2]);
-        
-        // builder of shell around rasterized points 
-        PointSetShellBuilder shellBuilder = new PointSetShellBuilder(); 
-        shellBuilder.setShellHalfThickness(mp_shellHalfThickness.getValue());
-        shellBuilder.setPoints(new PointSetCoordArrays(pnts[0], pnts[1], pnts[2]));
-        shellBuilder.setShellHalfThickness(mp_shellHalfThickness.getValue());
-
-        // create index grid 
-        AttributeGrid indexGrid = createIndexGrid(gridBounds, voxelSize);
-        // thicken surface points into thin layer 
-        shellBuilder.execute(indexGrid);
-
-        // create interior grid 
-        AttributeGrid interiorGrid = new GridMask(gridDim[0],gridDim[1],gridDim[2]);        
-
-        interiorRasterizer.getRaster(interiorGrid);
-        printf("surface building time: %d ms\n", time() - t0);
-
-        double maxDistanceVoxels = maxDistance/voxelSize;
-       
-        if(maxDistanceVoxels > mp_shellHalfThickness.getValue()){
-            t0 = time();
-            // spread distances to the whole grid 
-            ClosestPointIndexer.getPointsInGridUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
-            if(mp_useMultiPass.getValue()){
-                ClosestPointIndexerMT.PI3_multiPass_MT(pnts[0], pnts[1], pnts[2], maxDistanceVoxels, indexGrid, threadCount);
-            } else {
-                ClosestPointIndexerMT.PI3_MT(pnts[0], pnts[1], pnts[2], maxDistanceVoxels, indexGrid, threadCount);
-            }        
-            ClosestPointIndexer.getPointsInWorldUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
-            printf("distance sweeping time: %d ms\n", time() - t0);
-        }
-        m_distCalc = new IndexedDistanceInterpolator(pnts, indexGrid, interiorGrid, maxDistance);
-        return ResultCodes.RESULT_OK;
-            */
     }
 
     /**
@@ -276,7 +235,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         surfaceBounds.setVoxelSize(svs);
         if((svratio & 1) == 0){ // even ratio
             double shift = svs/2;
-            // shift grid of surface rasterization by half voxel to align centers of surface grid with center of voliume grid
+            // shift grid of surface rasterization by half voxel to align centers of surface grid with center of volume grid
             surfaceBounds.translate(shift,shift,shift);
         }
 
@@ -367,7 +326,8 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         return new ArrayAttributeGridInt(bounds, voxelSize,voxelSize);
 
     }
-        
+    
+    
     protected Bounds calculateGridBounds(TriangleProducer producer){
         
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
@@ -375,8 +335,8 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         
         double margins = mp_margins.getValue();
         double voxelSize = mp_voxelSize.getValue();
-        Bounds meshBounds = bb.getBounds(); 
-        Bounds gridBounds = meshBounds.clone();
+        m_meshBounds = bb.getBounds(); 
+        Bounds gridBounds = m_meshBounds.clone();
         gridBounds.expand(margins);
         int ng[] = gridBounds.getGridSize(voxelSize);
         long voxels = (long) ng[0] * ng[1]*ng[2];
@@ -387,12 +347,11 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
             voxelSize = Math.pow(gridVolume/m_minGridSize, 1./3);
         }
         gridBounds.setVoxelSize(voxelSize);
+        gridBounds.roundBounds();
         if(DEBUG){
             printf("DistanceToMeshDataSource()  grid:[%d x %d x %d] voxelSize: %7.3f mm\n",ng[0],ng[1],ng[2],voxelSize/MM);
-            printf("                      meshBounds: (%7.3f %7.3f; %7.3f %7.3f; %7.3f %7.3f) mm)\n",
-                   meshBounds.xmin/MM,meshBounds.xmax/MM,meshBounds.ymin/MM,meshBounds.ymax/MM,meshBounds.zmin/MM,meshBounds.zmax/MM);
-            printf("                      gridBounds: (%7.3f %7.3f; %7.3f %7.3f; %7.3f %7.3f) mm)\n",
-                   gridBounds.xmin/MM,gridBounds.xmax/MM,gridBounds.ymin/MM,gridBounds.ymax/MM,gridBounds.zmin/MM,gridBounds.zmax/MM);
+            printf("                      meshBounds: (%s)\n",m_meshBounds);
+            printf("                      gridBounds: (%s)\n",gridBounds);
         }                
         return gridBounds;
     }
