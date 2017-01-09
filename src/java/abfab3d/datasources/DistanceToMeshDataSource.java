@@ -185,10 +185,10 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
         if(producer instanceof AttributedTriangleProducer){
             AttributedTriangleProducer atp = (AttributedTriangleProducer)producer;
-            //if(atp.getDataDimension() == 3) 
-            //    return initPlainMesh((TriangleProducer)producer);            
-            //else 
-            return initAttributedMesh((AttributedTriangleProducer)producer);
+            if(atp.getDataDimension() == 3) 
+                return initPlainMesh((TriangleProducer)producer);            
+            else 
+                return initAttributedMesh((AttributedTriangleProducer)producer);
         } else if(producer instanceof TriangleProducer){
             return initPlainMesh((TriangleProducer)producer);            
         }
