@@ -80,11 +80,13 @@ public class CPUCache {
             if (DEBUG) printf("CPUCache.get: %s FAILED\n", label);
 
             if (DEBUG_MISSES) printf("CPUCache missed: %s\n",label);
-            LabeledBuffer di = DiskCache.getInstance().get(label);
+            LabeledBuffer di = BufferDiskCache.getInstance().get(label);
             if (DEBUG) printf("CPUCache checking DiskCache: %s\n",di);
 
             if (di != null) {
                 put(di,true);
+
+                if (DEBUG) printf("CPUCache read from disk success\n");
                 return di;
             }
             return null;
@@ -103,12 +105,12 @@ public class CPUCache {
         if (STOP_CACHING) return;
 
         if (DEBUG) {
-            printf("Cache.put: %s\n", buffer.getLabel());
+            printf("CPUCache.put: %s\n", buffer.getLabel());
         }
         cache.put(buffer.getLabel(), buffer);
 
         if (USE_DISK_CACHE && !justLoaded) {
-            DiskCache.getInstance().put(buffer);
+            BufferDiskCache.getInstance().put(buffer);
         }
     }
 

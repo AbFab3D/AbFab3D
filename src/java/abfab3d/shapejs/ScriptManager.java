@@ -287,13 +287,13 @@ public class ScriptManager {
             first_create = true;
         }
 
-        if (DEBUG) printf("SM.update parse: %d ms\n",time() - t0);
+        if (DEBUG) printf("ScriptManager.update parse: %d ms\n",time() - t0);
         t0 = time();
 
         // convert JSON to objects
     	try {
     		sr.eval.mungeParams(params, first_create);
-    		if (DEBUG) printf("SM.update munge: %d ms\n",time() - t0);
+    		if (DEBUG) printf("ScriptManager.update munge: %d ms\n",time() - t0);
     	} catch (IllegalArgumentException iae) {
     		sr.result = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, iae.getMessage(), null,time() - t0);
     		return sr;
@@ -305,20 +305,21 @@ public class ScriptManager {
         downloadURI(sr.result.getParamMap(), params);
         sr.params.putAll(params);
 
-        if (DEBUG) printf("SM.update download: %d ms\n",time() - t0);
+        if (DEBUG) printf("ScriptManager.update download: %d ms\n",time() - t0);
         // lost the difference between eval and reval
         if (first_create) {
             t0 = time();
-            if (DEBUG) printf("SM Execute script.  params: %s\n",params);
+            if (DEBUG) printf("ScriptManager Execute script.  params: %s\n",params);
             sr.result = sr.eval.executeScript("main", params);
-            if (DEBUG) printf("SM Done eval time: %d ms\n",time() - t0);
+            if (DEBUG) printf("ScriptManager Done eval time: %d ms\n",time() - t0);
         } else {
             t0 = time();
-            if (DEBUG) printf("SM Reeval script.  params: %s\n",params);
+            if (DEBUG) printf("ScriptManager Reeval script.  params: %s\n",params);
             sr.result = sr.eval.reevalScript(sr.script,params);
-            if (DEBUG) printf("SM Done Reeval script.  %d ms\n",time() - t0);
+            if (DEBUG) printf("ScriptManager Done Reeval script.  %d ms\n",time() - t0);
         }
 
+        t0 = time();
         if (sr.result.isSuccess()) {
             Object material = params.get("material");
 
@@ -366,6 +367,9 @@ public class ScriptManager {
             }
         }
 
+        if (DEBUG) {
+            printf("ScriptManager init: %d ms\n",time() - t0);
+        }
         return sr;
     }
 

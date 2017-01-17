@@ -1,24 +1,20 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
- *                               Java Source
- *
+ * Shapeways, Inc Copyright (c) 2011
+ * Java Source
+ * <p/>
  * This source is licensed under the GNU LGPL v2.1
  * Please read http://www.gnu.org/copyleft/lgpl.html for more information
- *
+ * <p/>
  * This software comes with the standard NO WARRANTY disclaimer for any
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
- *
  ****************************************************************************/
 
 package abfab3d.grid;
 
 // External Imports
 
-import abfab3d.core.AttributeGrid;
-import abfab3d.core.Grid;
-import abfab3d.core.VoxelData;
 import abfab3d.core.Bounds;
-import java.util.Arrays;
+import abfab3d.core.Grid;
 
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
@@ -35,23 +31,23 @@ public class SparseGridInt extends BaseAttributeGrid {
 
     static final boolean DEBUG = false;
 
-    static final int SIZEOF_INT=4;
+    static final int SIZEOF_INT = 4;
     static final long MAX_DATA_SIZE = Integer.MAX_VALUE;
     static final long DATA_MASK = 0xFFFFFFFFL;
     static final int DEFAULT_BLOCK_SIZE = 8;
     // offset to write new block 
-    protected int m_nextOffset = 1;    
+    protected int m_nextOffset = 1;
     // array to store actual data     
     protected int[] m_data;
     // array to store blocks offsets
-    protected int m_blocks[]; 
+    protected int[] m_blocks;
     // block size = 1 << blockOrder;    
     //protected int m_blockOrder;
     //protected int m_blockOrder2;
 
-    protected int m_blockSize;
-    protected int m_blockSize2;
-    protected int m_blockSize3;
+    protected final int m_blockSize;
+    protected final int m_blockSize2;
+    protected final int m_blockSize3;
 
     //protected int m_blockMask;
     int m_bx, m_by, m_bz, m_bxz;
@@ -63,33 +59,33 @@ public class SparseGridInt extends BaseAttributeGrid {
     public SparseGridInt(Bounds bounds, int blockSize, double voxelSize) {
         super(bounds, voxelSize, voxelSize);
         m_blockSize = blockSize;
-        m_blockSize2 = blockSize*blockSize;
-        m_blockSize3 = blockSize*blockSize*blockSize;
+        m_blockSize2 = blockSize * blockSize;
+        m_blockSize3 = blockSize * blockSize * blockSize;
 
         allocateData();
     }
 
-    protected void allocateData(){
-        
+    protected void allocateData() {
 
-        m_bx = (width + m_blockSize-1)/ m_blockSize;
-        m_by = (height + m_blockSize-1)/ m_blockSize;
-        m_bz = (depth + m_blockSize-1)/ m_blockSize;
-        m_bxz = m_bx*m_bz;
 
-        if((long)m_bx * m_by * m_bz > MAX_DATA_SIZE) 
-            throw new RuntimeException(fmt("grid is too large: block dimension: (%d x %d x %d)",m_bx, m_by, m_bz));
-        
+        m_bx = (width + m_blockSize - 1) / m_blockSize;
+        m_by = (height + m_blockSize - 1) / m_blockSize;
+        m_bz = (depth + m_blockSize - 1) / m_blockSize;
+        m_bxz = m_bx * m_bz;
+
+        if ((long) m_bx * m_by * m_bz > MAX_DATA_SIZE)
+            throw new RuntimeException(fmt("grid is too large: block dimension: (%d x %d x %d)", m_bx, m_by, m_bz));
+
         m_blocks = new int[m_bx * m_by * m_bz];
-        
-        if(DEBUG)printf("blocks: %d x %d x %d\n", m_bx, m_by, m_bz);
-        if(DEBUG)printf("blockSize: %d\n", m_blockSize);
 
-        int initialDataSize = m_blockSize3+1;
+        if (DEBUG) printf("blocks: %d x %d x %d\n", m_bx, m_by, m_bz);
+        if (DEBUG) printf("blockSize: %d\n", m_blockSize);
+
+        int initialDataSize = m_blockSize3 + 1;
 
         m_data = new int[initialDataSize];
     }
-    
+
     /**
      * Create an empty grid of the specified size.  Reuses
      * the grid type and material type(byte, short, int).
@@ -116,9 +112,9 @@ public class SparseGridInt extends BaseAttributeGrid {
         int bx = (x / m_blockSize);
         int by = (y / m_blockSize);
         int bz = (z / m_blockSize);
-        int blockIndex = by*m_bxz + bx * m_bz + bz;
+        int blockIndex = by * m_bxz + bx * m_bz + bz;
         int blockOffset = m_blocks[blockIndex];
-        if(blockOffset == 0){
+        if (blockOffset == 0) {
             // empty block 
             return 0;
         }
@@ -139,27 +135,27 @@ public class SparseGridInt extends BaseAttributeGrid {
      * @param attribute attribute value 
      */
     public void setAttribute(int x, int y, int z, long attribute) {
-        if(DEBUG)printf("setAttribute(%d %d %d %d)\n", x,y,z,attribute);
+        if (DEBUG) printf("setAttribute(%d %d %d %d)\n", x, y, z, attribute);
         // block coordinates 
         int bx = (x / m_blockSize);
         int by = (y / m_blockSize);
         int bz = (z / m_blockSize);
-        if(DEBUG)printf("block %d %d %d\n", bx, by, bz);
-        int blockIndex = by*m_bxz + bx * m_bz + bz;
+        if (DEBUG) printf("block %d %d %d\n", bx, by, bz);
+        int blockIndex = by * m_bxz + bx * m_bz + bz;
         int dataOffset = m_blocks[blockIndex];
-        if(DEBUG)printf("blockIndex %d dataOffset: %d\n", blockIndex, dataOffset);
-        if(dataOffset == 0){
+        if (DEBUG) printf("blockIndex %d dataOffset: %d\n", blockIndex, dataOffset);
+        if (dataOffset == 0) {
             // allocate new block 
-            if(DEBUG)printf("allocate new block\n");
-            if(m_nextOffset + m_blockSize3 > m_data.length){
-                if(2L * m_data.length > MAX_DATA_SIZE) 
+            if (DEBUG) printf("allocate new block\n");
+            if (m_nextOffset + m_blockSize3 > m_data.length) {
+                if (2L * m_data.length > MAX_DATA_SIZE)
                     throw new RuntimeException(fmt("max data size exceeded: %d", MAX_DATA_SIZE));
-                if(DEBUG)printf("realloc data: %d\n", 2 * m_data.length);
-                
+                if (DEBUG) printf("realloc data: %d\n", 2 * m_data.length);
+
                 int data[] = new int[2 * m_data.length];
                 System.arraycopy(m_data, 0, data, 0, m_data.length);
                 m_data = data;
-                
+
             }
             m_blocks[blockIndex] = m_nextOffset;
             dataOffset = m_nextOffset;
@@ -169,24 +165,51 @@ public class SparseGridInt extends BaseAttributeGrid {
         int xb = (x % m_blockSize);
         int yb = (y % m_blockSize);
         int zb = (z % m_blockSize);
-        if(DEBUG)printf("xb: %d %d %d\n", xb, yb, zb);
-        if(DEBUG)printf("dataOffset: %d\n", dataOffset);
-        
+        if (DEBUG) printf("xb: %d %d %d\n", xb, yb, zb);
+        if (DEBUG) printf("dataOffset: %d\n", dataOffset);
+
         int dataIndex = dataOffset + (yb * m_blockSize2 + xb * m_blockSize + zb);
-        if(DEBUG)printf("dataIndex %d\n", dataIndex);
-        m_data[dataIndex] = (int)attribute;
+        if (DEBUG) printf("dataIndex %d\n", dataIndex);
+        m_data[dataIndex] = (int) attribute;
     }
 
     /**
      * Clone the object.
      */
     public Object clone() {
-        throw new RuntimeException("setState() not impelemente");
+        throw new RuntimeException("clone() not implemented");
     }
 
-    public int getDataSize(){
-        return (m_data.length + m_blocks.length)*SIZEOF_INT;
+    public int getDataSize() {
+        return (m_data.length + m_blocks.length) * SIZEOF_INT;
     }
-    
+
+    // TODO: More generic method needed to handle eventual SparseGridShort/Byte versions
+    public int[] getData() {
+        return m_data;
+    }
+
+    public int[] getBlocks() {
+        return m_blocks;
+    }
+
+    public int getBlockSize() {
+        return m_blockSize;
+    }
+
+    public int getBx() {
+        return m_bx;
+    }
+
+    public int getBy() {
+        return m_by;
+    }
+    public int getBz() {
+        return m_bz;
+    }
+
+    public int getBxz() {
+        return m_bxz;
+    }
 }
 

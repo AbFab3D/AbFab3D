@@ -65,7 +65,7 @@ public class TestDistanceToMeshDataSource extends TestCase {
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestSphere.class);
+        return new TestSuite(TestDistanceToMeshDataSource.class);
     }
 
     public void testNothing() {

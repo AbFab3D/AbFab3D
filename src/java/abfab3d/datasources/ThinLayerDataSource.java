@@ -25,6 +25,7 @@ import abfab3d.core.GridDataDesc;
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.AttributePacker;
 
+import abfab3d.grid.op.ImageMaker;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.ObjectParameter;
@@ -37,7 +38,14 @@ import abfab3d.grid.SparseGridInt;
 import abfab3d.grid.util.GridUtil;
 
 import abfab3d.grid.op.GridMaker;
+import abfab3d.util.ColorMapper;
+import abfab3d.util.ColorMapperDistance;
 
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.printf;
@@ -46,6 +54,7 @@ import static abfab3d.core.Output.time;
 import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.core.MathUtil.lerp3;
 
+import static abfab3d.util.ImageUtil.getRGBA;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.abs;
@@ -69,7 +78,7 @@ public class ThinLayerDataSource extends TransformableDataSource {
     static final int HI_GRID_BLOCK_ORDER = 3;
     static final boolean DEBUG = true;
     static int debugCount = 1000;
-    protected boolean m_useCombinedGrid = false;
+    protected boolean m_useCombinedGrid = true;
 
     SNodeParameter  mp_source = new SNodeParameter("source","source to be used for calculations", null, ShapesFactory.getInstance());
     ObjectParameter  mp_bounds = new ObjectParameter("bounds","bounds of data source", null);
@@ -89,16 +98,18 @@ public class ThinLayerDataSource extends TransformableDataSource {
     DataSource m_source = null;
        
     AttributeGrid m_lowGrid; // grid of low res data
-    SparseGridInt m_hiGrid; // grid of high res difference data
+    AttributeGrid m_hiGrid; // grid of high res difference data
     GridInterpolator m_lowGridData;
     GridInterpolator m_hiGridData;
     CombinedInterpolator m_combinedGridData;
+    protected boolean m_initialized;
 
     int m_thinLayerCount = 0;
 
     public ThinLayerDataSource(){
         super.addParams(m_aparam);
     }
+
     /**
        constructs DataSource from the given grid
      */
@@ -109,15 +120,149 @@ public class ThinLayerDataSource extends TransformableDataSource {
         mp_source.setValue(source);
         mp_bounds.setValue(bounds);
     }
-    
+
+    /**
+     constructs DataSource from the given grid
+     */
+    public ThinLayerDataSource(DataSource source, Bounds bounds, double vs){
+
+        super.addParams(m_aparam);
+
+        mp_source.setValue(source);
+        mp_bounds.setValue(bounds);
+        mp_hiVoxelSize.setValue(vs);
+    }
+
+    /**
+     constructs DataSource from the given grid
+     */
+    public ThinLayerDataSource(DataSource source, Bounds bounds, double vs, int vf){
+
+        super.addParams(m_aparam);
+
+        mp_source.setValue(source);
+        mp_bounds.setValue(bounds);
+        mp_hiVoxelSize.setValue(vs);
+        mp_lowVoxelFactor.setValue(vf);
+    }
+
+    /**
+
+     @noRefGuide
+     */
+    public int initializeOld() {
+        if (m_initialized) return ResultCodes.RESULT_OK;
+
+        super.initialize();
+
+        m_source = (DataSource)mp_source.getValue();
+        initializeChild(m_source);
+        // voxel size of high res grid
+        double hiVoxel = mp_hiVoxelSize.getValue();
+        double layerThickness = mp_layerThickness.getValue();
+        // voxel size of low res grid
+        int blockSize = mp_lowVoxelFactor.getValue();
+        blockSize |= 1;// make it odd
+        double lowVoxel = blockSize*hiVoxel;
+        m_bounds = (Bounds)mp_bounds.getValue();
+        m_bounds.roundSize(lowVoxel);
+
+        //m_lowGrid = new ArrayAttributeGridShort(m_bounds, lowVoxel, lowVoxel);
+        m_lowGrid = new ArrayAttributeGridInt(m_bounds, lowVoxel, lowVoxel);
+
+        //m_lowGrid = new SparseGridInt(m_bounds,  lowVoxel);
+        GridMaker gm = new GridMaker();
+        double maxDist = m_bounds.getSizeMax()/2;
+        AttributePacker lowPacker = new UnsignedPacker(INT_BITS, -maxDist, maxDist);
+        gm.setAttributePacker(lowPacker);
+
+        GridDataDesc lowresGdd = new GridDataDesc();
+        // the interior of shape will be ((1 << bitCount)-1)
+
+        // TODO: not sure if this will break the java code?
+        GridDataChannel gdc = new GridDataChannel(GridDataChannel.DISTANCE, "0_distance", INT_BITS, 0, -maxDist, maxDist);
+        lowresGdd.addChannel(gdc);
+        m_lowGrid.setDataDesc(lowresGdd);
+
+        m_lowGridData = new GridInterpolator(m_lowGrid, lowPacker);
+
+        printf("blockSize: %d\n", blockSize);
+        gm.setSource(m_source);
+        gm.makeGrid(m_lowGrid);
+        //GridUtil.printSliceAttribute(m_lowGrid, m_lowGrid.getDepth()/2, "%4x ");
+        int nx = m_lowGrid.getWidth();
+        int ny = m_lowGrid.getHeight();
+        int nz = m_lowGrid.getDepth();
+        Vec data = new Vec(3);
+        int layerVoxelCount = 0;
+        // max distance to store in hiGrid
+        double maxHiDistance = 0.5*mp_layerThickness.getValue();
+        // min distance on lowGrid to trigger refinement
+        //double minLowDistance =  max(lowVoxel*1.8, maxHiDistance);
+        double minLowDistance =  max(lowVoxel, maxHiDistance);
+        //AttributePacker hiPacker = new SignedShortPacker(maxHiDistance);
+        AttributePacker hiPacker;
+        double maxDeltaValue = 1.5 * lowVoxel;
+        GridDataDesc highresGdd = new GridDataDesc();
+//        gdc = new GridDataChannel(GridDataChannel.DISTANCE, "0_distance", BYTE_BITS, 0, -maxDeltaValue, maxDeltaValue);
+        // TODO: try and 4 channel deltas
+        gdc = new GridDataChannel(GridDataChannel.DISTANCE, "0_distance", INT_BITS, 0, -maxDeltaValue, maxDeltaValue);
+        if (m_useCombinedGrid) {
+            gdc = new GridDataChannel(GridDataChannel.DISTANCE, "0_distance", INT_BITS, 0, -maxDist, maxDist);
+        }
+        highresGdd.addChannel(gdc);
+        hiPacker = highresGdd.getAttributePacker();
+
+        // TODO: Debug
+        //m_hiGrid = new SparseGridInt(m_bounds,  HI_GRID_BLOCK_ORDER, hiVoxel);
+        m_hiGrid = new ArrayAttributeGridInt(m_bounds, hiVoxel, hiVoxel);
+
+        m_hiGrid.setDataDesc(highresGdd);
+
+        m_hiGridData = new GridInterpolator(m_hiGrid, hiPacker);
+        printf("hiGrid: [%d x %d x %d]\n",m_hiGrid.getWidth(), m_hiGrid.getHeight(), m_hiGrid.getDepth());
+        long t0 = time();
+
+        if (m_useCombinedGrid) {
+            printf("***Making hi grid\n");
+            GridMaker gm2 = new GridMaker();
+            gm2.setSource(m_source);
+            gm2.makeGrid(m_hiGrid);
+        } else {
+            for (int y = 0; y < ny; y++) {
+                for (int x = 0; x < nx; x++) {
+                    for (int z = 0; z < nz; z++) {
+                        lowPacker.getData(m_lowGrid.getAttribute(x, y, z), data);
+                        if (abs(data.v[0]) < minLowDistance) {
+                            fillHiGridBlock(hiPacker, true, x, y, z, blockSize, maxHiDistance);
+                            layerVoxelCount++;
+                        }
+                    }
+                }
+            }
+        }
+        if(m_useCombinedGrid)
+            m_combinedGridData = new CombinedInterpolator(m_hiGrid, hiPacker, m_lowGridData);
+
+        printf("hiGrid renderTime: %d ms\n",(time()-t0));
+        //printf("hiGrid memory: %7.3f MB\n",m_hiGrid.getDataSize()*1.e-6);
+        printf("layerVoxelCount:%d layerVolume: %7.3f\n", layerVoxelCount, (double)layerVoxelCount/(nx*ny*nz));
+        printf("thin layer count:%d thin layerVolume: %7.3f\n", m_thinLayerCount, (double)m_thinLayerCount/(m_hiGrid.getWidth()* m_hiGrid.getHeight()*m_hiGrid.getDepth()));
+
+        m_initialized = true;
+        return ResultCodes.RESULT_OK;
+    }
+
 
     /**
 
        @noRefGuide            
      */
-    public int initialize(){
+    public int initialize() {
+        if (m_initialized) return ResultCodes.RESULT_OK;
 
         super.initialize();
+
         m_source = (DataSource)mp_source.getValue();
         initializeChild(m_source);
         // voxel size of high res grid 
@@ -129,71 +274,99 @@ public class ThinLayerDataSource extends TransformableDataSource {
         double lowVoxel = blockSize*hiVoxel;
         m_bounds = (Bounds)mp_bounds.getValue();
         m_bounds.roundSize(lowVoxel);
-        
-        //m_lowGrid = new ArrayAttributeGridShort(m_bounds, lowVoxel, lowVoxel);
-        m_lowGrid = new ArrayAttributeGridInt(m_bounds, lowVoxel, lowVoxel);
-        
-        //m_lowGrid = new SparseGridInt(m_bounds,  lowVoxel);
-        GridMaker gm = new GridMaker();
-        double maxDist = m_bounds.getSizeMax()/2;
-        AttributePacker lowPacker = new UnsignedPacker(INT_BITS, -maxDist, maxDist);
-        gm.setAttributePacker(lowPacker);
-        m_lowGridData = new GridInterpolator(m_lowGrid, lowPacker);
-        
-        printf("blockSize: %d\n", blockSize);
-        gm.setSource(m_source);
-        gm.makeGrid(m_lowGrid);
-        //GridUtil.printSliceAttribute(m_lowGrid, m_lowGrid.getDepth()/2, "%4x ");
-        int nx = m_lowGrid.getWidth();
-        int ny = m_lowGrid.getHeight();
-        int nz = m_lowGrid.getDepth();
-        Vec data = new Vec(3);
-        int layerVoxelCount = 0;
-        // max distance to store in hiGrid 
-        double maxHiDistance = 0.5*mp_layerThickness.getValue();
-        // min distance on lowGrid to trigger refinement 
-        //double minLowDistance =  max(lowVoxel*1.8, maxHiDistance); 
-        double minLowDistance =  max(lowVoxel, maxHiDistance); 
-        //AttributePacker hiPacker = new SignedShortPacker(maxHiDistance);
-        AttributePacker hiPacker;
-        if(m_useCombinedGrid) {
-            // store complete value in the hiGrid
-            hiPacker = new UnsignedPacker(BYTE_BITS, -(maxHiDistance+hiVoxel), maxHiDistance);
-        } else {
-            // experimental bounds - error in low res grid is bounded by 1.5*lowVoxel
-            hiPacker = new SignedBytePacker(1.5*lowVoxel);
-            // hiPacker = new SignedIntPacker(maxHiDistance);
-        }
 
-        m_hiGrid = new SparseGridInt(m_bounds,  HI_GRID_BLOCK_ORDER, hiVoxel);
-        m_hiGridData = new GridInterpolator(m_hiGrid, hiPacker);
-        printf("hiGrid: [%d x %d x %d]\n",m_hiGrid.getWidth(), m_hiGrid.getHeight(), m_hiGrid.getDepth());
-        long t0 = time();
-        
-        for(int y = 0; y < ny; y++){
-            for(int x = 0; x < nx; x++){
-                for(int z = 0; z < nz; z++){
-                    lowPacker.getData(m_lowGrid.getAttribute(x,y,z), data);
-                    if(abs(data.v[0]) < minLowDistance){
-                        fillHiGridBlock(hiPacker, x, y, z, blockSize, maxHiDistance);
-                        layerVoxelCount++;
+        GridMaker lowresGm = new GridMaker();
+        GridMaker highresGm = new GridMaker();
+        double maxDist = m_bounds.getSizeMax()/2;
+
+        // Make lowres grid
+        m_lowGrid = new ArrayAttributeGridInt(m_bounds, lowVoxel, lowVoxel);
+        GridDataDesc lowresGdd = new GridDataDesc();
+        GridDataChannel lowresGdc = new GridDataChannel(GridDataChannel.DISTANCE, "0_distance", SHORT_BITS, 0, -maxDist, maxDist);
+        lowresGdd.addChannel(lowresGdc);
+        m_lowGrid.setDataDesc(lowresGdd);
+        m_lowGridData = new GridInterpolator(m_lowGrid, lowresGdd.getAttributePacker());
+        lowresGm.setSource(m_source);
+        lowresGm.makeGrid(m_lowGrid);
+
+        boolean deltaEncode = false;
+        // Make highres grid
+        m_hiGrid = new ArrayAttributeGridInt(m_bounds, hiVoxel, hiVoxel);
+        GridDataDesc highresGdd = new GridDataDesc();
+        GridDataChannel highresGdc = null;
+        if (deltaEncode) {
+            double maxDeltaValue = 1.5 * lowVoxel;
+//            highresGdc = new GridDataChannel(GridDataChannel.DISTANCE, "0_distance", BYTE_BITS, 0, -maxDeltaValue, maxDeltaValue);
+            highresGdc = new GridDataChannel(GridDataChannel.DISTANCE, "0_distance", SHORT_BITS, 0, -maxDeltaValue, maxDeltaValue);
+        } else {
+            highresGdc = new GridDataChannel(GridDataChannel.DISTANCE, "0_distance", SHORT_BITS, 0, -maxDist, maxDist);
+        }
+        highresGdd.addChannel(highresGdc);
+        m_hiGrid.setDataDesc(highresGdd);
+
+        if (false || deltaEncode) {
+            int nx = m_lowGrid.getWidth();
+            int ny = m_lowGrid.getHeight();
+            int nz = m_lowGrid.getDepth();
+            Vec data = new Vec(3);
+            AttributePacker lowPacker = lowresGdd.getAttributePacker();
+            AttributePacker highPacker = highresGdd.getAttributePacker();
+            double maxHiDistance = 0.5*mp_layerThickness.getValue();
+            double minLowDistance =  max(lowVoxel, maxHiDistance);
+            long layerVoxelCount = 0;
+
+            for (int y = 0; y < ny; y++) {
+                for (int x = 0; x < nx; x++) {
+                    for (int z = 0; z < nz; z++) {
+                        lowPacker.getData(m_lowGrid.getAttribute(x, y, z), data);
+                        if (abs(data.v[0]) < minLowDistance) {
+                            fillHiGridBlock(highPacker, deltaEncode, x, y, z, blockSize, maxHiDistance);
+                            layerVoxelCount++;
+                        }
                     }
                 }
             }
+            printf("layerVoxelCount:%d layerVolume: %7.3f\n", layerVoxelCount, (double)layerVoxelCount/(nx*ny*nz));
+        } else {
+            //m_hiGridData = new GridInterpolator(m_hiGrid, highresGdd.getAttributePacker());
+            highresGm.setSource(m_source);
+            highresGm.makeGrid(m_hiGrid);
+/*
+            // Clear out half for testing
+            int nx = m_hiGrid.getWidth();
+            int ny = m_hiGrid.getHeight();
+            int nz = m_hiGrid.getDepth();
+
+            for (int y = 0; y < ny / 2; y++) {
+                for (int x = 0; x < nx; x++) {
+                    for (int z = 0; z < nz; z++) {
+                        m_hiGrid.setAttribute(x,y,z,0);
+                    }
+                }
+            }
+*/
         }
-        if(m_useCombinedGrid) 
-            m_combinedGridData = new CombinedInterpolator(m_hiGrid, hiPacker, m_lowGridData);
+        printf("hiGrid: [%d x %d x %d]\n",m_hiGrid.getWidth(), m_hiGrid.getHeight(), m_hiGrid.getDepth());
+        long t0 = time();
 
         printf("hiGrid renderTime: %d ms\n",(time()-t0));
-        printf("hiGrid memory: %7.3f MB\n",m_hiGrid.getDataSize()*1.e-6);
-        printf("layerVoxelCount:%d layerVolume: %7.3f\n", layerVoxelCount, (double)layerVoxelCount/(nx*ny*nz));
+        //printf("hiGrid memory: %7.3f MB\n",m_hiGrid.getDataSize()*1.e-6);
         printf("thin layer count:%d thin layerVolume: %7.3f\n", m_thinLayerCount, (double)m_thinLayerCount/(m_hiGrid.getWidth()* m_hiGrid.getHeight()*m_hiGrid.getDepth()));
 
+        m_initialized = true;
         return ResultCodes.RESULT_OK;
-
     }
 
-    void fillHiGridBlock(AttributePacker packer, int bx, int by, int bz, int blockSize, double maxDistance){
+
+    public AttributeGrid getLowGrid() {
+        return m_lowGrid;
+    }
+
+    public AttributeGrid getHighGrid() {
+        return m_hiGrid;
+    }
+
+    void fillHiGridBlock(AttributePacker packer, boolean delta, int bx, int by, int bz, int blockSize, double maxDistance){
 
         int x0 = bx * blockSize;
         int x1 = x0 + blockSize;
@@ -202,16 +375,16 @@ public class ThinLayerDataSource extends TransformableDataSource {
         int z0 = bz * blockSize;
         int z1 = z0 + blockSize;
         //printf("fill block(%d %d %d: %d %d %d %d %d %d )\n", bx, by, bz, x0, x1, y0, y1, z0, z1);
-        int 
-            xc = (x0 + x1)/2,
-            yc = (y0 + y1)/2,
-            zc = (z0 + z1)/2;
+        int
+                xc = (x0 + x1)/2,
+                yc = (y0 + y1)/2,
+                zc = (z0 + z1)/2;
 
         Vec pnt = new Vec(3);
         Vec sourceData = new Vec(1);
         Vec gridData = new Vec(1);
         double vs = m_hiGrid.getVoxelSize();
-        
+
         double xmin = m_bounds.xmin + vs/2;
         double ymin = m_bounds.ymin + vs/2;
         double zmin = m_bounds.zmin + vs/2;
@@ -225,14 +398,15 @@ public class ThinLayerDataSource extends TransformableDataSource {
                     pnt.v[0] = xx;
                     pnt.v[1] = yy;
                     pnt.v[2] = zz;
-                    m_source.getDataValue(pnt, sourceData);                    
+                    m_source.getDataValue(pnt, sourceData);
                     if(abs(sourceData.v[0]) < maxDistance){
                         m_thinLayerCount++;
                         m_lowGridData.getValue(pnt, gridData);
-                        if(!m_useCombinedGrid){
-                            // save the difference                         
+
+                        if (delta) {
                             sourceData.v[0] -= gridData.v[0];
-                        } 
+                        }
+
                         long hiatt = packer.makeAttribute(sourceData);
                         //if( y == yc && z == zc){
                         //    printf("(%8.5f %8.5f %8.5f) -> %8.5f: %x \n", pnt.v[0]/MM, pnt.v[1]/MM, pnt.v[2]/MM,sourceData.v[0]/MM, hiatt);
@@ -536,7 +710,7 @@ public class ThinLayerDataSource extends TransformableDataSource {
         
         /**
            converts attribute into vector of double data 
-           @param attribute 
+           @param att
            @param data values of data stored in attribute 
         */
         public void getData(long att, Vec data){
@@ -581,7 +755,7 @@ public class ThinLayerDataSource extends TransformableDataSource {
         
         /**
            converts attribute into vector of double data 
-           @param attribute 
+           @param att
            @param data values of data stored in attribute 
         */
         public void getData(long att, Vec data){
@@ -623,7 +797,7 @@ public class ThinLayerDataSource extends TransformableDataSource {
         
         /**
            converts attribute into vector of double data 
-           @param attribute 
+           @param att
            @param data values of data stored in attribute 
         */
         public void getData(long att, Vec data){
@@ -634,7 +808,16 @@ public class ThinLayerDataSource extends TransformableDataSource {
         */
         public int getBitCount(){
             return m_bitCount;
-        }        
+        }
+
+        public String toString(){
+            StringBuffer sb = new StringBuffer();
+            sb.append("SignedBytePackerPacker(\n");
+            sb.append(fmt("GridDataChannel(bitCount:%d; offset:%d; value0:%7.4f; value1:%7.4f; B2D:%12.5e)", getBitCount(), 0, -m_maxValue, m_maxValue, m_invfactor));
+
+            sb.append(")");
+            return sb.toString();
+        }
     } // class  SignedBytePacker
 
     /**
@@ -665,7 +848,7 @@ public class ThinLayerDataSource extends TransformableDataSource {
         
         /**
            converts attribute into vector of double data 
-           @param attribute 
+           @param att
            @param data values of data stored in attribute 
         */
         public void getData(long att, Vec data){
@@ -680,3 +863,26 @@ public class ThinLayerDataSource extends TransformableDataSource {
     } // class  SignedShortPacker
     
 } // class ThinLayerDataSource 
+
+
+class SliceDistanceColorizer2 extends TransformableDataSource {
+
+    DataSource m_source;
+    ColorMapper m_colorMapper;
+
+    public SliceDistanceColorizer2(DataSource source, ColorMapper colorMapper){
+        m_colorMapper = colorMapper;
+        m_source = source;
+
+    }
+
+    public int getBaseValue(Vec pnt, Vec data){
+
+        m_source.getDataValue(pnt, data);
+
+        int argb = m_colorMapper.getColor(data.v[0]);
+        getRGBA(argb, data.v);
+        return ResultCodes.RESULT_OK;
+    }
+
+} // static class SliceDistanceColorizer

@@ -93,7 +93,7 @@ public class DiskCache {
             ioe.printStackTrace();
         }
 
-        if (DEBUG) printf("DiskCache failed to find label: %s\n",label);
+        if (DEBUG) printf("DiskCache failed to find label: %s at -> %s\n",label,f.getAbsolutePath());
         return null;
     }
 
@@ -178,6 +178,9 @@ public class DiskCache {
         String mdFile = path + ".meta";
 
         if (DEBUG) printf("DiskCache reading label: %s from file: %s\n",label,dataFile);
+        if (DEBUG) {
+            new Exception().printStackTrace(System.out);
+        }
         File md = new File(basedir, mdFile);
         FileInputStream fis = new FileInputStream(md);
         BufferedInputStream bis = new BufferedInputStream(fis);
