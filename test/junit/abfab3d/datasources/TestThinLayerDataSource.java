@@ -1,13 +1,12 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
- *                               Java Source
- *
+ * Shapeways, Inc Copyright (c) 2011
+ * Java Source
+ * <p/>
  * This source is licensed under the GNU LGPL v2.1
  * Please read http://www.gnu.org/copyleft/lgpl.html for more information
- * 
-* This software comes with the standard NO WARRANTY disclaimer for any
+ * <p/>
+ * This software comes with the standard NO WARRANTY disclaimer for any
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
- *
  ****************************************************************************/
 
 package abfab3d.datasources;
@@ -16,51 +15,26 @@ package abfab3d.datasources;
 
 
 // external imports
+
+import abfab3d.core.Bounds;
+import abfab3d.core.DataSource;
+import abfab3d.core.Vec;
+import abfab3d.grid.op.ImageMaker;
+import abfab3d.util.ColorMapper;
+import abfab3d.util.ColorMapperDistance;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import javax.vecmath.Vector3d;
-
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import javax.imageio.ImageIO;
-
-// Internal Imports
-import abfab3d.core.AttributeGrid;
-import abfab3d.core.GridDataDesc;
-import abfab3d.core.GridDataChannel;
-import abfab3d.core.DataSource;
-import abfab3d.core.ResultCodes;
-
-import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.ArrayAttributeGridShort;
-import abfab3d.grid.ArrayAttributeGridInt;
-import abfab3d.grid.op.GridMaker;
-import abfab3d.grid.op.ImageMaker;
-
-import abfab3d.util.ColorMapperDistance;
-import abfab3d.util.ColorMapper;
-
-import abfab3d.core.Bounds;
-import abfab3d.core.Vec;
-
-import abfab3d.io.input.ModelLoader;
-import abfab3d.io.input.SVXReader;
-
-import abfab3d.io.output.SVXWriter;
-import abfab3d.io.output.GridSaver;
-
-
 
 import static abfab3d.core.Output.printf;
-
 import static abfab3d.core.Output.time;
 import static abfab3d.core.Units.MM;
-import static abfab3d.core.Output.printf;
 
-import static abfab3d.grid.util.GridUtil.writeSlice;
-
+// Internal Imports
 
 
 /**
@@ -77,7 +51,7 @@ public class TestThinLayerDataSource extends TestCase {
         return new TestSuite(TestThinLayerDataSource.class);
     }
 
-    public void testNothing(){
+    public void testNothing() {
     }
 
 
@@ -88,43 +62,43 @@ public class TestThinLayerDataSource extends TestCase {
         int imgHeight = 1000;
         int imgWidthExt = 1000;
         int imgHeightExt = 1000;
-        double s = 6*MM;
+        double s = 6 * MM;
 
-        double r = 1.5*MM;
-        double R = 50*MM;
+        double r = 1.5 * MM;
+        double R = 50 * MM;
         Bounds bounds = new Bounds(-s, s, -s, s, -s, s);
-        Sphere sphere1 = new Sphere(-R,0,0,R);
+        Sphere sphere1 = new Sphere(-R, 0, 0, R);
         Sphere sphere2 = new Sphere(r, 0, 0, r);
-        Sphere sphere3 = new Sphere(-R, 0, 0, -(R-0.5*MM));
+        Sphere sphere3 = new Sphere(-R, 0, 0, -(R - 0.5 * MM));
 
         Union union = new Union(sphere1, sphere2);
         Intersection inter = new Intersection(union, sphere3);
-        union.set("blend", 0.3*MM);
+        union.set("blend", 0.3 * MM);
         //DataSource source = union;
         DataSource source = inter;
         //DataSource source = sphere1;
 
         ThinLayerDataSource thinLayer = new ThinLayerDataSource(source, bounds);
-        thinLayer.set("hiVoxelSize", 0.05*MM);
-        thinLayer.set("layerThickness", 0.6*MM);
+        thinLayer.set("hiVoxelSize", 0.05 * MM);
+        thinLayer.set("layerThickness", 0.6 * MM);
         thinLayer.set("lowVoxelFactor", 5);
         thinLayer.setUseCombined(false);
 
         long t0 = time();
-        
+
         thinLayer.initialize();
         printf("thin layer initialized: %d ms\n", time() - t0);
-        
+
         Vec pnt = new Vec(3);
         Vec data1 = new Vec(1);
         Vec data2 = new Vec(1);
         int n = 20;
 
-        if(false){
-            for(int i = 0; i < n; i++){
-                pnt.v[0] = -s + i* MM;
-                pnt.v[1] = 1*MM;
-                pnt.v[2] = 1*MM;            
+        if (false) {
+            for (int i = 0; i < n; i++) {
+                pnt.v[0] = -s + i * MM;
+                pnt.v[1] = 1 * MM;
+                pnt.v[2] = 1 * MM;
                 source.getDataValue(pnt, data1);
                 thinLayer.getBaseValue(pnt, data2);
                 printf("pnt: %8.5f %8.5f %8.5f -> %8.5f : %8.5f \n", pnt.v[0], pnt.v[1], pnt.v[2], data1.v[0], data2.v[0]);
@@ -133,35 +107,35 @@ public class TestThinLayerDataSource extends TestCase {
 
         ImageMaker im = new ImageMaker();
 
-        ColorMapper colorMapper = new ColorMapperDistance(0.1*MM);
-        ColorMapper colorMapperHR = new ColorMapperDistance(0.1*MM);
-        
+        ColorMapper colorMapper = new ColorMapperDistance(0.1 * MM);
+        ColorMapper colorMapperHR = new ColorMapperDistance(0.1 * MM);
+
         t0 = time();
         BufferedImage img1 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(source, colorMapper));
         printf("img1 [%d x %d ] rendered: %d ms\n", img1.getWidth(), img1.getHeight(), time() - t0);
-        
-        ImageIO.write(img1, "png", new File("/tmp/00_sphere_dist.png"));        
+
+        ImageIO.write(img1, "png", new File("/tmp/00_sphere_dist.png"));
 
         thinLayer.setDataType(0);
 
         t0 = time();
-        BufferedImage img2 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(thinLayer, colorMapper));        
+        BufferedImage img2 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(thinLayer, colorMapper));
         printf("img2 [%d x %d ] rendered: %d ms\n", img2.getWidth(), img2.getHeight(), time() - t0);
-        ImageIO.write(img2, "png", new File("/tmp/01_lowGrid.png"));        
+        ImageIO.write(img2, "png", new File("/tmp/01_lowGrid.png"));
 
         thinLayer.setDataType(1);
 
         t0 = time();
-        BufferedImage img3 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(thinLayer,colorMapperHR));        
+        BufferedImage img3 = im.renderImage(imgWidth, imgHeight, bounds, new SliceDistanceColorizer(thinLayer, colorMapperHR));
         printf("img3 [%d x %d ] rendered: %d ms\n", img3.getWidth(), img3.getHeight(), time() - t0);
-        ImageIO.write(img3, "png", new File("/tmp/02_hiGrid.png"));        
+        ImageIO.write(img3, "png", new File("/tmp/02_hiGrid.png"));
 
         thinLayer.setDataType(2);
         t0 = time();
-        BufferedImage img4 = im.renderImage(imgWidthExt, imgHeightExt, bounds, new SliceDistanceColorizer(thinLayer, colorMapper));        
+        BufferedImage img4 = im.renderImage(imgWidthExt, imgHeightExt, bounds, new SliceDistanceColorizer(thinLayer, colorMapper));
         printf("img4 [%d x %d ] rendered: %d ms\n", img4.getWidth(), img4.getHeight(), time() - t0);
         t0 = time();
-        ImageIO.write(img4, "png", new File("/tmp/03_fullGrid.png"));        
+        ImageIO.write(img4, "png", new File("/tmp/03_fullGrid.png"));
         printf("image written: %d ms\n", time() - t0);
 
     }

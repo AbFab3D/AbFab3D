@@ -13,6 +13,7 @@ package abfab3d.util;
 
 // External Imports
 
+import abfab3d.param.FileDiskCache;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -21,6 +22,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.HashMap;
 
 import static abfab3d.core.Output.printf;
 
@@ -41,7 +43,7 @@ public class TestDiskCache extends TestCase {
     }
 
     public void testConvKeyToFilename() {
-        DiskCache dc = new DiskCache(dir);
+        FileDiskCache dc = new FileDiskCache(dir);
         String key = "http://www.shapeways.com/models/get-base/9999999/9999999.v0.visual_mesh_converter.sh.x3db.zip?token=abdcefghijklmnopqrstuvwxyz1234567890";
 
         String newKey = dc.convKeyToFilename(key,null);
@@ -54,7 +56,7 @@ public class TestDiskCache extends TestCase {
     }
 
     public void testConvKeyToFilenameKeepExt() {
-        DiskCache dc = new DiskCache(dir);
+        FileDiskCache dc = new FileDiskCache(dir);
         String key = "C:\\Users\\giles\\AppData\\Local\\Temp\\downloaduri5690294239212912741\\model8708582718597325402.x3db";
 
         String newKey = dc.convKeyToFilename(key,"x3db");
@@ -69,7 +71,7 @@ public class TestDiskCache extends TestCase {
     }
 
     public void testAddFile() throws IOException {
-        DiskCache dc = new DiskCache(dir);
+        FileDiskCache dc = new FileDiskCache(dir);
         dc.clear();
 
         String path = Files.createTempFile("test", "file").toString();
@@ -100,7 +102,7 @@ public class TestDiskCache extends TestCase {
     }
 
     public void testAddDirectory() throws IOException {
-        DiskCache dc = new DiskCache(dir);
+        FileDiskCache dc = new FileDiskCache(dir);
         dc.clear();
 
         String path = Files.createTempDirectory("dirtest").toString();
@@ -139,7 +141,7 @@ public class TestDiskCache extends TestCase {
     }
 
     public void testMaxSize() throws IOException {
-        DiskCache dc = new DiskCache(dir, 60);
+        FileDiskCache dc = new FileDiskCache(dir, 60);
         dc.clear();
 
         String path = Files.createTempFile("test", "file").toString();
@@ -176,7 +178,7 @@ public class TestDiskCache extends TestCase {
     }
 
     public void testRemove() throws IOException {
-        DiskCache dc = new DiskCache(dir, 60);
+        FileDiskCache dc = new FileDiskCache(dir, 60);
         dc.clear();
 
 
@@ -204,7 +206,7 @@ public class TestDiskCache extends TestCase {
     }
 
     public void testRemoveDirectory() throws IOException {
-        DiskCache dc = new DiskCache(dir);
+        FileDiskCache dc = new FileDiskCache(dir);
         dc.clear();
 
         String path = Files.createTempDirectory("dirtest").toString();
@@ -247,6 +249,45 @@ public class TestDiskCache extends TestCase {
         assertNull("key removed", dc.get(key));
         assertFalse("file still there", new File(newPath).exists());
         assertFalse("meta still there", meta.exists());
+
+    }
+
+    public void testAddExtra() throws IOException {
+        FileDiskCache dc = new FileDiskCache(dir);
+        dc.clear();
+
+        HashMap<String,Object> extra1 = new HashMap<>();
+        extra1.put("param1_key","param1_value");
+
+        String path = Files.createTempFile("test", "file").toString();
+        File origFile = new File(path);
+
+        FileOutputStream fos = new FileOutputStream(path);
+        fos.write("HelloWorld".getBytes());
+        fos.close();
+
+        assertTrue("orig file", origFile.exists());
+        String key = "helloworld";
+
+        String newPath = dc.put(key, extra1,path);
+
+        assertNotNull("No file returned", newPath);
+
+        File ffile = new File(newPath);
+        assertTrue(ffile.exists());
+        assertFalse(origFile.exists());
+
+        HashMap<String,Object> extra2 = new HashMap<>();
+
+        String rpath = dc.get(key, extra2);
+
+        assertNotNull("Entry null", rpath);
+        assertTrue("File doesnt exist", new File(rpath).exists());
+
+        assertTrue("Size too small",dc.getCurrentSize() >= 10);
+
+        assertEquals("Extra entries",extra1.size(),extra2.size());
+        assertEquals("param1",extra1.get("param1_key"),extra2.get("param1_key"));
 
     }
 

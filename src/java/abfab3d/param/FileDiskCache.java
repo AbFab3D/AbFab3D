@@ -1,4 +1,4 @@
-package abfab3d.util;
+package abfab3d.param;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,15 +19,17 @@ import java.util.zip.CRC32;
 import static abfab3d.core.Output.printf;
 
 /**
- * Disk based cache.  The paths can be specific files or directories.
+ * Disk based cache to manage file resources.  The paths can be specific files or directories.
+ *
+ * This class is designed to be thread safe though its not very efficient at it.
  *
  * Fixed size
  * LRU Eviction
  *
  * @author Alan Hudson
  */
-public class DiskCache {
-    private static final boolean DEBUG = true;
+public class FileDiskCache {
+    private static final boolean DEBUG = false;
     private static final long DEFAULT_SIZE = (long) (4 * 1e9);
     private static final int MAX_FILENAME_LENGTH = 108;
 
@@ -40,15 +42,19 @@ public class DiskCache {
     private long currentSize;
     private HashMap<String,CacheEntry> entries = new HashMap<String,CacheEntry>();
 
-    // Scratch vars, TODO: decide if we need them thread safe
-    private CRC32 crc = new CRC32();
-    private StringBuilder sb = new StringBuilder();
+    private static ThreadLocal<ThreadVars> threadVars = new ThreadLocal<ThreadVars>() {
+        public ThreadVars initialValue() {
+            ThreadVars ret_val = new ThreadVars();
 
-    public DiskCache(String dir) {
+            return ret_val;
+        }
+    };
+
+    public FileDiskCache(String dir) {
         this(dir, DEFAULT_SIZE);
     }
 
-    public DiskCache(String dir, long maxSize) {
+    public FileDiskCache(String dir, long maxSize) {
         this.dir = dir;
         this.maxSize = maxSize;
 
@@ -66,7 +72,39 @@ public class DiskCache {
      * @param path The path to the file
      * @return The permanent path to use
      */
-    public String put(String key, String path) throws IOException {
+    public synchronized String put(String key, String path) throws IOException {
+        String ret_val = get(key);
+
+        if (ret_val != null) return ret_val;
+
+        File f = new File(path);
+
+        long size;
+
+        if (f.isDirectory()) {
+            size = FileUtils.sizeOfDirectory(f);
+        } else {
+            size = f.length();
+        }
+
+        if (!insureCapacity(size)) {
+            // Return the original path without storing
+            return path;
+        }
+
+        return addEntry(key, null, f);
+    }
+
+    /**
+     * Add a file to the cache.  The file will be moved into the caches directory.
+     * If the key exists its contents will be returned.  If you want overwrite an entry call remove before put
+     *
+     * @param key The unique key
+     * @param meta Extra meta information
+     * @param path The path to the file
+     * @return The permanent path to use
+     */
+    public synchronized String put(String key, Map<String,Object> meta, String path) throws IOException {
         String ret_val = get(key);
 
         if (ret_val != null) return ret_val;
@@ -86,14 +124,14 @@ public class DiskCache {
             return path;
         }
 
-        return addEntry(key, f);
+        return addEntry(key, meta, f);
     }
 
     /**
      * Remove an entry
      * @param key
      */
-    public boolean remove(String key) {
+    public synchronized boolean remove(String key) {
         if (DEBUG) printf("Removing: %s\n",key);
 
         CacheEntry ce = entries.get(key);
@@ -119,7 +157,7 @@ public class DiskCache {
      * @param key
      * @return
      */
-    public String get(String key) {
+    public synchronized String get(String key) {
 
         CacheEntry me = entries.get(key);
         if (me != null) {
@@ -145,18 +183,65 @@ public class DiskCache {
     }
 
     /**
+     * Get an entry from a key.  Updates last access time for LRU logic
+     * @param key
+     * @return
+     */
+    public synchronized String get(String key, Map<String,Object> extra) {
+        if (DEBUG) printf("FileDiskCache.get: %s found: %b\n",key,entries.containsKey(key));
+        CacheEntry me = entries.get(key);
+        if (me != null) {
+            if (DEBUG) printf("Cache entry found: %s  path: %s\n",key,me.path);
+            File f = new File(me.path);
+            if (!f.exists()) {
+                if (DEBUG) printf("FileDiskCache file not on disk?");
+                return null;
+            }
+
+            // Update the access time in the entry
+            updateAccessTime(me);
+
+            // Update the access time in the meta file
+            File meta = new File(me.path + ".meta");
+            try {
+                CacheEntry.update(meta,me);
+            } catch (IOException ioe) {
+                printf("*** Failed to update last access time in meta file.  File: %s\n", meta.getAbsolutePath());
+                printf("    Ignoring update of meta file\n");
+            }
+
+            if (me.extra != null) {
+                extra.putAll(me.extra);
+            }
+
+            if (DEBUG) printf("FileDiskCache returning success: %s\n",me.path);
+            return me.path;
+        }
+
+        return null;
+    }
+
+    /**
      * Clear all entries, this will delete items on disk
      */
-    public void clear() {
+    public synchronized void clear() {
         if (DEBUG) printf("Clearing entries:\n");
         File fdir = new File(dir);
 
-        try {
-            FileUtils.deleteDirectory(fdir);
-        } catch(IOException ioe) {
-            ioe.printStackTrace();
-            // silently ignore
+        // Delete each entry separately in case someone is in the directory
+        for(File file : fdir.listFiles()) {
+            try {
+                if (file.isDirectory()) {
+                    FileUtils.deleteDirectory(file);
+                } else {
+                    file.delete();
+                }
+            } catch(IOException ioe2) {
+                // ignore
+            }
         }
+
+        fdir.mkdirs();
 
         entries.clear();
         currentSize = 0;
@@ -203,7 +288,7 @@ public class DiskCache {
      * @param path
      * @return
      */
-    private String addEntry(String key,File path) throws IOException {
+    private String addEntry(String key,Map<String,Object> extra,File path) throws IOException {
 
         if (path.isDirectory()) {
             String filename = convKeyToFilename(key,null);
@@ -216,6 +301,9 @@ public class DiskCache {
             ce.key = key;
             ce.path = ret_val;
             ce.size = FileUtils.sizeOfDirectory(dest);
+            HashMap<String,Object> md = new HashMap<>();
+            if (extra != null) md.putAll(extra);
+            ce.extra = md;
 
             entries.put(key, ce);
             currentSize += ce.size;
@@ -227,8 +315,11 @@ public class DiskCache {
             String filename = convKeyToFilename(key,FilenameUtils.getExtension(path.toString()));
             File dest = new File(dir,filename);
 
-            if (DEBUG) printf("Moving: %s to: %s\n",path,dest);
-            FileUtils.moveFile(path,dest);
+            if (DEBUG) printf("add Entry.  key: %s\n",key);
+            if (!dest.exists()) {
+                if (DEBUG) printf("Moving: %s to: %s\n", path, dest);
+                FileUtils.moveFile(path, dest);
+            }
 
             String ret_val = dest.getAbsolutePath();
             CacheEntry ce = new CacheEntry();
@@ -236,11 +327,13 @@ public class DiskCache {
             ce.key = key;
             ce.path = ret_val;
             ce.size = dest.length();
+            HashMap<String,Object> md = new HashMap<>();
+            if (extra != null) md.putAll(extra);
+            ce.extra = md;
 
             entries.put(key, ce);
             currentSize += ce.size;
 
-            if (DEBUG) printf("Size is now: %d\n",currentSize);
             File meta = new File(dir,filename + ".meta");
             CacheEntry.update(meta,ce);
             return ret_val;
@@ -253,13 +346,17 @@ public class DiskCache {
      * @param key
      * @return
      */
-    protected String convKeyToFilename(String key, String ext) {
+    public String convKeyToFilename(String key, String ext) {
         // replace bad directory characters
         String ret_val = key.replaceAll("[ :\\\\/*\"?|<>'.;#$=]", "");
+        ThreadVars tvars = threadVars.get();
+
+        CRC32 crc = tvars.crc;
+        StringBuilder sb = tvars.sb;
 
         // Add a crc to insure uniqueness
         crc.reset();
-        crc.update(key.getBytes());
+        crc.update(ret_val.getBytes());
 
         String crcSt = Long.toHexString(crc.getValue());
 
@@ -270,7 +367,7 @@ public class DiskCache {
         int len = ret_val.length() + crcSt.length() + 1 + elen;
         if (len > MAX_FILENAME_LENGTH) {
             int start = len - MAX_FILENAME_LENGTH;
-            ret_val = ret_val.substring(start);
+            ret_val = ret_val.substring(0,ret_val.length() - start);
         }
         sb.append(ret_val);
         sb.append("_");
@@ -331,6 +428,7 @@ public class DiskCache {
         public String key;
         public String path;
         public long size;
+        public Map<String,Object> extra;
 
         public static CacheEntry parse(File f) {
             try {
@@ -344,6 +442,9 @@ public class DiskCache {
                 CacheEntry me = new CacheEntry();
                 me.lastAccess = ((Number) val.get("lastAccess")).longValue();
                 me.key = (String) val.get("key");
+                if (val.containsKey("extra")) {
+                    me.extra = (Map<String,Object>) val.get("extra");
+                }
                 String metaPath = f.getAbsolutePath();
                 String filePath = null;
                 int idx = metaPath.indexOf(".meta");
@@ -353,7 +454,6 @@ public class DiskCache {
                     filePath = metaPath;
                 }
 
-                printf("checking filepath: %s\n",filePath);
                 File df = new File(filePath);
                 if (!df.isDirectory()) {
                     me.size = df.length();
@@ -380,6 +480,9 @@ public class DiskCache {
             HashMap val = new HashMap();
             val.put("lastAccess", me.lastAccess);
             val.put("key",me.key);
+            if (me.extra != null) {
+                val.put("extra",me.extra);
+            }
 
             Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().create();
 
@@ -396,4 +499,15 @@ public class DiskCache {
         }
 
     }
+
+    static class ThreadVars {
+        public StringBuilder sb;
+        public CRC32 crc;
+
+        public ThreadVars() {
+            sb = new StringBuilder();
+            crc = new CRC32();
+        }
+    }
+
 }
