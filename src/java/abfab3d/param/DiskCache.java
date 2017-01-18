@@ -72,6 +72,8 @@ public class DiskCache {
 
 
     public void put(LabeledBuffer buff) {
+        if (maxSize <= 0) return;  // Allow config code to turn this off
+
         try {
             writeFile(buff);
         } catch (IOException ioe) {

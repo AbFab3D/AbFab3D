@@ -458,6 +458,7 @@ public class GridSaver {
 
 
         if (os instanceof ZipOutputStream) {
+            printf("Creating zipentry: %s\n",fileName);
             ZipEntry ze = new ZipEntry(fileName);
             ((ZipOutputStream)os).putNextEntry(ze);
         }

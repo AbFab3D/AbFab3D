@@ -395,7 +395,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
             }
 
             m_materialType = makeMaterialType(dim);
-
+            if (DEBUG) printf("Final material type is: %s\n",m_materialType);
         grid = new AttributeGridSourceWrapper(m_vhash,grid);
         if(mp_useCaching.getValue()){
             printf("Caching file: " + m_vhash);
@@ -410,7 +410,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
             // HACK: Delete cached files in this case
             // hmm, cant get at ShapeJSGlobal
 
-            String prefix = "urlcache";  // Well known name shared with ShapeJSGlobal
+            String prefix = "url";  // Well known name shared with ShapeJSGlobal
             if (m_path.contains(prefix)) {
                 // Bad apple, remove it from disk
                 printf("Invalid file, removing from disk, HACK: %s\n",m_path);
