@@ -184,6 +184,17 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * @noRefGuide
      */
     public static String getParamString(String name,Parameter aparam[], String add){
+        return getParamString(name,aparam,add,null);
+    }
+
+    /**
+     * saves array of parameters into a string
+     *
+     * @param add1 Additional string to add
+     * @param add2 Additional string to add
+     * @noRefGuide
+     */
+    public static String getParamString(String name,Parameter aparam[], String add1, String add2){
         StringBuilder sb = new StringBuilder();
         sb.append(name);
         sb.append(":");
@@ -195,7 +206,12 @@ public class BaseParameterizable implements Parameterizable, SNode {
             sb.append("\";");
         }
 
-        sb.append(add);
+        if (add1 != null) {
+            sb.append(add1);
+        }
+        if (add2 != null) {
+            sb.append(add2);
+        }
         return sb.toString();
     }
 
