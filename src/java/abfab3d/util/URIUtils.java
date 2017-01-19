@@ -55,7 +55,12 @@ public class URIUtils {
 
                     if (file.length() == 0) {
                         // file really failed to download, perhaps from 301 redirect.  try removing https and trying again
-                        urlStr = urlStr.replace("https:","http:");
+						if (urlStr.startsWith("http://")) {
+							urlStr = urlStr.replace("http:","https:");
+						} else if (urlStr.startsWith("https://")) {
+							urlStr = urlStr.replace("https:","http:");
+						}
+
                         FileUtils.copyURLToFile(new URL(urlStr), file, 10000, 60000);
                         if (!file.exists() || file.length() == 0) {
                             printf("Failed to download file, tried http.  file: %s\n",urlStr);
