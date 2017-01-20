@@ -45,8 +45,11 @@ import static abfab3d.core.Units.MM;
  * @author Alan Hudson
  */
 public class ModelLoader extends BaseParameterizable implements GridProducer, ExpensiveInitializable {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final boolean DEBUG_TIMING = true;
+
+    private static final String BOUNDS_NAME = "_bounds";
+    private static final String MATERIAL_TYPE_NAME = "_mtype";
 
     private static final long MAX_ATTRIBUTED_SIZE = 800l * 800 * 800;
 
@@ -284,7 +287,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
      @return loaded mesh for this model
      */
     public AttributedMesh getMesh() {
-        String vhash = getValueHash(null);
+        String vhash = getValueHash();
         ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(vhash);
         AttributedMesh mesh = null;
         if (DEBUG) printf("ML.getMesh() Checking cache: %s\n", vhash);
@@ -311,7 +314,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
         }
 
         if (mp_useCaching.getValue()) {
-            ParamCache.getInstance().put(getValueHash(null), new ModelCacheEntry(null, mesh, reader, m_materialType));
+            ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(null, mesh, reader, m_materialType));
         }
         return mesh;
     }
@@ -327,14 +330,14 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
         try {
             AttributedMeshReader reader = null;
             if (mp_useCaching.getValue()) {
-                String vhash = getValueHash(null);
+                String vhash = getValueHash();
                 if (DEBUG) printf("ML.getGrid() Checking cache: %s\n", vhash);
 
                 ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(vhash);
                 if (co != null) {
                     if (DEBUG) printf("Found a cache entry: %s\n", vhash);
                     if (co.grid != null) {
-                        if (DEBUG) printf("Found cached grid: %s\n", getValueHash(null));
+                        if (DEBUG) printf("Found cached grid: %s\n", getValueHash());
                         m_materialType = co.materialType;
                         return co.grid;
                     } else if (co.mesh != null) {
@@ -345,7 +348,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
                         if (reader == null) throw new IllegalArgumentException("reader cannot be null");
                     }
                 } else {
-                    if (DEBUG) printf("No cache for grid: %s\n", getValueHash(null));
+                    if (DEBUG) printf("No cache for grid: %s\n", getValueHash());
                 }
             }
 
@@ -395,13 +398,13 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
             m_materialType = makeMaterialType(dim);
             grid = new AttributeGridSourceWrapper(m_vhash, grid);
             if (mp_useCaching.getValue()) {
-                String baseVhash = getValueHash(null);
+                String baseVhash = getValueHash();
 
-                printf("Caching file: " + m_vhash);
-                ParamCache.getInstance().put(getValueHash(null), new ModelCacheEntry(grid, mesh, reader, m_materialType));
+                printf("Caching file: %s\n",m_vhash);
+                ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(grid, mesh, reader, m_materialType));
 
-                String bhash = baseVhash + "_bounds";
-                String mhash = baseVhash + "_mtype";
+                String bhash = baseVhash + BOUNDS_NAME;
+                String mhash = baseVhash + MATERIAL_TYPE_NAME;
 
                 LabeledBuffer<double[]> boundsBuffer = new LabeledBuffer<double[]>(bhash, grid.getGridBounds().getArray());
                 CPUCache.getInstance().put(boundsBuffer);
@@ -447,12 +450,13 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
     }
 
     public Bounds getGridBounds() {
-        String vhash = getValueHash("_bounds");
+        String vhash = getValueHash();
+        vhash += BOUNDS_NAME;
         CPUCache cache = CPUCache.getInstance();
 
         LabeledBuffer<double[]> boundsBuffer = cache.get(vhash);
         if (boundsBuffer == null) {
-            if (DEBUG) printf("***Failed to get getGridBounds via cache\n");
+            if (DEBUG) printf("***Failed to get getGridBounds via cache: %s\n",vhash);
             // oh well, load the damn thing
             AttributeGrid grid = getGrid();
             Bounds ret_val = grid.getGridBounds();
@@ -465,13 +469,14 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
     }
 
     public MaterialType getMaterialType() {
-        String vhash = getValueHash("_mtype");
+        String vhash = getValueHash();
+        vhash += MATERIAL_TYPE_NAME;
         CPUCache cache = CPUCache.getInstance();
 
         LabeledBuffer<byte[]> materialTypeBuffer = cache.get(vhash);
 
         if (materialTypeBuffer == null) {
-            if (DEBUG) printf("***Failed to get materialType via cache\n");
+            if (DEBUG) printf("***Failed to get materialType via cache: %s\n",vhash);
             // oh well, load the damn thing
             AttributeGrid grid = getGrid();
             return m_materialType;
@@ -482,7 +487,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
         }
     }
 
-    protected String getValueHash(String subparam) {
+    protected String getValueHash() {
         if (m_vhash != null) return m_vhash;
 
         // TODO: transform should likely be a parameter but need to think through
@@ -498,7 +503,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
             }
         }
 
-        m_vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparam, m_transform == null ? "trans=null" : "trans=" + trans, subparam);
+        m_vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparam, m_transform == null ? "trans=null" : "trans=" + trans);
         return m_vhash;
     }
 
