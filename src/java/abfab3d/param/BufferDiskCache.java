@@ -53,8 +53,8 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class BufferDiskCache implements Runnable {
-    private static final boolean DEBUG = true;
-    private static final boolean DEBUG_TIMING = true;
+    private static final boolean DEBUG = false;
+    private static final boolean DEBUG_TIMING = false;
 
     private boolean compress = false;
     private boolean lazyWrites = true;
@@ -140,7 +140,7 @@ public class BufferDiskCache implements Runnable {
             extra.put("type", buff.getType().toString());
             extra.put("numElements", buff.getNumElements());
 
-            printf("Put: %s to --> %s\n", buff.getLabel(), path);
+            //printf("Put: %s to --> %s\n", buff.getLabel(), path);
             diskCache.put(buff.getLabel(), extra, path);
         } catch (IOException ioe) {
             ioe.printStackTrace();

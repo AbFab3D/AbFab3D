@@ -245,6 +245,11 @@ public class BaseParameterizable implements Parameterizable, SNode {
         sb.append(name);
         sb.append(":");
 
+        if (pnode instanceof ValueHash) {
+            ((ValueHash)pnode).getParamString(sb);
+            return sb.toString();
+        }
+
         Map<String,Parameter> map = pnode.getParamMap();
         for(Parameter p : map.values()){
             sb.append(p.getName());

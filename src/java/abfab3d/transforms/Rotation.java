@@ -194,6 +194,7 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
      */
     public String getParamString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("Rotation:");
         sb.append("center=\"");
         sb.append(mp_center.getValue().toString());
         sb.append("\";rotation=\"");
@@ -207,6 +208,7 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
      * @return
      */
     public void getParamString(StringBuilder sb) {
+        sb.append("Rotation:");
         sb.append("center=\"");
         sb.append(mp_center.getValue().toString());
         sb.append("\";rotation=\"");

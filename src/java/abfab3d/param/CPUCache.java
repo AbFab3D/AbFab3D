@@ -25,7 +25,7 @@ public class CPUCache {
     private static final boolean STOP_CACHING = false;
     private static final boolean USE_DISK_CACHE = true;
     private static final boolean DEBUG = false;
-    private static final boolean DEBUG_MISSES = true;
+    private static final boolean DEBUG_MISSES = false;
     private static final int JOB_RETAIN_MS = 60 * 60 * 1000;
 
     private static CPUCache instance;

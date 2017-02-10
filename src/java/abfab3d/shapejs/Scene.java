@@ -46,7 +46,7 @@ import static abfab3d.core.Output.fmt;
  */
 public class Scene extends BaseParameterizable {
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
 
     final public static double DEFAULT_VOXEL_SIZE = 0.1*MM;
     final public static Vector3d DEFAULT_SIZE = new Vector3d(0.1,0.1,0.1);

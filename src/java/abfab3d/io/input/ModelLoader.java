@@ -45,7 +45,7 @@ import static abfab3d.core.Units.MM;
  * @author Alan Hudson
  */
 public class ModelLoader extends BaseParameterizable implements GridProducer, ExpensiveInitializable {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final boolean DEBUG_TIMING = true;
 
     private static final String BOUNDS_NAME = "_bounds";
