@@ -23,10 +23,10 @@ import static abfab3d.core.Output.printf;
  */
 public abstract class BaseParameter implements Parameter {
     /** The name of the parameter. */
-    private String name;
+    protected String name;
 
     /** The description */
-    private String desc;
+    protected String desc;
 
     /** The value */
     protected Object value;

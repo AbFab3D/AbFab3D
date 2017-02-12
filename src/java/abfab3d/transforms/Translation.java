@@ -117,6 +117,7 @@ public class Translation extends BaseTransform implements ValueHash {
      */
     public String getParamString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("Translation:");
         sb.append("translation=\"");
         sb.append(mp_trans.getValue().toString());
         sb.append("\"");
@@ -128,6 +129,7 @@ public class Translation extends BaseTransform implements ValueHash {
      * @return
      */
     public void getParamString(StringBuilder sb) {
+        sb.append("Translation:");
         sb.append("translation=\"");
         sb.append(mp_trans.getValue().toString());
         sb.append("\"");

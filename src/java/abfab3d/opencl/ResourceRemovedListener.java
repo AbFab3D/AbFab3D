@@ -9,24 +9,13 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.core;
+package abfab3d.opencl;
 
 /**
- * Able to produce a grid result
+ * Notification that a resource was removed
  *
  * @author Alan Hudson
  */
-public interface GridProducer {
-
-    /**
-     * Return a grid representation of this object
-     * @return The attributed grid
-     */
-    AttributeGrid getGrid();
-
-    /**
-     * Get the grid bounds.
-     * @return
-     */
-    Bounds getGridBounds();
+public interface ResourceRemovedListener {
+    public void resourceRemoved(Resource res, long context);
 }

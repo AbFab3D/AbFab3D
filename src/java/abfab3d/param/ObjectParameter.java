@@ -20,6 +20,7 @@ import static abfab3d.core.Output.printf;
  * @author Vladimir Bulatov
  */
 public class ObjectParameter extends BaseParameter {
+    private static final boolean DEBUG = false;
 
     public ObjectParameter(String name, String desc, Object initialValue) {
         super(name, desc);
@@ -55,12 +56,18 @@ public class ObjectParameter extends BaseParameter {
 
     @Override
     public String getParamString() {
+        if (DEBUG) printf("ObjectParam.getParamString.  name: %s value: %s\n",name,value);
+        // TODO: This is a mess, can we not commonize these interfaces?
         if (value instanceof SourceWrapper) {
             return ((SourceWrapper)value).getParamString();
         }
 
         if (value instanceof ExpensiveInitializable) {
             return ((ExpensiveInitializable)value).getParamString();
+        }
+
+        if (value instanceof ValueHash) {
+            return ((ValueHash)value).getParamString();
         }
 
         if (value == null) return "null";
@@ -73,6 +80,7 @@ public class ObjectParameter extends BaseParameter {
     }
 
     public void getParamString(StringBuilder sb) {
+        if (DEBUG) printf("ObjectParam.getParamString(sb).  name: %s value: %s\n",name,value);
         if (value instanceof SourceWrapper) {
             ((SourceWrapper)value).getParamString(sb);
             return;
@@ -80,6 +88,11 @@ public class ObjectParameter extends BaseParameter {
 
         if (value instanceof ExpensiveInitializable) {
             ((ExpensiveInitializable)value).getParamString(sb);
+            return;
+        }
+
+        if (value instanceof ValueHash) {
+            ((ValueHash)value).getParamString(sb);
             return;
         }
 

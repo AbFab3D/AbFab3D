@@ -1,27 +1,25 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2016
- *                               Java Source
- *
+ * Shapeways, Inc Copyright (c) 2016
+ * Java Source
+ * <p/>
  * This source is licensed under the GNU LGPL v2.1
  * Please read http://www.gnu.org/copyleft/lgpl.html for more information
- *
+ * <p/>
  * This software comes with the standard NO WARRANTY disclaimer for any
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
- *
  ****************************************************************************/
 package abfab3d.io.input;
 
 import abfab3d.core.AttributeGrid;
+import abfab3d.core.Bounds;
 import abfab3d.core.GridProducer;
 import abfab3d.core.Initializable;
-import abfab3d.core.VecTransform;
-
-import abfab3d.datasources.AttributeGridSourceWrapper;
-import abfab3d.datasources.ThinLayerDataSource;
-import abfab3d.datasources.DistanceToMeshDataSource;
-
-import abfab3d.param.*;
+import abfab3d.core.LabeledBuffer;
 import abfab3d.core.MaterialType;
+import abfab3d.core.VecTransform;
+import abfab3d.datasources.AttributeGridSourceWrapper;
+import abfab3d.datasources.DistanceToMeshDataSource;
+import abfab3d.param.*;
 import abfab3d.util.URIUtils;
 import com.google.common.io.Files;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -38,33 +36,37 @@ import java.net.URISyntaxException;
 import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static abfab3d.core.Units.*;
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Units.MM;
 
 /**
  * Loads 3D models
  *
  * @author Alan Hudson
  */
-public class ModelLoader extends BaseParameterizable implements GridProducer {
+public class ModelLoader extends BaseParameterizable implements GridProducer, ExpensiveInitializable {
     private static final boolean DEBUG = true;
+    private static final boolean DEBUG_TIMING = true;
 
-    private static final long MAX_ATRRIBUTED_SIZE = 800l * 800 * 800;
+    private static final String BOUNDS_NAME = "_bounds";
+    private static final String MATERIAL_TYPE_NAME = "_mtype";
 
-    DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize","size of voxels", 0.1*MM);
-    DoubleParameter mp_shellHalfThickness = new DoubleParameter("shellHalfThickness","half thickness of initial shell in voxels", 2.);
-    ObjectParameter mp_source = new ObjectParameter("source","model source",null);
-    DoubleParameter mp_margins = new DoubleParameter("margins","size of margins", 2*MM);
-    BooleanParameter mp_attributeLoading = new BooleanParameter("attributeLoading", "Load attribute data",false);
-    BooleanParameter mp_useCaching = new BooleanParameter("useCaching", "turn on/off data caching",true);
-    BooleanParameter mp_useMultiPass = new BooleanParameter("useMultiPass", "Use precise but slower distance calculation",false);
-    IntParameter mp_densityBitCount = new IntParameter("densityBitCount","Density Bit Count", 8);
-    IntParameter mp_distanceBitCount = new IntParameter("distanceBitCount","Distance Bit Count", 8);
-    IntParameter mp_threadCount = new IntParameter("threadCount","Threads count to use during loading", 0);
-    DoubleParameter mp_maxInDistance = new DoubleParameter("maxInDistance","Maximum in distance", 2*MM);
-    DoubleParameter mp_maxOutDistance = new DoubleParameter("maxOutDistance","Maximum out distance", 2*MM);
-    LongParameter mp_maxGridSize = new LongParameter("maxGridSize","Max grid size", 1000L * 1000 * 1000);
-    LongParameter mp_minGridSize = new LongParameter("minGridSize","Min grid size", 0);
+    private static final long MAX_ATTRIBUTED_SIZE = 800l * 800 * 800;
+
+    DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize", "size of voxels", 0.1 * MM);
+    DoubleParameter mp_shellHalfThickness = new DoubleParameter("shellHalfThickness", "half thickness of initial shell in voxels", 2.);
+    ObjectParameter mp_source = new ObjectParameter("source", "model source", null);
+    DoubleParameter mp_margins = new DoubleParameter("margins", "size of margins", 2 * MM);
+    BooleanParameter mp_attributeLoading = new BooleanParameter("attributeLoading", "Load attribute data", false);
+    BooleanParameter mp_useCaching = new BooleanParameter("useCaching", "turn on/off data caching", true);
+    BooleanParameter mp_useMultiPass = new BooleanParameter("useMultiPass", "Use precise but slower distance calculation", false);
+    IntParameter mp_densityBitCount = new IntParameter("densityBitCount", "Density Bit Count", 8);
+    IntParameter mp_distanceBitCount = new IntParameter("distanceBitCount", "Distance Bit Count", 8);
+    IntParameter mp_threadCount = new IntParameter("threadCount", "Threads count to use during loading", 0);
+    DoubleParameter mp_maxInDistance = new DoubleParameter("maxInDistance", "Maximum in distance", 2 * MM);
+    DoubleParameter mp_maxOutDistance = new DoubleParameter("maxOutDistance", "Maximum out distance", 2 * MM);
+    LongParameter mp_maxGridSize = new LongParameter("maxGridSize", "Max grid size", 1000L * 1000 * 1000);
+    LongParameter mp_minGridSize = new LongParameter("minGridSize", "Min grid size", 0);
     EnumParameter mp_distanceAlgorithm = new EnumParameter("distanceAlgorithm", "alg to be used for distance loading", sm_distAlgNames, "distance2");
     EnumParameter mp_densityAlgorithm = new EnumParameter("densityAlgorithm", "alg to be used for density loading", sm_densAlgNames, "wavelet");
 
@@ -106,8 +108,8 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     }
 
     /**
-       load model from given path using given voxel size and margins
-       
+     load model from given path using given voxel size and margins
+
      */
     public ModelLoader(String path, double vs, double margins) {
         initParams();
@@ -120,7 +122,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     /**
      * @noRefGuide
      */
-    protected void initParams(){
+    protected void initParams() {
         super.addParams(m_aparam);
     }
 
@@ -138,7 +140,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             uri = uriMapper.mapURI(uri);
         }
 
-        printf("Model Loader: %s\n",uri);
+        printf("Model Loader: %s\n", uri);
         // TODO: How to deal with not wanting to cache user uploaded files(put in temp dir) versus local usage
         if (uri.startsWith("http")) {
 
@@ -190,13 +192,13 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
             try {
                 unzip(src, dest);
-            } catch(IOException ioe) {
+            } catch (IOException ioe) {
                 ioe.printStackTrace();
                 throw new IllegalArgumentException("Cannot unzip: " + path + " to: " + dest);
             }
             path = dest.getAbsolutePath();
             uriToFileCache.put(uri, new URIToFileCacheEntry(uri, path));
-            if (DEBUG) printf("Caching uri: %s to: %s\n",uri,path);
+            if (DEBUG) printf("Caching uri: %s to: %s\n", uri, path);
         }
         mp_source.setValue(path);
         m_path = path;
@@ -226,8 +228,8 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         m_vhash = null;
 
         if (val) {
-            if (mp_maxGridSize.getValue() > MAX_ATRRIBUTED_SIZE) {
-                mp_maxGridSize.setValue(MAX_ATRRIBUTED_SIZE);
+            if (mp_maxGridSize.getValue() > MAX_ATTRIBUTED_SIZE) {
+                mp_maxGridSize.setValue(MAX_ATTRIBUTED_SIZE);
             }
         }
     }
@@ -262,8 +264,8 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         m_vhash = null;
 
         if (mp_attributeLoading.getValue()) {
-            if (mp_maxGridSize.getValue() > MAX_ATRRIBUTED_SIZE) {
-                mp_maxGridSize.setValue(MAX_ATRRIBUTED_SIZE);
+            if (mp_maxGridSize.getValue() > MAX_ATTRIBUTED_SIZE) {
+                mp_maxGridSize.setValue(MAX_ATTRIBUTED_SIZE);
             }
         }
     }
@@ -282,13 +284,13 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
 
     /**
-       @return loaded mesh for this model 
+     @return loaded mesh for this model
      */
     public AttributedMesh getMesh() {
         String vhash = getValueHash();
         ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(vhash);
         AttributedMesh mesh = null;
-        if (DEBUG) printf("ML.getMesh() Checking cache: %s\n",vhash);
+        if (DEBUG) printf("ML.getMesh() Checking cache: %s\n", vhash);
 
         if (co != null) {
             if (co.mesh != null) {
@@ -299,7 +301,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         }
 
         AttributedMeshReader reader = new AttributedMeshReader(m_path);
-        if (m_transform instanceof Initializable) ((Initializable)m_transform).initialize();
+        if (m_transform instanceof Initializable) ((Initializable) m_transform).initialize();
         reader.setTransform(m_transform);
         reader.initialize();
         mesh = new AttributedMesh();
@@ -307,23 +309,25 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
         mesh.setDataDimension(reader.getDataDimension());
         m_materialType = makeMaterialType(reader.getDataDimension());
-        if(m_materialType != MaterialType.SINGLE_MATERIAL){
+        if (m_materialType != MaterialType.SINGLE_MATERIAL) {
             mesh.setAttributeCalculator(reader.getAttributeCalculator());
         }
 
-        if(mp_useCaching.getValue()){
-            ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(null, mesh, reader,m_materialType));
+        if (mp_useCaching.getValue()) {
+            ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(null, mesh, reader, m_materialType));
         }
         return mesh;
     }
 
     /**
-       return grid for loaded model 
+     return grid for loaded model
      */
     public AttributeGrid getGrid() {
+        long t0 = System.currentTimeMillis();
+        AttributedMesh mesh = null;
+
         AttributeGrid grid = null;
         try {
-            AttributedMesh mesh = null;
             AttributedMeshReader reader = null;
             if (mp_useCaching.getValue()) {
                 String vhash = getValueHash();
@@ -339,6 +343,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
                     } else if (co.mesh != null) {
                         mesh = co.mesh;
                         reader = co.reader;
+                        m_materialType = co.materialType;
                         printf("Found a mesh cached2, returning\n");
                         if (reader == null) throw new IllegalArgumentException("reader cannot be null");
                     }
@@ -391,54 +396,95 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             }
 
             m_materialType = makeMaterialType(dim);
-
-            if (DEBUG) printf("Dim: %d\n", dim);
-
             grid = new AttributeGridSourceWrapper(m_vhash, grid);
             if (mp_useCaching.getValue()) {
-                printf("Caching file: " + m_vhash);
+                String baseVhash = getValueHash();
+
+                printf("Caching file: %s\n",m_vhash);
                 ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(grid, mesh, reader, m_materialType));
+
+                String bhash = baseVhash + BOUNDS_NAME;
+                String mhash = baseVhash + MATERIAL_TYPE_NAME;
+
+                LabeledBuffer<double[]> boundsBuffer = new LabeledBuffer<double[]>(bhash, grid.getGridBounds().getArray());
+                CPUCache.getInstance().put(boundsBuffer);
+                LabeledBuffer<byte[]> materialTypeBuffer = new LabeledBuffer<byte[]>(mhash, m_materialType.toString().getBytes());
+                CPUCache.getInstance().put(materialTypeBuffer);
             }
+
         } catch (Exception e) {
-			e.printStackTrace();
+            e.printStackTrace();
             // HACK: Delete cached files in this case
             // hmm, cant get at ShapeJSGlobal
 
-            String prefix = "urlcache";  // Well known name shared with ShapeJSGlobal
+            String prefix = "url";  // Well known name shared with ShapeJSGlobal
             if (m_path.contains(prefix)) {
                 // Bad apple, remove it from disk
-                printf("Invalid file, removing from disk, HACK: %s\n",m_path);
+                printf("Invalid file, removing from disk, HACK: %s\n", m_path);
                 if (!new File(m_path).delete()) {
-                    printf("Could not delete bad file: %s\n",m_path);
+                    printf("Could not delete bad file: %s\n", m_path);
                 }
 
-            }  else {
-                printf("Leaving bad file alone: %s\n",m_path);
+            } else {
+                printf("Leaving bad file alone: %s\n", m_path);
             }
             throw new IllegalArgumentException("Model file invalid: " + m_path);
 
         }
+
         return grid;
     }
 
     /**
-       returns loaded model represented as DistanceToMeshDataSource
+     returns loaded model represented as DistanceToMeshDataSource
      */
     public DistanceToMeshDataSource getDistanceToMeshDataSource() {
-        
-        if(mp_attributeLoading.getValue()){  
+
+        if (mp_attributeLoading.getValue()) {
             AttributedMesh mesh = getMesh();
-            return new DistanceToMeshDataSource(mesh, mesh.getAttributeCalculator()); 
+            return new DistanceToMeshDataSource(mesh, mesh.getAttributeCalculator());
         } else {
-            return new DistanceToMeshDataSource(getMesh()); 
+            return new DistanceToMeshDataSource(getMesh());
         }
 
     }
 
+    public Bounds getGridBounds() {
+        String vhash = getValueHash();
+        vhash += BOUNDS_NAME;
+        CPUCache cache = CPUCache.getInstance();
+
+        LabeledBuffer<double[]> boundsBuffer = cache.get(vhash);
+        if (boundsBuffer == null) {
+            if (DEBUG) printf("***Failed to get getGridBounds via cache: %s\n",vhash);
+            // oh well, load the damn thing
+            AttributeGrid grid = getGrid();
+            Bounds ret_val = grid.getGridBounds();
+            return ret_val;
+        } else {
+            Bounds bnds = new Bounds(boundsBuffer.getBuffer());
+            if (DEBUG) printf("***Got getGridBounds via cache: %s\n", bnds);
+            return bnds;
+        }
+    }
 
     public MaterialType getMaterialType() {
-        if (DEBUG) printf("MaterialType: %s\n",m_materialType);
-        return m_materialType;
+        String vhash = getValueHash();
+        vhash += MATERIAL_TYPE_NAME;
+        CPUCache cache = CPUCache.getInstance();
+
+        LabeledBuffer<byte[]> materialTypeBuffer = cache.get(vhash);
+
+        if (materialTypeBuffer == null) {
+            if (DEBUG) printf("***Failed to get materialType via cache: %s\n",vhash);
+            // oh well, load the damn thing
+            AttributeGrid grid = getGrid();
+            return m_materialType;
+        } else {
+            String mt = new String(materialTypeBuffer.getBuffer());
+            if (DEBUG) printf("***Got materialType via cache: %s\n", mt);
+            return MaterialType.valueOf(mt);
+        }
     }
 
     protected String getValueHash() {
@@ -448,7 +494,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         // TODO: we need to get a value hash of trans not its default memory address
         String trans = null;
         if (m_transform instanceof ValueHash) {
-            trans = ((ValueHash)m_transform).getParamString();
+            trans = ((ValueHash) m_transform).getParamString();
         } else {
             if (m_transform == null) {
                 trans = "null";
@@ -463,15 +509,15 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
 
 
     public void setTransform(VecTransform trans) {
-        if (DEBUG) printf("Got a setTransform: %s\n",trans);
-        if (trans instanceof Initializable) ((Initializable)trans).initialize();
+        if (DEBUG) printf("Got a setTransform: %s\n", trans);
+        if (trans instanceof Initializable) ((Initializable) trans).initialize();
         m_transform = trans;
         m_vhash = null;
     }
 
-    static MaterialType makeMaterialType(int dataDimension){
+    static MaterialType makeMaterialType(int dataDimension) {
 
-        switch(dataDimension) {
+        switch (dataDimension) {
             case 3:
                 return MaterialType.SINGLE_MATERIAL;
             case 5:
@@ -520,7 +566,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         try {
             IOUtils.copy(inputStream, outputStream);
         } finally {
-            if (outputStream != null ) outputStream.close();
+            if (outputStream != null) outputStream.close();
             if (inputStream != null) inputStream.close();
         }
     }
@@ -551,5 +597,22 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             this.uri = uri;
             this.filename = filename;
         }
+    }
+
+    /**
+     * Implement this as a value
+     * @return
+     */
+    public String getParamString() {
+        return BaseParameterizable.getParamString("ModelLoader", getParams());
+    }
+
+    public void getParamString(StringBuilder sb) {
+        sb.append(BaseParameterizable.getParamString("ModelLoader", getParams()));
+    }
+
+    @Override
+    public int initialize() {
+        return 0;
     }
 }

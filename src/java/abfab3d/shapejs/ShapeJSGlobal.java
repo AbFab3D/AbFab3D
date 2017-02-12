@@ -24,7 +24,8 @@ import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.io.input.AttributedMeshReader;
 import abfab3d.io.input.GridLoader;
 import abfab3d.io.input.URIMapper;
-import abfab3d.util.DiskCache;
+import abfab3d.param.BufferDiskCache;
+import abfab3d.param.FileDiskCache;
 import abfab3d.util.URIUtils;
 import abfab3d.io.input.X3DReader;
 import abfab3d.io.input.SVXReader;
@@ -137,7 +138,7 @@ public class ShapeJSGlobal {
     private static LoadingCache<String, ModelDistanceCacheEntry> modelDistanceCache;
     private static ConcurrentHashMap<String, URLToFileCacheEntry> urlToFileCache;
     private static ConcurrentHashMap<String, String> fileToUrlCache;
-    private static DiskCache urlCache;
+    private static FileDiskCache urlCache;
 
     // Keep loadURL from being used to attack servers.  Every period number of requests to the same host we back off by delay * requests
     // based on window time
@@ -157,7 +158,20 @@ public class ShapeJSGlobal {
             new Exception().printStackTrace();
         }
 
-        urlCache = new DiskCache("/var/www/html/urlcache");
+        // Initialize caches.  TODO: make configurable
+        String loc = "/var/www/html/cache/";
+        long DEFAULT_SIZE = (long) (4 * 1e9);
+
+        urlCache = new FileDiskCache(loc + "url");
+        BufferDiskCache gpuCache = BufferDiskCache.getInstance(DEFAULT_SIZE,loc + "buffer",false, true);
+    }
+
+    public static void configureURLCacheDir(String dir, long maxSize) {
+        urlCache = new FileDiskCache(dir,maxSize);
+    }
+
+    public static void configureBufferCacheDir(String dir, long maxSize) {
+        BufferDiskCache.getInstance().reconfigure(dir,maxSize);
     }
 
     public static void addContentHandler(String ext, URLHandler handler) {
@@ -1361,40 +1375,6 @@ public class ShapeJSGlobal {
     public static String getURL(String key) {
         return urlCache.get(key);
     }
-
-    /**
-     * Associate a url with a local filename.
-     * @param url
-     * @param filename
-     */
-    /*
-    public static void mapURLToFile(String url, String filename) {
-        if (!CACHE_URLS) return;
-
-        printf("Mapping url: %s to file: %s\n", url, filename);
-        URLToFileCacheEntry ce = new URLToFileCacheEntry(url, filename);
-
-        urlToFileCache.put(url, ce);
-        fileToUrlCache.put(filename, url);
-    }
-    */
-    /**
-     * Is this URL cached already.  If so we won't download it again.
-     * @param url
-     * @return The local filename or null if not cached
-     */
-    /*
-    public static String isURLCached(String url) {
-        if (url == null) return null;
-
-        URLToFileCacheEntry ce = urlToFileCache.get(url);
-
-        if (ce == null) return null;
-        return ce.filename;
-    }
-    */
-    // URL Caching Section
-
 
     static class ModelDistanceCacheEntry implements RemovalListener<String, ModelDistanceCacheEntry> {
         public String url;

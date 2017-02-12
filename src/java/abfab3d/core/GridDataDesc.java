@@ -29,6 +29,7 @@ public class GridDataDesc {
     static int debugCount = 20;
 
     AttributePacker m_attributePacker;
+    Vector<GridDataChannel> m_channels = new Vector<GridDataChannel>();
 
     /**
        constructor with no data channels
@@ -70,8 +71,6 @@ public class GridDataDesc {
         addChannel(channel3);
         addChannel(channel4);
     }
-
-    Vector<GridDataChannel> m_channels = new Vector<GridDataChannel>();
 
 
     /**

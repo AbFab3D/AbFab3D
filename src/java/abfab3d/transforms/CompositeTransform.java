@@ -208,6 +208,7 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
      */
     public String getParamString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("CompositeTransform:transforms=");
         List list = mp_transforms.getValue();
         int len = list.size();
         for(int i=0; i < len; i++) {
@@ -226,6 +227,7 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
      * @return
      */
     public void getParamString(StringBuilder sb) {
+        sb.append("CompositeTransform:transforms=");
         List list = mp_transforms.getValue();
         int len = list.size();
         for(int i=0; i < len; i++) {

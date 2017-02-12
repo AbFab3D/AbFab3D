@@ -11,6 +11,7 @@
  ****************************************************************************/
 package abfab3d.opencl;
 
+import com.jogamp.opencl.CLBuffer;
 import com.jogamp.opencl.CLResource;
 
 /**
@@ -44,10 +45,19 @@ public class OpenCLResource implements Resource {
         return resource;
     }
 
+    public long getCLSize() {
+        return ((CLBuffer)resource).getCLSize();
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public boolean isReleased() {
         if (resource == null) return true;
         return resource.isReleased();
     }
+
     public String toString() {
         if (name != null) {
             return super.toString() + " name: " + name;

@@ -24,6 +24,10 @@ import static abfab3d.core.Output.printf;
  * OpenCL Resource manager.  Tracks and manages resource usage on a GPU.  This class does not
  * handle the allocation or transfer.
  *
+ * Fixed sized memory pool
+ * Eviction is based on timeout and then LRU if it needs more
+ *    TODO: should we fix this?  Should this be time + LRU
+ *
  * @author Alan Hudson
  */
 public class CLResourceManager implements Runnable {
@@ -65,6 +69,10 @@ public class CLResourceManager implements Runnable {
         */
     }
 
+    public static CLResourceManager getInstance(long contextID) {
+        return getInstance(contextID,-1,DEFAULT_TIMEOUT_MS);
+    }
+
     public static CLResourceManager getInstance(long contextID, long capacity) {
         return getInstance(contextID,capacity,DEFAULT_TIMEOUT_MS);
     }
@@ -75,6 +83,10 @@ public class CLResourceManager implements Runnable {
 
         if (rm != null && !rm.isShutdown()) {
             return rm;
+        }
+
+        if (capacity < 0) {
+            throw new IllegalArgumentException("CLResourceManager not properly initialized");
         }
 
         if (DEBUG) printf("CLRM creating resource manager for: %s\n",contextID);
@@ -90,9 +102,23 @@ public class CLResourceManager implements Runnable {
     }
 
     /**
-     * Add a resource for management.  This will remove other buffers if necessary.
+     * Add a resource for management.  This will remove other buffers if necessary.  Not locked by default
      */
     public void add(Resource resource, long size) {
+        add(resource,size,false,null);
+    }
+
+    /**
+     * Add a resource for management.  This will remove other buffers if necessary.
+     */
+    public void add(Resource resource, long size, boolean lock) {
+        add(resource,size,lock,null);
+    }
+
+    /**
+     * Add a resource for management.  This will remove other buffers if necessary.
+     */
+    public void add(Resource resource, long size, boolean lock, ResourceRemovedListener listener) {
         if (shutdown) throw new IllegalArgumentException("Manager already shutdown: contextID: " + contextID + " this:" + this);
         if (resource == null) throw new IllegalArgumentException("Cannot add a null resource\n");
         if (resource.isReleased()) throw new IllegalArgumentException("Cannot add a released resource");
@@ -100,8 +126,29 @@ public class CLResourceManager implements Runnable {
         if (DEBUG) printf("CLRM add: %s underlying: %s size: %d  entries: %d\n",resource,((OpenCLResource)resource).getResource(),size,cache.size());
         insureCapacity(size);
 
-        cache.put(resource, new CacheEntry(resource,size));
+        cache.put(resource, new CacheEntry(resource,size,lock,listener));
         currBytes += size;
+    }
+
+    /**
+     * Lock the resource.  This resource will not be removed until unlocked or released.
+     *
+     * @param resource
+     */
+    public void lockResource(Resource resource) {
+        CacheEntry ce = cache.get(resource);
+
+        if (ce == null) throw new IllegalArgumentException("Unknown resource");
+
+        ce.setLocked(true);
+    }
+
+    public void unlockResource(Resource resource) {
+        CacheEntry ce = cache.get(resource);
+
+        if (ce == null) throw new IllegalArgumentException("Unknown resource");
+
+        ce.setLocked(false);
     }
 
     /**
@@ -177,7 +224,7 @@ public class CLResourceManager implements Runnable {
     }
 
     /**
-     * Insure free memory is at least bytes large.  Will remove resources on a FIFO basis.
+     * Insure free memory is at least bytes large.  Will remove resources on a LRU basis.
      * @param bytes
      */
     private void freeMemory(long bytes) {
@@ -192,6 +239,8 @@ public class CLResourceManager implements Runnable {
             ArrayList<Resource> toremove = null;
             long time = System.currentTimeMillis();
 
+            // TODO: decide how much we want this to really be LRU, would have to sort each time
+
             while(freeMemory < bytes && itr.hasNext()) {
                 Map.Entry<Resource, CacheEntry> me = itr.next();
                 if (me == null) {
@@ -200,11 +249,12 @@ public class CLResourceManager implements Runnable {
                 }
 
                 CacheEntry ce = me.getValue();
-                if (time > ce.lastAccess + timeout) {
+                if (!ce.locked && time > ce.lastAccess + timeout) {
                     if (DEBUG) printf("CLRM Freeing1: %s resc: %s\n", me.getKey(),ce.resource);
                     if (!ce.resource.isReleased()) {
                         ce.resource.release();
                     }
+                    if (ce.listener != null) ce.listener.resourceRemoved(ce.resource,contextID);
                     ce.resource = null;
                     if (toremove == null) toremove = new ArrayList();
                     toremove.add(me.getKey());
@@ -243,15 +293,19 @@ public class CLResourceManager implements Runnable {
                     }
 
                     CacheEntry ce = me.getValue();
-                    if (DEBUG) printf("CLRM Freeing2: %s\n", me.getKey());
-                    if (!ce.resource.isReleased()) {
-                        ce.resource.release();
+
+                    if (!ce.locked) {
+                        if (DEBUG) printf("CLRM Freeing2: %s\n", me.getKey());
+                        if (!ce.resource.isReleased()) {
+                            ce.resource.release();
+                        }
+                        if (ce.listener != null) ce.listener.resourceRemoved(ce.resource,contextID);
+                        ce.resource = null;
+                        if (toremove == null) toremove = new ArrayList();
+                        toremove.add(me.getKey());
+                        currBytes -= ce.size;
+                        freeMemory = maxBytes - currBytes;
                     }
-                    ce.resource = null;
-                    if (toremove == null) toremove = new ArrayList();
-                    toremove.add(me.getKey());
-                    currBytes -= ce.size;
-                    freeMemory = maxBytes - currBytes;
                 }
 
                 if (toremove != null) {
@@ -299,7 +353,7 @@ public class CLResourceManager implements Runnable {
                 Map.Entry<Resource, CacheEntry> me = itr.next();
                 CacheEntry ce = me.getValue();
                 if (DEBUG) printf("CLRM checking: %s lastAccess: %d old: %b\n",ce.resource,ce.lastAccess,(time > ce.lastAccess + timeout));
-                if (time > ce.lastAccess + timeout) {
+                if (!ce.locked && time > ce.lastAccess + timeout) {
                     if (DEBUG) printf("CLRM Removing old: %s\n", ce.resource);
 
                     itr.remove();
@@ -340,16 +394,24 @@ public class CLResourceManager implements Runnable {
     static class CacheEntry implements Comparator {
         public long lastAccess;
         public Resource resource;
+        public boolean locked;
         public long size;
+        public ResourceRemovedListener listener;
 
         public CacheEntry() {
 
         }
 
-        public CacheEntry(Resource resource, long size) {
+        public CacheEntry(Resource resource, long size, boolean locked, ResourceRemovedListener listener) {
             this.resource = resource;
             this.size = size;
+            this.locked = locked;
+            this.listener = listener;
             lastAccess = System.currentTimeMillis();
+        }
+
+        public void setLocked(boolean val) {
+            locked = val;
         }
 
         @Override
@@ -377,5 +439,8 @@ public class CLResourceManager implements Runnable {
         }
     }
 
+
+
 }
+
 
