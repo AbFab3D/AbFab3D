@@ -343,7 +343,7 @@ public class TrimOp extends BaseParameterizable implements Operation, AttributeO
         int x0 = 0, xn = width;
         int y0 = 0, yn = height;
 
-        GridDataChannel dataChannel = src.getAttributeDesc().getChannel(0);
+        GridDataChannel dataChannel = src.getDataDesc().getChannel(0);
 
         // Find x0 range
         loop: for(int x=0; x < width; x++) {

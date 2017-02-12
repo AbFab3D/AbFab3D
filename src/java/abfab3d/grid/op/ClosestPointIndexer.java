@@ -19,9 +19,10 @@ import abfab3d.core.AttributeGrid;
 import abfab3d.core.AttributePacker;
 import abfab3d.core.GridDataChannel;
 import abfab3d.core.GridDataDesc;
+import abfab3d.core.Grid2D;
 
 import abfab3d.grid.ArrayAttributeGridShort;
-import abfab3d.core.Grid2D;
+import abfab3d.grid.Grid2DShort;
 
 import abfab3d.core.Vec;
 import abfab3d.core.DataSource;
@@ -1062,6 +1063,24 @@ public class ClosestPointIndexer {
         }
     }
 
+    /**
+       convert 2 arrays of points into grid units 
+     */
+    public static void getPointsInGridUnits(Grid2D grid, double pntx[], double pnty[]){
+
+        Bounds bounds = grid.getGridBounds();
+        double xmin = bounds.xmin;
+        double ymin = bounds.ymin;
+
+        double vs = grid.getVoxelSize();
+        int count = pntx.length;
+        double scale = 1./vs;
+        // first point is not used 
+        for(int i = 1; i < count; i++){
+            pntx[i] = (pntx[i] - xmin)*scale;
+            pnty[i] = (pnty[i] - ymin)*scale;
+        }
+    }
 
     /**
        convert points in grid coordinates into world coordinates
@@ -1151,7 +1170,7 @@ public class ClosestPointIndexer {
 
     /**
        
-       initializes thin layer of voxle around points
+       initializes thin layer of voxels around points
        
        @param indexGrid on output contains indices of closes point in thin layer around points 
        @param pntx x-cordiates of points in grid units , pntx[0] is unused
@@ -1199,7 +1218,7 @@ public class ClosestPointIndexer {
                     vx = ix + neig[k],
                     vy = iy + neig[k+1],
                     vz = iz + neig[k+2];                    
-                if( vx >= 0 && vy >= 0 & vz >= 0 && vx < nx && vy < ny && vz < nz){
+                if( vx >= 0 && vy >= 0 && vz >= 0 && vx < nx && vy < ny && vz < nz){
                     double 
                         dx = x - (vx+HALF),
                         dy = y - (vy+HALF),
@@ -1214,6 +1233,66 @@ public class ClosestPointIndexer {
                             // better point found
                             distanceGrid.setAttribute(vx, vy, vz, newdist);
                             indexGrid.setAttribute(vx, vy, vz, index);
+                        }
+                    }
+                }
+            }                    
+        }
+    }
+
+    /**       
+       initializes thin layer of voxels around points
+       
+       @param indexGrid on output contains indices of closes point in thin layer around points 
+       @param pntx x-cordiates of points in grid units , pntx[0] is unused
+       @param pnty y-cordiates of points in grid units , pnty[0] is unused
+       @param layerThickness thicknes of thin layer in voxels units 
+     */
+    public static void initFirstLayer(Grid2D indexGrid, double pntx[], double pnty[], double layerThickness){
+
+        int neig[] = Neighborhood.makeDisk(layerThickness+1);
+        int subvoxelResolution = 100;
+        double tol = 1./subvoxelResolution;  // tolerance to compare distances 
+        int 
+            nx = indexGrid.getWidth(),
+            ny = indexGrid.getHeight();
+
+        layerThickness += tol;
+
+        int pcnt = pntx.length;
+        Bounds bounds = indexGrid.getGridBounds();
+        double vs = indexGrid.getVoxelSize();
+        // temp storage for distance values  
+        Grid2DShort distanceGrid = new Grid2DShort(bounds, vs);
+        distanceGrid.fill((int)(subvoxelResolution*(layerThickness+0.5)));
+
+        for(int index = 1; index < pcnt; index++){
+            
+            double 
+                x = pntx[index],
+                y = pnty[index];
+            int 
+                ix = (int)x,
+                iy = (int)y;
+
+           int ncount = neig.length;
+            
+           for(int k = 0; k < ncount; k+=3){ // neigborhood is stored as tripples
+                int 
+                    vx = ix + neig[k],
+                    vy = iy + neig[k+1];
+                if( vx >= 0 && vy >= 0 && vx < nx && vy < ny){
+                    double 
+                        dx = x - (vx+HALF),
+                        dy = y - (vy+HALF);
+                    double dist = sqrt(dx*dx + dy*dy);
+                    if(dist <= layerThickness) {
+                        int newdist = iround(dist*subvoxelResolution);
+                        int olddist = (int)distanceGrid.getAttribute(vx, vy);
+                        if(newdist < olddist){
+                            // better point found
+                            distanceGrid.setAttribute(vx, vy, newdist);
+                            indexGrid.setAttribute(vx, vy, index);
                         }
                     }
                 }
@@ -1630,32 +1709,33 @@ public class ClosestPointIndexer {
        @param indexGrid contains indices of closest point. index = 0 meand closesnt point is undefined
        @param pntx x-coordinates of points in world units
        @param pnty y-coordinates of points in world units
-       @param interiorGrid grid of voxles whcuh are in the shape interior 
+       @param interiorGrid grid of voxles which are in the shape interior 
+
      */
     public static void makeDistanceGrid2D(Grid2D indexGrid, 
                                           double pntx[], double pnty[],
-                                          Grid2D interiorGrid, 
-                                          Grid2D distanceGrid, 
+                                          Grid2D interiorGrid,                                           
                                           double maxInDistance, 
-                                          double maxOutDistance){
+                                          double maxOutDistance,
+                                          Grid2D distanceGrid){
 
         int 
             nx = indexGrid.getWidth(),
             ny = indexGrid.getHeight();
         
-        GridDataChannel distChannel = distanceGrid.getAttributeDesc().getChannel(0);
+        GridDataChannel distChannel = distanceGrid.getDataDesc().getChannel(0);
 
         long intAtt = distChannel.makeAtt(maxInDistance);
         long extAtt = distChannel.makeAtt(maxOutDistance);
 
 
-        double coord[] = new double[3];
+        Vector3d coord = new Vector3d();
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){
                 int ind = (int)indexGrid.getAttribute(x,y);
                 if(ind > 0) {
                     indexGrid.getWorldCoords(x, y, coord);
-                    double dist = distance(coord[0],coord[1], pntx[ind],pnty[ind]);
+                    double dist = distance(coord.x,coord.y, pntx[ind],pnty[ind]);
                     if(interiorGrid != null && interiorGrid.getAttribute(x,y) != 0)
                         dist = -dist;
                     distanceGrid.setAttribute(x,y,distChannel.makeAtt(dist));

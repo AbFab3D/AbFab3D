@@ -41,7 +41,7 @@ public class InvertOp implements Operation2D {
      */
     public Grid2D execute(Grid2D src) {
 
-        GridDataChannel channel = src.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = src.getDataDesc().getDefaultChannel();
 
         int w = src.getWidth();
         int h = src.getHeight();

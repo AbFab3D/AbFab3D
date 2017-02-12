@@ -59,7 +59,7 @@ public class SmoothOp implements Operation2D {
 
 
     private void convoluteX(Grid2D src, double kernel[],int rlen){
-        GridDataChannel channel = src.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = src.getDataDesc().getDefaultChannel();
         int w = src.getWidth();
         int h = src.getHeight();
 
@@ -91,7 +91,7 @@ public class SmoothOp implements Operation2D {
     }
 
     private void convoluteY(Grid2D src,double kernel[],int rlen){
-        GridDataChannel channel = src.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = src.getDataDesc().getDefaultChannel();
 
         int w = src.getWidth();
         int h = src.getHeight();

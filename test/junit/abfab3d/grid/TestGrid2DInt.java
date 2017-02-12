@@ -61,7 +61,7 @@ public class TestGrid2DInt extends TestCase {
         attDesc.addChannel(new GridDataChannel(GridDataChannel.DENSITY, "d", 8, 24));
 
         Grid2D grid = new Grid2DInt(nx, ny);
-        grid.setAttributeDesc(attDesc);
+        grid.setDataDesc(attDesc);
 
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){

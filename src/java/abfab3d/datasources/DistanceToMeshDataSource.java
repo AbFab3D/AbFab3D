@@ -224,6 +224,15 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         
     }
 
+    /**
+       only use local params
+     */
+    public String getParamString(){
+
+        return super.getParamString(getClass().getSimpleName(), m_aparams);
+
+    } 
+
     protected int initPlainMesh(TriangleProducer producer){
 
         int threadCount = 8;

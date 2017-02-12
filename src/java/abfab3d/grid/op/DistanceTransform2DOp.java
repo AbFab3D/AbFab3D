@@ -138,7 +138,7 @@ public class DistanceTransform2DOp implements Operation2D {
         m_nx = grid.getWidth();
         m_ny = grid.getHeight();
         
-        m_dataChannel = grid.getAttributeDesc().getChannel(0);
+        m_dataChannel = grid.getDataDesc().getChannel(0);
         m_neighbors = Neighborhood.makeDisk(m_layerThickness+1);
 
         Bounds bounds = grid.getGridBounds();
@@ -146,7 +146,7 @@ public class DistanceTransform2DOp implements Operation2D {
         m_indexGrid = new Grid2DInt(bounds, m_voxelSize);
         m_distanceGrid = new Grid2DShort(m_nx, m_ny, m_voxelSize);
         GridDataChannel distChannel = new GridDataChannel(GridDataChannel.DISTANCE, "dist", 16, 0, -m_maxInDistance, m_maxOutDistance);
-        m_distanceGrid.setAttributeDesc(new GridDataDesc(distChannel));
+        m_distanceGrid.setDataDesc(new GridDataDesc(distChannel));
 
         //GridUtil.fill(m_distanceGrid, (long)((m_maxOutDistance/m_voxelSize) * m_subvoxelResolution));
         GridUtil.fill(m_distanceGrid, (long)(m_layerThickness * m_subvoxelResolution));
@@ -177,10 +177,10 @@ public class DistanceTransform2DOp implements Operation2D {
 
         Grid2D interiorGrid = makeInteriorGrid(grid, m_dataChannel, m_threshold, m_interiorSign);
         ClosestPointIndexer.makeDistanceGrid2D(m_indexGrid, px,py, 
-                                               interiorGrid, 
-                                               m_distanceGrid, 
+                                               interiorGrid,                                                
                                                m_maxInDistance, 
-                                               m_maxOutDistance);
+                                               m_maxOutDistance,
+                                               m_distanceGrid);
         
         if(DEBUG)printf("DistanceTransformIndexed2D.execute() time: %d ms\n", (time() - t0));
         

@@ -104,7 +104,7 @@ public class TestInvert extends TestCase {
         Grid2D grid = Grid2DShort.convertImageToGrid(image, 0.1 * MM);
 
 
-        GridDataChannel channel = grid.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = grid.getDataDesc().getDefaultChannel();
 
         double orig = channel.getValue(grid.getAttribute(grid.getWidth() / 2, grid.getHeight() / 2));
         double inten0 = getAverageIntensity(grid);
@@ -154,7 +154,7 @@ public class TestInvert extends TestCase {
         int w = src.getWidth();
         int h = src.getHeight();
 
-        GridDataChannel channel = src.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = src.getDataDesc().getDefaultChannel();
 
         for(int x=0; x < w; x++) {
             for(int y=0; y < h; y++) {
@@ -171,7 +171,7 @@ public class TestInvert extends TestCase {
      * @param image
      */
     public static double getAverageIntensity(Grid2D image) {
-        GridDataChannel channel = image.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = image.getDataDesc().getDefaultChannel();
 
         int width = image.getWidth();
         int height = image.getHeight();

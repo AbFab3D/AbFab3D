@@ -51,7 +51,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
     public Grid2DShort(int width, int height){
         super(width, height,1.);
         allocateData();
-        setAttributeDesc(GridDataDesc.getDefaultAttributeDesc(16));
+        setDataDesc(GridDataDesc.getDefaultAttributeDesc(16));
     }
 
     /**
@@ -64,7 +64,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
     public Grid2DShort(int width, int height, double pixel){
         super(width, height,pixel);
         allocateData();
-        setAttributeDesc(GridDataDesc.getDefaultAttributeDesc(16));
+        setDataDesc(GridDataDesc.getDefaultAttributeDesc(16));
     }
 
     /**
@@ -76,7 +76,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
         super(grid.getWidth(), grid.getHeight(), 1.);
         copyBounds(grid);
         this.data = grid.data.clone();
-        setAttributeDesc(grid.getAttributeDesc());
+        setDataDesc(grid.getDataDesc());
     }
     
     /**
@@ -86,7 +86,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
     public Grid2DShort(Bounds bounds, double pixel) {
         super(bounds, pixel);
         allocateData();
-        setAttributeDesc(GridDataDesc.getDefaultAttributeDesc(16));
+        setDataDesc(GridDataDesc.getDefaultAttributeDesc(16));
     }
 
     /**
@@ -99,7 +99,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
      */
     public Grid2D createEmpty(int w, int h, double pixel) {
         Grid2D ret_val = new Grid2DShort(w,h,pixel);
-        ret_val.setAttributeDesc(GridDataDesc.getDefaultAttributeDesc(16));
+        ret_val.setDataDesc(GridDataDesc.getDefaultAttributeDesc(16));
         return ret_val;
     }
 
@@ -161,6 +161,18 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
     }
 
     /**
+       sets all values to given 
+     */
+    public void fill(long value){
+        short v = (short)(value & MAX_USHORT);        
+        int len = data.length;
+        for(int i = 0; i < len; i++){
+            data[i] = v;
+        }
+    }
+
+
+    /**
      * Convert a Grid2D class into a Java Image.
      * @param grid
      * @return
@@ -196,7 +208,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
         
         Grid2DShort grid = new Grid2DShort(w,h);
         grid.setGridBounds(new Bounds(0, w*pixelSize, 0, h*pixelSize, 0, pixelSize)); 
-        grid.setAttributeDesc( GridDataDesc.getDefaultAttributeDesc(16));
+        grid.setDataDesc( GridDataDesc.getDefaultAttributeDesc(16));
         short data[] = ImageUtil.getGray16Data(image);
         int h1 = h-1;
         // Need to convert from 0,0 upper left to 0,0 lower left
@@ -217,7 +229,7 @@ public class Grid2DShort extends BaseGrid2D implements Grid2D {
         
         Grid2DShort grid = new Grid2DShort(w,h);
         grid.setGridBounds(new Bounds(0, w*pixelSize, 0, h*pixelSize, 0, pixelSize)); 
-        grid.setAttributeDesc( GridDataDesc.getDefaultAttributeDesc(16));
+        grid.setDataDesc( GridDataDesc.getDefaultAttributeDesc(16));
         short data[] = image.getData();
         int h1 = h-1;
         // Need to convert from 0,0 upper left to 0,0 lower left

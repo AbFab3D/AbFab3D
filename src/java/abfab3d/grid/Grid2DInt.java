@@ -116,6 +116,17 @@ public class Grid2DInt extends BaseGrid2D implements Grid2D {
     }
 
     /**
+       sets all values to given 
+     */
+    public void fill(long value){
+        int v = (int)(value & 0xFFFFFFFF);        
+        int len = data.length;
+        for(int i = 0; i < len; i++){
+            data[i] = v;
+        }
+    }
+
+    /**
      * Clone the object.
      */
     public Object clone() {

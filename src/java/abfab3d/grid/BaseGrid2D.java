@@ -18,6 +18,8 @@ import abfab3d.core.Grid2D;
 import abfab3d.core.GridDataDesc;
 import abfab3d.core.Bounds;
 
+import javax.vecmath.Tuple3d;
+
 import java.io.Serializable;
 import static abfab3d.core.Output.printf;
 
@@ -105,40 +107,7 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
         }
     }
 
-    /**
-     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
-     *
-     * @return The voxel data
-     */
-    //public VoxelData getVoxelData() {
-        // This is a default impl.  For larger sizes the grid is expected to implement.
-    //    return new VoxelDataByte();
-    //}
 
-    /**
-     * Get the grid coordinates for a world coordinate.
-     *
-     * @param x      The x value in world coords
-     * @param y      The y value in world coords
-     * @param coords The ans is placed into this preallocated array(3).
-     */
-    //public void getGridCoords(double x, double y, int[] coords) {
-    //    coords[0] = (int) ((x - xorig) / pixelSize);
-    //    coords[1] = (int) ((y - yorig) / pixelSize);
-    //}
-
-    /**
-     * Get the world coordinates of center of grid voxel 
-     * 
-     * @param x      The x value in grid coords
-     * @param y      The y value in grid coords
-     * @param coords The ans is placed into this preallocated array(3).
-     */
-    //public void getWorldCoords(int x, int y, double[] coords) {
-
-    //        coords[0] = x * pixelSize + hpixelSize + xorig;
-    //    coords[1] = y * pixelSize + hpixelSize + yorig;
-    //}
 
     /**
      * Get the grid bounds in world coordinates.
@@ -227,12 +196,26 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
      * @param y      The y value in grid coords
      * @param coords The ans is placed into this preallocated array(2).
      */
-    public void getWorldCoords(int x, int y, double[] coords) {
+    public void getWorldCoords(int x, int y, Tuple3d coords) {
 
-        coords[0] = x * pixelSize + hpixelSize + xorig;
-        coords[1] = y * pixelSize + hpixelSize + yorig;
+        coords.x = x * pixelSize + hpixelSize + xorig;
+        coords.y = y * pixelSize + hpixelSize + yorig;
 
     }
+
+    /**
+     * Get the grid coordinates for a world coordinate.
+     *
+     * @param x      The x value in world coords
+     * @param y      The y value in world coords
+     * @param coords The ans is placed into this preallocated array(2).
+     */
+    public void getGridCoords(double x, double y, Tuple3d coords) {
+        coords.x = ((x - xorig) / pixelSize) - 0.5;
+        coords.y = ((y - yorig) / pixelSize) - 0.5;
+    }
+
+
 
     public abstract Object clone();
 
@@ -241,7 +224,7 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
      @param description The attirbute description
      @override
      */
-    public void setAttributeDesc(GridDataDesc description){
+    public void setDataDesc(GridDataDesc description){
         m_gridDataDesc = description;
     }
 
@@ -249,7 +232,7 @@ public abstract class BaseGrid2D implements Grid2D, Cloneable, Serializable {
      @return voxel attribute description assigned to the grid
      @override
      */
-    public GridDataDesc getAttributeDesc(){
+    public GridDataDesc getDataDesc(){
         return m_gridDataDesc;
     }
 

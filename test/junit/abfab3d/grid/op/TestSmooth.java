@@ -192,7 +192,7 @@ public class TestSmooth extends TestCase {
         int w = src.getWidth();
         int h = src.getHeight();
 
-        GridDataChannel channel = src.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = src.getDataDesc().getDefaultChannel();
 
         for(int x=0; x < w; x++) {
             for(int y=0; y < h; y++) {
@@ -209,7 +209,7 @@ public class TestSmooth extends TestCase {
      * @param image
      */
     public static double getAverageIntensity(Grid2D image) {
-        GridDataChannel channel = image.getAttributeDesc().getDefaultChannel();
+        GridDataChannel channel = image.getDataDesc().getDefaultChannel();
 
         int width = image.getWidth();
         int height = image.getHeight();

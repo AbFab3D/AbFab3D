@@ -23,6 +23,7 @@ import static java.lang.Math.min;
 import static java.lang.Math.abs;
 
 import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid2D;
 
 import abfab3d.core.Bounds;
 import abfab3d.util.SliceManager;
@@ -85,6 +86,28 @@ public class ClosestPointIndexerMT {
         PI3_MT(pntx,pnty,pntz, maxDistance/vs, indexGrid, threadCount);
 
         ClosestPointIndexer.getPointsInWorldUnits(indexGrid, coord[0],coord[1],coord[2]);
+        
+    }
+
+    /**
+       calculates closest point index for each voxel of the indexGrid        
+     *  @param coord  2 arrays of physical coordinates of points. coord[0] x-coordinates, coord[1] y-coordinates, 
+     *  element with index 0 of each array is ignored 
+     *  @param maxDistance max distance to calculate (in physical units) 
+     *  @param firstLayerThickiness thickness of the first layer in grid units (good values are in range (1.,4.)) 
+     *  @param indexGrid - on output has indices of closest point for each grid point 
+     *                   indices start from 1, index value 0 means "undefined" 
+     */
+    public static void getClosestPoints(double coord[][], double maxDistance, double firstLayerThickness, Grid2D indexGrid){
+        
+        double vs = indexGrid.getVoxelSize();
+        double pntx[] = coord[0];
+        double pnty[] = coord[1];
+
+        ClosestPointIndexer.getPointsInGridUnits(indexGrid, pntx, pnty);
+        ClosestPointIndexer.initFirstLayer(indexGrid, pntx,pnty,firstLayerThickness);
+        ClosestPointIndexer.PI2(pntx.length, pntx, pnty, indexGrid);
+        ClosestPointIndexer.getPointsInWorldUnits(indexGrid, pntx, pnty);
         
     }
 

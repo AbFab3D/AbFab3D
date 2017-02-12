@@ -360,7 +360,7 @@ public class ImageMap extends TransformableDataSource {
 
         } else {
             m_imageGrid = (Grid2D) co;
-            m_dataChannel = m_imageGrid.getAttributeDesc().getDefaultChannel();
+            m_dataChannel = m_imageGrid.getDataDesc().getDefaultChannel();
 
         }
 
@@ -478,7 +478,7 @@ public class ImageMap extends TransformableDataSource {
 
         double imagePixelSize = ((Vector3d)mp_size.getValue()).x/imageData.getWidth();
         m_imageGrid = Grid2DShort.convertImageToGrid(imageData, false, imagePixelSize);
-        m_dataChannel = m_imageGrid.getAttributeDesc().getChannel(0);
+        m_dataChannel = m_imageGrid.getDataDesc().getChannel(0);
 
         return ResultCodes.RESULT_OK;
     }

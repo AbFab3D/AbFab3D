@@ -736,7 +736,7 @@ public class Image3D extends TransformableDataSource {
 
         } else {
             m_imageGrid = (Grid2D) co;
-            m_dataChannel = m_imageGrid.getAttributeDesc().getDefaultChannel();
+            m_dataChannel = m_imageGrid.getDataDesc().getDefaultChannel();
 
             m_imageSizeX = m_imageGrid.getWidth();
             m_imageSizeY = m_imageGrid.getHeight();
@@ -924,7 +924,7 @@ public class Image3D extends TransformableDataSource {
                 ioe.printStackTrace();
             }
         }
-        m_dataChannel = m_imageGrid.getAttributeDesc().getChannel(0);
+        m_dataChannel = m_imageGrid.getDataDesc().getChannel(0);
 
         if(DEBUG)printf("makeImageBlack() done %d ms\n", time() -t0);
 
@@ -953,7 +953,7 @@ public class Image3D extends TransformableDataSource {
             
             double imagePixelSize = ((Vector3d)mp_size.getValue()).x/image.getWidth();
             m_imageGrid = Grid2DShort.convertImageToGrid(image, (m_imageType == IMAGE_TYPE_EMBOSSED), imagePixelSize);
-            m_dataChannel = m_imageGrid.getAttributeDesc().getChannel(0);
+            m_dataChannel = m_imageGrid.getDataDesc().getChannel(0);
 
         }
 

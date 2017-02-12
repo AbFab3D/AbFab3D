@@ -70,7 +70,7 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
         //Grid2D grid = loadImageToGrid2D("test/images/letter_S_blurred_500.png");
         //Grid2D grid = makeTestGrid(20,20);
 
-        printf("grid bounds: [%s] att: %s \n", grid.getGridBounds(), grid.getAttributeDesc());
+        printf("grid bounds: [%s] att: %s \n", grid.getGridBounds(), grid.getDataDesc());
         if(false)printGridAtt(grid);
 
         //AttributeChannel dataChannel = new AttributeChannel(AttributeChannel.DISTANCE, "distance", 16, 0, 0., 1.);
@@ -141,7 +141,7 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
     }
     void printGridValue(Grid2D grid){
 
-        GridDataChannel vm = grid.getAttributeDesc().getChannel(0);
+        GridDataChannel vm = grid.getDataDesc().getChannel(0);
         int xmax = 20; 
         int ymax = 20;
         printf("printGridValue()\n");
@@ -160,7 +160,7 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
         int ny = grid.getHeight();
         int imgx = nx*magnification;
         int imgy = ny*magnification;
-        GridDataDesc adesc = grid.getAttributeDesc();
+        GridDataDesc adesc = grid.getDataDesc();
         GridDataChannel ac = adesc.getChannel(0);
 
         BufferedImage image =  new BufferedImage(imgx, imgy, BufferedImage.TYPE_INT_ARGB);
@@ -207,7 +207,7 @@ public class TestDistanceTransform2D extends BaseTestDistanceTransform {
     static Grid2D makeTestGrid(int w, int h) {
 
         Grid2D grid = new Grid2DShort(w,h, pixelSize);
-        grid.setAttributeDesc(GridDataDesc.getDefaultAttributeDesc(16));
+        grid.setDataDesc(GridDataDesc.getDefaultAttributeDesc(16));
 
         for(int y = 7; y < 15; y++){
             for(int x = 7; x < 15; x++){ 

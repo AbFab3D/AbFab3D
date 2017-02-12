@@ -1,5 +1,7 @@
 package abfab3d.datasources;
 
+import javax.vecmath.Tuple3d;
+
 import abfab3d.core.GridDataDesc;
 import abfab3d.core.Grid2D;
 import abfab3d.param.SourceWrapper;
@@ -52,14 +54,25 @@ public class Grid2DSourceWrapper implements Grid2D, SourceWrapper {
     }
 
     @Override
-    public void getWorldCoords(int x, int y, double[] coords) {
+    public void getWorldCoords(int x, int y, Tuple3d coords) {
         grid.getWorldCoords(x,y,coords);
     }
 
     @Override
-    public GridDataDesc getAttributeDesc() {
-        return grid.getAttributeDesc();
+    public void getGridCoords(double x, double y, Tuple3d coords) {
+        grid.getGridCoords(x,y,coords);
     }
+
+    @Override
+    public GridDataDesc getDataDesc() {
+        return grid.getDataDesc();
+    }
+
+    @Override
+        public boolean insideGrid(int x, int y) {
+        return grid.insideGrid(x,y);
+    }
+
     @Override
     public Grid2D createEmpty(int w, int h, double pixel) {
         return grid.createEmpty(w, h, pixel);
@@ -88,13 +101,13 @@ public class Grid2DSourceWrapper implements Grid2D, SourceWrapper {
     }
 
     @Override
-    public void setAttributeDesc(GridDataDesc desc) {
+    public void setDataDesc(GridDataDesc desc) {
         // TODO: not sure this is necessary
         if (DEBUG) {
             printf("Grid2D altered clearing source");
         }
         source = null;
-        grid.setAttributeDesc(desc);
+        grid.setDataDesc(desc);
     }
 
     /**
