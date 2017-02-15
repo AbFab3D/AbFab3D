@@ -11,6 +11,8 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
+import abfab3d.param.Parameter;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,6 +28,7 @@ public class ScriptResources {
     public Map<String,Object> params;
     public float quality;
     public ShapeJSEvaluator eval;
+    public boolean firstCreate;
 
     public ScriptResources() {
         params = new HashMap<String,Object>();

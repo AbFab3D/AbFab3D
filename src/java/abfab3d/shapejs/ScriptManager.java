@@ -126,105 +126,21 @@ public class ScriptManager {
         matMapper = mm;
     }
 
-    public void clear() {
-        cache.invalidateAll();
-    }
-
-    public void cleanupJob(String jobID) {
-        cache.invalidate(jobID);
-    }
-
     /**
-     * Update a script and its params
-     *
-     * @param jobID  UniqueID for caching results
-     * @param script The script or null if its not changed
-     * @param params The params, delta encoded, null to remove
+     * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
+     * @param jobID
+     * @param delta
+     * @param script
+     * @param params
      * @return
+     * @throws NotCachedException
      */
-    public ScriptResources update(String jobID, String script, Map<String,Object> params) {
-        try {
-            return update(jobID, false, script, params);
-        } catch(NotCachedException nce) {
-            // should never happen
-            nce.printStackTrace();
-        }
-
-        return null;
-    }
-
-    /**
-     * Update a script and its params
-     *
-     * @param jobID  UniqueID for caching results
-     * @param script The script or null if its not changed
-     * @param params The params, delta encoded, null to remove
-     * @return
-     */
-    public ScriptResources update(String jobID, Script script, Map<String,Object> params) {
-        try {
-            String code = script.getCode();
-            return update(jobID, false, code, params);
-        } catch(NotCachedException nce) {
-            // should never happen
-            nce.printStackTrace();
-        }
-
-        return null;
-    }
-
-    /**
-     * Update a script
-     *
-     * @param jobID  UniqueID for caching results
-     * @param script The script or null if its not changed
-     * @return
-     */
-    public ScriptResources update(String jobID, String script) {
-        try {
-            return update(jobID, false, script, new HashMap<String,Object>());
-        } catch(NotCachedException nce) {
-            // should never happen
-            nce.printStackTrace();
-        }
-
-        return null;
-    }
-
-    /**
-     * Update a script
-     *
-     * @param jobID  UniqueID for caching results
-     * @param script The script or null if its not changed
-     * @return
-     */
-    public ScriptResources update(String jobID, Script script) {
-        try {
-            String code = script.getCode();
-
-            return update(jobID, false, code, new HashMap<String,Object>());
-        } catch(NotCachedException nce) {
-            // should never happen
-            nce.printStackTrace();
-        }
-
-        return null;
-    }
-
-    /**
-     * Update a script and its params
-     *
-     * @param jobID  UniqueID for caching results
-     * @param script The script or null if its not changed
-     * @param params The params, delta encoded, null to remove
-     * @return
-     */
-    public ScriptResources update(String jobID, boolean delta, String script, Map<String,Object> params) throws NotCachedException {
+    public ScriptResources prepareScript(String jobID, boolean delta, String script, Map<String,Object> params) throws NotCachedException {
         ScriptResources sr = null;
 
         long t0 = time();
         if (params == null) {
-            params = new HashMap<String, Object>();
+            params = new HashMap<String, Object>(1);
         }
 
         if (delta == true) {
@@ -233,34 +149,22 @@ public class ScriptManager {
 
                 if (sr != null) {
                     // update existing values
-                    boolean opsChanged = false;
-
                     if (params.size() > 0) {
                         updateParams(params, sr);
-                        opsChanged = true;
                     }
 
                     if (script != null) {
                         // new script
                         sr.script = script;
-                        opsChanged = true;
-                    }
-
-                    if (opsChanged) {
-                        // clear our op based caches
-                        /*
-                        sr.ops.clear();
-                        sr.vscene.clear();
-                        */
                     }
 
                     if (!sr.result.isSuccess()) {
                         printf("Script in a bad state, trying to reparse\n");
                         if (script!= null) {
-                        	sr.eval.parseScript(script);
-                        	sr.script = script;
+                            sr.eval.parseScript(script);
+                            sr.script = script;
                         } else {
-                        	sr.eval.parseScript(sr.script);
+                            sr.eval.parseScript(sr.script);
                         }
                         sr.result = sr.eval.getResult();
                     }
@@ -270,9 +174,6 @@ public class ScriptManager {
                 if (delta) throw new NotCachedException();
             }
         }
-
-        // Create a new entry
-        boolean first_create = false;
 
         if (sr == null) {
             sr = new ScriptResources();
@@ -284,30 +185,103 @@ public class ScriptManager {
             if (!sr.result.isSuccess()) {
                 return sr;
             }
-            first_create = true;
+            sr.firstCreate = true;
+        } else {
+            sr.firstCreate = false;
         }
 
         if (DEBUG) printf("ScriptManager.update parse: %d ms\n",time() - t0);
         t0 = time();
 
         // convert JSON to objects
-    	try {
-    		sr.eval.mungeParams(params, first_create);
-    		if (DEBUG) printf("ScriptManager.update munge: %d ms\n",time() - t0);
-    	} catch (IllegalArgumentException iae) {
-    		sr.result = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, iae.getMessage(), null,time() - t0);
-    		return sr;
-    	}
-
-        t0 = time();
+        try {
+            sr.eval.mungeParams(params, sr.firstCreate);
+            if (DEBUG) printf("ScriptManager.update munge: %d ms\n",time() - t0);
+        } catch (IllegalArgumentException iae) {
+            sr.result = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, iae.getMessage(), null,time() - t0);
+            return sr;
+        }
 
         // download URLs
         downloadURI(sr.result.getParamMap(), params);
         sr.params.putAll(params);
 
+        // Cache the job only if script eval is a success
+        if (sr.result.isSuccess()) {
+            if (!STOP_CACHING) {
+                cache.put(jobID, sr);
+            }
+        }
+
         if (DEBUG) printf("ScriptManager.update download: %d ms\n",time() - t0);
+
+        return sr;
+    }
+
+    /**
+     * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
+     * @param jobID
+     * @param delta
+     * @param script
+     * @param params
+     * @return
+     * @throws NotCachedException
+     */
+    public ScriptResources prepareScript(String jobID, boolean delta, Script script, Map<String,Object> params) throws NotCachedException {
+        return prepareScript(jobID,delta,script.getCode(),params);
+    }
+
+    /**
+     * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
+     * @param jobID
+     * @param script
+     * @param params
+     * @return
+     * @throws NotCachedException
+     */
+    public ScriptResources prepareScript(String jobID, Script script, Map<String,Object> params) {
+        try {
+            return prepareScript(jobID, false, script.getCode(), params);
+        } catch(NotCachedException nce) {
+            // Should never happen
+            printf("Unhandled case.");
+            nce.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
+     * @param jobID
+     * @param script
+     * @param params
+     * @return
+     * @throws NotCachedException
+     */
+    public ScriptResources prepareScript(String jobID, String script, Map<String,Object> params) {
+        try {
+            return prepareScript(jobID, false, script, params);
+        } catch(NotCachedException nce) {
+            // Should never happen
+            printf("Unhandled case.");
+            nce.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Execute the script.  This calls the main method or specific listener and returns the Scene
+     * @param params
+     * @return
+     * @throws NotCachedException
+     */
+    public ScriptResources executeScript(ScriptResources sr, Map<String,Object> params){
         // lost the difference between eval and reval
-        if (first_create) {
+        long t0;
+
+        if (params == null) params = new HashMap<String,Object>(1);
+
+        if (sr.firstCreate) {
             t0 = time();
             if (DEBUG) printf("ScriptManager Execute script.  params: %s\n",params);
             sr.result = sr.eval.executeScript("main", params);
@@ -351,7 +325,6 @@ public class ScriptManager {
             }
         }
 
-        // Cache the job only if script eval is a success
         if (sr.result.isSuccess()) {
 
             // I think this is the correct place to call initialize.  Might call it too often?
@@ -361,17 +334,24 @@ public class ScriptManager {
                     ((Initializable) ds).initialize();
                 }
             }
-
-            if (!STOP_CACHING) {
-                cache.put(jobID, sr);
-            }
         }
 
         if (DEBUG) {
             printf("ScriptManager init: %d ms\n",time() - t0);
         }
         return sr;
+
     }
+
+    public void cleanupJob(String jobID) {
+        cache.invalidate(jobID);
+    }
+
+    public void clear() {
+        cache.invalidateAll();
+    }
+
+
 
     /**
      * Download any uri parameters containing a fully qualified url.
