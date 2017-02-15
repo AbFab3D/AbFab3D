@@ -58,6 +58,10 @@ public class ImageUtil {
         return ((rgb) & 0xFF);
     }
 
+    /**
+       extract color components from packed color in ARGB format
+       colro component are in range [0.,1.]
+     */
     static public final void getRGBA(int argb, double color[]){
         color[RED] = getRed(argb)/255.;
         color[GREEN] = getGreen(argb)/255.;
@@ -65,13 +69,76 @@ public class ImageUtil {
         color[ALPHA] = getAlpha(argb)/255.;
     }
 
+    /**
+       makes color componets pre-multiplied by alpha
+       
+     */
+    static public final void premult(double color[]){
+        double a = color[ALPHA];
+        color[RED] *= a;
+        color[GREEN] *= a;
+        color[BLUE] *= a;
+    }
+
+    /**
+       overlay topColor over backgroundColor and saver result into backgroundColor;
+       colors have to be in premult form normalized to [0,1]
+     */
+    static public final void overlay(double backgroundColor[], double topColor[]){
+        
+        double b = 1.-topColor[ALPHA];
+        backgroundColor[0] = b*backgroundColor[0] + topColor[0];
+        backgroundColor[1] = b*backgroundColor[1] + topColor[1];
+        backgroundColor[2] = b*backgroundColor[2] + topColor[2];
+        backgroundColor[3] = b*backgroundColor[3] + topColor[3];
+
+    }
+
+
+    /**
+       converts color from premult form in RGBA order into full form in RGBA order 
+       if input component are not in premult for result will be bad 
+     */
+    static public final void fullColor(double color[]){
+        double a = color[ALPHA];
+        if(a != 0) {
+            color[RED] /= a;
+            color[GREEN] /= a;
+            color[BLUE] /= a;
+        } else {
+            color[RED] = 0.;
+            color[GREEN] = 0.;
+            color[BLUE] = 0.;
+        }
+    }
+
+    /**
+       copy color from coolorFrom into colorTo
+     */
+    static public final void copyColor(double colorFrom[], double[] colorTo){
+        colorTo[0] = colorFrom[0];
+        colorTo[1] = colorFrom[1];
+        colorTo[2] = colorFrom[2];
+        colorTo[3] = colorFrom[3];
+    }
+
+    /**
+       scale color by given value and return it
+     */
+    static public final double[] scaleColor(double color[], double alpha){
+        color[0] *= alpha;
+        color[1] *= alpha;
+        color[2] *= alpha;
+        color[3] *= alpha;
+        return color;
+    }
     
     /**
-       combines 3 color components into single int RGB (0xFFRRGGBB) 
+       packs 3 color components into single int RGB (0xFFRRGGBB) 
      */
     public static final int makeRGB(int r, int g, int b){
         return 
-            0xFF000000 |
+            0xFF000000 |  // ALPHA 
             ((r & 0xFF) << 16) |
             ((g & 0xFF) << 8) |
             ((b & 0xFF) );            
@@ -82,7 +149,7 @@ public class ImageUtil {
      */
     public static final int makeARGB(int r, int g, int b, int a ){
         return 
-            ((a & 0xFF) << 24 )|
+            ((a & 0xFF) << 24 )| 
             ((r & 0xFF) << 16) |
             ((g & 0xFF) << 8) |
             ((b & 0xFF) );    
@@ -90,11 +157,16 @@ public class ImageUtil {
 
     /**
        converts rgba color into single int 
+       input colors are in range [0.,1.]
      */
     public static final int makeARGB(double r, double g, double b, double a ){
         return makeARGB((int)(r*255+0.5), (int)(g*255+0.5), (int)(b*255+0.5),(int)(a*255+0.5));
     }
     
+
+    /**
+       linear interpolation of two colors packed in ARGB form 
+     */
     public static final int lerpColors(int c1, int c2, double t){
 
         return makeARGB(iround(lerp(getRed(c1),getRed(c2),t)),
@@ -127,7 +199,7 @@ public class ImageUtil {
       combine two premultiplied colors with given alpha
       colors are normalized to [0, 255]
     */
-    public static final double combinePremultDouble(double c1, double c2, double alpha){
+    public static final double combinePremultDouble255(double c1, double c2, double alpha){
         
         return c1 - c1 * alpha * CNORM1 + c2;
         
@@ -147,13 +219,15 @@ public class ImageUtil {
         
     }
     
-    //
-    // formula for alpha composition works for PREMULTIPLIED colors (colors are premultiplied by alpha value) 
-    //
-    public static void combinePremultColors(double c1[], double c2[], double c3[], double alpha){
+    /**
+     *  formula for alpha composition works for PREMULTIPLIED colors (colors are premultiplied by alpha value) 
+     *  colors are normalized to [0, 255]
+     *  
+     */
+    public static void combinePremultColors255(double c1[], double c2[], double c3[], double alpha){
         
         for(int i = 0; i < 4; i++){
-            c3[i] = combinePremultDouble(c1[i], c2[i], alpha);
+            c3[i] = combinePremultDouble255(c1[i], c2[i], alpha);
         }
     }
 
@@ -169,7 +243,7 @@ public class ImageUtil {
 
     }
         
-    public static double[] getPremultColor(Color c, double outColor[]){
+    public static double[] getPremultColor255(Color c, double outColor[]){
         double alpha = c.getAlpha();
         outColor[ALPHA] = alpha;
         outColor[RED] = mul255(c.getRed(),alpha);
@@ -178,7 +252,7 @@ public class ImageUtil {
         return outColor;
     }
 
-    public static double[] getPremultColor(int rgba, double outColor[]){
+    public static double[] getPremultColor255(int rgba, double outColor[]){
         double alpha = getAlpha(rgba);
         outColor[ALPHA] = alpha;
         outColor[RED] = mul255(getRed(rgba),alpha);
@@ -186,6 +260,7 @@ public class ImageUtil {
         outColor[BLUE] = mul255(getBlue(rgba),alpha);
         return outColor;
     }
+
 
     public static final int getPremultColorInt(int c){
         int a = getAlpha(c);

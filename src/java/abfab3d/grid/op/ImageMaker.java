@@ -25,9 +25,14 @@ import static abfab3d.util.ImageUtil.makeARGB;
 /**
    class to render images via DataSource interface 
    DataSource returns ARBG values which shall be inside interval [0.,1.] for alpha, red, green, blue values
-   image is rendered in the rectangl in the xy plane via center of the Bounds box 
+   image is rendered in the rectangle in the xy plane with z values = center of the Bounds 
    the coordinates domain is divided into imgWidth x imgHeight pixels 
-   data values values are calculated in CENTERS of pixels (usng half pixel shift) 
+   data values values are calculated in CENTERS of pixels (using half pixel shift) 
+   data values are assumed to be in the range [0,1]
+   data.v[0] - RED
+   data.v[1] - GREEN
+   data.v[2] - BLUE
+   data.v[3] - ALPHA 
  */
 public class ImageMaker {
     
@@ -56,7 +61,7 @@ public class ImageMaker {
 
     }
 
-    void renderImage(int width, int height, Bounds bounds, DataSource imgRenderer, int [] imageData){
+    public void renderImage(int width, int height, Bounds bounds, DataSource imgRenderer, int [] imageData){
 
         //
         // TODO make it MT 
