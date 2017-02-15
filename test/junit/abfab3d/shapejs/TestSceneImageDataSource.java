@@ -58,7 +58,8 @@ public class TestSceneImageDataSource extends TestCase {
 
         HashMap<String, Object> params = new HashMap<String, Object>();
 
-        ScriptResources sr = sm.update(jobID, s, params);
+        ScriptResources sr = sm.prepareScript(jobID, s, params);
+        sm.executeScript(sr,params);
         assertTrue("Eval failed", sr.result.isSuccess());
         Scene scene = sr.result.getScene();
 
