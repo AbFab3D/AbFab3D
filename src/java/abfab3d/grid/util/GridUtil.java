@@ -201,9 +201,9 @@ public class GridUtil  {
        @param origin - physical location of slice corner (0,0)
        @param eu - basis vector in U direction 
        @param ev - basis vector in V direction
-       @param nu domension of slice in U direction 
-       @param nv domension of slice in Vdirection 
-       @param path locatrion of file to write to 
+       @param nu dimension of slice in U direction 
+       @param nv dimension of slice in V direction 
+       @param path location of file to write to 
      */
     public static void writeSlice(AttributeGrid grid, GridDataChannel dataChannel, ColorMapper colorMapper, 
                                   Vector3d origin, Vector3d eu, Vector3d ev, int nu, int nv, String path) throws IOException{
@@ -218,7 +218,7 @@ public class GridUtil  {
     /**
        render image of grid slice into buffered image 
        slice is calculated using dataChannel in points in space calculated as 
-       pnt = origin + eu * u, + ev*v; 
+       pnt = origin + eu * u + ev*v; 
        0 <= u < nu
        0 <= v < nv
        values are lineraly interpolated 
@@ -229,9 +229,9 @@ public class GridUtil  {
        @param origin - physical location of slice corner (0,0)
        @param eu - basis vector in U direction 
        @param ev - basis vector in V direction
-       @param nu domension of slice in U direction 
-       @param nv domension of slice in Vdirection 
-       @param image destimation image to render to 
+       @param nu dimension of slice in U direction 
+       @param nv dimension of slice in Vdirection 
+       @param image destination image to render to 
      */
     public static void renderSlice(AttributeGrid grid, GridDataChannel dataChannel, ColorMapper colorMapper, 
                                   Vector3d origin, Vector3d eu, Vector3d ev, int nu, int nv, BufferedImage image) throws IOException{
