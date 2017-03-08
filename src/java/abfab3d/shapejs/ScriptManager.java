@@ -1,26 +1,31 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2015
- *                               Java Source
- *
+ * Shapeways, Inc Copyright (c) 2015
+ * Java Source
+ * <p/>
  * This source is licensed under the GNU LGPL v2.1
  * Please read http://www.gnu.org/copyleft/lgpl.html for more information
- *
+ * <p/>
  * This software comes with the standard NO WARRANTY disclaimer for any
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
- *
  ****************************************************************************/
 package abfab3d.shapejs;
 
-import abfab3d.core.Material;
+import abfab3d.core.Initializable;
 import abfab3d.io.input.URIMapper;
-import abfab3d.util.URIUtils;
 import abfab3d.param.Parameter;
 import abfab3d.param.ParameterType;
 import abfab3d.param.Parameterizable;
+import abfab3d.param.Shape;
 import abfab3d.param.URIParameter;
-
-import abfab3d.core.Initializable;
-import com.google.common.cache.*;
+import abfab3d.util.URIUtils;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalCause;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,9 +40,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.time;
 
@@ -50,7 +52,7 @@ public class ScriptManager {
     private static final boolean DEBUG = false;
     private static final boolean STOP_CACHING = false;
     private static final int JOB_RETAIN_MS = 60 * 60 * 1000;
-    
+
     // File type that contains base64 data to be saved to disk as mime-type specified in the data
     private static final String BASE64_FILE_EXTENSION = ".base64";
 
@@ -60,7 +62,7 @@ public class ScriptManager {
     private static final String TMP_DIR = "/tmp";
     private static final String IMAGES_DIR = "/stock/media/images";
     private static final String MODELS_DIR = "/stock/media/models";
-    
+
     private static final Map<String, String> media;
 
     private static MaterialMapper matMapper;
@@ -84,7 +86,7 @@ public class ScriptManager {
             new Exception().printStackTrace();
         }
     }
-    
+
     private ScriptManager() {
         cache = CacheBuilder.newBuilder()
                 .softValues()
@@ -135,7 +137,7 @@ public class ScriptManager {
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources prepareScript(String jobID, boolean delta, String script, Map<String,Object> params) throws NotCachedException {
+    public ScriptResources prepareScript(String jobID, boolean delta, String script, Map<String, Object> params) throws NotCachedException {
         ScriptResources sr = null;
 
         long t0 = time();
@@ -160,7 +162,7 @@ public class ScriptManager {
 
                     if (!sr.result.isSuccess()) {
                         printf("Script in a bad state, trying to reparse\n");
-                        if (script!= null) {
+                        if (script != null) {
                             sr.eval.parseScript(script);
                             sr.script = script;
                         } else {
@@ -190,15 +192,15 @@ public class ScriptManager {
             sr.firstCreate = false;
         }
 
-        if (DEBUG) printf("ScriptManager.update parse: %d ms\n",time() - t0);
+        if (DEBUG) printf("ScriptManager.update parse: %d ms\n", time() - t0);
         t0 = time();
 
         // convert JSON to objects
         try {
             sr.eval.mungeParams(params, sr.firstCreate);
-            if (DEBUG) printf("ScriptManager.update munge: %d ms\n",time() - t0);
+            if (DEBUG) printf("ScriptManager.update munge: %d ms\n", time() - t0);
         } catch (IllegalArgumentException iae) {
-            sr.result = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, iae.getMessage(), null,time() - t0);
+            sr.result = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, iae.getMessage(), null, time() - t0);
             return sr;
         }
 
@@ -213,7 +215,7 @@ public class ScriptManager {
             }
         }
 
-        if (DEBUG) printf("ScriptManager.update download: %d ms\n",time() - t0);
+        if (DEBUG) printf("ScriptManager.update download: %d ms\n", time() - t0);
 
         return sr;
     }
@@ -227,8 +229,8 @@ public class ScriptManager {
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources prepareScript(String jobID, boolean delta, Script script, Map<String,Object> params) throws NotCachedException {
-        return prepareScript(jobID,delta,script.getCode(),params);
+    public ScriptResources prepareScript(String jobID, boolean delta, Script script, Map<String, Object> params) throws NotCachedException {
+        return prepareScript(jobID, delta, script.getCode(), params);
     }
 
     /**
@@ -239,10 +241,10 @@ public class ScriptManager {
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources prepareScript(String jobID, Script script, Map<String,Object> params) {
+    public ScriptResources prepareScript(String jobID, Script script, Map<String, Object> params) {
         try {
             return prepareScript(jobID, false, script.getCode(), params);
-        } catch(NotCachedException nce) {
+        } catch (NotCachedException nce) {
             // Should never happen
             printf("Unhandled case.");
             nce.printStackTrace();
@@ -258,10 +260,10 @@ public class ScriptManager {
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources prepareScript(String jobID, String script, Map<String,Object> params) {
+    public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params) {
         try {
             return prepareScript(jobID, false, script, params);
-        } catch(NotCachedException nce) {
+        } catch (NotCachedException nce) {
             // Should never happen
             printf("Unhandled case.");
             nce.printStackTrace();
@@ -275,22 +277,22 @@ public class ScriptManager {
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources executeScript(ScriptResources sr, Map<String,Object> params){
+    public ScriptResources executeScript(ScriptResources sr, Map<String, Object> params) {
         // lost the difference between eval and reval
         long t0;
 
-        if (params == null) params = new HashMap<String,Object>(1);
+        if (params == null) params = new HashMap<String, Object>(1);
 
         if (sr.firstCreate) {
             t0 = time();
-            if (DEBUG) printf("ScriptManager Execute script.  params: %s\n",params);
+            if (DEBUG) printf("ScriptManager Execute script.  params: %s\n", params);
             sr.result = sr.eval.executeScript("main", params);
-            if (DEBUG) printf("ScriptManager Done eval time: %d ms\n",time() - t0);
+            if (DEBUG) printf("ScriptManager Done eval time: %d ms\n", time() - t0);
         } else {
             t0 = time();
-            if (DEBUG) printf("ScriptManager Reeval script.  params: %s\n",params);
-            sr.result = sr.eval.reevalScript(sr.script,params);
-            if (DEBUG) printf("ScriptManager Done Reeval script.  %d ms\n",time() - t0);
+            if (DEBUG) printf("ScriptManager Reeval script.  params: %s\n", params);
+            sr.result = sr.eval.reevalScript(sr.script, params);
+            if (DEBUG) printf("ScriptManager Done Reeval script.  %d ms\n", time() - t0);
         }
 
         t0 = time();
@@ -308,15 +310,55 @@ public class ScriptManager {
                 EvaluatedScript result = sr.result;
 
                 if (result != null && result.getScene() != null) {
+                    Scene scene = result.getScene();
+
+                    if (scene.getLightingRig() == Scene.LightingRig.AUTO) {
+                        printf("In AUTO, material is: %s\n", matSt);
+                    }
+                    // automagically decide
                     if (matSt.equals("None")) {
-                        result.getScene().setMaterial(0,DefaultMaterial.getInstance());
+                        scene.setLightingRig(Scene.LightingRig.THREE_POINT_COLORED);
+                    } else {
+                        scene.setLightingRig(Scene.LightingRig.THREE_POINT);
+                    }
+
+                    // TODO: We only want this code in for one release?
+                    Shape shape = scene.getShapes().get(0);
+
+                    printf("Got shape mat: %s\n",shape.getMaterial());
+                    if (shape.getMaterial().equals(DefaultMaterial.getInstance())) {
+                        // using default material so for this release map selected for the script
+                        scene.setMaterial(0,PrintableMaterials.get(matSt));
+                    }
+                }
+            }
+        }
+
+        // TODO: We might need this logic to retain backward compatible for rmr
+/*
+        if (sr.result.isSuccess()) {
+            Object material = params.get("material");
+
+            if (material == null) {
+                material = sr.eval.getParameter("material");
+            }
+
+            if (material != null) {
+                Parameter mat = (Parameter) material;
+                String matSt = (String) mat.getValue();
+
+                EvaluatedScript result = sr.result;
+
+                if (result != null && result.getScene() != null) {
+                    if (matSt.equals("None")) {
+                        result.getScene().setMaterial(0,DefaultMaterial.getInstance());     // comment out on next release
                         result.getScene().setLightingRig(Scene.LightingRig.THREE_POINT_COLORED);
                     } else if (matMapper != null) {
                         Material rm = matMapper.getImplementation(matSt);
                         if (rm == null) rm = sr.eval.getImplementation(matSt);
 
                         if (rm != null) {
-                            result.getScene().setMaterial(0,rm);
+                            result.getScene().setMaterial(0,rm);  // comment out on next release
                             result.getScene().setLightingRig(Scene.LightingRig.THREE_POINT);
                         }
 
@@ -324,12 +366,12 @@ public class ScriptManager {
                 }
             }
         }
-
+ */
         if (sr.result.isSuccess()) {
 
             // I think this is the correct place to call initialize.  Might call it too often?
             List<Parameterizable> list = sr.result.getScene().getSource();
-            for(Parameterizable ds: list) {
+            for (Parameterizable ds : list) {
                 if (ds instanceof Initializable) {
                     ((Initializable) ds).initialize();
                 }
@@ -337,7 +379,7 @@ public class ScriptManager {
         }
 
         if (DEBUG) {
-            printf("ScriptManager init: %d ms\n",time() - t0);
+            printf("ScriptManager init: %d ms\n", time() - t0);
         }
         return sr;
 
@@ -350,7 +392,6 @@ public class ScriptManager {
     public void clear() {
         cache.invalidateAll();
     }
-
 
 
     /**
@@ -369,7 +410,7 @@ public class ScriptManager {
             Parameter param = evalParams.get(key);
 
             if (param == null) {
-                printf("Cannot find definition for: %s, ignoring.\n",key);
+                printf("Cannot find definition for: %s, ignoring.\n", key);
                 continue;
             }
 
@@ -414,13 +455,13 @@ public class ScriptManager {
                             f = new File(workingDirPath);
                             if (f.exists()) {
                                 // already downloaded, assume its all good
-                                localPath = URIUtils.getUrlFilename(key,urlStr,workingDirPath,true);
-                                printf("Found local copy, localPath is: %s\n",localPath);
+                                localPath = URIUtils.getUrlFilename(key, urlStr, workingDirPath, true);
+                                printf("Found local copy, localPath is: %s\n", localPath);
                             } else {
                                 printf("Can't find local copy.  url: %s  path: %s\n", urlStr, workingDirPath);
 
                                 long t0 = System.currentTimeMillis();
-                                localPath = URIUtils.writeUrlToFile(key, urlStr, workingDirPath,true);
+                                localPath = URIUtils.writeUrlToFile(key, urlStr, workingDirPath, true);
                                 printf("Download of: %s took: %s ms\n", urlStr, (System.currentTimeMillis() - t0));
                                 if (localPath == null) {
                                     printf("Could not save url.  key: %s  url: %s  dir: %s\n", key, urlStr, workingDirPath);
@@ -432,7 +473,7 @@ public class ScriptManager {
                         if (localPath == null) {
                             workingDirPath = Files.createTempDirectory("downloaduri").toAbsolutePath().toString();
                             long t0 = System.currentTimeMillis();
-                            localPath = URIUtils.writeUrlToFile(key, urlStr, workingDirPath,false);
+                            localPath = URIUtils.writeUrlToFile(key, urlStr, workingDirPath, false);
                             printf("Download of: %s took: %s ms\n", urlStr, (System.currentTimeMillis() - t0));
                             if (localPath == null) {
                                 printf("Could not save url.  key: %s  url: %s  dir: %s\n", key, urlStr, workingDirPath);
@@ -443,16 +484,16 @@ public class ScriptManager {
                         // TODO: This handles a case with portal needing to write base64 file data to a
                         // .base64 file. Will want to rethink this in the future.
                         if (localPath.endsWith(BASE64_FILE_EXTENSION)) {
-                        	String base64 = FileUtils.readFileToString(new File(localPath), "UTF-8");
+                            String base64 = FileUtils.readFileToString(new File(localPath), "UTF-8");
 
                             if (base64 == null || base64.length() == 0) {
-                                printf("Failed to parse base64: %s  from file: %s\n",base64,localPath);
+                                printf("Failed to parse base64: %s  from file: %s\n", base64, localPath);
                             }
-                        	localPath = URIUtils.writeDataURIToFile(key, base64, workingDirPath);
+                            localPath = URIUtils.writeDataURIToFile(key, base64, workingDirPath);
                         } else {
                             cache = true;
                         }
-                        
+
                         up.setValue(localPath);
 //                		System.out.println("*** uri, " + key + " : " + up.getValue());
                     } else if (urlStr.startsWith("data:")) {
@@ -462,16 +503,16 @@ public class ScriptManager {
                         localPath = URIUtils.writeDataURIToFile(key, urlStr, workingDirPath);
                         up.setValue(localPath);
                     } else if (urlStr.startsWith("urn:shapeways:")) {
-                    	if (media.get(urlStr) == null) {
-                    		throw new Exception("Invalid media resource: " + urlStr);
-                    	}
-                    	
+                        if (media.get(urlStr) == null) {
+                            throw new Exception("Invalid media resource: " + urlStr);
+                        }
+
                         localPath = TMP_DIR + media.get(urlStr);
                         File f = new File(localPath);
                         if (!f.exists()) {
-                        	exportMediaResources();
+                            exportMediaResources();
                             if (!f.exists()) {
-                            	throw new Exception("Error exporting media resource: " + urlStr);
+                                throw new Exception("Error exporting media resource: " + urlStr);
                             }
                         }
 
@@ -494,7 +535,7 @@ public class ScriptManager {
                 }
 
             } catch (Exception e) {
-                printf("Error resolving uri: %s  msg: %s\n",urlStr,e.getMessage());
+                printf("Error resolving uri: %s  msg: %s\n", urlStr, e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -518,37 +559,37 @@ public class ScriptManager {
             }
         }
     }
-    
+
     public ScriptResources getResources(String jobID) throws NotCachedException {
         try {
             return cache.get(jobID);
-        } catch(ExecutionException ee) {
+        } catch (ExecutionException ee) {
             throw new NotCachedException();
         }
     }
 
     private void exportMediaResources() throws Exception {
-    	File imagesDir = new File(TMP_DIR + IMAGES_DIR);
-    	File modelsDir = new File(TMP_DIR + MODELS_DIR);
-    	if (!imagesDir.exists()) {
-    		imagesDir.mkdirs();
-    	}
-    	if (!modelsDir.exists()) {
-    		modelsDir.mkdirs();
-    	}
-    	
-    	for(Map.Entry<String, String> entry : media.entrySet()) { 
+        File imagesDir = new File(TMP_DIR + IMAGES_DIR);
+        File modelsDir = new File(TMP_DIR + MODELS_DIR);
+        if (!imagesDir.exists()) {
+            imagesDir.mkdirs();
+        }
+        if (!modelsDir.exists()) {
+            modelsDir.mkdirs();
+        }
+
+        for (Map.Entry<String, String> entry : media.entrySet()) {
 //    		System.out.printf("Key : %s and Value: %s %n", entry.getKey(), entry.getValue());
-    		String file = entry.getValue();
-    		String name = FilenameUtils.getName(file);
-    		if (file.contains("media/images")) {
-    			exportResource(entry.getValue(), new File(imagesDir.getAbsolutePath() + "/" + name));
-    		} else if (file.contains("media/models")) {
-    			exportResource(entry.getValue(), new File(modelsDir.getAbsolutePath() + "/" + name));
-    		}
-    	}
+            String file = entry.getValue();
+            String name = FilenameUtils.getName(file);
+            if (file.contains("media/images")) {
+                exportResource(entry.getValue(), new File(imagesDir.getAbsolutePath() + "/" + name));
+            } else if (file.contains("media/models")) {
+                exportResource(entry.getValue(), new File(modelsDir.getAbsolutePath() + "/" + name));
+            }
+        }
     }
-    
+
     /**
      * Export a resource embedded into a Jar file to the local file path.
      *
@@ -557,7 +598,7 @@ public class ScriptManager {
      * @throws Exception
      */
     public void exportResource(String resourceFile, File destFile) throws Exception {
-    	InputStream is = null;
+        InputStream is = null;
         try {
             is = ScriptManager.class.getResourceAsStream(resourceFile);
 
@@ -576,7 +617,7 @@ public class ScriptManager {
             }
             FileUtils.copyInputStreamToFile(is, destFile);
         } finally {
-        	if (is != null) is.close();
+            if (is != null) is.close();
         }
     }
 }

@@ -64,6 +64,17 @@ public class Bounds implements Cloneable {
         init();
     }
 
+    public Bounds(double bounds[], double voxelSize){
+        this.xmin = bounds[0];
+        this.xmax = bounds[1];
+        this.ymin = bounds[2];
+        this.ymax = bounds[3];
+        this.zmin = bounds[4];
+        this.zmax = bounds[5];
+        this.m_voxelSize = voxelSize;
+        init();
+    }
+
     public Bounds(double sizex, double sizey, double sizez){
 
         this.xmin = 0;
