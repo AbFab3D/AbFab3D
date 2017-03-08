@@ -57,10 +57,10 @@ public class Scene extends BaseParameterizable {
     final public static int DEFAULT_MAX_PARTS_COUNT = Integer.MAX_VALUE;
 
     public static enum LightingRig {
-        TWO_POINT,THREE_POINT, THREE_POINT_COLORED,
+        AUTO,THREE_POINT, THREE_POINT_COLORED,
     };
 
-    final public static LightingRig DEFAULT_LIGHTING_RIG = LightingRig.THREE_POINT_COLORED;
+    final public static LightingRig DEFAULT_LIGHTING_RIG = LightingRig.AUTO;
 
     protected Bounds m_bounds = DEFAULT_BOUNDS;
     protected String m_name = "ShapeJS";
@@ -233,6 +233,10 @@ public class Scene extends BaseParameterizable {
     }
     public void setBounds(Bounds bounds) {
         m_bounds = bounds.clone();
+    }
+
+    public List<Shape> getShapes() {
+        return m_shapes;
     }
 
     /**
@@ -429,6 +433,7 @@ public class Scene extends BaseParameterizable {
        set rendering material for given index 
      */
     public void setMaterial(int index,Material mat) {
+        if (index > SceneMaterials.MAX_MATERIALS - 1) throw new IllegalArgumentException("Cannot exceed " + SceneMaterials.MAX_MATERIALS + " materials");
         m_shapes.get(index).setMaterial(mat);
         addMaterial(mat);
         buildParams();
@@ -443,7 +448,7 @@ public class Scene extends BaseParameterizable {
         List<Material> mats = m_materials.getMaterials();
         int idx = 0;
         for(Material m : mats) {
-            if (m == mat) {
+            if (m.equals(mat)) {
                 return idx;
             }
             idx++;
@@ -511,7 +516,7 @@ public class Scene extends BaseParameterizable {
         List<Material> mats = m_materials.getMaterials();
         int idx = 0;
         for(Material m : mats) {
-            if (m == mat) {
+            if (m.equals(mat)) {
                 return idx;
             }
             idx++;
@@ -526,8 +531,8 @@ public class Scene extends BaseParameterizable {
         m_lightingRig = rig;
 
         switch(m_lightingRig) {
-            case TWO_POINT:
-                m_lights.setLights(getColoredLighting());
+            case AUTO:
+                // do nothing yet
                 break;
             case THREE_POINT_COLORED:
                 m_lights.setLights(getColoredLighting());

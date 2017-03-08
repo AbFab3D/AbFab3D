@@ -20,7 +20,7 @@ import abfab3d.core.MaterialShader;
  *
  * @author Alan Hudson
  */
-public class DefaultMaterial extends BaseMaterial {
+public class DefaultMaterial extends BaseRenderableMaterial {
     private PhongShader m_shader;
     private static Material instance = null;
 

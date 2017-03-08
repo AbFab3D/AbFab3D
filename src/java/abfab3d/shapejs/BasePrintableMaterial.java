@@ -12,17 +12,21 @@
 package abfab3d.shapejs;
 
 import abfab3d.core.Material;
+import abfab3d.core.PrintableMaterial;
+import abfab3d.core.RenderableMaterial;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNodeParameter;
 import abfab3d.core.DataSource;
+
+import java.util.Objects;
 
 /**
  * Base implementation for all Materials
  *
  * @author Alan Hudson
  */
-public abstract class BaseMaterial extends BaseParameterizable implements Material {
+public abstract class BasePrintableMaterial extends BaseParameterizable implements PrintableMaterial {
     protected SNodeParameter mp_renderingParams = new SNodeParameter("renderingParams");
     protected SNodeParameter mp_source = new SNodeParameter("source");
     protected String m_name;
@@ -31,7 +35,7 @@ public abstract class BaseMaterial extends BaseParameterizable implements Materi
             mp_renderingParams, mp_source
     };
 
-    public BaseMaterial(String name) {
+    public BasePrintableMaterial(String name) {
         m_name = name;
         addParams(m_aparam);
     }
@@ -43,4 +47,25 @@ public abstract class BaseMaterial extends BaseParameterizable implements Materi
     public DataSource getRenderingSource(DataSource source) {
         return source;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (!(o instanceof PrintableMaterial)) {
+            return false;
+        }
+
+        final PrintableMaterial that = (PrintableMaterial) o;
+
+        return Objects.equals(this.m_name, that.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(m_name);
+    }
+
 }
