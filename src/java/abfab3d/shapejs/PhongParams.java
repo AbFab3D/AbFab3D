@@ -21,6 +21,12 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class PhongParams extends RenderingParams {
+
+    static final public int MATERIAL_SINGLE_COLOR = 0;
+    static final public int MATERIAL_MIXED = 1;
+    static final public int MATERIAL_FILLCOLOR = 2;
+    static final public String sm_materiaTypeNames[] = new String[]{"single color", "mixed", "full color"};
+    private EnumParameter mp_materialType = new EnumParameter("materialType","Type of Material", sm_materiaTypeNames, sm_materiaTypeNames[MATERIAL_SINGLE_COLOR]);
     private ColorParameter mp_diffuseColor = new ColorParameter("diffuseColor","Diffuse Color",new Color(0.8,0.8,0.8));
     private ColorParameter mp_emissiveColor = new ColorParameter("emissiveColor","Emissive Color",new Color(0,0,0));
     private ColorParameter mp_specularColor = new ColorParameter("specularColor","Diffuse Color",new Color(1,1,1));
@@ -33,14 +39,15 @@ public class PhongParams extends RenderingParams {
     private DoubleParameter mp_gradientFactor = new DoubleParameter("gradientFactor","Factor to underlying gradientStep",1);
 
     private Parameter m_aparam[] = new Parameter[]{
-            mp_diffuseColor,
-            mp_emissiveColor,
-            mp_specularColor,
-            mp_albedo,
-            mp_shininess,
-            mp_ambientIntensity,
-            mp_roughness,
-            mp_gradientFactor
+        mp_materialType,
+        mp_diffuseColor,
+        mp_emissiveColor,
+        mp_specularColor,
+        mp_albedo,
+        mp_shininess,
+        mp_ambientIntensity,
+        mp_roughness,
+        mp_gradientFactor
     };
 
     public PhongParams() {

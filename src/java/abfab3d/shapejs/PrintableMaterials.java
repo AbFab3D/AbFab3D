@@ -51,7 +51,7 @@ public class PrintableMaterials {
      */
     public static String[] getAllNames() {
         // TODO: make real
-        return new String[] {"None","White","WSF","SS"};
+        return new String[] {"None","White","WSF","SS", "BSF", "RBSF"};
     }
 
     /**
@@ -60,6 +60,6 @@ public class PrintableMaterials {
      */
     public static String[] getAllNames(String[] familyNames) {
         // TODO: make real
-        return new String[] {"None","White","WSF","SS"};
+        return new String[] {"None","White","WSF","SS", "BSF", "RBSF"};
     }
 }
