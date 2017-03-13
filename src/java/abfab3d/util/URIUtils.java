@@ -17,7 +17,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import static abfab3d.core.Output.printf;
 
@@ -29,6 +32,22 @@ import static abfab3d.core.Output.printf;
 public class URIUtils {
     private static final boolean DEBUG = true;
 
+	public static final Map<String, String> mimeTypeMapper;
+	static {
+		Map<String, String> tmpMap = new HashMap<String, String>();
+		tmpMap.put("image/png", "png");
+		tmpMap.put("image/jpeg", "jpg");
+		tmpMap.put("image/gif", "gif");
+		tmpMap.put("model/x3d+xml", "x3d");
+		tmpMap.put("model/x3d+fastinfoset", "x3db");
+		tmpMap.put("model/x3d-vrml", "x3dv");
+		tmpMap.put("model/vrml", "wrl");
+		tmpMap.put("application/sla", "stl");
+		tmpMap.put("text/csv", "csv");
+		tmpMap.put("application/zip", "zip");
+		mimeTypeMapper = Collections.unmodifiableMap(tmpMap);
+	}
+	
     public static String downloadURI(String paramName, String urlStr) throws URISyntaxException, IOException {
         String workingDirPath = Files.createTempDirectory("downloadURI").toString();
         return writeUrlToFile(paramName, urlStr, workingDirPath, false);
@@ -133,16 +152,9 @@ public class URIUtils {
         }
         String mime = urlStr.substring(5,mte);
         printf("Mime type: %s\n",mime);
-        int mts = mime.indexOf("/");
 
-        if (mts == -1) {
-            printf("Cannot find / mimetype in type: %s\n",mime);
-            return null;
-        }
-        String ext = mime.substring(mts+1);
-
+        String ext = mimeTypeMapper.get(mime);
         String filename = paramName + "_" + "datafile." + ext;
-
         printf("Saving file: %s\n",filename);
 
         int encs = urlStr.indexOf(",", mte+1);
