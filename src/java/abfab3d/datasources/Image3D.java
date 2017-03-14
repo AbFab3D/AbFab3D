@@ -135,6 +135,7 @@ public class Image3D extends TransformableDataSource {
     protected double m_gradXfactor; // coeff for gradient X calculation
     protected double m_gradYfactor; // coeff for gradient Y calculation
 
+    protected int m_dataChannelIndex = 0; // data channel index to use 
 
     protected int m_imageType = IMAGE_TYPE_EMBOSSED;
     protected int m_imagePlace = IMAGE_PLACE_TOP;
@@ -158,7 +159,7 @@ public class Image3D extends TransformableDataSource {
     private int m_imageSizeX, m_imageSizeY, m_imageSizeX1, m_imageSizeY1;
     
     // the image data is stored in the Grid2D 
-    protected Grid2D m_imageGrid = null; 
+    protected Grid2D m_dataGrid = null; 
     // converted to get physical value from grid attribute 
     protected GridDataChannel m_dataChannel;
 
@@ -591,14 +592,14 @@ public class Image3D extends TransformableDataSource {
      * @noRefGuide
      */
     public int getBitmapWidth(){
-        return m_imageGrid.getWidth();
+        return m_dataGrid.getWidth();
     }
 
     /**
      * @noRefGuide
      */
     public int getBitmapHeight(){
-        return m_imageGrid.getHeight();
+        return m_dataGrid.getHeight();
     }
 
     /**
@@ -613,8 +614,8 @@ public class Image3D extends TransformableDataSource {
      */
     public void getBitmapDataUByte(byte data[]){
 
-        int nx = m_imageGrid.getWidth();
-        int ny = m_imageGrid.getHeight();
+        int nx = m_dataGrid.getWidth();
+        int ny = m_dataGrid.getHeight();
         double base = m_baseRelThreshold;
         for(int y = 0;  y < ny; y++){
             for(int x = 0;  x < nx; x++){
@@ -631,14 +632,14 @@ public class Image3D extends TransformableDataSource {
      */
     public void getBitmapDataUShort(byte data[]){
 
-        int nx = m_imageGrid.getWidth();
-        int ny = m_imageGrid.getHeight();
+        int nx = m_dataGrid.getWidth();
+        int ny = m_dataGrid.getHeight();
         int nx2 = nx*2;
         
         for(int y = 0;  y < ny; y++){
             for(int x = 0;  x < nx; x++){
 
-                long id = m_imageGrid.getAttribute(x,y); 
+                long id = m_dataGrid.getAttribute(x,y); 
                 
                 //double d = getImageValue(x,y);
                 // normalization to byte 
@@ -732,14 +733,14 @@ public class Image3D extends TransformableDataSource {
                 throw new IllegalArgumentException("undefined image");
             }
 
-            ParamCache.getInstance().put(vhash, m_imageGrid);
+            ParamCache.getInstance().put(vhash, m_dataGrid);
 
         } else {
-            m_imageGrid = (Grid2D) co;
-            m_dataChannel = m_imageGrid.getDataDesc().getDefaultChannel();
+            m_dataGrid = (Grid2D) co;
+            m_dataChannel = m_dataGrid.getDataDesc().getDefaultChannel();
 
-            m_imageSizeX = m_imageGrid.getWidth();
-            m_imageSizeY = m_imageGrid.getHeight();
+            m_imageSizeX = m_dataGrid.getWidth();
+            m_imageSizeY = m_dataGrid.getHeight();
             m_imageSizeX1 = m_imageSizeX - 1;
             m_imageSizeY1 = m_imageSizeY - 1;
             if (DEBUG) printf("%s image cached.  w: %d  h: %d  size: %f x %f \n",this,m_imageSizeX,m_imageSizeY,m_sizeX,m_sizeY);
@@ -785,7 +786,7 @@ public class Image3D extends TransformableDataSource {
                 int len = Math.min(10, st.length);
                 for (int i = 1; i < len; i++)
                     printf("\t\t %s\n", st[i]);
-                m_imageGrid = m_emptyGrid;
+                m_dataGrid = m_emptyGrid;
                 //e.printStackTrace();
             }
 
@@ -794,7 +795,12 @@ public class Image3D extends TransformableDataSource {
         } else if (oimage instanceof ImageWrapper) {
             image = ((ImageWrapper)oimage).getImage();
         } else if (oimage instanceof Grid2D) {
-            image = Grid2DShort.convertGridToImage((Grid2D)oimage);
+            Grid2D grid = (Grid2D)oimage;
+            if(grid.getDataDesc().isDistanceData(m_dataChannelIndex)){
+                return prepareDataFromDistance(grid);
+            } else {
+                image = Grid2DShort.convertGridToImage(grid);
+            }
         } else if (oimage instanceof Text2D) {
             image = ((Text2D)oimage).getImage();
         } else {
@@ -892,6 +898,23 @@ public class Image3D extends TransformableDataSource {
     }
 
     /**
+       we already have distance grid 
+       will use it directly 
+     */
+    protected int prepareDataFromDistance(Grid2D distGrid){
+
+        m_imageSizeX = distGrid.getWidth();
+        m_imageSizeY = distGrid.getHeight();
+        m_imageSizeX1 = m_imageSizeX - 1;
+        m_imageSizeY1 = m_imageSizeY - 1;
+        
+        m_dataGrid = distGrid;
+        m_dataChannel = m_dataGrid.getDataDesc().getChannel(m_dataChannelIndex);
+        return 0;
+    }
+
+
+    /**
        makes data for black and white image 
        data is represented as distance from 2D outline of the image
        @noRefGuide
@@ -912,7 +935,7 @@ public class Image3D extends TransformableDataSource {
 
         DistanceTransform2DOp dt = new DistanceTransform2DOp(maxInDistance, maxOutDistance, m_imageThreshold);
         Grid2D distanceGrid = dt.execute(imageGrid);
-        m_imageGrid = distanceGrid;
+        m_dataGrid = distanceGrid;
 
         if (DEBUG_VIZ) {
             // TODO: this is not a good viz.  Should use GridUtil.writeSlice but it needs to support Grid2D interface
@@ -924,7 +947,7 @@ public class Image3D extends TransformableDataSource {
                 ioe.printStackTrace();
             }
         }
-        m_dataChannel = m_imageGrid.getDataDesc().getChannel(0);
+        m_dataChannel = m_dataGrid.getDataDesc().getChannel(0);
 
         if(DEBUG)printf("makeImageBlack() done %d ms\n", time() -t0);
 
@@ -952,8 +975,8 @@ public class Image3D extends TransformableDataSource {
         } else {
             
             double imagePixelSize = ((Vector3d)mp_size.getValue()).x/image.getWidth();
-            m_imageGrid = Grid2DShort.convertImageToGrid(image, (m_imageType == IMAGE_TYPE_EMBOSSED), imagePixelSize);
-            m_dataChannel = m_imageGrid.getDataDesc().getChannel(0);
+            m_dataGrid = Grid2DShort.convertImageToGrid(image, (m_imageType == IMAGE_TYPE_EMBOSSED), imagePixelSize);
+            m_dataChannel = m_dataGrid.getDataDesc().getChannel(0);
 
         }
 
@@ -1335,7 +1358,7 @@ public class Image3D extends TransformableDataSource {
     final double getImageValue(int ix, int iy) {
         
         try {
-            return m_dataChannel.getValue(m_imageGrid.getAttribute(ix, iy));
+            return m_dataChannel.getValue(m_dataGrid.getAttribute(ix, iy));
         } catch (Exception e) {
             e.printStackTrace(Output.out);
         }

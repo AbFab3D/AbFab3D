@@ -340,4 +340,21 @@ public class GridDataDesc {
         }
     } //static class DefaultAttributeMaker
 
+
+    /**
+       convenience method 
+       @return true if grid fists channel distance data 
+     */
+    public boolean isDistanceData(int index){
+        return getChannel(0).getType().equalsIgnoreCase(GridDataChannel.DISTANCE);
+    }
+
+    /**
+       convenience method 
+       @return true if the grid data is density data 
+     */
+    public boolean isDensityData(int index){
+        return getChannel(0).getType().equalsIgnoreCase(GridDataChannel.DENSITY);
+    }
+
 } // class GridDataDesc 
