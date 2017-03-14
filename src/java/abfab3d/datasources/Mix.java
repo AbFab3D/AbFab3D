@@ -47,6 +47,10 @@ public class Mix extends TransformableDataSource{
     DataSource m_dataSource2;
     DataSource m_mixer;
 
+    int m_dimSource1; // dimension of source1
+    int m_dimSource2; // dimension of source2
+    int m_dimMix;     // dimension of mix 
+
     SNodeParameter mp_d1 = new SNodeParameter("source1");
     SNodeParameter mp_d2 = new SNodeParameter("source2");
     SNodeParameter mp_mixer = new SNodeParameter("mix");
@@ -174,6 +178,13 @@ public class Mix extends TransformableDataSource{
         if(m_mixer instanceof Initializable){
             ((Initializable)m_mixer).initialize();
         }
+
+        m_dimSource1 = m_dataSource1.getChannelsCount();
+        m_dimSource2 = m_dataSource2.getChannelsCount();
+        m_dimMix = m_mixer.getChannelsCount();
+
+        m_channelsCount = Math.max(m_dimSource1, m_dimSource2);
+        
         return ResultCodes.RESULT_OK;
         
     }
@@ -185,7 +196,10 @@ public class Mix extends TransformableDataSource{
      * can be used to make union of few shapes
      */
     public int getBaseValue(Vec pnt, Vec data) {
-                
+
+        //
+        //TODO deal with different dimension of data 
+        //
         m_mixer.getDataValue(pnt, data);
         double t = data.v[0];
 

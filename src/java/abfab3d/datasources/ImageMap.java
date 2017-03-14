@@ -313,7 +313,7 @@ public class ImageMap extends TransformableDataSource {
 
                 double d = m_dataChannel.getValue(m_imageGrid.getAttribute(x, y));
 
-                // normalization to byte
+                // normalization to short
                 int id = ((int)(d * 0xFFFF)) & 0xFFFF;
                 int ind = 2*x + y * nx2;
                 data[ind] = (byte)(id & 0xFF);
@@ -355,15 +355,13 @@ public class ImageMap extends TransformableDataSource {
                 // something wrong with the image
                 throw new IllegalArgumentException("undefined image");
             }
-
             ParamCache.getInstance().put(vhash, m_imageGrid);
 
         } else {
             m_imageGrid = (Grid2D) co;
-            m_dataChannel = m_imageGrid.getDataDesc().getDefaultChannel();
-
         }
 
+        m_dataChannel = m_imageGrid.getDataDesc().getDefaultChannel();
         m_imageSizeX  = m_imageGrid.getWidth();
         m_imageSizeY  = m_imageGrid.getHeight();
 
@@ -386,7 +384,11 @@ public class ImageMap extends TransformableDataSource {
 
         ImageGray16 imageData = null;
 
-        if(imageSource instanceof String){
+        if(imageSource instanceof Grid2D){
+            m_imageGrid = (Grid2D)imageSource;
+            // nothing more to do 
+            return ResultCodes.RESULT_OK;
+        } else if(imageSource instanceof String){
             
             try {
                 String fname = (String)imageSource;
