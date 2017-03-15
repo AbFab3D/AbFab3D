@@ -25,33 +25,33 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class MatrixCamera extends Camera {
+
     protected ObjectParameter mp_viewMatrix = new ObjectParameter("viewMatrix", "Inverted View matrix", new Matrix4f());
-    protected DoubleParameter mp_cameraAngle = new DoubleParameter("cameraAngle", "cameraAngle");
+    protected DoubleParameter mp_cameraAngle = new DoubleParameter("cameraAngle", "cameraAngle", Math.atan(0.5));
     private Parameter m_aparam[] = new Parameter[]{
             mp_viewMatrix, mp_cameraAngle
     };
 
     public MatrixCamera() {
+
+        addParams(m_aparam);
+
         Matrix4f mat = new Matrix4f();
         mat.setIdentity();
         setViewMatrix(mat);
-
-        mp_cameraAngle.setValue(Math.atan(0.5));
-        addParams(m_aparam);
     }
 
     public MatrixCamera(Matrix4f view) {
-        setViewMatrix(view);
-
-        mp_cameraAngle.setValue(Math.atan(0.5));
         addParams(m_aparam);
+        
+        mp_viewMatrix.setValue(view);
     }
 
     public MatrixCamera(Matrix4f view, double ang) {
+        addParams(m_aparam);
+
         setViewMatrix(view);
         setCameraAngle(ang);
-
-        addParams(m_aparam);
     }
 
     /**

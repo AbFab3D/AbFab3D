@@ -32,8 +32,8 @@ public class ImageSetup implements Cloneable {
     public int height;
 
     /** Viewpoint matrix */
-    public Matrix4f view;
-    public Matrix4f objTrans;
+    private Matrix4f view;
+    private Matrix4f objTrans;
 
     /** The type of image IMAGE_* */
     public int imgType;
@@ -184,6 +184,22 @@ public class ImageSetup implements Cloneable {
 
     public void setFlipImage(boolean val) {
         flipImage = val;
+    }
+
+    public void setViewTransform(Matrix4f transform){
+        this.view = transform;
+    }
+
+    public Matrix4f getViewTransform(){
+        return this.view;
+    }
+
+    public void setObjectTransform(Matrix4f transform){
+        this.objTrans = transform;
+    }
+
+    public Matrix4f getObjectTransform(){
+        return this.objTrans;
     }
 
     /**
