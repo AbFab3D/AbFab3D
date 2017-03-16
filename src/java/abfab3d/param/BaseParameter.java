@@ -205,26 +205,37 @@ public abstract class BaseParameter implements Parameter {
      * @return
      */
     public void getParamString(StringBuilder sb) {
+
         if (value == null) {
+
             sb.append("null");
-            return;
-        }
 
-        if (value instanceof String) {
+        } else if (value instanceof String) {
+
             sb.append((String) value);
-            return;
-        }
 
-        sb.append(value.toString());
+        } else if(value instanceof Parameterizable) {
+
+            Parameterizable par = (Parameterizable)value;
+            
+            sb.append(par.getParamString());
+
+        } else {
+            sb.append(value.toString());
+        }
     }
 
     public String getParamString() {
+        
         if (value == null) return "null";
 
         if (value instanceof String) {
             return (String) value;
         }
-
+        if(value instanceof Parameterizable) {            
+            Parameterizable par = (Parameterizable)value;            
+            return par.getParamString();
+        }
         return value.toString();
     }
 

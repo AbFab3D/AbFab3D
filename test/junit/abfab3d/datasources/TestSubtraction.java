@@ -27,6 +27,9 @@ import javax.vecmath.Vector3d;
 import abfab3d.core.Vec;
 import abfab3d.core.DataSource;
 
+import abfab3d.transforms.Translation;
+
+
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
 
@@ -104,9 +107,23 @@ public class TestSubtraction extends TestCase {
 
     static final double EPS = 1.e-12;
 
+
+    void devTestParamString(){
+
+        Subtraction u = new Subtraction (new Sphere(1), new Torus(1, 0.5));
+        u.setTransform(new Translation(1,2,3));
+        u.initialize();
+        
+        String s = u.getParamString();
+        printf("paramString:\n%s\n", s);
+    }
+
     public static void main(String[] args) {
-        new TestSubtraction().testSubtractionDistance();
-        new TestSubtraction().testSubtractionDensity();
+        //new TestSubtraction().testSubtractionDistance();
+        //new TestSubtraction().testSubtractionDensity();
+        
+        new TestSubtraction().devTestParamString();
+
     }
 
 }

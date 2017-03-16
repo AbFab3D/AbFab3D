@@ -22,6 +22,12 @@ public interface Parameterizable {
     public Parameter[] getParams();
 
     /**
+       return string representation of this parametrizable
+     */
+    public String getParamString();
+
+
+    /**
      * Returns the underlying parameter list, this is a live list.
      *
      * @return

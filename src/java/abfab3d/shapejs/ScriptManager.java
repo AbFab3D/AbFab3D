@@ -11,13 +11,18 @@
 package abfab3d.shapejs;
 
 import abfab3d.core.Initializable;
+
 import abfab3d.io.input.URIMapper;
 import abfab3d.param.Parameter;
 import abfab3d.param.ParameterType;
 import abfab3d.param.Parameterizable;
 import abfab3d.param.Shape;
 import abfab3d.param.URIParameter;
+
 import abfab3d.util.URIUtils;
+
+import abfab3d.datasources.Sphere;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -321,15 +326,17 @@ public class ScriptManager {
                     } else {
                         scene.setLightingRig(Scene.LightingRig.THREE_POINT);
                     }
-
+                    if(scene.getShapes().size() == 0){
+                        // empty scene add invisible shape 
+                        scene.addShape(new Shape(new Sphere(1.e-10),DefaultMaterial.getInstance()));
+                    }
                     // TODO: We only want this code in for one release?
-                    Shape shape = scene.getShapes().get(0);
-
+                    Shape shape = scene.getShapes().get(0);                        
                     printf("Got shape mat: %s\n",shape.getMaterial());
                     if (shape.getMaterial().equals(DefaultMaterial.getInstance())) {
                         // using default material so for this release map selected for the script
                         scene.setMaterial(0,PrintableMaterials.get(matSt));
-                    }
+                    }                    
                 }
             }
         }

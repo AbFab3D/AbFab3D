@@ -41,11 +41,13 @@ import abfab3d.grid.op.ClosestPointIndexerMT;
 
 import abfab3d.datasources.TransformableDataSource;
 
+import abfab3d.param.ParamCache;
 import abfab3d.param.Parameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.ObjectParameter;
 import abfab3d.param.BooleanParameter;
 import abfab3d.param.IntParameter;
+import abfab3d.param.BaseParameterizable;
 
 import static java.lang.Math.floor;
 import static java.lang.Math.min;
@@ -124,7 +126,12 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     };
 
     protected String m_savedParamString = "";
+    protected String m_currentParamString = "";
+    
     protected Bounds m_meshBounds;
+
+    // interpolator used to calculate distances 
+    IndexedDistanceInterpolator m_distCalc;
     
     public DistanceToMeshDataSource(Object meshProducer){
 
@@ -144,7 +151,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     }
 
     /**
-       @return interpolator used to calcyulate distances 
+       @return interpolator used to calculate distances 
      */
     public IndexedDistanceInterpolator getDistanceInterpolator(){
         return m_distCalc;
@@ -162,21 +169,63 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
     }
 
-    
-    // interpolator used to calculate distances 
-    IndexedDistanceInterpolator m_distCalc;
 
     /**
-       initialization
-       makes all distance calculations here 
+       @Override
+     */
+    public Bounds getBounds(){
+
+        if(m_bounds == null) initialize();
+        return m_bounds;
+
+    }
+
+    
+
+    /**
+       initialization wih caching 
      */
     public int initialize(){
         
         super.initialize();
+        m_currentParamString = getLocalParamString();
         if(!paramChanged()){
+            // avoid multiple initialization 
             if(false)printf("initialize() - no change\n"); 
             return ResultCodes.RESULT_OK;
         }
+
+        // try to get CachedData 
+        CachedData cd = (CachedData)(ParamCache.getInstance().get(m_currentParamString));
+
+        if (cd == null) {
+            // non cached 
+            if(DEBUG) printf("%s : non cached - full init\n",this);
+            fullInitialize();
+            cd = new CachedData();
+            cd.distCalc = m_distCalc;
+            cd.bounds = m_bounds;
+            cd.meshBounds = m_meshBounds;            
+            ParamCache.getInstance().put(m_currentParamString, cd);
+
+        } else {
+
+            if(DEBUG) printf("%s : got cached\n", this);
+            // init from chached data 
+            m_distCalc = cd.distCalc;
+            m_meshBounds = cd.meshBounds;
+            m_bounds = cd.bounds;
+        }
+        return ResultCodes.RESULT_OK;
+
+    }
+
+    /**
+       real non cached initialziation 
+       makes all distance calculations here 
+    */
+    protected int fullInitialize(){
+        
         if(DEBUG)printf("DistanceToMeshDataSo.initialize() - full calculation\n"); 
 
         
@@ -218,18 +267,19 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         
         m_distCalc = distData;
         
-        m_savedParamString = getParamString();
+        m_savedParamString = m_currentParamString;
         
         return ResultCodes.RESULT_OK;
         
     }
 
+
     /**
        only use local params
      */
-    public String getParamString(){
+    public String getLocalParamString(){
 
-        return super.getParamString(getClass().getSimpleName(), m_aparams);
+        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparams);
 
     } 
 
@@ -255,14 +305,13 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         
         m_distCalc = distData;
         
-        m_savedParamString = getParamString();
+        m_savedParamString = m_currentParamString;
 
         return ResultCodes.RESULT_OK;
     }
 
     private boolean paramChanged(){
-        
-        return !m_savedParamString.equals(getParamString());
+        return !m_savedParamString.equals(m_currentParamString);
         
     }
 
@@ -606,5 +655,13 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         }
     } // class TC2A 
 
+
+    static class CachedData {
+
+        IndexedDistanceInterpolator distCalc;
+        Bounds meshBounds;
+        Bounds bounds;
+        
+    }
 
 } // class DistanceToMeshDataSource

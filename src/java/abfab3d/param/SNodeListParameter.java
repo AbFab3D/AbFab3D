@@ -177,21 +177,25 @@ public class SNodeListParameter extends BaseParameter {
         int len = list.size();
 
         for(int i=0; i < len; i++) {
-            Object p = list.get(i);
 
-            // TODO: This is a mess, can we not commonize these interfaces?
-            if (p instanceof SourceWrapper) {
+            Object p = list.get(i);
+            
+            if (p instanceof Parameterizable) {
+                sb.append(((Parameterizable)p).getParamString());
+            } else if (p instanceof SourceWrapper) {
                 sb.append(((SourceWrapper) p).getParamString());
             } else if (p instanceof ExpensiveInitializable) {
                 sb.append(((ExpensiveInitializable) p).getParamString());
             } else if (p instanceof ValueHash) {
                 sb.append(((ValueHash) p).getParamString());
-            } else if (p == null) sb.append("null");
-            else sb.append(p.toString());
-
+            } else if (p == null) {
+                sb.append("null");
+            } else {
+                sb.append(p.toString());            
+            }
             if (i < len -1) {
                 sb.append(",");
-            }
+            }            
         }
         sb.append("]");
     }

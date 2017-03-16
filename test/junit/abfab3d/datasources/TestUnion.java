@@ -26,6 +26,8 @@ import javax.vecmath.Vector3d;
 
 import abfab3d.core.Vec;
 import abfab3d.core.DataSource;
+import abfab3d.transforms.Translation;
+import abfab3d.transforms.Rotation;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
@@ -99,9 +101,28 @@ public class TestUnion extends TestCase {
 
     static final double EPS = 1.e-12;
 
+    void devTestParamString(){
+        Sphere s = new Sphere(1);
+        Torus t = new Torus(1, 0.5);
+        s.addTransform(new Rotation(1,2,3,4));
+        s.addTransform(new Rotation(3,4,5,6));
+        t.addTransform(new Rotation(3,4,5,6));
+        t.addTransform(new Rotation(3,4,5,6));
+        Union u = new Union(s, t);
+        u.setTransform(new Translation(1,2,3));
+        u.addTransform(new Rotation(1,2,3,4));
+        u.initialize();
+        
+        String str = u.getParamString();
+        printf("paramString:\n%s\n", str);
+    }
+
+
     public static void main(String[] args) {
-        new TestUnion().testUnionDistance();
-        new TestUnion().testUnionDensity();
+        //new TestUnion().testUnionDistance();
+        //new TestUnion().testUnionDensity();
+        new TestUnion().devTestParamString();
+
     }
 
 }
