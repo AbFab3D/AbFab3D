@@ -429,6 +429,17 @@ public class ClosestPointIndexerMT {
     }
 
     public static void makeDistanceGrid_MT(AttributeGrid indexGrid, 
+                                           double pnt[][], 
+                                           AttributeGrid interiorGrid, 
+                                           double minDistance,
+                                           double maxDistance,
+                                           int threadCount,
+                                           AttributeGrid distanceGrid
+                                        ){        
+        makeDistanceGrid_MT(indexGrid, pnt[0], pnt[1],pnt[2], interiorGrid, minDistance, maxDistance,threadCount,distanceGrid);
+    }
+
+    public static void makeDistanceGrid_MT(AttributeGrid indexGrid, 
                                            double pntx[], double pnty[], double pntz[], 
                                            AttributeGrid interiorGrid, 
                                            double minDistance,
