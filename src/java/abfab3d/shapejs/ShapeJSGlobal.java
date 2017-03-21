@@ -685,7 +685,10 @@ public class ShapeJSGlobal {
         if (filename.startsWith("http")) {
             try {
                 printf("Downloading url: %s\n", filename);
+                /*   // Removed mapping to avoid exposing Shapeways loaded content
+
                 if (uriMapper != null) filename = uriMapper.mapURI(filename);
+                */
 
                 filename = URIUtils.downloadURI("loadModelDistance", filename);
                 key = orig_filename + "_" + vs + "_" + maxDist + "_" + rasterAlgorithm;

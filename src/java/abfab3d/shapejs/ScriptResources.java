@@ -29,6 +29,8 @@ public class ScriptResources {
     public float quality;
     public ShapeJSEvaluator eval;
     public boolean firstCreate;
+    public boolean sensitiveData = false;
+
 
     public ScriptResources() {
         params = new HashMap<String,Object>();
