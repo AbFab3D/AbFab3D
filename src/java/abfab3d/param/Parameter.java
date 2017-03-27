@@ -94,6 +94,9 @@ public interface Parameter extends Cloneable {
     
     public String getLabel();
 
+    public boolean isHidden();
+    public void setHidden(boolean val);
+
     /**
      * Get the string value to use for parameter hashes
      * @return

@@ -44,6 +44,8 @@ public abstract class BaseParameter implements Parameter {
 
     protected boolean changed;
 
+    protected boolean hidden;
+
     protected Vector<Editor> m_editors;
 
 	public BaseParameter(String name, String desc) {
@@ -156,6 +158,17 @@ public abstract class BaseParameter implements Parameter {
         updateUI();
     }
 
+    /**
+     * Should the ui parameter be hidden from normal usage
+     * @param val
+     */
+    public void setHidden(boolean val) {
+        hidden = val;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
 
     /**
        

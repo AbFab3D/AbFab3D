@@ -1516,6 +1516,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
         String onChange = (String) no.get("onChange");
         String group = (String) no.get("group");
         String label = (String) no.get("label");
+        String hidden = (String) no.get("hidden");
+
 
         if (name == null) {
             throw new IllegalArgumentException("Parameter name cannot be null.  desc: " + desc + " type: " + type);
@@ -1865,6 +1867,10 @@ public class ShapeJSEvaluator implements MaterialMapper {
             throw new ClassCastException("Error parsing definition for parameter: " + name + ".\n" + cce.getMessage());
         }
 
+        if (hidden != null) {
+            pd.setHidden(Boolean.parseBoolean(hidden));
+        }
+
         pd.setOnChange(onChange);
         if (label != null) pd.setLabel(label);
         if (group != null) pd.setGroup(group);
@@ -1951,6 +1957,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
         String name = (String) fp.get("name");
         String label = (String) fp.get("label");
         String desc = (String) fp.get("desc");
+        String hidden = (String) fp.get("hidden");
+
         Object vals = fp.get("values");
         String[] values = null;
         if (vals instanceof NativeArray) {
@@ -1973,11 +1981,13 @@ public class ShapeJSEvaluator implements MaterialMapper {
         if (defaultValue == null) defaultValue = (String) sep.getDefaultValue();
         if (onChange == null) onChange = (String) sep.getOnChange();
         if (group == null) group = (String) sep.getGroup();
+        if (hidden == null) hidden = (String) (sep.isHidden() ? "true" : "false");
 
         EnumParameter ret_val = new EnumParameter(name,desc,values,defaultValue);
         ret_val.setLabel(label);
         ret_val.setOnChange(onChange);
         ret_val.setGroup(group);
+        ret_val.setHidden(Boolean.parseBoolean(hidden));
 
         return ret_val;
     }

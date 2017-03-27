@@ -462,7 +462,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
             Bounds ret_val = grid.getGridBounds();
             return ret_val;
         } else {
-            Bounds bnds = new Bounds(boundsBuffer.getBuffer());
+            Bounds bnds = new Bounds(boundsBuffer.getBuffer(),mp_voxelSize.getValue());
             if (DEBUG) printf("***Got getGridBounds via cache: %s\n", bnds);
             return bnds;
         }
