@@ -23,7 +23,7 @@ import java.util.Map;
  */
 public class ScriptResources {
     public String jobID;
-    public EvaluatedScript result;
+    public EvaluatedScript evaluatedScript;
     public String script;
     public Map<String,Object> params;
     public float quality;
@@ -38,7 +38,7 @@ public class ScriptResources {
         if (params != null)
             params.clear();
 
-        result = null;
+        evaluatedScript = null;
         eval = null;
     }
 }

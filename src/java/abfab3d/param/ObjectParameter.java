@@ -15,13 +15,17 @@ package abfab3d.param;
 import static abfab3d.core.Output.printf;
 
 /**
- * A ObjectParameter parameter  to hold generic object
+ * A ObjectParameter parameter  to hold generic java object
  *
  * @author Vladimir Bulatov
  */
 public class ObjectParameter extends BaseParameter {
     private static final boolean DEBUG = false;
 
+    public ObjectParameter(String name, Object initialValue) {
+        super(name, name);
+        setValue(initialValue);        
+    }
     public ObjectParameter(String name, String desc, Object initialValue) {
         super(name, desc);
         setValue(initialValue);

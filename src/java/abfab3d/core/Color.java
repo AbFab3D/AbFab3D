@@ -172,7 +172,8 @@ public class Color implements Cloneable {
     }
 
     public static String toString(Color c) {
-        return fmt("Color(%f,%f,%f)",c.getr(),c.getg(),c.getb());
+        return "(" + c.r + ", " + c.g + ", " + c.b + ")";
+        //return fmt("(%5.3f,%5.3f,%5.3f)",c.getr(),c.getg(),c.getb());
     }
 
     public Color clone() {
@@ -185,4 +186,9 @@ public class Color implements Cloneable {
 
         return null;
     }
+
+    public String toString(){
+        return toString(this);
+    }
+
 }

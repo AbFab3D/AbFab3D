@@ -24,6 +24,9 @@ import static abfab3d.core.Output.printf;
  * Created by giles on 3/7/2017.
  */
 public class PrintableMaterials {
+	
+	static final boolean DEBUG = false;
+	
     private static HashMap<String, PrintableMaterial> mats = new HashMap<>();
 
     public static void add(String name, PrintableMaterial mat) {
@@ -35,10 +38,10 @@ public class PrintableMaterials {
     }
 
     public static Material get(String name) {
-        printf("Gertting impl for: %s\n",name);
+		if(DEBUG)printf("Getting impl for: %s\n",name);
         Material mat = mats.get(name);
         if (mat == null) {
-            printf("Cannot find material: %s, mapping to default.",name);
+            if(DEBUG)printf("Cannot find material: %s, mapping to default.\n",name);
             mat = DefaultMaterial.getInstance();
         }
 

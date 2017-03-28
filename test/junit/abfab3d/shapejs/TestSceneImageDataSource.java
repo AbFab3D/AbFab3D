@@ -60,8 +60,8 @@ public class TestSceneImageDataSource extends TestCase {
 
         ScriptResources sr = sm.prepareScript(jobID, s, params);
         sm.executeScript(sr,params);
-        assertTrue("Eval failed", sr.result.isSuccess());
-        Scene scene = sr.result.getScene();
+        assertTrue("Eval failed", sr.evaluatedScript.isSuccess());
+        Scene scene = sr.evaluatedScript.getScene();
 
         ImageSetup setup = new ImageSetup(width, height, getView(), ImageSetup.IMAGE_JPEG, 0.5f, AntiAliasingType.NONE, false, 0f, 1);
         MatrixCamera camera = new MatrixCamera(getView());

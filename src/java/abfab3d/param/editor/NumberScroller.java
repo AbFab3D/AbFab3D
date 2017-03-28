@@ -26,12 +26,15 @@ import javax.swing.JButton;
 import javax.swing.plaf.basic.BasicArrowButton;
 
 import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.Output.printf;
 
 
 /**
    combination of ScrollTextField and vertical mini scroller
  */
 public class NumberScroller extends  JPanel {
+
+    static final boolean DEBUG = false;
     
     protected Vector<ChangedListener> m_listeners;
 
@@ -47,7 +50,7 @@ public class NumberScroller extends  JPanel {
     protected int m_length = 10; // default length of text field
     static int dragCutoff = 5;
 
-    final Dimension sliderDimension = new Dimension(15,25);
+    final Dimension sliderDimension = new Dimension(15,20);
     double m_currentIncrement = 0.000001;
 
     protected boolean m_doIntegers = false;
@@ -57,6 +60,16 @@ public class NumberScroller extends  JPanel {
         m_minRange = minRange;
         m_maxRange = maxRange;
         m_increment = increment;
+        createUI();
+
+    }
+
+    public NumberScroller(double value, double minRange, double maxRange, double increment, boolean doIntegers){
+        m_value = value;
+        m_minRange = minRange;
+        m_maxRange = maxRange;
+        m_increment = increment;
+        m_doIntegers = doIntegers;
         createUI();
 
     }
@@ -94,7 +107,7 @@ public class NumberScroller extends  JPanel {
         
         this.setLayout(new GridBagLayout());
         WindowUtils.constrain(this, m_textField, 0,0,1,1, gbc.HORIZONTAL, gbc.CENTER, 1., 0.1, 0,0,0,0); 
-        WindowUtils.constrain(this, buttons,  1,0,1,1,   gbc.NONE,       gbc.CENTER,  0., 0.1, 1,0,1,0); 
+        WindowUtils.constrain(this, buttons,  1,0,1,1,   gbc.NONE,       gbc.CENTER,  0., 0.1, 0,0,0,0); 
         
     }
 
@@ -152,8 +165,8 @@ public class NumberScroller extends  JPanel {
             double increment = m_textField.getIncrement();
             double v = m_value + sign * increment;
             double res = round(v, increment);
-            //printf("v: %10.8f inc: %10.8f, res:%10.8f",v,increment, res);
-            m_textField.setValue(res);
+            if(DEBUG)printf("v: %10.8f inc: %10.8f, res:%10.8f\n",v,increment, res);
+            m_textField.setValue(res);            
             informListeners();
             
         }

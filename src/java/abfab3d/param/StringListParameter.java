@@ -32,6 +32,16 @@ public class StringListParameter extends ListParameter {
         this(name, desc, new ArrayList());
     }
 
+    public StringListParameter(String name, String values[]) {
+        super(name, name);
+        List list = new ArrayList();
+        for(int i = 0; i < values.length; i++){
+            list.add(values[i]);
+        }
+        setValue(list);
+        
+    }
+
     public StringListParameter(String name, String desc, List initialValue) {
 
         super(name, desc);
