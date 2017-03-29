@@ -302,7 +302,8 @@ public class ScriptManager {
         }
 
         t0 = time();
-        /*  // TODO: removed for current release
+
+/*
         if (sr.result.isSuccess()) {
             Object material = params.get("material");
 
@@ -335,15 +336,20 @@ public class ScriptManager {
                     // TODO: We only want this code in for one release?
                     Shape shape = scene.getShapes().get(0);                        
                     printf("Got shape mat: %s\n",shape.getMaterial());
-                    if (shape.getMaterial().equals(DefaultMaterial.getInstance())) {
-                        // using default material so for this release map selected for the script
-                        scene.setMaterial(0,PrintableMaterials.get(matSt));
-                    }                    
+                }
+            }  else {
+                // By default just set lighting to 3 point color
+                EvaluatedScript result = sr.result;
+
+                if (result != null && result.getScene() != null) {
+                    Scene scene = result.getScene();
+                    scene.setLightingRig(Scene.LightingRig.THREE_POINT_COLORED);
                 }
             }
         }
-         */
+*/
 
+/*
         // TODO: We might need this logic to retain backward compatible for rmr
 
         if (sr.result.isSuccess()) {
@@ -376,7 +382,7 @@ public class ScriptManager {
                 }
             }
         }
-
+  */
         if (sr.result.isSuccess()) {
 
             // I think this is the correct place to call initialize.  Might call it too often?

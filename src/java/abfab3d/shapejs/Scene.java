@@ -57,10 +57,10 @@ public class Scene extends BaseParameterizable {
     final public static int DEFAULT_MAX_PARTS_COUNT = Integer.MAX_VALUE;
 
     public static enum LightingRig {
-        AUTO,THREE_POINT, THREE_POINT_COLORED,
+        THREE_POINT, THREE_POINT_COLORED,
     };
 
-    final public static LightingRig DEFAULT_LIGHTING_RIG = LightingRig.AUTO;
+    final public static LightingRig DEFAULT_LIGHTING_RIG = LightingRig.THREE_POINT_COLORED;
 
     protected Bounds m_bounds = DEFAULT_BOUNDS;
     protected String m_name = "ShapeJS";
@@ -75,7 +75,6 @@ public class Scene extends BaseParameterizable {
     protected ArrayList<Shape> m_shapes = new ArrayList<>();
     protected LightingRig m_lightingRig = DEFAULT_LIGHTING_RIG;
     protected Camera camera = new SimpleCamera();
-    protected boolean m_userSetLights = false;
     protected Background m_background = new Background();
     protected int m_lastMaterial = 0;
 
@@ -371,7 +370,9 @@ public class Scene extends BaseParameterizable {
     }
 
     public void setShape(int idx, Shape shape) {
+
         m_shapes.set(idx,shape);
+        addMaterial(shape.getMaterial());
     }
 
     public void setVoxelSize(double voxelSize) {
@@ -470,16 +471,18 @@ public class Scene extends BaseParameterizable {
     /**
        return type of material used in scene 
      */
+/*
     public MaterialType getMaterialType() {
         return m_materialType;
     }
-
+*/
     /**
      set type of material used in scene
      SINGLE_MATERIAL
      MULTI_MATERIAL
      COLOR_MATERIAL
      */
+/*
     public void setMaterialType(MaterialType type) {
         System.out.printf("***Incoming mat: %s\n",type);
         if (type == null) throw new IllegalArgumentException("Type cannot be null");
@@ -491,9 +494,8 @@ public class Scene extends BaseParameterizable {
             ((Parameterizable)mat.getShader().getShaderParams()).set("materialType", "full color");
         }
     }
-
+*/
     public void setLights(Light[] lights) {
-        m_userSetLights = true;
         m_lights.setLights(lights);
 
         buildParams();
@@ -533,14 +535,9 @@ public class Scene extends BaseParameterizable {
     }
 
     public void setLightingRig(LightingRig rig) {
-        // Ignore lighting rig if the user explicitly sets lights
-        if (m_userSetLights) return;
         m_lightingRig = rig;
 
         switch(m_lightingRig) {
-            case AUTO:
-                // do nothing yet
-                break;
             case THREE_POINT_COLORED:
                 m_lights.setLights(getColoredLighting());
                 break;

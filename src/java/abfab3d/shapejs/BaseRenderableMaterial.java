@@ -14,6 +14,7 @@
 package abfab3d.shapejs;
 
 import abfab3d.core.DataSource;
+import abfab3d.core.MaterialType;
 import abfab3d.core.RenderableMaterial;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameter;
@@ -28,6 +29,7 @@ public abstract class BaseRenderableMaterial extends BaseParameterizable impleme
     protected SNodeParameter mp_renderingParams = new SNodeParameter("renderingParams");
     protected SNodeParameter mp_source = new SNodeParameter("source");
     protected String m_name;
+    protected MaterialType m_matType = MaterialType.SINGLE_MATERIAL;
 
     private Parameter m_aparam[] = new Parameter[]{
             mp_renderingParams, mp_source
@@ -44,5 +46,9 @@ public abstract class BaseRenderableMaterial extends BaseParameterizable impleme
 
     public DataSource getRenderingSource(DataSource source) {
         return source;
+    }
+
+    public MaterialType getMaterialType() {
+        return m_matType;
     }
 }

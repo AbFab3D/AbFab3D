@@ -12,6 +12,7 @@
 package abfab3d.shapejs;
 
 import abfab3d.core.Material;
+import abfab3d.core.MaterialType;
 import abfab3d.core.PrintableMaterial;
 import abfab3d.core.RenderableMaterial;
 import abfab3d.param.BaseParameterizable;
@@ -30,6 +31,7 @@ public abstract class BasePrintableMaterial extends BaseParameterizable implemen
     protected SNodeParameter mp_renderingParams = new SNodeParameter("renderingParams");
     protected SNodeParameter mp_source = new SNodeParameter("source");
     protected String m_name;
+    protected MaterialType m_matType = MaterialType.SINGLE_MATERIAL;
 
     private Parameter m_aparam[] = new Parameter[]{
             mp_renderingParams, mp_source
@@ -68,4 +70,7 @@ public abstract class BasePrintableMaterial extends BaseParameterizable implemen
         return Objects.hash(m_name);
     }
 
+    public MaterialType getMaterialType() {
+        return m_matType;
+    }
 }

@@ -186,4 +186,13 @@ public class ParameterJSWrapper extends ScriptableObject implements JSWrapper, P
     public boolean hasChanged() {
         return param.hasChanged();
     }
+
+    public void setHidden(boolean val) {
+        param.setHidden(val);
+    }
+
+    @Override
+    public boolean isHidden() {
+        return param.isHidden();
+    }
 }

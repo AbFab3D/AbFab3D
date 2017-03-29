@@ -117,13 +117,17 @@ public class ShapeJSEvaluator implements MaterialMapper {
         // Create imports
 
         defaultParams = new HashMap<String,Parameter>();
+/*
         EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None","White"},"None");
         matParam.setLabel("Material");
         matParam.setOnChange("main");
         defaultParams.put("material",matParam);
-
+*/
         materials = new LinkedHashMap<String,Material>();
-        materials.put(WhiteMaterial.getInstance().getName(),WhiteMaterial.getInstance());
+        materials.put(SingleColorMaterial.getInstance().getName(),SingleColorMaterial.getInstance());
+        materials.put(FullColorMaterial.getInstance().getName(),FullColorMaterial.getInstance());
+        Materials.add(SingleColorMaterial.getInstance().getName(),SingleColorMaterial.getInstance());
+        Materials.add(FullColorMaterial.getInstance().getName(),FullColorMaterial.getInstance());
 
         setupSecurity();
     }
@@ -178,7 +182,9 @@ public class ShapeJSEvaluator implements MaterialMapper {
         classImports.add("abfab3d.shapejs.Light");
         classImports.add("abfab3d.shapejs.Viewpoint");
         classImports.add("abfab3d.shapejs.Background");
-        classImports.add("abfab3d.shapejs.PrintableMaterials");
+        classImports.add("abfab3d.shapejs.Materials");
+        classImports.add("abfab3d.shapejs.SingleColorMaterial");
+        classImports.add("abfab3d.shapejs.FullColorMaterial");
 
         classImports.add("abfab3d.io.input.ModelLoader");
 
@@ -261,21 +267,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
     public static void setMaterialMapper(MaterialMapper mm) {
         matMapper = mm;
-
-        EnumParameter matParam = (EnumParameter) defaultParams.get("material");
-        Map<String,Material> mats = mm.getMaterials();
-        String[] ovals = matParam.getValues();
-        String[] nvals = new String[ovals.length + mats.size()];
-
-        for(int i=0; i < ovals.length;i++) {
-            nvals[i] = ovals[i];
-        }
-        int idx = ovals.length;
-        for(Material mat : mats.values()) {
-            nvals[idx++] = mat.getName();
-        }
-
-        matParam.setValues(nvals);
     }
 
     public static void configureSecurity(List<String> pwl, List<String> cwl, List<String> ci, List<String> si) {
@@ -553,14 +544,19 @@ public class ShapeJSEvaluator implements MaterialMapper {
                                 if (DEBUG) printf("---> param: %s\n",entry.getKey());
                             }
                         } else {
-                            ParameterJSWrapper wrapper = (ParameterJSWrapper) argVal;
-                            Parameter p = wrapper.getParameter();
-                            if (p instanceof DoubleParameter) {
-                                DoubleParameter dp = (DoubleParameter) p;
-                                argVal = dp.getUnit().getConversionVal(dp.getValue());
-                                if (DEBUG) printf("---> param: %s defValue: %s\n",wrapper.getParameter(),argVal);
-                            } else {
-                                if (DEBUG) printf("---> param: %s defValue: %s\n",wrapper.getParameter(),wrapper.getDefaultValue(null));
+                            try {
+                                ParameterJSWrapper wrapper = (ParameterJSWrapper) argVal;
+                                Parameter p = wrapper.getParameter();
+                                if (p instanceof DoubleParameter) {
+                                    DoubleParameter dp = (DoubleParameter) p;
+                                    argVal = dp.getUnit().getConversionVal(dp.getValue());
+                                    if (DEBUG) printf("---> param: %s defValue: %s\n", wrapper.getParameter(), argVal);
+                                } else {
+                                    if (DEBUG)
+                                        printf("---> param: %s defValue: %s\n", wrapper.getParameter(), wrapper.getDefaultValue(null));
+                                }
+                            } catch(ClassCastException cce) {
+                                cce.printStackTrace();
                             }
                         }
 

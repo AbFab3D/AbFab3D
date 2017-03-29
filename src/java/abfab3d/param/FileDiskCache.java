@@ -260,7 +260,7 @@ public class FileDiskCache {
      * @param size
      */
     private boolean insureCapacity(long size) {
-        printf("Insuring capacity, current size: %d  max: %d req: %d\n",currentSize,maxSize,(currentSize + size));
+        //printf("Insuring capacity, current size: %d  max: %d req: %d\n",currentSize,maxSize,(currentSize + size));
 
         if (currentSize + size <= maxSize) return true;
 

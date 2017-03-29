@@ -18,15 +18,20 @@ import abfab3d.core.Material;
 import abfab3d.core.PrintableMaterial;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+
 import static abfab3d.core.Output.printf;
 
 /**
- * Created by giles on 3/7/2017.
+ * Factory for all the materials in the system
+ *
+ * @author Alan Hudson
  */
-public class PrintableMaterials {
-    private static HashMap<String, PrintableMaterial> mats = new HashMap<>();
+public class Materials {
+    private static LinkedHashMap<String, Material> mats = new LinkedHashMap<>();
+    private static String[] allMaterialNames;
 
-    public static void add(String name, PrintableMaterial mat) {
+    public static void add(String name, Material mat) {
         if (mats.containsKey(name)) {
             throw new IllegalArgumentException("Cannot redefine existing materials");
         }
@@ -35,7 +40,6 @@ public class PrintableMaterials {
     }
 
     public static Material get(String name) {
-        printf("Gertting impl for: %s\n",name);
         Material mat = mats.get(name);
         if (mat == null) {
             printf("Cannot find material: %s, mapping to default.",name);
@@ -50,8 +54,23 @@ public class PrintableMaterials {
      * @return
      */
     public static String[] getAllNames() {
-        // TODO: make real
-        return new String[] {"None","White","WSF","SS", "BSF", "RBSF"};
+        if (allMaterialNames == null) {
+//            allMaterialNames = new String[mats.size() + 3];
+            allMaterialNames = new String[mats.size() + 1];
+
+            allMaterialNames[0] = "None";
+//            allMaterialNames[1] = "SingleColor";
+//            allMaterialNames[2] = "FullColor";
+
+            int idx = 1;
+            for(String st : mats.keySet()) {
+                allMaterialNames[idx++] = st;
+            }
+        }
+
+        return allMaterialNames;
+
+//        return new String[] {"None","White","WSF","SS", "FCS", "CFCS"};
     }
 
     /**

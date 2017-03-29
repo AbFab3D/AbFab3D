@@ -12,4 +12,10 @@ public interface Material {
      */
     public MaterialShader getShader();
     public String getName();
+
+    /**
+     * Does this material contain color information
+     * @return
+     */
+    public MaterialType getMaterialType();
 }

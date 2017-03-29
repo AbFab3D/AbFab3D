@@ -29,4 +29,10 @@ public interface GridProducer {
      * @return
      */
     Bounds getGridBounds();
+
+    /**
+     * Get the number of data channels
+     * @return
+     */
+    int getChannelCount();
 }
