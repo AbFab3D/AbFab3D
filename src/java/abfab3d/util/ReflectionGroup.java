@@ -138,7 +138,7 @@ public class ReflectionGroup {
     //   class to represent sphere or plane 
     public static abstract class SPlane {
         
-        // return signed distance to that objetc        
+        // return signed distance to that object        
         public abstract double distance(Vec pnt);
         // reflect the point
         public abstract void reflect(Vec pnt);
