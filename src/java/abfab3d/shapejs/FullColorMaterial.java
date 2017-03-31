@@ -19,6 +19,9 @@ import abfab3d.core.DataSource;
 import abfab3d.core.Material;
 import abfab3d.core.MaterialShader;
 import abfab3d.core.MaterialType;
+import abfab3d.param.EnumParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.StringParameter;
 
 /**
  * A material which shows all the colors
@@ -29,8 +32,12 @@ public class FullColorMaterial extends BasePrintableMaterial implements Material
     private PhongParams sparams = new PhongParams();
     private static Material instance = null;
 
-    private FullColorMaterial() {
-        super("FullColor");
+    public FullColorMaterial() {
+        this("FullColor");
+    }
+
+    public FullColorMaterial(String name) {
+        super(name);
 
 //        sparams.setDiffuseColor(new Color(241f/255,241f/255,234f/255)); // #F1F1EA
         sparams.setDiffuseColor(new Color(0.97,0.97,0.97)); // #F1F1EA
@@ -41,8 +48,9 @@ public class FullColorMaterial extends BasePrintableMaterial implements Material
 //        sparams.setRoughness(0.2);
         mp_renderingParams.setValue(sparams);
 
-        m_matType = MaterialType.COLOR_MATERIAL;
+        setMaterialType(MaterialType.COLOR_MATERIAL);
     }
+
 
     public MaterialShader getShader() {
         return this;
