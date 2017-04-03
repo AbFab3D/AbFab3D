@@ -30,6 +30,7 @@ public class ScriptResources {
     public ShapeJSEvaluator eval;
     public boolean firstCreate;
     public boolean sensitiveData = false;
+    public boolean sensitiveScript = false;
 
 
     public ScriptResources() {
