@@ -136,9 +136,14 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
         String path = null;
         m_vhash = null;
 
+        /*  // Removed mapping to avoid exposing Shapeways loaded content
         if (uriMapper != null) {
-            uri = uriMapper.mapURI(uri);
+            URIMapper.MapResult mr = uriMapper.mapURI(uri);
+            uri = mr.uri;
+
+            // TODO: What todo with sensitiveData
         }
+        */
 
         printf("Model Loader: %s\n", uri);
         // TODO: How to deal with not wanting to cache user uploaded files(put in temp dir) versus local usage

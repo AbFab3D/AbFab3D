@@ -25,6 +25,7 @@ public class WhiteMaterial extends BaseRenderableMaterial {
         super("White");
 
         m_shader = new PhongShader(0.1, new Color(0.97, 0.97, 0.97), new Color(0, 0, 0), new Color(1, 1, 1), 0);
+        m_shader.setMaterialType("full color");
         mp_renderingParams.setValue(m_shader);
     }
 

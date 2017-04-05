@@ -12,6 +12,7 @@
 package abfab3d.shapejs;
 
 import abfab3d.core.Color;
+import abfab3d.core.MaterialType;
 import abfab3d.param.*;
 import static abfab3d.core.Output.printf;
 
@@ -73,6 +74,10 @@ public class PhongParams extends RenderingParams {
         setSpecularColor(specularColor);
         setAmbientIntensity(ambientIntensity);
         setAlbedo(albedo);
+    }
+
+    public void setMaterialType(String type) {
+        mp_materialType.setValue(type);
     }
 
     protected void initParams(){

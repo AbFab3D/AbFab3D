@@ -30,6 +30,10 @@ public class PhongShader extends BaseParameterizable implements MaterialShader {
         addParams(sparams.getParams());
     }
 
+    public void setMaterialType(String type) {
+        sparams.setMaterialType(type);
+    }
+
     @Override
     public DataSource getRenderingSource(DataSource source) {
         return source;
