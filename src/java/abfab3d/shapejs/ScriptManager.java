@@ -196,7 +196,6 @@ public class ScriptManager {
             sr.firstCreate = true;
         } else {
             sr.firstCreate = false;
-            sr.sensitiveData = false;
         }
 
         if (DEBUG) printf("ScriptManager.update parse: %d ms\n", time() - t0);
