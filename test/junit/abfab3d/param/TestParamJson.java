@@ -36,10 +36,13 @@ import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Union;
 import abfab3d.datasources.Subtraction;
 import abfab3d.datasources.Box;
+import abfab3d.datasources.Image3D;
 
 import abfab3d.transforms.SphereInversion;
 import abfab3d.transforms.Rotation;
 import abfab3d.transforms.Translation;
+import abfab3d.transforms.SymmetryTransform;
+import abfab3d.transforms.ReflectionSymmetry;
 
 
 import static abfab3d.core.Output.time;
@@ -84,56 +87,56 @@ public class TestParamJson extends TestCase {
 
     void devTestJsonParamArray(){
         
-        Parameter param[] = new Parameter[]{
-            new DoubleParameter("size", 2),
-            new IntParameter("count", 3),            
-            new Vector3dParameter("point", new Vector3d(1,2,3)),
-            new AxisAngle4dParameter("axisAngle", new AxisAngle4d(1,0,0, Math.PI)),
-            new ColorParameter("color", new Color(1,0,0)),            
-            new BooleanParameter("check", true),
-            new LongParameter("long", 123456789),
-            new EnumParameter("enum", new String[]{"item1","item2","item3"}, "item1"),            
-            new URIParameter("uri", "c:/temp/something.png"),
-            /*
-            new StringListParameter("stringList", new String[]{"item1", "item2"}),
-            new ObjectParameter("object", this),
-            new SNodeParameter("shape", new Sphere(3.)),
-            new LocationParameter("location", new Vector3d(2,2,2), new Vector3d(0,1,0)),
-            */
+        Parameter params[] = new Parameter[]{
+            //new DoubleParameter("size", 0.12345678901234567890123456789e10),
+            //new DoubleParameter("pi", Math.PI),
+            //new IntParameter("count", 325),            
+            //new Vector3dParameter("point", new Vector3d(1,2,3)),
+            //new AxisAngle4dParameter("axisAngle", new AxisAngle4d(1,0,0, Math.PI)),
+            //new ColorParameter("color", new Color(1,0.5,0.3)),            
+            //new BooleanParameter("check", true),
+            //new LongParameter("long", 123456789),
+            //new EnumParameter("enum", new String[]{"item1","item2","item3"}, "item1"),            
+            //new URIParameter("uri", "c:/temp/something.png"),            
+            //new StringListParameter("stringList", new String[]{"item1", "item2"}),
+            //new LocationParameter("location", new Vector3d(2.1,2.2,2.3), new Vector3d(0,1,0)),
+            //new ObjectParameter("object", this),
+            //new SNodeParameter("shape", new Sphere(3.)),
+            new SNodeParameter("shape1", new Sphere(3.).rotate(1,0,0,Math.PI).translate(1,2,3)),
+            new SNodeParameter("shape2", new Sphere(3.)),
+           
         };
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        String json = gson.toJson(ParamJson.getJson(param));
+        String json = gson.toJson(ParamJson.getJson(params));
         printf("testing param array\n-------\n%s\n---\n", json);
 
-        parseJson(json, param);
+        ParamJson.getParamValuesFromJson(json, params);
+
+        json = gson.toJson(ParamJson.getJson(params));
+        printf("parsed params array\n-------\n%s\n---\n", json);
+        
                 
     }
     
-    static void parseJson(String json, Parameter param[]){
-
-        printf("parseJson()\n");
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(json).getAsJsonObject();
-        printf("elem: %s\n",obj.getClass().getName());
+    void devTestJsonSNode(){
         
-        for(int i = 0; i < param.length; i++){
-            Parameter par = param[i];
-            String name = par.getName();
-            JsonElement value = obj.get(name);
-            JsonPrimitive prim = value.getAsJsonPrimitive();
-            printf("%s -> %s:%s bool:%s str:%s, num:%s\n", 
-                   name, value.getClass().getName(), value, prim.isBoolean(), prim.isString(),prim.isNumber());
-        }
+        Box box = new Box(1,2,3);
+        box.setTransform(new SymmetryTransform());
+        box.addTransform(new ReflectionSymmetry());
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(ParamJson.getJson(box));
+        printf("testing param array\n-------\n%s\n---\n", json);
         
-
     }
+
 
     public static void main(String args[]){
 
         //new TestParamJson().devTestJsonUnion();
-        new TestParamJson().devTestJsonParamArray();
+        //new TestParamJson().devTestJsonParamArray();
+        new TestParamJson().devTestJsonSNode();
 
     }
 

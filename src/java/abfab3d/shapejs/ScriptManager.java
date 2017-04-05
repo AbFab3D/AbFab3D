@@ -136,7 +136,7 @@ public class ScriptManager {
     /**
      * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
      * @param jobID
-     * @param delta
+     * @param delta  if true will try to retrive script from cache
      * @param script
      * @param params
      * @return
@@ -376,6 +376,12 @@ public class ScriptManager {
  */
         if (sr.evaluatedScript.isSuccess()) {
 
+            Scene scene = sr.evaluatedScript.getScene();
+            if(scene == null){
+                // somehow this happens 
+                sr.evaluatedScript.setSuccess(false);
+                return sr;
+            }
             // I think this is the correct place to call initialize.  Might call it too often?
             List<Parameterizable> list = sr.evaluatedScript.getScene().getSource();
             for (Parameterizable ds : list) {

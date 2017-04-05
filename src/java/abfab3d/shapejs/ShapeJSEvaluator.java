@@ -380,7 +380,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 scene = cx.evaluateString(scope, script, "<cmd>", 1, null);
             } catch (Exception e) {
                 e.printStackTrace(System.out);
-                printf("Script failed: %s\nScript:\n%s", e.getMessage(),script);
+                if(DEBUG)printf("Script failed: %s\nScript:\n%s", e.getMessage(),script);
                 result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, e.getMessage(), getPrintLogs(cx),System.currentTimeMillis() - t0);
                 return;
             }
@@ -1280,7 +1280,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             try {
                 result2 = main.call(cx, scope, scope, args);
             } catch(Exception e) {
-                printf("Script: %s\n",script);
+                if(DEBUG)printf("Script: %s\n",script);
                 e.printStackTrace();
                 if (e instanceof EcmaError) {
                     printf("line: %d  col: %d\n",((EcmaError)e).lineNumber(),((EcmaError) e).columnNumber());
@@ -1453,7 +1453,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             try {
                 result2 = main.call(cx, scope, scope, args);
             } catch(Exception e) {
-                printf("Script: %s\n", script);
+                if(DEBUG)printf("Script: %s\n", script);
                 e.printStackTrace();
                 if (e instanceof EcmaError) {
                     printf("line: %d  col: %d\n",((EcmaError)e).lineNumber(),((EcmaError) e).columnNumber());

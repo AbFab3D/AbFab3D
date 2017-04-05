@@ -125,7 +125,7 @@ public class URIEditor extends BaseEditor implements ActionListener {
        @Override 
      */
     public void updateUI(){
-        //TODO 
+        m_textField.setText((String)m_param.getValue());
     }
 
 }

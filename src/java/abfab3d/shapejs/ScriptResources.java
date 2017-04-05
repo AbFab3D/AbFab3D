@@ -41,4 +41,21 @@ public class ScriptResources {
         evaluatedScript = null;
         eval = null;
     }
+
+    /**
+       return array of script parameters (if exist)
+     */
+    public Parameter[] getParams(){
+
+        if(params == null) 
+            return new Parameter[0];
+        
+        Parameter aparam[] = new Parameter[params.size()];
+        int idx = 0;
+        for(Object o: params.values()) {
+            aparam[idx++] = (Parameter)o;
+        }
+        return aparam;
+    }
+
 }

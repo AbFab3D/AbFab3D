@@ -68,6 +68,22 @@ public class ParameterJSWrapper extends ScriptableObject implements JSWrapper, P
         return param.getType().toString();
     }
 
+    /**
+       @return String representation of this Parametetr to be used for serialization 
+       it is expected to be representation in simple JSON form 
+     */
+    public String getStringValue(){
+        return param.getStringValue();
+    }
+
+    /**
+       set value of this parameter as string 
+       @param str string it is expected to be representation in simple JSON form 
+     */
+    public void setStringValue(String str){
+        param.setStringValue(str);
+    }
+
     @Override
     public void put(String name, Scriptable start, Object value) {
         param.setValue(value);
