@@ -211,7 +211,8 @@ public class ScriptManager {
         }
 
         // download URLs
-        downloadURI(sr.evaluatedScript.getParamMap(), params);
+        //downloadURI(sr.evaluatedScript.getParamMap(), params);
+        downloadURI(sr, params);
         sr.params.putAll(params);
 
         // Cache the job only if script eval is a success
@@ -342,11 +343,11 @@ public class ScriptManager {
                     }                    
                 }
             }
-        }
-         */
+        */
+        }         
 
         // TODO: We might need this logic to retain backward compatible for rmr
-
+        /*   
         if (sr.result.isSuccess()) {
             Object material = params.get("material");
 
@@ -377,7 +378,7 @@ public class ScriptManager {
                 }
             }
         }
-
+        */
         if (sr.evaluatedScript.isSuccess()) {
 
             Scene scene = sr.evaluatedScript.getScene();
@@ -400,7 +401,7 @@ public class ScriptManager {
         }
         return sr;
 
-    }
+        }
 
     public void cleanupJob(String jobID) {
         cache.invalidate(jobID);
@@ -418,7 +419,7 @@ public class ScriptManager {
      * @param namedParams
      */
     private void downloadURI(ScriptResources resources,  Map<String, Object> namedParams) {
-        EvaluatedScript escript = resources.result;
+        EvaluatedScript escript = resources.evaluatedScript;
         Map<String, Parameter> evalParams = escript.getParamMap();
         String workingDirName = null;
         String workingDirPath = null;
