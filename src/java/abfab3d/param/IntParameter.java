@@ -92,12 +92,20 @@ public class IntParameter extends NumberParameter {
     
     @Override
     public void setValue(Object val) {
-        if(val instanceof Double)
+
+        // Integer keeps data as Double (for compatibility with some UI)
+        if(val instanceof Double){
             val = new Integer((int)Math.round(((Double)val).doubleValue()));
+        } else if(val instanceof Integer){
+            // do nothing 
+        } else if(val instanceof String){
+            val = new Integer((int)Math.round(Double.parseDouble((String)val)));            
+        }
         validate(val);
 
         this.value = val;
         changed = true;
+        updateUI();
 
     }
 
@@ -126,6 +134,22 @@ public class IntParameter extends NumberParameter {
         if (d > maxRange) {
             throw new IllegalArgumentException("Invalid int value, above maximum range: " + d + " in param: " + getName());
         }        
+    }
+
+    /**
+       @Override
+    */
+    public String getStringValue(){
+        return ((Integer)value).toString();
+    }
+    
+    /**
+       @Override
+    */
+    public void setStringValue(String str){
+        
+        value = new Integer(str);
+
     }
 
 }

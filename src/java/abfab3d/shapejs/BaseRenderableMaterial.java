@@ -14,10 +14,15 @@
 package abfab3d.shapejs;
 
 import abfab3d.core.DataSource;
+import abfab3d.core.MaterialType;
 import abfab3d.core.RenderableMaterial;
 import abfab3d.param.BaseParameterizable;
+import abfab3d.param.EnumParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNodeParameter;
+import abfab3d.param.StringParameter;
+
+import java.util.Arrays;
 
 /**
  * Base implementation for all Materials
@@ -27,22 +32,35 @@ import abfab3d.param.SNodeParameter;
 public abstract class BaseRenderableMaterial extends BaseParameterizable implements RenderableMaterial {
     protected SNodeParameter mp_renderingParams = new SNodeParameter("renderingParams");
     protected SNodeParameter mp_source = new SNodeParameter("source");
-    protected String m_name;
+    protected StringParameter m_name = new StringParameter("name","Unnamed Material");
+    protected EnumParameter m_matType = new EnumParameter("materialType", MaterialType.getStringValues(),MaterialType.SINGLE_MATERIAL.toString());
 
     private Parameter m_aparam[] = new Parameter[]{
-            mp_renderingParams, mp_source
+            mp_renderingParams, mp_source,m_name,m_matType
     };
 
     public BaseRenderableMaterial(String name) {
-        m_name = name;
+        m_name.setValue(name);
         addParams(m_aparam);
     }
 
     public String getName() {
-        return m_name;
+        return m_name.getValue();
+    }
+
+    public void setName(String val) {
+        m_name.setValue(val);
     }
 
     public DataSource getRenderingSource(DataSource source) {
         return source;
     }
+
+    public MaterialType getMaterialType() {
+        return MaterialType.valueOf(m_matType.getValue());
+    }
+    public void setMaterialType(MaterialType val) {
+        m_matType.setValue(val);
+    }
+
 }

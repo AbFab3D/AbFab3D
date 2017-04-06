@@ -16,6 +16,7 @@ import org.web3d.util.DoubleToString;
 
 // External Imports
 import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 
 /**
  * A Double parameter to a service.
@@ -24,6 +25,7 @@ import static abfab3d.core.Output.fmt;
  */
 public class DoubleParameter extends NumberParameter {
 	/*public enum Unit {NONE, M, CM, MM, M3, CM3, MM3, FT, IN, UM, PT}; */
+    static final boolean DEBUG = false;
 	
     public static final double DEFAULT_MIN_RANGE = -Double.MAX_VALUE;
     public static final double DEFAULT_MAX_RANGE = Double.MAX_VALUE;
@@ -106,7 +108,9 @@ public class DoubleParameter extends NumberParameter {
         this.unit = def.getUnit();
     }
 
-    @Override
+    /**
+       @Override
+    */
     public Double getValue() {
         return (Double) value;
     }
@@ -222,6 +226,21 @@ public class DoubleParameter extends NumberParameter {
         if (value == null) sb.append("null");
 
         DoubleToString.appendFormatted(sb,(Double)value,6);
+    }
+
+    /**
+       @Override
+    */
+    public String getStringValue(){
+        return ((Double)value).toString();
+    }
+    
+    /**
+       @Override
+    */
+    public void setStringValue(String str){
+        if(DEBUG)printf("%s.setStringValue(%s)\n", this.getClass().getName(), str);
+        value = new Double(str);
     }
 
 }

@@ -46,6 +46,14 @@ import static abfab3d.core.Output.time;
  * @author Alan Hudson
  */
 public class Background extends BaseParameterizable implements Initializable {
+    
+    public static final String 
+        sSINGLE_COLOR="SINGLE_COLOR", 
+        sGRADIENT = "GRADIENT", 
+        sIMAGE = "IMAGE", 
+        sIMAGE_COLOR="IMAGE_COLOR", 
+        sIMAGE_GRADIENT= "IMAGE_GRADIENT";
+
     public enum Mode {SINGLE_COLOR, GRADIENT, IMAGE, IMAGE_COLOR, IMAGE_GRADIENT;
         public static int getIntValue(Mode mode) {
             switch(mode) {
@@ -67,14 +75,10 @@ public class Background extends BaseParameterizable implements Initializable {
 
     private ColorParameter mp_groundColor = new ColorParameter("groundColor","Color",new Color(225f/255,227f/255,228f/255));
     private ColorParameter mp_skyColor = new ColorParameter("skyColor","Color",new Color(245f/255,247f/255,248f/255));
-/*
-    private ColorParameter mp_groundColor = new ColorParameter("groundColor","Color",new Color(0,0,0));
-    private ColorParameter mp_skyColor = new ColorParameter("skyColor","Color",new Color(1,1,1));
-*/
     private DoubleParameter mp_smoothStart = new DoubleParameter("smoothStart","Start of smoothing", 0.4);
     private DoubleParameter mp_smoothEnd = new DoubleParameter("smoothEnd","End of smoothing", 0.5);
     URIParameter mp_imageSource = new URIParameter("image", "image source", resolveURN("urn:shapeways:stockImage:envmap_rays"));
-    EnumParameter mp_mode = new EnumParameter("mode","mode",new String[] {"SINGLE_COLOR","GRADIENT","IMAGE","IMAGE_COLOR","IMAGE_GRADIENT"},"IMAGE_GRADIENT");
+    EnumParameter mp_mode = new EnumParameter("mode","mode",new String[] {sSINGLE_COLOR,sGRADIENT,sIMAGE,sIMAGE_COLOR,sIMAGE_GRADIENT},sIMAGE_GRADIENT);
 
 
     private ImageColor m_imageData;
@@ -90,6 +94,19 @@ public class Background extends BaseParameterizable implements Initializable {
 
     public Background() {
         initParams();
+    }
+
+    public Background(Color color) {
+        initParams();
+        mp_mode.setValue(sSINGLE_COLOR);
+        mp_groundColor.setValue(color);
+        mp_skyColor.setValue(color);
+    }
+
+    public Background(Color groundColor, Color skyColor) {
+        initParams();
+        mp_groundColor.setValue(groundColor);
+        mp_skyColor.setValue(skyColor);
     }
 
     /**
@@ -137,7 +154,7 @@ public class Background extends BaseParameterizable implements Initializable {
     }
 
     public void setMode(String val) {
-        mp_mode.setValue(val.toUpperCase());
+        mp_mode.setValue(val);
     }
 
     public String getMode() {

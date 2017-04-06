@@ -55,6 +55,10 @@ import static abfab3d.core.Output.printf;
 public class BufferDiskCache implements Runnable {
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_TIMING = false;
+    private static long DEFAULT_SIZE = (long) (4 * 1e9);
+    private static String DEFAULT_LOC = "/var/www/html/cache/buffer";
+    private static boolean DEFAULT_COMPRESS = false;
+    private static boolean DEFAULT_LAZY_WRITES = true;
 
     private boolean compress = false;
     private boolean lazyWrites = true;
@@ -109,7 +113,9 @@ public class BufferDiskCache implements Runnable {
     }
 
     public static BufferDiskCache getInstance() {
-        if (cache == null) throw new IllegalArgumentException("Cache must be initialized before use");
+        if (cache == null) {
+            cache = new BufferDiskCache(DEFAULT_SIZE, DEFAULT_LOC, DEFAULT_COMPRESS,DEFAULT_LAZY_WRITES);
+        }
         return cache;
     }
 

@@ -339,6 +339,34 @@ public class CLResourceManager implements Runnable {
         cleanOldEntries();
     }
 
+
+    /**
+       clear all entries
+     */
+    public void clearAll() {
+
+        if (DEBUG) printf("%s.cleaAll()\n",this);
+        waitForNotFreeing();
+
+        freeing = true;
+        Iterator<Map.Entry<Resource,CacheEntry>> itr = cache.entrySet().iterator();
+        long time = System.currentTimeMillis();
+
+        try {
+            while (itr.hasNext()) {
+                Map.Entry<Resource, CacheEntry> me = itr.next();
+                CacheEntry ce = me.getValue();
+                if (!ce.locked) {
+                    itr.remove();
+                    ce.resource.release();
+                    ce.resource = null;
+                } 
+            }
+        } finally {
+            freeing = false;
+        }        
+    }
+    
     public void cleanOldEntries() {
         waitForNotFreeing();
 

@@ -26,19 +26,19 @@ public class IntEditor extends BaseEditor implements ChangeListener {
 
     static final int EDITOR_SIZE = 10;
 
-    private IntParameter m_dparam;
+    private IntParameter m_param;
     private SpinnerModel spinnerModel;
 
 
     public IntEditor(IntParameter param) {
         super(param);
-        m_dparam = param;
+        m_param = param;
     }
 
 
     @Override
     public void stateChanged(ChangeEvent e) {
-        m_param.setValue((Double)spinnerModel.getValue());
+        m_param.setValue(spinnerModel.getValue());
         informParamChangedListeners();
     }
 
@@ -56,10 +56,10 @@ public class IntEditor extends BaseEditor implements ChangeListener {
 
     private void setSpinnerModel() {
 
-        double def_val = m_dparam.getValue();
-        double min_val = m_dparam.getMinRange();
-        double max_val = m_dparam.getMaxRange();
-        double step = 1;
+        int def_val = m_param.getValue();
+        int min_val = m_param.getMinRange();
+        int max_val = m_param.getMaxRange();
+        int step = 1;
         spinnerModel = new SpinnerNumberModel(def_val, min_val, max_val, step);
     }
     
@@ -71,6 +71,8 @@ public class IntEditor extends BaseEditor implements ChangeListener {
        @Override 
      */
     public void updateUI(){
-        //TODO 
+
+        spinnerModel.setValue(m_param.getValue()); 
+
     }
 }

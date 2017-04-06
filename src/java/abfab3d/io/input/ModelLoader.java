@@ -50,6 +50,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
 
     private static final String BOUNDS_NAME = "_bounds";
     private static final String MATERIAL_TYPE_NAME = "_mtype";
+    private static final String CHANNEL_COUNT_NAME = "_channels";
 
     private static final long MAX_ATTRIBUTED_SIZE = 800l * 800 * 800;
 
@@ -410,11 +411,14 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
 
                 String bhash = baseVhash + BOUNDS_NAME;
                 String mhash = baseVhash + MATERIAL_TYPE_NAME;
+                String cchash = baseVhash + CHANNEL_COUNT_NAME;
 
                 LabeledBuffer<double[]> boundsBuffer = new LabeledBuffer<double[]>(bhash, grid.getGridBounds().getArray());
                 CPUCache.getInstance().put(boundsBuffer);
                 LabeledBuffer<byte[]> materialTypeBuffer = new LabeledBuffer<byte[]>(mhash, m_materialType.toString().getBytes());
                 CPUCache.getInstance().put(materialTypeBuffer);
+                LabeledBuffer<byte[]> channelCountBuffer = new LabeledBuffer<byte[]>(cchash, new byte[] {(byte)grid.getDataDesc().size()});
+                CPUCache.getInstance().put(channelCountBuffer);
             }
 
         } catch (Exception e) {
@@ -473,6 +477,23 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
         }
     }
 
+    public int getChannelCount() {
+        String vhash = getValueHash();
+        vhash += CHANNEL_COUNT_NAME;
+        CPUCache cache = CPUCache.getInstance();
+
+        LabeledBuffer<byte[]> channelCountBuffer = cache.get(vhash);
+
+        if (channelCountBuffer == null) {
+            if (DEBUG) printf("***Failed to get channelCountType via cache: %s\n",vhash);
+            // oh well, load the damn thing
+            AttributeGrid grid = getGrid();
+            return grid.getDataDesc().size();
+        } else {
+            return channelCountBuffer.getBuffer()[0];
+        }
+    }
+    
     public MaterialType getMaterialType() {
         String vhash = getValueHash();
         vhash += MATERIAL_TYPE_NAME;

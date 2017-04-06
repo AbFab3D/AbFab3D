@@ -12,9 +12,11 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -47,10 +49,60 @@ public class URIUtils {
 		tmpMap.put("application/zip", "zip");
 		mimeTypeMapper = Collections.unmodifiableMap(tmpMap);
 	}
-	
+
+    /**
+     * Downloads a URI and places the result in a temporary file
+     * @param paramName
+     * @param urlStr
+     * @return The string
+     * @throws URISyntaxException
+     * @throws IOException
+     */
     public static String downloadURI(String paramName, String urlStr) throws URISyntaxException, IOException {
         String workingDirPath = Files.createTempDirectory("downloadURI").toString();
         return writeUrlToFile(paramName, urlStr, workingDirPath, false);
+    }
+
+    public static String downloadURIToString(String urlStr) throws URISyntaxException, IOException {
+
+        URL yourl = new URL(urlStr);
+        URI uri = new URI(yourl.getProtocol(), yourl.getUserInfo(), yourl.getHost(), yourl.getPort(), yourl.getPath(), yourl.getQuery(), yourl.getRef());
+        if (DEBUG) printf("Write url to string.  urlStr: %s  convUrl: %s  %s: uri\n",urlStr,yourl,uri);
+
+
+        int retries = 0;
+        int max_retries = 2;
+
+        InputStream input = null;
+
+        while(retries < max_retries) {
+            try {
+                // TODO: this does not handle 301 redirects which we got from Shapeways by requesting a https endpoint that only supported http
+                URL source = new URL(uri.toASCIIString());
+                int connectionTimeout = 10000;
+                int readTimeout = 10000;
+
+                URLConnection connection = source.openConnection();
+                connection.setConnectTimeout(connectionTimeout);
+                connection.setReadTimeout(readTimeout);
+                input = connection.getInputStream();
+                return IOUtils.toString(input);
+
+            } catch (IOException ioe) {
+                retries++;
+                if (retries >= max_retries) {
+                    throw ioe;
+                }
+                try {
+                    Thread.sleep(500 * (retries * retries));
+                } catch (InterruptedException ie) {
+                }
+            } finally {
+                IOUtils.closeQuietly(input);
+            }
+        }
+
+        throw new IOException("Failed to download, too many retries");
     }
 
     public static String writeUrlToFile(String paramName, String urlStr, String destDir, boolean fixedNaming) throws URISyntaxException, IOException {

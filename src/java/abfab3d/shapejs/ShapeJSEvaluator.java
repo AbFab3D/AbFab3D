@@ -117,13 +117,17 @@ public class ShapeJSEvaluator implements MaterialMapper {
         // Create imports
 
         defaultParams = new HashMap<String,Parameter>();
+/*
         EnumParameter matParam = new EnumParameter("material","Physical Material",new String[] {"None","White"},"None");
         matParam.setLabel("Material");
         matParam.setOnChange("main");
         defaultParams.put("material",matParam);
-
+*/
         materials = new LinkedHashMap<String,Material>();
-        materials.put(WhiteMaterial.getInstance().getName(),WhiteMaterial.getInstance());
+        materials.put(SingleColorMaterial.getInstance().getName(),SingleColorMaterial.getInstance());
+        materials.put(FullColorMaterial.getInstance().getName(),FullColorMaterial.getInstance());
+        Materials.add(SingleColorMaterial.getInstance().getName(),SingleColorMaterial.getInstance());
+        Materials.add(FullColorMaterial.getInstance().getName(),FullColorMaterial.getInstance());
 
         setupSecurity();
     }
@@ -178,7 +182,9 @@ public class ShapeJSEvaluator implements MaterialMapper {
         classImports.add("abfab3d.shapejs.Light");
         classImports.add("abfab3d.shapejs.Viewpoint");
         classImports.add("abfab3d.shapejs.Background");
-        classImports.add("abfab3d.shapejs.PrintableMaterials");
+        classImports.add("abfab3d.shapejs.Materials");
+        classImports.add("abfab3d.shapejs.SingleColorMaterial");
+        classImports.add("abfab3d.shapejs.FullColorMaterial");
 
         classImports.add("abfab3d.io.input.ModelLoader");
 
@@ -210,10 +216,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
         classImports.add("material.StainlessMaterial");
         classImports.add("material.CeramicsMaterial");
 */
-        classImports.add("material.BlueSFPMaterial");
-        classImports.add("material.RedSFPMaterial");
-        classImports.add("material.PurpleSFPMaterial");
-        classImports.add("material.BlueGemMaterial");
 
         classWhiteList = new HashSet<String>();
         classWhiteList.add("java.lang.Boolean");
@@ -261,21 +263,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
     public static void setMaterialMapper(MaterialMapper mm) {
         matMapper = mm;
-
-        EnumParameter matParam = (EnumParameter) defaultParams.get("material");
-        Map<String,Material> mats = mm.getMaterials();
-        String[] ovals = matParam.getValues();
-        String[] nvals = new String[ovals.length + mats.size()];
-
-        for(int i=0; i < ovals.length;i++) {
-            nvals[i] = ovals[i];
-        }
-        int idx = ovals.length;
-        for(Material mat : mats.values()) {
-            nvals[idx++] = mat.getName();
-        }
-
-        matParam.setValues(nvals);
     }
 
     public static void configureSecurity(List<String> pwl, List<String> cwl, List<String> ci, List<String> si) {
@@ -380,7 +367,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 scene = cx.evaluateString(scope, script, "<cmd>", 1, null);
             } catch (Exception e) {
                 e.printStackTrace(System.out);
-                printf("Script failed: %s\nScript:\n%s", e.getMessage(),script);
+                if(DEBUG)printf("Script failed: %s\nScript:\n%s", e.getMessage(),script);
                 result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, e.getMessage(), getPrintLogs(cx),System.currentTimeMillis() - t0);
                 return;
             }
@@ -553,14 +540,19 @@ public class ShapeJSEvaluator implements MaterialMapper {
                                 if (DEBUG) printf("---> param: %s\n",entry.getKey());
                             }
                         } else {
-                            ParameterJSWrapper wrapper = (ParameterJSWrapper) argVal;
-                            Parameter p = wrapper.getParameter();
-                            if (p instanceof DoubleParameter) {
-                                DoubleParameter dp = (DoubleParameter) p;
-                                argVal = dp.getUnit().getConversionVal(dp.getValue());
-                                if (DEBUG) printf("---> param: %s defValue: %s\n",wrapper.getParameter(),argVal);
-                            } else {
-                                if (DEBUG) printf("---> param: %s defValue: %s\n",wrapper.getParameter(),wrapper.getDefaultValue(null));
+                            try {
+                                ParameterJSWrapper wrapper = (ParameterJSWrapper) argVal;
+                                Parameter p = wrapper.getParameter();
+                                if (p instanceof DoubleParameter) {
+                                    DoubleParameter dp = (DoubleParameter) p;
+                                    argVal = dp.getUnit().getConversionVal(dp.getValue());
+                                    if (DEBUG) printf("---> param: %s defValue: %s\n", wrapper.getParameter(), argVal);
+                                } else {
+                                    if (DEBUG)
+                                        printf("---> param: %s defValue: %s\n", wrapper.getParameter(), wrapper.getDefaultValue(null));
+                                }
+                            } catch(ClassCastException cce) {
+                                cce.printStackTrace();
                             }
                         }
 
@@ -1280,7 +1272,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             try {
                 result2 = main.call(cx, scope, scope, args);
             } catch(Exception e) {
-                printf("Script: %s\n",script);
+                if(DEBUG)printf("Script: %s\n",script);
                 e.printStackTrace();
                 if (e instanceof EcmaError) {
                     printf("line: %d  col: %d\n",((EcmaError)e).lineNumber(),((EcmaError) e).columnNumber());
@@ -1453,7 +1445,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             try {
                 result2 = main.call(cx, scope, scope, args);
             } catch(Exception e) {
-                printf("Script: %s\n", script);
+                if(DEBUG)printf("Script: %s\n", script);
                 e.printStackTrace();
                 if (e instanceof EcmaError) {
                     printf("line: %d  col: %d\n",((EcmaError)e).lineNumber(),((EcmaError) e).columnNumber());

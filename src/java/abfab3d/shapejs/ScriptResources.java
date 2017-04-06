@@ -23,13 +23,14 @@ import java.util.Map;
  */
 public class ScriptResources {
     public String jobID;
-    public EvaluatedScript result;
+    public EvaluatedScript evaluatedScript;
     public String script;
     public Map<String,Object> params;
     public float quality;
     public ShapeJSEvaluator eval;
     public boolean firstCreate;
     public boolean sensitiveData = false;
+    public boolean sensitiveScript = false;
 
 
     public ScriptResources() {
@@ -40,7 +41,24 @@ public class ScriptResources {
         if (params != null)
             params.clear();
 
-        result = null;
+        evaluatedScript = null;
         eval = null;
     }
+
+    /**
+       return array of script parameters (if exist)
+     */
+    public Parameter[] getParams(){
+
+        if(params == null) 
+            return new Parameter[0];
+        
+        Parameter aparam[] = new Parameter[params.size()];
+        int idx = 0;
+        for(Object o: params.values()) {
+            aparam[idx++] = (Parameter)o;
+        }
+        return aparam;
+    }
+
 }

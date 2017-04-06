@@ -71,8 +71,8 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     //protected AttributePacker m_gridDataPacker;
 
     protected GridDataChannel m_dataChannels[];
-    protected byte[] m_cachedByteData;
-    // mask for byte in int packing 
+
+    // mask for byte in int packing
     // complement mask for byte in int packing 
     static final int BYTE_COMPLEMENT[] = new int[]{0xFFFFFF00, 0xFFFF00FF, 0xFF00FFFF, 0x00FFFFFF};
     // bit shift for byte in int packing 
@@ -159,6 +159,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         }
 
         Bounds bounds = m_grid.getGridBounds();
+        m_channelsCount = m_grid.getDataDesc().size();
 
         m_nx = m_grid.getWidth();
         m_ny = m_grid.getHeight();
@@ -179,21 +180,12 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     }
 
     /**
-     * @noRefGuide
-     */
-    protected void emptyCache() {
-        m_cachedByteData = null;
-    }
-
-    /**
 
      * @noRefGuide sets type used for intervoxel interpolation
      @param value of interpolation (INTERPOLATION_BOX or INTERPOLATION_LINEAR)
 
      */
     public void setInterpolationType(int value) {
-
-        emptyCache();
 
         m_interpolationType = value;
 
@@ -454,6 +446,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
         super.initialize();
 
+        if (DEBUG) printf("Init called on DSG");
         //m_bufferDataPacker = (AttributePacker)mp_bufferDataPacker.getValue();
 
         //if(m_bufferDataPacker == null) {
@@ -474,6 +467,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         loadGrid();
 
         GridDataDesc gridDataDesc = m_grid.getDataDesc();
+
         m_channelsCount = gridDataDesc.size();
         m_dataChannels = new GridDataChannel[m_channelsCount];
         if (DEBUG) printf("m_channelsCount:%d\n", m_channelsCount);
@@ -484,10 +478,23 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
     }
 
+    @Override
+    public int getChannelsCount(){
+        Object src = mp_grid.getValue();
+
+        if (src instanceof GridProducer) {
+            return ((GridProducer) src).getChannelCount();
+        }
+
+        loadGrid();
+
+        return m_channelsCount;
+    }
+
     /**
      * returns 1 if pnt is inside of grid
-     * returns 0 if pont is poutsid eof grid
-     * returns interpolared value near the boundary 
+     * returns 0 if pnt is outside of grid
+     * returns interpolated value near the boundary
      @noRefGuide
      */
     public int getBaseValue(Vec pnt, Vec data) {

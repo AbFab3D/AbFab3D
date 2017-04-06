@@ -32,4 +32,14 @@ public enum MaterialType {
         return id;
     }
 
+    public static String[] getStringValues() {
+        MaterialType[] states = values();
+        String[] names = new String[states.length];
+
+        for (int i = 0; i < states.length; i++) {
+            names[i] = states[i].name();
+        }
+
+        return names;
+    }
 }
