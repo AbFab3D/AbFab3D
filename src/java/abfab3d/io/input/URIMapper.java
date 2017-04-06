@@ -24,5 +24,15 @@ public interface URIMapper {
      * @param uri The original
      * @return  The transformed URI
      */
-    public String mapURI(String uri);
+    public MapResult mapURI(String uri);
+
+    static class MapResult {
+        public String uri;
+        public boolean sensitiveData;
+
+        public MapResult(String uri, boolean sensitiveData) {
+            this.uri = uri;
+            this.sensitiveData = sensitiveData;
+        }
+    }
 }

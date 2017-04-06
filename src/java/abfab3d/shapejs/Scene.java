@@ -105,17 +105,14 @@ public class Scene extends BaseParameterizable {
     };
     
     public Scene(String name){
-
         m_name = name;
         initParams();
         initRendering();
-        if(DEBUG)printf("Scene(%s)\n",name);
     }
 
     public Scene(Parameterizable source, Bounds bounds){
 
         this(source, bounds, bounds.getVoxelSize());
-        if(DEBUG)printf("Scene(%s, %s)\n",source, bounds);
         //if(DEBUG)printf("Shape(%s, source:%s, bounds:%s)\n", this, source, bounds);
     }
 
@@ -124,7 +121,6 @@ public class Scene extends BaseParameterizable {
     }
 
     public Scene(Parameterizable source, Bounds bounds, double voxelSize){
-        if(DEBUG)printf("Scene(%s, %s, %s)\n",source, bounds, voxelSize);
         //if(DEBUG)printf("Shape(%s, source:%s bounds:%s vs:%7.5f)\n", this, source, bounds, voxelSize);
         Shape s = new Shape((DataSource)source, DefaultMaterial.getInstance());
         addShape(s);
@@ -485,18 +481,15 @@ public class Scene extends BaseParameterizable {
      COLOR_MATERIAL
      */
     public void setMaterialType(MaterialType type) {
-
-       if (type == null) throw new IllegalArgumentException("Type cannot be null");
-
+        System.out.printf("***Incoming mat: %s\n",type);
+        if (type == null) throw new IllegalArgumentException("Type cannot be null");
         m_materialType = type;
         Shape shape = m_shapes.get(0);
         Material mat = shape.getMaterial();
-        Parameterizable sp = (Parameterizable)mat.getShader().getShaderParams();
-        if(DEBUG)printf("Scene.setMaterialType(%s, %s)\n",sp,type);
         if(type == MaterialType.COLOR_MATERIAL){
-            sp.set("materialType", "full color");
-        } 
-
+            System.out.printf("***Color hack in place\n");
+            ((Parameterizable)mat.getShader().getShaderParams()).set("materialType", "full color");
+        }
     }
 
     public void setLights(Light[] lights) {

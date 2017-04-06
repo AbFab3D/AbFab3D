@@ -12,6 +12,7 @@ package abfab3d.shapejs;
 
 import abfab3d.core.Initializable;
 
+import abfab3d.core.Material;
 import abfab3d.io.input.URIMapper;
 import abfab3d.param.Parameter;
 import abfab3d.param.ParameterType;
@@ -340,9 +341,10 @@ public class ScriptManager {
                 }
             }
         }
+         */
 
         // TODO: We might need this logic to retain backward compatible for rmr
-/*
+
         if (sr.result.isSuccess()) {
             Object material = params.get("material");
 
@@ -373,7 +375,7 @@ public class ScriptManager {
                 }
             }
         }
- */
+
         if (sr.evaluatedScript.isSuccess()) {
 
             // I think this is the correct place to call initialize.  Might call it too often?
@@ -404,10 +406,12 @@ public class ScriptManager {
     /**
      * Download any uri parameters containing a fully qualified url.
      *
-     * @param evalParams
+     * @param resources
      * @param namedParams
      */
-    private void downloadURI(Map<String, Parameter> evalParams, Map<String, Object> namedParams) {
+    private void downloadURI(ScriptResources resources,  Map<String, Object> namedParams) {
+        EvaluatedScript escript = resources.result;
+        Map<String, Parameter> evalParams = escript.getParamMap();
         String workingDirName = null;
         String workingDirPath = null;
         String urlStr = null;
@@ -430,7 +434,11 @@ public class ScriptManager {
                     if (urlStr == null) continue;
 
                     if (uriMapper != null) {
-                        urlStr = uriMapper.mapURI(urlStr);
+                        URIMapper.MapResult mr = uriMapper.mapURI(urlStr);
+                        urlStr = mr.uri;
+                        if (mr.sensitiveData) {
+                            resources.sensitiveData = true;
+                        }
                     }
 
                     String file = ShapeJSGlobal.getURL(urlStr);
