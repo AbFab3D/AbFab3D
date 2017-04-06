@@ -211,7 +211,6 @@ public class ScriptManager {
         }
 
         // download URLs
-        //downloadURI(sr.evaluatedScript.getParamMap(), params);
         downloadURI(sr, params);
         sr.params.putAll(params);
 
@@ -310,6 +309,9 @@ public class ScriptManager {
                 sr.evaluatedScript.setSuccess(false);
                 return sr;
             }
+        }
+
+        if (sr.evaluatedScript.isSuccess()) {
             // I think this is the correct place to call initialize.  Might call it too often?
             List<Parameterizable> list = sr.evaluatedScript.getScene().getSource();
             for (Parameterizable ds : list) {
