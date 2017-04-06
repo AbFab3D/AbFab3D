@@ -31,7 +31,7 @@ public class URIEditor extends BaseEditor implements ActionListener {
 
     static final int EDITOR_SIZE = 10;
 
-    TextField  m_textField;
+    JTextField  m_textField;
     JButton m_open;
     /** The last directory property */
     private static final String LASTDIR_PROPERTY = "History_";
@@ -47,7 +47,7 @@ public class URIEditor extends BaseEditor implements ActionListener {
     public URIEditor(Parameter param) {
         super(param);
 
-        m_textField = new TextField(EDITOR_SIZE);
+        m_textField = new JTextField(EDITOR_SIZE);
         Object val = m_param.getValue();
         String sval = "";
         if (val != null) {
@@ -56,12 +56,12 @@ public class URIEditor extends BaseEditor implements ActionListener {
         m_textField.setText(sval);
         m_textField.addActionListener(this);
 
-        m_open = new JButton("Open");
+        m_open = new JButton("...");
         m_open.setToolTipText("Open File");
-
-        panel = new JPanel(new FlowLayout());
-        panel.add(m_open);
-        panel.add(m_textField);
+        
+        panel = new JPanel(new GridBagLayout());
+        WindowUtils.constrain(panel, m_textField, 0,0,1,1,GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
+        WindowUtils.constrain(panel, m_open,      1,0,1,1,GridBagConstraints.NONE, GridBagConstraints.NORTH, 0.,1.,2,2,2,2);
 
         String user_dir = System.getProperty("user.dir");
 
@@ -96,8 +96,9 @@ public class URIEditor extends BaseEditor implements ActionListener {
 
                         prefs.put(LASTDIR_PROPERTY, dir);
                     }
-
-                    m_param.setValue(file.getAbsolutePath());
+                    String path = file.getAbsolutePath();
+                    m_param.setValue(path);
+                    m_textField.setText(path);
                     informParamChangedListeners();
                 }
 
@@ -124,7 +125,7 @@ public class URIEditor extends BaseEditor implements ActionListener {
        @Override 
      */
     public void updateUI(){
-        //TODO 
+        m_textField.setText((String)m_param.getValue());
     }
 
 }

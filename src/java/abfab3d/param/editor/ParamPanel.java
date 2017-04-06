@@ -22,6 +22,8 @@ import java.util.Vector;
 
 import javax.swing.*;
 
+import java.util.HashMap;
+
 import static abfab3d.core.Output.printf;
 
 /**
@@ -30,7 +32,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  * @author Vladimir Bulatov
  */
-public class ParamPanel extends Frame {
+public class ParamPanel extends JFrame {
 
     static final int SPACE = 2;
 
@@ -42,37 +44,73 @@ public class ParamPanel extends Frame {
     private boolean closeAllowed;
 
     public ParamPanel(Parameterizable node) {
+        this(node.getClass().getSimpleName(), node);
+    }
+
+    public ParamPanel(String title, Parameterizable node) {
 
         super(node.getClass().getSimpleName());
 
-        editors = new ArrayList<Editor>();
-        setLayout(new GridBagLayout());
         m_node = new ArrayList<>();
         m_node.add(node);
-        createFactory();
-        Component parametersPanel = makeParamPanel(m_node);
-        WindowUtils.constrain(this, parametersPanel, 0,0,1,1,
-                GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
 
+        buildUI(node.getParams());
+
+    }
+
+    public ParamPanel(String name, Parameter params[]) {
+
+        super(name);
+        buildUI(params);
+
+    }
+
+    protected void buildUI( Parameter params[]){
+        
+        editors = new ArrayList<Editor>();
+        getContentPane().setLayout(new GridBagLayout());
+        
+        createFactory();
+
+        Vector<ParamGroup> groups = makeGroups(params);
+        if(groups.size() == 1) {
+            Component parametersPanel = makeParamPanel(params);
+            JScrollPane scrollPane = new JScrollPane(parametersPanel);
+            WindowUtils.constrain(getContentPane(), scrollPane, 0,0,1,1,
+                                  GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
+            
+        } else {
+            JTabbedPane tabbedPane = new JTabbedPane();
+            for(int k = 0; k < groups.size(); k++){
+                ParamGroup group = groups.get(k);
+                String gname = group.name;
+                Parameter gpar[] = group.getParamArray(k);
+                Component panel = makeParamPanel(gpar);
+                JScrollPane scrollPane = new JScrollPane(panel);
+                tabbedPane.addTab(gname, scrollPane);                
+            }            
+            WindowUtils.constrain(getContentPane(),tabbedPane, 0,0,1,1,
+                                  GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
+        }
         this.pack();
 
         WindowManager wm = WindowManager.getInstance();
         wm.addPanel(this);
     }
 
-    public ParamPanel(java.util.List<Parameterizable> node) {
+    public ParamPanel(java.util.List<Parameterizable> nodes) {
 
-        super(node.getClass().getSimpleName());
+        super(nodes.getClass().getSimpleName());
 
         editors = new ArrayList<Editor>();
-        setLayout(new GridBagLayout());
-        m_node = node;
+        getContentPane().setLayout(new GridBagLayout());
+        m_node = nodes;
         createFactory();
 
         Component parametersPanel = makeParamPanel(m_node);
         JScrollPane scrollPane = new JScrollPane(parametersPanel);
 
-        WindowUtils.constrain(this, scrollPane, 0,0,1,1,
+        WindowUtils.constrain(getContentPane(), scrollPane, 0,0,1,1,
                               GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
 
         this.pack();
@@ -113,14 +151,15 @@ public class ParamPanel extends Frame {
 
     protected Component makeParamPanel(java.util.List<Parameterizable> nodes){
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridBagLayout());
         int tot = 0;
 
         for(Parameterizable node : nodes) {
             Parameter[] param = node.getParams();
             tot += param.length;
         }
+        
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
 
         int cnt = 0;
         for(Parameterizable node : nodes) {
@@ -144,6 +183,28 @@ public class ParamPanel extends Frame {
                 cnt++;
 
             }
+        }
+        return panel;
+                
+    }
+
+    protected Component makeParamPanel(Parameter param[]){
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+
+        for(int i=0; i < param.length; i++) {
+            
+            double hWeight = (i < param.length - 1) ? (0.) : (1.);
+            
+            WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, i, 1, 1,
+                                  GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 0., hWeight, SPACE, SPACE, SPACE, 0);
+            
+            Editor editor = sm_factory.createEditor(param[i]);
+            editor.addParamChangedListeners(m_plisteners);
+            editors.add(editor);            
+            WindowUtils.constrain(panel, editor.getComponent(), 1, i, 1, 1,
+                                  GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH, 1., hWeight, SPACE, SPACE, SPACE, 0);
         }
         return panel;
                 
@@ -193,4 +254,45 @@ public class ParamPanel extends Frame {
     public void setCloseAllowed(boolean val) {
         closeAllowed = val;
     }
+
+    static final String NOGROUP = "none";
+
+    public static Vector<ParamGroup> makeGroups(Parameter param[]){
+
+        HashMap<String,ParamGroup> map = new HashMap<String,ParamGroup>();
+        Vector<ParamGroup> groups = new Vector<ParamGroup>();
+        for(int i =0; i < param.length; i++){
+            Parameter par = param[i];
+            String gname = par.getGroup();
+            if(gname == null) gname = NOGROUP;
+            ParamGroup pg = map.get(gname);
+            if(pg == null) {
+                pg = new ParamGroup(gname);
+                map.put(gname, pg);
+                groups.add(pg);
+            }
+            pg.add(par);
+        }
+        return groups;
+    } 
+
+    static class ParamGroup {
+
+        String name;
+        Vector<Parameter> param = new Vector<Parameter>();
+
+        ParamGroup(String name){
+            this.name = name;
+        }
+
+        void add(Parameter par){
+            param.add(par);
+        }
+        Parameter[] getParamArray(int index){
+            Parameter par[] = new Parameter[param.size()];
+            param.copyInto(par);
+            return par;
+        }
+
+    }    
 }

@@ -24,6 +24,9 @@ public class AxisAngle4dParameter extends NumberParameter {
     public AxisAngle4dParameter(String name) {
         this(name, name, new AxisAngle4d(0, 1, 0,0));
     }
+    public AxisAngle4dParameter(String name, AxisAngle4d initialValue) {
+        this(name, name, initialValue);
+    }
 
     public AxisAngle4dParameter(String name, String desc) {
         this(name, desc, new AxisAngle4d(0, 1, 0,0));

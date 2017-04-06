@@ -131,6 +131,10 @@ public class EvaluatedScript extends BaseParameterizable {
         return success;
     }
 
+    public void setSuccess(boolean value) {
+        this.success = value;;
+    }
+
 
     public int getOpCount() {
         return opCount;
@@ -224,4 +228,5 @@ public class EvaluatedScript extends BaseParameterizable {
         errorMap.put("msg", msg);
         errorLogs.add(errorMap);
     }
+
 }

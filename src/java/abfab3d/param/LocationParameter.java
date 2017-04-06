@@ -38,9 +38,14 @@ public class LocationParameter extends BaseParameter implements Cloneable {
         this(name, desc, DEFAULT_POINT, DEFAULT_NORMAL);
     }
     
+    public LocationParameter(String name, Vector3d point, Vector3d normal) {
+        this(name, name, point, normal);        
+    }
+
     public LocationParameter(String name, String desc, Vector3d point, Vector3d normal) {
         this(name, desc, point, normal, DEFAULT_MIN_POINT, DEFAULT_MAX_POINT);
     }
+
 
     public LocationParameter(String name, String desc, Vector3d point, Vector3d normal, Vector3d minPoint, Vector3d maxPoint) {
         super(name, desc);

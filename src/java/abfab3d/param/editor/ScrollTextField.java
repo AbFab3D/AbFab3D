@@ -10,6 +10,7 @@
  ****************************************************************************/
 package abfab3d.param.editor;
 
+import javax.swing.JTextField;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Vector;
@@ -19,8 +20,10 @@ import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 
 
-public class ScrollTextField extends TextField {
-    
+public class ScrollTextField extends JTextField {
+
+    static final boolean DEBUG = false;
+
     private double m_currentIncrement = 0.0001;
     static final int MIN_DIGITS = 6;
     private String m_currentFormat = "%8.6f";
@@ -153,9 +156,16 @@ public class ScrollTextField extends TextField {
      */
     public void setValue(double value){
 
-        m_value = value;
-        setText(fmt(m_currentFormat,m_value));
+        //if(DEBUG) new Exception().printStackTrace();
+        if(DEBUG) printf("%s.setValue(%10.8f)\n", this.getClass().getSimpleName(), value);
         
+        m_value = value;
+        String text = fmt(m_currentFormat,m_value);
+        setText(text);
+        if(DEBUG) printf("   text: %s\n", text);
+        
+        //int cp = getCaretPosition();
+
     }
 
     
@@ -370,25 +380,23 @@ public class ScrollTextField extends TextField {
         public void	keyReleased(KeyEvent e){
             
             int sign = 0;
-            //System.out.println("keyReleased: " + e);
+            if(DEBUG)printf("keyReleased: %s\n",e);
+            
             switch(e.getKeyCode()){
             default: 
                 break;
             case KeyEvent.VK_UP:        
-                {
-                    sign = 1;        
-                }
+                sign = 1;                        
                 break;
                 
-            case KeyEvent.VK_DOWN:
-                {
-                    sign = -1;
-                }
+            case KeyEvent.VK_DOWN:                
+                sign = -1;
                 break;
             }
             
             if(sign != 0) {
                 
+                // arrows was pressed 
                 int cp = getCaretPosition();
                 double value = Double.parseDouble(extractNumber()); 
                 makeIncrementStep(cp, extractNumber());
@@ -408,9 +416,7 @@ public class ScrollTextField extends TextField {
                 }
                 
                 setCaretPosition(cp);
-            }      
-        }
-        
-    }
-    
+            }               
+        }        
+    }    
 }

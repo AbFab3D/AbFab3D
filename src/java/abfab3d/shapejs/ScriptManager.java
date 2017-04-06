@@ -137,7 +137,7 @@ public class ScriptManager {
     /**
      * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
      * @param jobID
-     * @param delta
+     * @param delta  if true will try to retrive script from cache
      * @param script
      * @param params
      * @return
@@ -166,15 +166,15 @@ public class ScriptManager {
                         sr.script = script;
                     }
 
-                    if (!sr.result.isSuccess()) {
-                        printf("Script in a bad state, trying to reparse\n");
+                    if (!sr.evaluatedScript.isSuccess()) {
+                        if(DEBUG)printf("Script in a bad state, trying to reparse\n");
                         if (script != null) {
                             sr.eval.parseScript(script);
                             sr.script = script;
                         } else {
                             sr.eval.parseScript(sr.script);
                         }
-                        sr.result = sr.eval.getResult();
+                        sr.evaluatedScript = sr.eval.getResult();
                     }
                 }
             } catch (ExecutionException ee) {
@@ -188,9 +188,9 @@ public class ScriptManager {
             sr.jobID = jobID;
             sr.eval = new ShapeJSEvaluator();
             sr.eval.parseScript(script);
-            sr.result = sr.eval.getResult();
+            sr.evaluatedScript = sr.eval.getResult();
             sr.script = script;
-            if (!sr.result.isSuccess()) {
+            if (!sr.evaluatedScript.isSuccess()) {
                 return sr;
             }
             sr.firstCreate = true;
@@ -206,16 +206,17 @@ public class ScriptManager {
             sr.eval.mungeParams(params, sr.firstCreate);
             if (DEBUG) printf("ScriptManager.update munge: %d ms\n", time() - t0);
         } catch (IllegalArgumentException iae) {
-            sr.result = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, iae.getMessage(), null, time() - t0);
+            sr.evaluatedScript = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, iae.getMessage(), null, time() - t0);
             return sr;
         }
 
         // download URLs
+        //downloadURI(sr.evaluatedScript.getParamMap(), params);
         downloadURI(sr, params);
         sr.params.putAll(params);
 
         // Cache the job only if script eval is a success
-        if (sr.result.isSuccess()) {
+        if (sr.evaluatedScript.isSuccess()) {
             if (!STOP_CACHING) {
                 cache.put(jobID, sr);
             }
@@ -292,21 +293,25 @@ public class ScriptManager {
         if (sr.firstCreate) {
             t0 = time();
             if (DEBUG) printf("ScriptManager Execute script.  params: %s\n", params);
-            sr.result = sr.eval.executeScript("main", params);
+            sr.evaluatedScript = sr.eval.executeScript("main", params);
             if (DEBUG) printf("ScriptManager Done eval time: %d ms\n", time() - t0);
         } else {
             t0 = time();
             if (DEBUG) printf("ScriptManager Reeval script.  params: %s\n", params);
-            sr.result = sr.eval.reevalScript(sr.script, params);
+            sr.evaluatedScript = sr.eval.reevalScript(sr.script, params);
             if (DEBUG) printf("ScriptManager Done Reeval script.  %d ms\n", time() - t0);
         }
 
         t0 = time();
-
-        if (sr.result.isSuccess()) {
-
+        if (sr.evaluatedScript.isSuccess()) {
+            Scene scene = sr.evaluatedScript.getScene();
+            if(scene == null){
+                // somehow this happens 
+                sr.evaluatedScript.setSuccess(false);
+                return sr;
+            }
             // I think this is the correct place to call initialize.  Might call it too often?
-            List<Parameterizable> list = sr.result.getScene().getSource();
+            List<Parameterizable> list = sr.evaluatedScript.getScene().getSource();
             for (Parameterizable ds : list) {
                 if (ds instanceof Initializable) {
                     ((Initializable) ds).initialize();
@@ -319,7 +324,7 @@ public class ScriptManager {
         }
         return sr;
 
-    }
+        }
 
     public void cleanupJob(String jobID) {
         cache.invalidate(jobID);
@@ -337,7 +342,7 @@ public class ScriptManager {
      * @param namedParams
      */
     private void downloadURI(ScriptResources resources,  Map<String, Object> namedParams) {
-        EvaluatedScript escript = resources.result;
+        EvaluatedScript escript = resources.evaluatedScript;
         Map<String, Parameter> evalParams = escript.getParamMap();
         String workingDirName = null;
         String workingDirPath = null;

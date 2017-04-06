@@ -25,6 +25,9 @@ public class LongParameter extends NumberParameter {
     /** Max range for numeric values */
     private long maxRange;
 
+    public LongParameter(String name, long initialValue) {
+        this(name, name, initialValue);
+    }
     public LongParameter(String name, String desc, long initialValue) {
 
         this(name, desc, initialValue, Long.MIN_VALUE, Long.MAX_VALUE);

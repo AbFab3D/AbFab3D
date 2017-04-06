@@ -104,14 +104,17 @@ public class Scene extends BaseParameterizable {
     };
     
     public Scene(String name){
+
         m_name = name;
         initParams();
         initRendering();
+        if(DEBUG)printf("Scene(%s)\n",name);
     }
 
     public Scene(Parameterizable source, Bounds bounds){
 
         this(source, bounds, bounds.getVoxelSize());
+        if(DEBUG)printf("Scene(%s, %s)\n",source, bounds);
         //if(DEBUG)printf("Shape(%s, source:%s, bounds:%s)\n", this, source, bounds);
     }
 
@@ -120,6 +123,7 @@ public class Scene extends BaseParameterizable {
     }
 
     public Scene(Parameterizable source, Bounds bounds, double voxelSize){
+        if(DEBUG)printf("Scene(%s, %s, %s)\n",source, bounds, voxelSize);
         //if(DEBUG)printf("Shape(%s, source:%s bounds:%s vs:%7.5f)\n", this, source, bounds, voxelSize);
         Shape s = new Shape((DataSource)source, DefaultMaterial.getInstance());
         addShape(s);

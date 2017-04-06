@@ -75,7 +75,9 @@ public class FormattedTextEditor extends BaseEditor implements FocusListener {
        @Override 
      */
     public void updateUI(){
-        //TODO 
+        
+        m_textArea.setText((String)m_param.getValue());
+        
     }
 
 }

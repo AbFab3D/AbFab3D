@@ -21,6 +21,12 @@ package abfab3d.param;
 public class URIParameter extends BaseParameter {
     private String[] validMimeTypes = new String[] {"*"};
 
+    public URIParameter(String name, String initialValue) {
+        super(name, name);
+        defaultValue = initialValue;
+        setValue(initialValue);
+    }
+
     public URIParameter(String name, String desc, String initialValue) {
         super(name, desc);
         defaultValue = initialValue;

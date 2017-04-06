@@ -187,6 +187,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
      */
     public int initialize(){
         
+        if(DEBUG) printf("%s.initialize()\n",this);
         super.initialize();
         m_currentParamString = getLocalParamString();
         if(!paramChanged()){
@@ -241,7 +242,8 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         } else if(producer instanceof TriangleProducer){
             return initPlainMesh((TriangleProducer)producer);            
         }
-        throw new RuntimeException(fmt("don't know how tro handle mesh %s",producer));
+
+        throw new RuntimeException(fmt("don't know how to handle mesh %s",producer));
     }
 
     protected int initAttributedMesh(AttributedTriangleProducer atProducer){
@@ -266,6 +268,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
                                                                                   threadCount);
         
         m_distCalc = distData;
+        super.m_channelsCount = m_distCalc.getChannelsCount();
         
         m_savedParamString = m_currentParamString;
         
@@ -304,6 +307,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         // handle mutli resolution case 
         
         m_distCalc = distData;
+        super.m_channelsCount = m_distCalc.getChannelsCount();
         
         m_savedParamString = m_currentParamString;
 
@@ -429,7 +433,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         // z-buffer rasterizer to get mesh interior 
         MeshRasterizer interiorRasterizer = new MeshRasterizer(gridBounds, gridDim[0],gridDim[1],gridDim[2]);
         interiorRasterizer.setInteriorValue(INTERIOR_VALUE);
-        int dataDimension = atProducer.getDataDimension();
+        int dataDimension = atProducer.getDataDimension();        
         if(DEBUG) printf("dataDimension: %d\n", dataDimension);
         Bounds surfaceBounds = gridBounds.clone();
         double voxelSize = gridBounds.getVoxelSize();

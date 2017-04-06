@@ -25,6 +25,7 @@ import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.core.MathUtil.getDistance;
 import static abfab3d.core.MathUtil.floatToInt;
 
+import static abfab3d.core.Output.printf;
 
 /**
    intepolator of distances from index grid and array of coordinates
@@ -35,6 +36,8 @@ import static abfab3d.core.MathUtil.floatToInt;
    @author Vladimir Bulatov
 */
 public class IndexedDistanceInterpolator implements DataSource {
+    
+    static final boolean DEBUG = true;
     
     static final int UNDEFINED_INDEX = 0;  // value of voxels with undefined index 
     static final double HALF = 0.5;
@@ -120,6 +123,9 @@ public class IndexedDistanceInterpolator implements DataSource {
 
         m_dataDimension = dataDimension;
         m_channelsCount = dataDimension-2;
+
+        if(DEBUG) printf("%s, channels: %d\n",this.getClass().getName(), m_channelsCount);
+        
 
     }
     

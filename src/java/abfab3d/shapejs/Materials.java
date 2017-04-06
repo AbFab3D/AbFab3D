@@ -28,6 +28,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class Materials {
+    static final boolean DEBUG = false;
     private static LinkedHashMap<String, Material> mats = new LinkedHashMap<>();
     private static String[] allMaterialNames;
 
@@ -42,7 +43,7 @@ public class Materials {
     public static Material get(String name) {
         Material mat = mats.get(name);
         if (mat == null) {
-            printf("Cannot find material: %s, mapping to default.",name);
+            if(DEBUG)printf("Cannot find material: %s, mapping to default.\n",name);
             mat = DefaultMaterial.getInstance();
         }
 

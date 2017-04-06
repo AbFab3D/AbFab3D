@@ -78,6 +78,13 @@ public class ParamCache {
         }
     }
 
+    /**
+       discard all entries
+     */
+    public void invalidateAll(){
+        cache.invalidateAll();
+    }
+
     public void remove(String key) {
         cache.invalidate(key);
     }

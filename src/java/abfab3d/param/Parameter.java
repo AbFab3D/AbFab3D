@@ -122,4 +122,16 @@ public interface Parameter extends Cloneable {
      */
     public void addEditor(Editor editor);
 
+    /**
+       @return String representation of this Parametetr to be used for serialization 
+       it is expected to be representation in simple JSON form 
+     */
+    public String getStringValue();
+
+    /**
+       set value of this parameter as string 
+       @param str string it is expected to be representation in simple JSON form 
+     */
+    public void setStringValue(String str);
+
 }

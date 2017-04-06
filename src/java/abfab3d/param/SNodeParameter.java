@@ -39,6 +39,10 @@ public class SNodeParameter extends BaseParameter {
         this(name, desc, new UndefinedParameter(), new BaseSNodeFactory());
     }
 
+    public SNodeParameter(String name, Object initialValue) {
+        this(name, name, initialValue, new BaseSNodeFactory());        
+    }
+
     public SNodeParameter(String name, String desc, Object initialValue, SNodeFactory nodeFactory) {
 
         super(name, desc);
