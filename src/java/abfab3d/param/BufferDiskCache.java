@@ -93,7 +93,7 @@ public class BufferDiskCache implements Runnable {
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
-                    printf("Shutting down BufferDiskCase");
+                    printf("Shutting down BufferDiskCache");
                     shutdown();
                 }
             });
