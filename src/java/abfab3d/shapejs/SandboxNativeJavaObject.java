@@ -22,6 +22,7 @@ import java.util.HashSet;
  * @author Alan Hudson
  */
 public class SandboxNativeJavaObject extends NativeJavaObject {
+    private static final boolean DEBUG = false;
     private static final HashSet<String> forbidden;
 
     static {
@@ -36,6 +37,7 @@ public class SandboxNativeJavaObject extends NativeJavaObject {
 
     @Override
     public Object get(String name, Scriptable start) {
+        if (DEBUG) System.out.printf("Sandbox.  name: " + name);
         if (forbidden.contains(name)) {
             return NOT_FOUND;
         }
