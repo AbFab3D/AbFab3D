@@ -22,7 +22,8 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class CPUCache {
-    private static final boolean STOP_CACHING = false;
+    private static final boolean CACHE_ENABLED = false;
+
     private static final boolean USE_DISK_CACHE = true;
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_MISSES = false;
@@ -37,7 +38,7 @@ public class CPUCache {
             misses = new BoundedStack<String>(25);
         }
 
-        if (STOP_CACHING) {
+        if (!CACHE_ENABLED) {
             printf("*** CPUCache caching is turned off ***\n");
             new Exception().printStackTrace();
         }
@@ -70,7 +71,7 @@ public class CPUCache {
     }
 
     public LabeledBuffer get(String label) {
-        if (STOP_CACHING) return null;
+        if (!CACHE_ENABLED) return null;
 
         try {
             LabeledBuffer co = cache.get(label);
@@ -102,7 +103,7 @@ public class CPUCache {
     }
 
     private void put(LabeledBuffer buffer, boolean justLoaded) {
-        if (STOP_CACHING) return;
+        if (!CACHE_ENABLED) return;
 
         if (DEBUG) {
             printf("CPUCache.put: %s\n", buffer.getLabel());

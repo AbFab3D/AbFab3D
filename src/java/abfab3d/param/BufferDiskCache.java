@@ -53,6 +53,8 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class BufferDiskCache implements Runnable {
+    private static final boolean CACHE_ENABLED = false;
+    
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_TIMING = false;
     private static long DEFAULT_SIZE = (long) (4 * 1e9);
@@ -100,6 +102,10 @@ public class BufferDiskCache implements Runnable {
             writeThread = new Thread(this);
             writeThread.start();
         }
+
+        if (!CACHE_ENABLED) {
+            printf("**** Buffer disk cache turned off, should not happen in production ****");
+        }
     }
 
     /**
@@ -128,6 +134,8 @@ public class BufferDiskCache implements Runnable {
     }
 
     public void put(LabeledBuffer buff) {
+        if (!CACHE_ENABLED) return;
+
         if (lazyWrites) {
             putLazy(buff);
         } else {
@@ -136,6 +144,8 @@ public class BufferDiskCache implements Runnable {
     }
 
     public void putDirect(LabeledBuffer buff) {
+        if (!CACHE_ENABLED) return;
+
         try {
             ThreadVars tvars = threadVars.get();
             HashMap<String, Object> extra = tvars.extra;
@@ -158,6 +168,8 @@ public class BufferDiskCache implements Runnable {
      * @param buff
      */
     private void putLazy(LabeledBuffer buff) {
+        if (!CACHE_ENABLED) return;
+
         try {
             writeQueue.put(buff);
         } catch(InterruptedException ie) {
@@ -181,6 +193,8 @@ public class BufferDiskCache implements Runnable {
     }
 
     public LabeledBuffer get(String label) {
+        if (!CACHE_ENABLED) return null;
+        
         ThreadVars tvars = threadVars.get();
         HashMap<String, Object> extra = tvars.extra;
         extra.clear();
