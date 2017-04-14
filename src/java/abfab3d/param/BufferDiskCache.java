@@ -53,7 +53,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class BufferDiskCache implements Runnable {
-    private static final boolean CACHE_ENABLED = false;
+    private static final boolean CACHE_ENABLED = true;
     
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_TIMING = false;
