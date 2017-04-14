@@ -468,33 +468,6 @@ public class Scene extends BaseParameterizable {
         m_lastMaterial--;
     }
 
-    /**
-       return type of material used in scene 
-     */
-/*
-    public MaterialType getMaterialType() {
-        return m_materialType;
-    }
-*/
-    /**
-     set type of material used in scene
-     SINGLE_MATERIAL
-     MULTI_MATERIAL
-     COLOR_MATERIAL
-     */
-/*
-    public void setMaterialType(MaterialType type) {
-        System.out.printf("***Incoming mat: %s\n",type);
-        if (type == null) throw new IllegalArgumentException("Type cannot be null");
-        m_materialType = type;
-        Shape shape = m_shapes.get(0);
-        Material mat = shape.getMaterial();
-        if(type == MaterialType.COLOR_MATERIAL){
-            System.out.printf("***Color hack in place\n");
-            ((Parameterizable)mat.getShader().getShaderParams()).set("materialType", "full color");
-        }
-    }
-*/
     public void setLights(Light[] lights) {
         m_lights.setLights(lights);
 

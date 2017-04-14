@@ -44,6 +44,7 @@ import static abfab3d.core.Output.fmt;
 public class ShapeJSEvaluator implements MaterialMapper {
 
     final static boolean DEBUG = false;
+    final static boolean DEBUG_SECURITY = false;
 
     /** Packages allowed to be imported.  Security mechanism */
     private static ArrayList<String> packageWhitelist = new ArrayList<String>();
@@ -133,6 +134,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
     }
 
     public ShapeJSEvaluator() {
+        System.out.printf("Inside default const:\n");
         this.sandboxed = true;
         types = new LinkedHashMap<String,Parameter>();
         defs = new LinkedHashMap<String,Parameter>();
@@ -142,6 +144,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
     }
 
     public ShapeJSEvaluator(boolean sandboxed) {
+        System.out.printf("Inside sandbox const: %b\n",sandboxed);
+        new Exception().printStackTrace();
         this.sandboxed = sandboxed;
         defaultProvided = new HashSet<String>();
 
@@ -331,8 +335,12 @@ public class ShapeJSEvaluator implements MaterialMapper {
             org.mozilla.javascript.ContextFactory.GlobalSetter gsetter = ContextFactory.getGlobalSetter();
 
             if (gsetter != null) {
+
+                if (DEBUG_SECURITY) printf("Adding SandboxContextFactory\n");
                 gsetter.setContextFactoryGlobal(new SandboxContextFactory());
             }
+        } else if (DEBUG_SECURITY) {
+            printf("Explicit global: %b\n",ContextFactory.hasExplicitGlobal());
         }
 
         if (DEBUG) printf("parseScript(this: %s script, sandbox: %b)\n", this,sandboxed);
@@ -401,6 +409,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             Context.exit();
         }
 
+        if (DEBUG) printf("Eval worked.  defs: %s\n",defs);
         result = new EvaluatedScript(true,val,null,null,null,null,defs,(System.currentTimeMillis() - t0));
     }
 
@@ -408,6 +417,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
         if (shutter == null) {
             shutter = new ClassShutter() {
                 public boolean visibleToScripts(String className) {
+                    if (DEBUG_SECURITY) printf("Checking class: %s\n",className);
                     if (classWhiteList.contains(className)) {
                         //printf("Allowing: %s\n",className);
                         return true;
@@ -434,7 +444,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
                     }
 
-                    //printf("Rejecting class: %s\n", className);
+                    if (DEBUG_SECURITY) printf("Rejecting class: %s\n", className);
                     return false;
                 }
             };}
