@@ -1518,7 +1518,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
         String onChange = (String) no.get("onChange");
         String group = (String) no.get("group");
         String label = (String) no.get("label");
-        String hidden = (String) no.get("hidden");
+        Boolean hidden = (Boolean) no.get("hidden");
 
 
         if (name == null) {
@@ -1870,7 +1870,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
         }
 
         if (hidden != null) {
-            pd.setHidden(Boolean.parseBoolean(hidden));
+            pd.setHidden(hidden);
         }
 
         pd.setOnChange(onChange);
