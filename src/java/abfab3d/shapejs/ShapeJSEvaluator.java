@@ -1518,7 +1518,9 @@ public class ShapeJSEvaluator implements MaterialMapper {
         String onChange = (String) no.get("onChange");
         String group = (String) no.get("group");
         String label = (String) no.get("label");
-        Boolean hidden = (Boolean) no.get("hidden");
+        Boolean visible = (Boolean) no.get("visible");
+        Boolean enabled = (Boolean) no.get("enabled");
+        Map editor = (Map) no.get("editor");
 
 
         if (name == null) {
@@ -1869,10 +1871,9 @@ public class ShapeJSEvaluator implements MaterialMapper {
             throw new ClassCastException("Error parsing definition for parameter: " + name + ".\n" + cce.getMessage());
         }
 
-        if (hidden != null) {
-            pd.setHidden(hidden);
-        }
-
+        if (enabled != null) pd.setEnabled(enabled);
+        if (visible != null) pd.setVisible(visible);
+        if (editor != null) pd.setEditor(editor);
         pd.setOnChange(onChange);
         if (label != null) pd.setLabel(label);
         if (group != null) pd.setGroup(group);
@@ -1959,7 +1960,9 @@ public class ShapeJSEvaluator implements MaterialMapper {
         String name = (String) fp.get("name");
         String label = (String) fp.get("label");
         String desc = (String) fp.get("desc");
-        String hidden = (String) fp.get("hidden");
+        Boolean enabled = (Boolean) fp.get("enabled");
+        Boolean visible = (Boolean) fp.get("visible");
+        Map editor = (Map) fp.get("editor");
 
         Object vals = fp.get("values");
         String[] values = null;
@@ -1983,13 +1986,17 @@ public class ShapeJSEvaluator implements MaterialMapper {
         if (defaultValue == null) defaultValue = (String) sep.getDefaultValue();
         if (onChange == null) onChange = (String) sep.getOnChange();
         if (group == null) group = (String) sep.getGroup();
-        if (hidden == null) hidden = (String) (sep.isHidden() ? "true" : "false");
+        if (enabled == null) enabled = sep.isEnabled();
+        if (visible == null) visible = sep.isVisible();
+        if (editor == null) editor = sep.getEditor();
 
         EnumParameter ret_val = new EnumParameter(name,desc,values,defaultValue);
         ret_val.setLabel(label);
         ret_val.setOnChange(onChange);
         ret_val.setGroup(group);
-        ret_val.setHidden(Boolean.parseBoolean(hidden));
+        ret_val.setEnabled(enabled);
+        ret_val.setVisible(visible);
+        ret_val.setEditor(editor);
 
         return ret_val;
     }

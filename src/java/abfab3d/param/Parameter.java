@@ -12,6 +12,8 @@
 
 package abfab3d.param;
 
+import java.util.Map;
+
 /**
  * A parameter to a datasource.
  *
@@ -94,8 +96,16 @@ public interface Parameter extends Cloneable {
     
     public String getLabel();
 
-    public boolean isHidden();
-    public void setHidden(boolean val);
+    public boolean isVisible();
+
+    public void setVisible(boolean visible);
+
+    public boolean isEnabled();
+
+    public void setEnabled(boolean enabled);
+
+    public void setEditor(Map val);
+    public Map getEditor();
 
     /**
      * Get the string value to use for parameter hashes

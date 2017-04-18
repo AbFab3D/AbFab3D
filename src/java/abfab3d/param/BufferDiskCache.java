@@ -53,6 +53,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class BufferDiskCache implements Runnable {
+    // TODO: do not check in figure out a better way to deal with large dirs
     private static final boolean CACHE_ENABLED = true;
     
     private static final boolean DEBUG = false;
@@ -136,6 +137,8 @@ public class BufferDiskCache implements Runnable {
     public void put(LabeledBuffer buff) {
         if (!CACHE_ENABLED) return;
 
+
+
         if (lazyWrites) {
             putLazy(buff);
         } else {
@@ -145,6 +148,11 @@ public class BufferDiskCache implements Runnable {
 
     public void putDirect(LabeledBuffer buff) {
         if (!CACHE_ENABLED) return;
+
+        if (buff.getLabel().contains("@")) {
+            printf("Not caching buffer incorrect buffer: %s\n",buff.getLabel());
+            return;
+        }
 
         try {
             ThreadVars tvars = threadVars.get();
@@ -169,6 +177,11 @@ public class BufferDiskCache implements Runnable {
      */
     private void putLazy(LabeledBuffer buff) {
         if (!CACHE_ENABLED) return;
+
+        if (buff.getLabel().contains("@")) {
+            printf("Not caching buffer incorrect buffer: %s\n",buff.getLabel());
+            return;
+        }
 
         try {
             writeQueue.put(buff);

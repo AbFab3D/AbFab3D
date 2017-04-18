@@ -351,6 +351,7 @@ public class FileDiskCache {
         String ret_val = key.replaceAll("[ :\\\\/*\"?|<>'.;#$=]", "");
         ThreadVars tvars = threadVars.get();
 
+        // TODO: I've seen some model reuses that make the think 32 bits is not enough here
         CRC32 crc = tvars.crc;
         StringBuilder sb = tvars.sb;
 
