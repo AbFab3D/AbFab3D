@@ -11,6 +11,8 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
+import java.util.Map;
+
 import abfab3d.param.Parameter;
 import abfab3d.param.Editor;
 import abfab3d.param.ParameterType;
@@ -72,17 +74,17 @@ public class ParameterJSWrapper extends ScriptableObject implements JSWrapper, P
        @return String representation of this Parametetr to be used for serialization 
        it is expected to be representation in simple JSON form 
      */
-    public String getStringValue(){
-        return param.getStringValue();
-    }
+    //public String getStringValue(){
+    //    return param.getStringValue();
+    //}
 
     /**
        set value of this parameter as string 
        @param str string it is expected to be representation in simple JSON form 
      */
-    public void setStringValue(String str){
-        param.setStringValue(str);
-    }
+    //public void setStringValue(String str){
+    //    param.setStringValue(str);
+    //}
 
     @Override
     public void put(String name, Scriptable start, Object value) {
@@ -191,24 +193,48 @@ public class ParameterJSWrapper extends ScriptableObject implements JSWrapper, P
         param.setLabel(s);
     }
 
+    @Override
     public String getParamString() {
         return param.getParamString();
     }
 
+    @Override
     public void getParamString(StringBuilder sb) {
         param.getParamString(sb);
     }
 
+    @Override
     public boolean hasChanged() {
         return param.hasChanged();
     }
 
-    public void setHidden(boolean val) {
-        param.setHidden(val);
+    @Override
+    public void setEnabled(boolean val) {
+        param.setEnabled(val);
     }
 
     @Override
-    public boolean isHidden() {
-        return param.isHidden();
+    public boolean isEnabled() {
+        return param.isEnabled();
     }
+    @Override
+    public void setVisible(boolean val) {
+        param.setVisible(val);
+    }
+
+    @Override
+    public boolean isVisible() {
+        return param.isVisible();
+    }
+
+    @Override
+    public Map getEditor() {
+        return param.getEditor();
+    }
+
+    @Override
+    public void setEditor(Map editor) {
+        param.setEditor(editor);
+    }
+
 }
