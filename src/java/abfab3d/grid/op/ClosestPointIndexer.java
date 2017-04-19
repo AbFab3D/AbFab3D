@@ -69,7 +69,7 @@ public class ClosestPointIndexer {
     static final double HALF = 0.5;
     static final boolean DEBUG = false;
     static boolean DEBUG1 = false;
-    static final boolean DEBUG_TIMING = true;
+    static final boolean DEBUG_TIMING = false;
     static final int sm_iterationNeig[] = Neighborhood.makeBall(1.5); // neighborhood for iterations
 
     // neighbors to collect points for 1D pass 

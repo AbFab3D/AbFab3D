@@ -24,7 +24,7 @@ import static abfab3d.core.MathUtil.clamp;
  */
 public class GridDataChannel implements LongConverter { // , ValueMaker {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     int debugCount = 10000;
     // standard channel types
     public static final String UNKNOWN = "UNKNOWN";
@@ -74,9 +74,6 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
     protected int m_shift;
     int m_bits;
 
-    // mask to get sign bit 
-    long m_signMask;
-    long m_complementMask;
     // bitmask to extract channel bits from unsigned long
     long m_mask;
     long m_maxLongValue;
@@ -88,16 +85,18 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
     double m_D2B; // Double -> Bits conversion factor 
     double m_B2D; // Bits -> Double conversion factor 
 
+    boolean m_isSignedShort = false;
+
     BitsExtractor m_bitsExtractor;
     AttributeGrid m_grid;
     
     /**
        attribute channel stores data in given number of bits 
-       the physical value is interpolated between value1 and value 2
-       value with bits 0000 is mapped to value0
-       value bits with valus 1111 is maped to value1 
+       the physical value is interpolated between value0 and value1
+       value with all bits 0s is mapped to value0
+       value with all bits 1s is maped to value1 
 
-       this is unsigned variant of AttributeChannel 
+       this is unsigned variant of GridDataChannel 
        
      */
     public GridDataChannel(String stype, String name, int bits, int shift, double value0, double value1){
@@ -121,7 +120,7 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
             m_maxValue = value0;
             m_minValue = value1;
         } else {
-            throw new IllegalArgumentException("AttributeChannel (value0 == value1) is not allowed");
+            throw new IllegalArgumentException("GridDataChannel (value0 == value1) is not allowed");
         }
         m_offset = value0;
         m_value0 = value0;
@@ -137,12 +136,16 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
     
 
     /**
-       this is signed variant of AttributeChannel to work with short
+       this is signed variant of GridDataChannel to work with short
        it is legacy variant to work with code which stores distance data as signed short 
        @param physicalUnit conversion factor from int to physical units 
      */
+    
     public GridDataChannel(String stype, String name, double physicalUnit, double minValue, double maxValue){
-
+        
+        if(DEBUG){
+            printf("legacy code signed GridDataChannel() be careful !!!\n");
+        }
         m_itype = makeIType(stype);
         m_stype = stype;
         m_name = name;
@@ -150,7 +153,7 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
         m_mask = 0xFFFF;
 
         m_bitsExtractor = new ShortBitsExtractor();
-
+        
         m_bits = 16;
 
         m_B2D = physicalUnit;        
@@ -159,11 +162,10 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
         m_offset = 0;
         m_value0 = minValue;
         m_value1 = maxValue;
+        m_isSignedShort = true;
         
-        //m_value1 = physicalUnit*Short.MAX_VALUE;
-
     }
-
+    
      /**
         bit count stored in the channel 
       */
@@ -224,6 +226,13 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
     public double getValue1(){
         return m_value1;
     }
+    
+    /**
+       return true is contains signed data (legacy signed short) 
+     */
+     public boolean isSignedShort(){
+         return m_isSignedShort;
+     }
 
     /**
        method of interface LongConverter 
@@ -267,9 +276,6 @@ public class GridDataChannel implements LongConverter { // , ValueMaker {
         double nvalue = (cvalue - m_value0)*m_D2B;
         // do we need to have 0.5 shift ??? 
         long att = (((long)(nvalue + 0.5))& m_mask) << m_shift;
-        if(DEBUG) {
-            if(debugCount-- > 0)printf("makeAtt(v:%8.5f, cv:%8.5f, nv:%6.2f att:0x%02x\n",value, cvalue, nvalue, att);
-        }
 
         return att;
     }

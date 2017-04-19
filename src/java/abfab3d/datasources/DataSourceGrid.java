@@ -259,9 +259,6 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     /**
      * @noRefGuide
      */
-    //public int getGridDataTypeSize() {
-    //    return mp_gridDataTypeSize.getValue();
-    //}
     public GridDataDesc getGridDataDesc() {
         loadGrid();
 
@@ -274,27 +271,27 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     public GridDataDesc getBufferDataDesc() {
 
         loadGrid();
-
+        
         //int dds = getGridDataTypeSize();
         GridDataDesc gdd = m_grid.getDataDesc();
 
-        return gdd;
-/*
-        // make new GridDataDesc which will be used to make buffer data
+        if(false)return gdd;
+        
+        int count = gdd.size();
         GridDataDesc bdd = new GridDataDesc();
-        int cc = gdd.size();        
-        int bitOffset = 0;
-        for(int i = 0; i < cc; i++){
-            GridDataChannel gc = gdd.getChannel(i);
-            //TODO make active channels selectable 
-            //TODO make bitCount adjustable           
-            int bitCount = 8;
-            bdd.addChannel(new GridDataChannel(gc.getType(),gc.getName(),bitCount,bitOffset, gc.getValue0(), gc.getValue1()));
-            bitOffset += bitCount;
+        for(int i = 0; i < count; i++){
+            GridDataChannel dc = gdd.getChannel(i);
+            if(dc.isSignedShort()){                
+                // convert signed short into unsigned short 
+                double v0 = dc.getValue(Short.MIN_VALUE);
+                double v1 = dc.getValue(Short.MAX_VALUE);
+                GridDataChannel nc = new GridDataChannel(dc.getType(), dc.getName(), 16, dc.getShift(), v0, v1);
+                bdd.addChannel(nc);
+            } else {
+                bdd.addChannel(dc);
+            }
         }
-
         return bdd;
-        */
     }
 
     /**

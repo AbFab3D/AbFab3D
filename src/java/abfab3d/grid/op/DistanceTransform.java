@@ -66,6 +66,7 @@ public class DistanceTransform {
         }
         distGrid.setGridBounds(bounds);
         distGrid.setDataDesc(new GridDataDesc(new GridDataChannel(GridDataChannel.DISTANCE, "distance", vs / m_subvoxelResolution, -m_inDistance, m_outDistance)));
+        //distGrid.setDataDesc(new GridDataDesc(new GridDataChannel(GridDataChannel.DISTANCE, "distance", 16, 0, -m_inDistance, m_outDistance)));
 
         return distGrid;
     }   

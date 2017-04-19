@@ -55,7 +55,7 @@ import static abfab3d.grid.op.ClosestPointIndexer.makeAttributedDistanceGridSlic
 public class ClosestPointIndexerMT {
 
 
-    static final boolean DEBUG_TIMING = true;
+    static final boolean DEBUG_TIMING = false;
     static final boolean DEBUG = false;
     //static final double DEF_LAYER_THICKNESS = 1.8;
 

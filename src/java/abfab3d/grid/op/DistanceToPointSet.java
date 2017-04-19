@@ -101,6 +101,13 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     VectorIndexer m_vectorIndexerTemplate = new VectorIndexerArray(1,1,1);
 
     /**
+       
+     */
+    public DistanceToPointSet(){
+        
+    }
+
+    /**
      @param inDistance maximal distance to calculate transform inside of the shape. Measured in meters
      @param outDistance maximal distance to calculate transform outside of the shape. Measured in meters
      */

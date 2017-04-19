@@ -156,7 +156,7 @@ public class DistanceTransformExact extends DistanceTransform implements Operati
 
     /**
 
-     set distanceGrid values to bes to -max inside and max outside
+     set distanceGrid values to to -m_defaultValue inside and m_defaultValue outside
 
      */
     void initDistances(AttributeGrid grid, AttributeGrid distanceGrid){
