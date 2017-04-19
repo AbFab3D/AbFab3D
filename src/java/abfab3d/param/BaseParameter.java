@@ -12,6 +12,7 @@
 
 package abfab3d.param;
 
+import java.util.Map;
 import java.util.Vector;
 
 import static abfab3d.core.Output.printf;
@@ -45,7 +46,9 @@ public abstract class BaseParameter implements Parameter {
 
     protected boolean changed;
 
-    protected boolean hidden;
+    protected boolean visible = true;
+    protected boolean enabled = true;
+    protected Map editor;
 
     protected Vector<Editor> m_editors;
 
@@ -159,16 +162,30 @@ public abstract class BaseParameter implements Parameter {
         updateUI();
     }
 
-    /**
-     * Should the ui parameter be hidden from normal usage
-     * @param val
-     */
-    public void setHidden(boolean val) {
-        hidden = val;
+    public boolean isVisible() {
+        return visible;
     }
 
-    public boolean isHidden() {
-        return hidden;
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    @Override
+    public Map getEditor() {
+        return editor;
+    }
+
+    @Override
+    public void setEditor(Map editor) {
+        this.editor = editor;
     }
 
     /**

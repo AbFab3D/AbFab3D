@@ -53,6 +53,9 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class BufferDiskCache implements Runnable {
+    // TODO: do not check in figure out a better way to deal with large dirs
+    private static final boolean CACHE_ENABLED = true;
+    
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_TIMING = false;
     private static long DEFAULT_SIZE = (long) (4 * 1e9);
@@ -100,6 +103,10 @@ public class BufferDiskCache implements Runnable {
             writeThread = new Thread(this);
             writeThread.start();
         }
+
+        if (!CACHE_ENABLED) {
+            printf("**** Buffer disk cache turned off, should not happen in production ****");
+        }
     }
 
     /**
@@ -128,6 +135,10 @@ public class BufferDiskCache implements Runnable {
     }
 
     public void put(LabeledBuffer buff) {
+        if (!CACHE_ENABLED) return;
+
+
+
         if (lazyWrites) {
             putLazy(buff);
         } else {
@@ -136,6 +147,13 @@ public class BufferDiskCache implements Runnable {
     }
 
     public void putDirect(LabeledBuffer buff) {
+        if (!CACHE_ENABLED) return;
+
+        if (buff.getLabel().contains("@")) {
+            printf("Not caching buffer incorrect buffer: %s\n",buff.getLabel());
+            return;
+        }
+
         try {
             ThreadVars tvars = threadVars.get();
             HashMap<String, Object> extra = tvars.extra;
@@ -158,6 +176,13 @@ public class BufferDiskCache implements Runnable {
      * @param buff
      */
     private void putLazy(LabeledBuffer buff) {
+        if (!CACHE_ENABLED) return;
+
+        if (buff.getLabel().contains("@")) {
+            printf("Not caching buffer incorrect buffer: %s\n",buff.getLabel());
+            return;
+        }
+
         try {
             writeQueue.put(buff);
         } catch(InterruptedException ie) {
@@ -181,6 +206,8 @@ public class BufferDiskCache implements Runnable {
     }
 
     public LabeledBuffer get(String label) {
+        if (!CACHE_ENABLED) return null;
+        
         ThreadVars tvars = threadVars.get();
         HashMap<String, Object> extra = tvars.extra;
         extra.clear();

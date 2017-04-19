@@ -44,6 +44,7 @@ import static abfab3d.core.Output.fmt;
 public class ShapeJSEvaluator implements MaterialMapper {
 
     final static boolean DEBUG = false;
+    final static boolean DEBUG_SECURITY = false;
 
     /** Packages allowed to be imported.  Security mechanism */
     private static ArrayList<String> packageWhitelist = new ArrayList<String>();
@@ -133,6 +134,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
     }
 
     public ShapeJSEvaluator() {
+        System.out.printf("Inside default const:\n");
         this.sandboxed = true;
         types = new LinkedHashMap<String,Parameter>();
         defs = new LinkedHashMap<String,Parameter>();
@@ -142,6 +144,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
     }
 
     public ShapeJSEvaluator(boolean sandboxed) {
+        System.out.printf("Inside sandbox const: %b\n",sandboxed);
+        new Exception().printStackTrace();
         this.sandboxed = sandboxed;
         defaultProvided = new HashSet<String>();
 
@@ -331,8 +335,12 @@ public class ShapeJSEvaluator implements MaterialMapper {
             org.mozilla.javascript.ContextFactory.GlobalSetter gsetter = ContextFactory.getGlobalSetter();
 
             if (gsetter != null) {
+
+                if (DEBUG_SECURITY) printf("Adding SandboxContextFactory\n");
                 gsetter.setContextFactoryGlobal(new SandboxContextFactory());
             }
+        } else if (DEBUG_SECURITY) {
+            printf("Explicit global: %b\n",ContextFactory.hasExplicitGlobal());
         }
 
         if (DEBUG) printf("parseScript(this: %s script, sandbox: %b)\n", this,sandboxed);
@@ -401,6 +409,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             Context.exit();
         }
 
+        if (DEBUG) printf("Eval worked.  defs: %s\n",defs);
         result = new EvaluatedScript(true,val,null,null,null,null,defs,(System.currentTimeMillis() - t0));
     }
 
@@ -408,6 +417,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
         if (shutter == null) {
             shutter = new ClassShutter() {
                 public boolean visibleToScripts(String className) {
+                    if (DEBUG_SECURITY) printf("Checking class: %s\n",className);
                     if (classWhiteList.contains(className)) {
                         //printf("Allowing: %s\n",className);
                         return true;
@@ -434,7 +444,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
                     }
 
-                    //printf("Rejecting class: %s\n", className);
+                    if (DEBUG_SECURITY) printf("Rejecting class: %s\n", className);
                     return false;
                 }
             };}
@@ -1508,7 +1518,9 @@ public class ShapeJSEvaluator implements MaterialMapper {
         String onChange = (String) no.get("onChange");
         String group = (String) no.get("group");
         String label = (String) no.get("label");
-        String hidden = (String) no.get("hidden");
+        Boolean visible = (Boolean) no.get("visible");
+        Boolean enabled = (Boolean) no.get("enabled");
+        Map editor = (Map) no.get("editor");
 
 
         if (name == null) {
@@ -1859,10 +1871,9 @@ public class ShapeJSEvaluator implements MaterialMapper {
             throw new ClassCastException("Error parsing definition for parameter: " + name + ".\n" + cce.getMessage());
         }
 
-        if (hidden != null) {
-            pd.setHidden(Boolean.parseBoolean(hidden));
-        }
-
+        if (enabled != null) pd.setEnabled(enabled);
+        if (visible != null) pd.setVisible(visible);
+        if (editor != null) pd.setEditor(editor);
         pd.setOnChange(onChange);
         if (label != null) pd.setLabel(label);
         if (group != null) pd.setGroup(group);
@@ -1949,7 +1960,9 @@ public class ShapeJSEvaluator implements MaterialMapper {
         String name = (String) fp.get("name");
         String label = (String) fp.get("label");
         String desc = (String) fp.get("desc");
-        String hidden = (String) fp.get("hidden");
+        Boolean enabled = (Boolean) fp.get("enabled");
+        Boolean visible = (Boolean) fp.get("visible");
+        Map editor = (Map) fp.get("editor");
 
         Object vals = fp.get("values");
         String[] values = null;
@@ -1973,13 +1986,17 @@ public class ShapeJSEvaluator implements MaterialMapper {
         if (defaultValue == null) defaultValue = (String) sep.getDefaultValue();
         if (onChange == null) onChange = (String) sep.getOnChange();
         if (group == null) group = (String) sep.getGroup();
-        if (hidden == null) hidden = (String) (sep.isHidden() ? "true" : "false");
+        if (enabled == null) enabled = sep.isEnabled();
+        if (visible == null) visible = sep.isVisible();
+        if (editor == null) editor = sep.getEditor();
 
         EnumParameter ret_val = new EnumParameter(name,desc,values,defaultValue);
         ret_val.setLabel(label);
         ret_val.setOnChange(onChange);
         ret_val.setGroup(group);
-        ret_val.setHidden(Boolean.parseBoolean(hidden));
+        ret_val.setEnabled(enabled);
+        ret_val.setVisible(visible);
+        ret_val.setEditor(editor);
 
         return ret_val;
     }
