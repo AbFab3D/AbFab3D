@@ -15,12 +15,15 @@ package abfab3d.param;
 
 
 import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.printf;
 /**
  * A Int parameter 
  *
  * @author Vladimir Bulatov
  */
 public class IntParameter extends NumberParameter {
+    
+    static final boolean DEBUG = false;
     public static final int DEFAULT_MIN_RANGE = Integer.MIN_VALUE;
     public static final int DEFAULT_MAX_RANGE = Integer.MAX_VALUE;
 
@@ -95,6 +98,7 @@ public class IntParameter extends NumberParameter {
     @Override
     public void setValue(Object val) {
 
+        if(DEBUG) printf("IntParameter(%s).setValue(%s:%s)\n",getName(),val.getClass().getName(), val);
         // Integer keeps data as Double (for compatibility with some UI)
         if(val instanceof Double){
             val = new Integer((int)Math.round(((Double)val).doubleValue()));

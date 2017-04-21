@@ -121,6 +121,7 @@ public class DoubleParameter extends NumberParameter {
 
     @Override
     public void setValue(Object val) {
+        if(DEBUG) printf("DoubleParameter(%s).setValue(%s:%s)\n",getName(),val.getClass().getName(), val);
         if (val instanceof Double) {
             super.setValue(val);
         } else {
