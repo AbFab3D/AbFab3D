@@ -25,6 +25,7 @@ import abfab3d.param.ObjectParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.IntParameter;
+import abfab3d.param.LongParameter;
 import abfab3d.param.BooleanParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.BaseParameterizable;
@@ -109,6 +110,7 @@ public class Image3D extends TransformableDataSource {
     DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
     DoubleParameter  mp_baseThreshold = new DoubleParameter("baseThreshold", "threshold of the image", 0.01);
     DoubleParameter  mp_distanceFactor = new DoubleParameter("distanceFactor", "distance factor in the image plane", 0.1);
+    LongParameter  mp_imageFileTimeStamp = new LongParameter("imageTimeStamp", 0);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_image,
@@ -125,6 +127,17 @@ public class Image3D extends TransformableDataSource {
         mp_distanceFactor,
     };
 
+    // Params which require changes in the underlying image 
+    Parameter m_imageParams[] = new Parameter[] {
+        mp_image, 
+        mp_imageFileTimeStamp,
+        mp_size, 
+        mp_tilesX, 
+        mp_tilesY, 
+        mp_blurWidth, 
+        mp_useGrayscale
+    };
+    
     public static final double DEFAULT_PIXEL_SIZE = 0.1*MM;
 
     //static double EPSILON = 1.e-3;
@@ -199,8 +212,6 @@ public class Image3D extends TransformableDataSource {
 
     private static Grid2D m_emptyGrid = new Grid2DShort(1,1,DEFAULT_PIXEL_SIZE);
 
-    /** Params which require changes in the underlying image */
-    private Parameter[] imageParams;
 
     /**
      * @noRefGuide
@@ -376,10 +387,6 @@ public class Image3D extends TransformableDataSource {
      */
     protected void initParams(){
         super.addParams(m_aparam);
-
-        imageParams = new Parameter[] {
-                mp_image, mp_size, mp_tilesX, mp_tilesY, mp_blurWidth, mp_useGrayscale
-        };
     }
 
     /**
@@ -534,7 +541,14 @@ public class Image3D extends TransformableDataSource {
     }
 
     public void setImage(Object val) {
+        
         mp_image.setValue(val);
+        if(val instanceof String){
+            mp_imageFileTimeStamp.setValue(new File((String)val).lastModified());
+        } else {
+            mp_imageFileTimeStamp.setValue(0);
+        }
+
     }
 
     /**
@@ -670,7 +684,7 @@ public class Image3D extends TransformableDataSource {
      * @noRefGuide
      */
     public String getBufferLabel() {
-        return BaseParameterizable.getParamString(getClass().getSimpleName(), imageParams);
+        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_imageParams);
     }
 
     /**
@@ -679,10 +693,9 @@ public class Image3D extends TransformableDataSource {
     public int initialize() {
 
         super.initialize();
-
+        
         if(DEBUG)printf("%s.initialize()\n",this);
-
-
+        
         Vector3d c = mp_center.getValue(); 
         m_centerX = c.x;
         m_centerY = c.y;
@@ -734,7 +747,7 @@ public class Image3D extends TransformableDataSource {
             break;
         }
 
-        String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), imageParams);
+        String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), m_imageParams);
 
         Object co = ParamCache.getInstance().get(vhash);
         if (co == null) {
@@ -790,8 +803,8 @@ public class Image3D extends TransformableDataSource {
 
         if (oimage instanceof String) {
             try {
-                image = ImageIO.read(new File((String)oimage));
-
+                File f = new File((String)oimage);
+                image = ImageIO.read(f);                
             } catch (Exception e) {
 
                 printf("ERROR READING IMAGE: '%s' msg: %s\n", (String)oimage,e.getMessage());
