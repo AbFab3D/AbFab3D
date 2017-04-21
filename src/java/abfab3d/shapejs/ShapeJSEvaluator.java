@@ -134,7 +134,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
     }
 
     public ShapeJSEvaluator() {
-        System.out.printf("Inside default const:\n");
         this.sandboxed = true;
         types = new LinkedHashMap<String,Parameter>();
         defs = new LinkedHashMap<String,Parameter>();
@@ -144,7 +143,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
     }
 
     public ShapeJSEvaluator(boolean sandboxed) {
-        System.out.printf("Inside sandbox const: %b\n",sandboxed);
         new Exception().printStackTrace();
         this.sandboxed = sandboxed;
         defaultProvided = new HashSet<String>();
@@ -553,14 +551,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                             try {
                                 ParameterJSWrapper wrapper = (ParameterJSWrapper) argVal;
                                 Parameter p = wrapper.getParameter();
-                                if (p instanceof DoubleParameter) {
-                                    DoubleParameter dp = (DoubleParameter) p;
-                                    argVal = dp.getUnit().getConversionVal(dp.getValue());
-                                    if (DEBUG) printf("---> param: %s defValue: %s\n", wrapper.getParameter(), argVal);
-                                } else {
-                                    if (DEBUG)
-                                        printf("---> param: %s defValue: %s\n", wrapper.getParameter(), wrapper.getDefaultValue(null));
-                                }
+                                argVal = convToJSRep(p,wrapper);
                             } catch(ClassCastException cce) {
                                 cce.printStackTrace();
                             }
@@ -719,16 +710,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
                             param.setValue(value);
                             namedParams.put(key,(Scriptable) Context.javaToJS(param, scope));
-/*
-                            // TODO: This smells bad
-                            Vector3d[] vecs = (Vector3d[]) value;
-                            HashMap<String,Object> map = new HashMap<String, Object>();
-                            map.put("point",vecs[0]);
-                            map.put("normal",vecs[1]);
 
-                            param.setValue(map);
-                            namedParams.put(key, new ParameterJSWrapper(scope, param));
-*/
                             return;
                         }
                         // fall through to default handling
@@ -1227,14 +1209,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                             if (argVal instanceof ParameterJSWrapper) {
                                 ParameterJSWrapper wrapper = (ParameterJSWrapper) argVal;
                                 Parameter p = wrapper.getParameter();
-                                if (p instanceof DoubleParameter) {
-                                    DoubleParameter dp = (DoubleParameter) p;
-                                    argVal = dp.getUnit().getConversionVal(dp.getValue());
-
-                                    if (DEBUG) printf("---> param: %s defValue: %s\n",wrapper.getParameter(),argVal);
-                                } else {
-                                    if (DEBUG) printf("---> param: %s defValue: %s\n",wrapper.getParameter(),wrapper.getDefaultValue(null));
-                                }
+                                argVal = convToJSRep(p,wrapper);
                             } else {
                                 printf("Unhandled type in executeScript.  key: %s  val: %s\n",entry.getKey(),entry.getValue());
                                 continue;
@@ -1337,6 +1312,59 @@ public class ShapeJSEvaluator implements MaterialMapper {
         return null;
     }
 
+    private Object convToJSRep(Parameter p, ParameterJSWrapper wrapper) {
+        Object argVal = null;
+
+        switch(p.getType()) {
+            case DOUBLE:
+                DoubleParameter dp = (DoubleParameter) p;
+                argVal = dp.getUnit().getConversionVal(dp.getValue());
+                break;
+            case DOUBLE_LIST:
+                // TODO: This is rather ineffecient for large values
+                DoubleListParameter dlp = (DoubleListParameter) p;
+                Unit unit = ((DoubleParameter)dlp.getDefinition()).getUnit();
+                List<Parameter> raw = dlp.getValue();
+                ArrayList<Parameter> dlist = new ArrayList<Parameter>(raw.size());
+                for(Parameter val : raw) {
+                    DoubleParameter dp2 = new DoubleParameter(dlp.getName(),"");
+                    dp2.setValue(unit.getConversionVal(((DoubleParameter)val).getValue()));
+                    dlist.add(dp2);
+                }
+                argVal = dlist;
+                break;
+            // Simple types, return primitive
+            case DATE_TIME:
+            case URI:
+            case FLOAT:
+            case BYTE:
+            case SHORT:
+            case ENUM:
+            case LONG:
+            case INTEGER:
+            case STRING:
+            case BOOLEAN:
+                argVal = p.getValue();
+                break;
+            case BOOLEAN_LIST:
+            case BYTE_LIST:
+            case SHORT_LIST:
+            case INTEGER_LIST:
+            case LONG_LIST:
+            case URI_LIST:
+            case STRING_LIST:
+            case DATE_TIME_LIST:
+                argVal = p.getValue();
+                break;
+            default:
+                // Complicated types leave as wrappers
+                argVal = wrapper;
+                break;
+        }
+
+        return argVal;
+    }
+
     /**
      * Evaluate the script the first time.
      *
@@ -1401,13 +1429,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                         if (argVal instanceof ParameterJSWrapper) {
                             ParameterJSWrapper wrapper = (ParameterJSWrapper) argVal;
                             Parameter p = wrapper.getParameter();
-                            if (p instanceof DoubleParameter) {
-                                DoubleParameter dp = (DoubleParameter) p;
-                                argVal = dp.getUnit().getConversionVal(dp.getValue());
-                                if (DEBUG) printf("---> param: %s defValue: %s\n",wrapper.getParameter(),argVal);
-                            } else {
-                                if (DEBUG) printf("---> param: %s defValue: %s\n",wrapper.getParameter(),wrapper.getDefaultValue(null));
-                            }
+                            argVal = convToJSRep(p,wrapper);
                         } else {
                             if (DEBUG) printf("Unhandled type in executeScript.  key: %s  val: %s\n",entry.getKey(),entry.getValue());
                             continue;

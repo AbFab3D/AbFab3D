@@ -37,8 +37,8 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class DiskCache {
-    private static final boolean DEBUG = true;
-    private static final boolean DEBUG_TIMING = true;
+    private static final boolean DEBUG = false;
+    private static final boolean DEBUG_TIMING = false;
 
     /** Maximum size on bytes for the cache */
     private long maxSize;
