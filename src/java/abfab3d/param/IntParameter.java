@@ -13,6 +13,8 @@ package abfab3d.param;
 
 // External Imports
 
+
+import static abfab3d.core.Output.fmt;
 /**
  * A Int parameter 
  *
@@ -123,8 +125,11 @@ public class IntParameter extends NumberParameter {
         if (val instanceof Integer) {
             d = ((Integer) val).intValue();
             this.value = val;        
+        }  else if (val instanceof Double) {
+            d = (int)Math.round(((Double) val).doubleValue());
+            this.value = new Integer(d);        
         } else {
-            throw new IllegalArgumentException("Unsupported type for Integer: " + val + " in param: " + getName());
+            throw new IllegalArgumentException(fmt("Unsupported type for Integer: %s, %s in param: %s", val, val.getClass().getName(),getName()));
         }
         
         if (d < minRange) {
