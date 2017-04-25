@@ -90,14 +90,18 @@ public class Image3D extends TransformableDataSource {
     final static boolean DEBUG = false;
     final static boolean DEBUG_VIZ = false;
 
+
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
     public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2;
     public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
     static final double MIN_GRADIENT = 0.05;
     static final String MEMORY_IMAGE = "[memory image]";
+    
+    //SNodeParameter mp_source = new SNodeParameter("source","Image source", null);
 
-    ObjectParameter mp_image = new ObjectParameter("image","Image source", null);
     // public params of the image 
+    ObjectParameter mp_image = new ObjectParameter("image","Image source", null); // obsolete 
+    ObjectParameter mp_imageSource = new ObjectParameter("imageSource","Image source", null);
     Vector3dParameter  mp_center = new Vector3dParameter("center","center of the image box",new Vector3d(0,0,0));
     Vector3dParameter  mp_size = new Vector3dParameter("size","size of the image box",new Vector3d(0.1,0.1,0.1));
     // rounding of the edges
@@ -108,11 +112,12 @@ public class Image3D extends TransformableDataSource {
     DoubleParameter  mp_baseThickness = new DoubleParameter("baseThickness","relative thickness of image base", 0.);
     BooleanParameter  mp_useGrayscale = new BooleanParameter("useGrayscale","Use grayscale for image rendering", true);
     DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
+    DoubleParameter  mp_voxelSize = new DoubleParameter("voxelSize", "size of voxel to use for image voxelization", 0.);
     DoubleParameter  mp_baseThreshold = new DoubleParameter("baseThreshold", "threshold of the image", 0.01);
-    DoubleParameter  mp_distanceFactor = new DoubleParameter("distanceFactor", "distance factor in the image plane", 0.1);
     LongParameter  mp_imageFileTimeStamp = new LongParameter("imageTimeStamp", 0);
 
     Parameter m_aparam[] = new Parameter[]{
+        mp_imageSource, 
         mp_image,
         mp_center,
         mp_size,
@@ -124,7 +129,7 @@ public class Image3D extends TransformableDataSource {
         mp_blurWidth,
         mp_baseThreshold,
         mp_imagePlace,
-        mp_distanceFactor,
+        mp_voxelSize,
     };
 
     // Params which require changes in the underlying image 
@@ -171,8 +176,6 @@ public class Image3D extends TransformableDataSource {
 
     private int m_interpolationType = INTERPOLATION_LINEAR;//INTERPOLATION_BOX;
     // width of optional blur of the the image     
-    private double m_voxelSize = 0.;
-
     // bounds of box 
     protected double m_xmin, m_xmax, m_ymin, m_ymax, m_zmin, m_zmax;
 
@@ -212,7 +215,6 @@ public class Image3D extends TransformableDataSource {
 
     private static Grid2D m_emptyGrid = new Grid2DShort(1,1,DEFAULT_PIXEL_SIZE);
 
-
     /**
      * @noRefGuide
      */
@@ -230,7 +232,7 @@ public class Image3D extends TransformableDataSource {
      */
     public Image3D(String imagePath, double sx, double sy, double sz) {
         initParams();
-
+        //mp_imageSource.setValue(new ImageLoader(imagePath));
         if (!new File(imagePath).exists()) {
             throw new IllegalArgumentException("Image does not exist.  image: " + imagePath);
         }
@@ -525,19 +527,12 @@ public class Image3D extends TransformableDataSource {
     }
 
     /**
-     * @noRefGuide
-     */
-    public void setDistanceFactor(double value) {
-        mp_distanceFactor.setValue(new Double(value));
-    }
-
-    /**
      * Set the voxel size to use for the image
      *
      * @param vs The voxel size in meters
      */
     public void setVoxelSize(double vs) {
-        m_voxelSize = vs;
+        mp_voxelSize.setValue(vs);
     }
 
     public void setImage(Object val) {
@@ -753,12 +748,11 @@ public class Image3D extends TransformableDataSource {
         if (co == null) {
             int res = prepareImage();
             if(res != ResultCodes.RESULT_OK){
+                m_dataGrid = m_emptyGrid;
+                m_dataChannel = m_dataGrid.getDataDesc().getChannel(0);
                 // something wrong with the image
-                m_imageSizeX = 2;
-                m_imageSizeY = 2;
                 throw new IllegalArgumentException("undefined image");
             }
-
             ParamCache.getInstance().put(vhash, m_dataGrid);
 
         } else {
@@ -781,7 +775,6 @@ public class Image3D extends TransformableDataSource {
         return ResultCodes.RESULT_OK;
     }
 
-
     /**
      * @noRefGuide
      */
@@ -797,8 +790,7 @@ public class Image3D extends TransformableDataSource {
         //printf("Image3D.  buff_image: %s\n",image);
 
         if (oimage == null) {
-            return ResultCodes.RESULT_ERROR;
-            
+            return ResultCodes.RESULT_ERROR;            
         }
 
         if (oimage instanceof String) {
@@ -812,8 +804,7 @@ public class Image3D extends TransformableDataSource {
                 int len = Math.min(10, st.length);
                 for (int i = 1; i < len; i++)
                     printf("\t\t %s\n", st[i]);
-                m_dataGrid = m_emptyGrid;
-                //e.printStackTrace();
+                return ResultCodes.RESULT_ERROR;
             }
 
         } else if (oimage instanceof BufferedImage) {
@@ -845,15 +836,16 @@ public class Image3D extends TransformableDataSource {
 
         if(DEBUG)printf("imageData done in %d ms\n", (time() - t1));
 
-        if (m_voxelSize > 0.0) {
+        double voxelSize = mp_voxelSize.getValue();
+        if (voxelSize > 0.0) {
             // we have finite voxel size, try to scale the image down to reasonable size 
             double pixelSize = (m_sizeX / (imageData.getWidth() * m_tilesX));
-            double pixelsPerVoxel = m_voxelSize / pixelSize;
+            double pixelsPerVoxel = voxelSize / pixelSize;
             if(DEBUG)printf("pixelsPerVoxel: %f\n", pixelsPerVoxel);
 
             if (pixelsPerVoxel > MAX_PIXELS_PER_VOXEL) {
 
-                double newPixelSize = m_voxelSize / MAX_PIXELS_PER_VOXEL;
+                double newPixelSize = voxelSize / MAX_PIXELS_PER_VOXEL;
                 int newWidth = (int) Math.ceil((m_sizeX / m_tilesX) / newPixelSize);
                 int newHeight = (imageData.getHeight() * newWidth) / imageData.getWidth();
                 if(DEBUG)printf("resampling image[%d x %d] -> [%d x %d]\n",

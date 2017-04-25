@@ -219,18 +219,7 @@ public class ImageColorMap extends TransformableDataSource {
         if (co == null) {
             long t0 = time();
             int res = prepareImage();
-
-            printf("sizeX: %f\n", m_sizeX);
-            printf("sizeY: %f\n", m_sizeY);
-            printf("sizeZ: %f\n", m_sizeZ);
-            printf("originX: %f\n", m_originX);
-            printf("originY: %f\n", m_originY);
-            printf("originZ: %f\n", m_originZ);
-            printf("imageSizeX: %d\n", m_imageSizeX);
-            printf("imageSizeY: %d\n", m_imageSizeY);
-
-            printf("ImageColorMap.prepareImage() time: %d ms\n", (time() - t0));
-
+            if(DEBUG)printf("ImageColorMap.prepareImage() time: %d ms\n", (time() - t0));            
             if(res != ResultCodes.RESULT_OK){
                 // something wrong with the image
                 throw new IllegalArgumentException("undefined image");

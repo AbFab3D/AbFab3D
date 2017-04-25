@@ -453,7 +453,7 @@ public class ImageMap extends TransformableDataSource {
 
         }
 
-        printf("ImageMap.prepareImage() time: %d ms\n",(time() - t0));
+        if(DEBUG)printf("ImageMap.prepareImage() time: %d ms\n",(time() - t0));
 
         if (DEBUG_VIZ) {
             try {
