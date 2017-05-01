@@ -14,6 +14,7 @@ import java.io.File;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.time;
 
 /**
  * Test ImageReader
@@ -46,19 +47,21 @@ public class TestImageReader extends TestCase {
         //String path = "test/images/letter_S_blurred.svg";
         String path = "test/images/square.svg";
         
-        BufferedImage image = null;
-        ImageReader reader = new ImageReader(path);
-        reader.set("svgRasterizationWidth", 200);
-        BufferedImage img = reader.getImage();
-        
-        int w = img.getWidth();
-        int h = img.getHeight();
-
-        printf("image: %s [%d x %d]\n", path, w, h);
-        try {
-            ImageIO.write(img, "png", new File("/tmp/image.png")); 
-        } catch(Exception e){
-            e.printStackTrace();
+        for(int i = 0; i < 10; i++){
+            long t0 = time();
+            ImageReader reader = new ImageReader(path);
+            reader.set("svgRasterizationWidth", 2000);
+            BufferedImage img = reader.getImage();            
+            int w = img.getWidth();
+            int h = img.getHeight();
+            printf("image: %s [%d x %d] loaded: %d ms\n", path, w, h, (time() - t0));
+            if(i == 0){
+                try {
+                    ImageIO.write(img, "png", new File("/tmp/image.png")); 
+                } catch(Exception e){
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

@@ -55,7 +55,6 @@ import static abfab3d.core.Output.printf;
  */
 public class ImageReader extends BaseParameterizable implements ImageProducer {
     
-    static final double DEFAULT_PIXEL_SIZE = PT; // 1 point 
     static final boolean CACHING_ENABLED = true;
     static final boolean DEBUG = false;
 
