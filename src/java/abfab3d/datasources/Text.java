@@ -288,7 +288,6 @@ public class Text extends TransformableDataSource {
         m_bitmap.setTiles(1, 1);
         m_bitmap.set("blurWidth", mp_blurWidth.getValue());
         m_bitmap.set("useGrayscale",false); // text is always black and white
-        m_bitmap.setInterpolationType(Image3D.INTERPOLATION_LINEAR);
         m_bitmap.setTransform(getTransform());
         
         m_bitmap.initialize();

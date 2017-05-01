@@ -316,7 +316,7 @@ public class TextUtil {
         }
 
         Rectangle2D rect = gv.getVisualBounds(); 
-        printf("text bounds: [%5.1f %5.1f %5.1f %5.1f]\n ", rect.getX(),rect.getY(),rect.getWidth(), rect.getHeight());
+        if(DEBUG)printf("text bounds: [%5.1f %5.1f %5.1f %5.1f]\n ", rect.getX(),rect.getY(),rect.getWidth(), rect.getHeight());
 
         // rect size        
         double tx = rect.getWidth();

@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2017
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -9,18 +9,19 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-
 package abfab3d.core;
 
 /**
-   interface to supply object with VecTransform 
-   
+ * Able to produce a Grid2D result
+ *
+ * @author Vladimir Bulatov
  */
-public interface Transformer {
+public interface Grid2DProducer {
 
     /**
-       
+     * Return a Grid2D produced by the object 
+     * @return The grid
      */
-    public void setTransform(VecTransform vt);
-    
+    public Grid2D getGrid2D();
+
 }

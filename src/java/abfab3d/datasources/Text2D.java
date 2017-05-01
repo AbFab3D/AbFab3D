@@ -19,7 +19,17 @@ import java.awt.Font;
 
 
 import abfab3d.core.ResultCodes;
-import abfab3d.param.*;
+import abfab3d.core.ImageProducer;
+
+import abfab3d.param.ParamCache;
+import abfab3d.param.BaseParameterizable;
+import abfab3d.param.BooleanParameter;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.StringParameter;
+import abfab3d.param.EnumParameter;
+import abfab3d.param.IntParameter;
+import abfab3d.param.ObjectParameter;
+import abfab3d.param.Parameter;
 
 
 import abfab3d.core.DataSource;
@@ -45,8 +55,11 @@ import static abfab3d.core.Output.fmt;
    @author Vladimir Bulatov
 
  */
-public class Text2D extends BaseParameterizable implements ExpensiveInitializable {
+public class Text2D extends BaseParameterizable implements ImageProducer {
+
+    
     static final boolean DEBUG = false;
+    static final boolean CACHING_ENABLED = true;
 
     public enum Fit {VERTICAL, HORIZONTAL, BOTH}
     public enum HorizAlign {LEFT, CENTER, RIGHT}
@@ -81,6 +94,8 @@ public class Text2D extends BaseParameterizable implements ExpensiveInitializabl
 
     // public params of the image 
     // NOTE: Should expose one of mp_fontName or mp_font to set Text2D font. May not work well mixing them 
+
+    StringParameter  mp_text      = new StringParameter("text","text to be created", "Text");
     EnumParameter mp_horizAlign = new EnumParameter("horizAlign","horizontal text alignment (left, right, center)",
             EnumParameter.enumArray(HorizAlign.values()), HorizAlign.LEFT.toString());
     EnumParameter mp_vertAlign = new EnumParameter("vertAlign","vertical text alignment (top, bottom, center)",
@@ -93,13 +108,12 @@ public class Text2D extends BaseParameterizable implements ExpensiveInitializabl
     DoubleParameter  mp_width = new DoubleParameter("width","width of text",0*MM); // width is initially undefined 
     DoubleParameter  mp_voxelSize = new DoubleParameter("voxelSize","size of voxel for text rendering", 0.05*MM);
     StringParameter  mp_fontName  = new StringParameter("fontName","Name of the font", "Times New Roman");
-    StringParameter  mp_text      = new StringParameter("text","text to be created", "Text");
     IntParameter     mp_fontStyle = new IntParameter("fontStyle","style of font (BOLD ,ITALIC, PLAIN)", PLAIN);
     DoubleParameter mp_inset      = new DoubleParameter("inset","white space around text", 0.5*MM);
     DoubleParameter mp_spacing    = new DoubleParameter("spacing","extra white space between characters in relative units", 0.);
     ObjectParameter mp_font = new ObjectParameter("font","Specific font to use",null);
 
-    Parameter m_aparam[] = new Parameter[]{
+    Parameter m_param[] = new Parameter[]{
         mp_vertAlign,
         mp_horizAlign,
         mp_fit,
@@ -123,7 +137,7 @@ public class Text2D extends BaseParameterizable implements ExpensiveInitializabl
      @param voxelSize size of voxel used for text rasterizetion
      */
     public Text2D(String text, String fontName, double voxelSize){
-        super.addParams(m_aparam);
+        super.addParams(m_param);
         mp_text.setValue(text);
         setFontName(fontName);
         setVoxelSize(voxelSize);
@@ -136,7 +150,7 @@ public class Text2D extends BaseParameterizable implements ExpensiveInitializabl
      @param voxelSize size of voxel used for text rasterizetion
      */
     public Text2D(String text, Font font, double voxelSize){
-        super.addParams(m_aparam);
+        super.addParams(m_param);
         mp_text.setValue(text);
         setFont(font);
         setVoxelSize(voxelSize);
@@ -147,7 +161,7 @@ public class Text2D extends BaseParameterizable implements ExpensiveInitializabl
        @param text the string to convert into 3D text 
      */
     public Text2D(String text){
-        super.addParams(m_aparam);
+        super.addParams(m_param);
         mp_text.setValue(text);
     }
 
@@ -329,7 +343,7 @@ public class Text2D extends BaseParameterizable implements ExpensiveInitializabl
      * @noRefGuide
      */
     protected void initParams(){
-        super.addParams(m_aparam);
+        super.addParams(m_param);
     }
 
     protected void validateFontName(String fontName){
@@ -374,6 +388,23 @@ public class Text2D extends BaseParameterizable implements ExpensiveInitializabl
     public int initialize(){
 
         if(DEBUG) printf("Text2D.initialize()\n");
+
+        String label = BaseParameterizable.getParamString(getClass().getSimpleName(), m_param);
+        Object co = null;
+        if(CACHING_ENABLED)co = ParamCache.getInstance().get(label);
+        if (co == null) {
+            m_bitmap = prepareImage();
+            if(CACHING_ENABLED)ParamCache.getInstance().put(label, m_bitmap);
+            if (DEBUG) printf("Text2D: caching image: %s -> %s\n",label, m_bitmap);
+        } else {
+            m_bitmap = (BufferedImage) co;
+            if (DEBUG) printf("Text2D: got cached image %s -> %s\n",label, m_bitmap);
+        }
+        return ResultCodes.RESULT_OK;
+    }
+
+    protected BufferedImage prepareImage(){
+
 
         double voxelSize = mp_voxelSize.getValue();
         if(DEBUG) printf("  voxelSize:%7.5f\n", voxelSize);
@@ -423,24 +454,25 @@ public class Text2D extends BaseParameterizable implements ExpensiveInitializabl
         if(DEBUG) printf("  text:\"%s\"\n", text);
 
         font = font.deriveFont(fontStyle,m_fontSize);
-        m_bitmap = TextUtil.createTextImage(width, height, text, font, mp_spacing.getValue().doubleValue(),insets, aspect, fit, halign, valign);
+        BufferedImage bitmap = 
+            TextUtil.createTextImage(width, height, text, font, mp_spacing.getValue().doubleValue(),insets, aspect, fit, halign, valign);
 
-        if(DEBUG)printf("Text2D bitmap height: %d x %d\n", m_bitmap.getWidth(), m_bitmap.getHeight());
-        
-        return ResultCodes.RESULT_OK;
-        
+        if(DEBUG)printf("Text2D bitmap height: %d x %d\n", bitmap.getWidth(), bitmap.getHeight());
+
+        return bitmap;
+
     }
 
     /**
      * Implement this as a value
      * @return
      */
-    public String getParamString() {
-        return BaseParameterizable.getParamString("Text2D",getParams());
-    }
+    //public String getParamString() {
+    //    return BaseParameterizable.getParamString("Text2D",getParams());
+    //}
 
-    public void getParamString(StringBuilder sb) {
-        sb.append(BaseParameterizable.getParamString("Text2D", getParams()));
-    }
+    //public void getParamString(StringBuilder sb) {
+    //    sb.append(BaseParameterizable.getParamString("Text2D", getParams()));
+    //}
 
 }  // class Text2D 

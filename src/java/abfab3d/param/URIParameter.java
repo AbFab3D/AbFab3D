@@ -12,6 +12,9 @@
 package abfab3d.param;
 
 // External Imports
+import java.io.File;
+
+import static abfab3d.core.Output.printf;
 
 /**
  * A URI parameter
@@ -20,6 +23,8 @@ package abfab3d.param;
  */
 public class URIParameter extends BaseParameter {
     private String[] validMimeTypes = new String[] {"*"};
+    private final boolean DEBUG = false;
+
 
     public URIParameter(String name, String initialValue) {
         super(name, name);
@@ -81,4 +86,31 @@ public class URIParameter extends BaseParameter {
     public URIParameter clone() {
         return (URIParameter) super.clone();
     }
-}
+
+    /**
+       return param label used for caching
+       @Override
+     */
+    public String getParamString() {
+        StringBuilder sb = new StringBuilder();
+        getParamString(sb);
+        return sb.toString();
+    }
+
+    /**
+       return param label used for caching
+       @Override
+     */
+    public void getParamString(StringBuilder sb) {
+
+        //TODO - deal with real URI
+        String path = (String)value;        
+        long timeStamp = new File(path).lastModified();
+        sb.append(path);
+        sb.append(";");
+        sb.append(timeStamp);
+        if(DEBUG) printf("URIParameter:%s, paramString:%s\n",getName(), sb.toString());
+        
+    }
+
+} //URIParameter

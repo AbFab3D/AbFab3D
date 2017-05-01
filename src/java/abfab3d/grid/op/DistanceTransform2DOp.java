@@ -22,8 +22,14 @@ import abfab3d.grid.Operation2D;
 import abfab3d.grid.util.GridUtil;
 
 import abfab3d.core.MathUtil;
-import abfab3d.util.PointMap;
 import abfab3d.core.Bounds;
+
+import abfab3d.param.BaseParameterizable;
+import abfab3d.param.Parameter;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.IntParameter;
+
+import abfab3d.util.PointMap;
 
 
 import static abfab3d.core.Output.printf;
@@ -37,7 +43,7 @@ import static abfab3d.core.MathUtil.iround;
 
 /**
  *
- * calculates signed distance data of 2D shape represened on the Grid2D 
+ * calculates signed distance data of 2D shape represented on the Grid2D 
  * 
  * the shape is given via implicit equation AttributeChannel.getValue(grid.getAttribute(x,y)) = threshold
  *  
@@ -49,7 +55,7 @@ import static abfab3d.core.MathUtil.iround;
  *
  * @author Vladimir Bulatov
  */
-public class DistanceTransform2DOp implements Operation2D {
+public class DistanceTransform2DOp extends BaseParameterizable implements Operation2D {
 
     public static boolean DEBUG = false;
     public static boolean DEBUG_TIMING = true;
@@ -57,69 +63,82 @@ public class DistanceTransform2DOp implements Operation2D {
     static final double TOL = 1.e-2;
     static final double HALF = 0.5; // half voxel offset to the center of voxel
 
-    //double m_layerThickness = 1.5;  
-    double m_layerThickness = 2.7;  
-    int m_neighbors[]; // offsets to neighbors 
-
-    double m_maxInDistance = 0;
-    double m_maxOutDistance = 0;
-
-    long m_defaultInValue;
-    long m_defaultOutValue;
-
-    int m_subvoxelResolution = 100;
-    int nx, ny, nz;
-    int m_surfaceValue;
+    DoubleParameter mp_maxOutDist = new DoubleParameter("maxOutDist", "maximal outer distance to make transform", 10*MM);
+    DoubleParameter mp_maxInDist = new DoubleParameter("maxInDist", "maximal inner distance to make transform", 10*MM);
+    DoubleParameter mp_surfaceValue = new DoubleParameter("surface", "surface of the shape value", 0.5);
+    IntParameter mp_interiorSign = new IntParameter("interiorSign", "sign of shape interior values", 1);
+    IntParameter mp_interpolation = new IntParameter("interpolation", "type of interpolation", INTERP_LINEAR);
+    DoubleParameter mp_surfaceLayerThickness = new DoubleParameter("surfaceLayerThickness", "thickness of initila surface layer", 2);
+    
+    Parameter m_param[] = new Parameter[]{
+        mp_maxOutDist,
+        mp_maxInDist,
+        mp_surfaceValue,
+        mp_interiorSign,
+        mp_surfaceLayerThickness,
+    };
+    
 
     public static final int INTERP_THRESHOLD = 0, INTERP_LINEAR = 1, INTERP_IF = 2;
-
-    int m_interpolation = INTERP_LINEAR;
-
-    double m_voxelSize;
-    // surface threshold
-    double m_threshold;
-    int m_nx, m_ny;
-    
-    // number of threads to use in MT processing 
-    //int m_threadCount = 1;
-
-    GridDataChannel m_dataChannel;
-
-    PointMap m_points;
-    Grid2D m_indexGrid;
-    Grid2D m_distanceGrid;
-
-    // sign of input data inside of shape 
-    int m_interiorSign = 1;
     
     /**
      @param inDistance maximal distance to calculate transform inside of the shape. Measured in meters
      @param outDistance maximal distance to calculate transform outside of the shape. Measured in meters
+     @param surfaceValue value at surface of the shape 
     */
-    public DistanceTransform2DOp(double maxInDistance, double maxOutDistance, double threshold) {
-
-        //m_dataChannel = dataChannel;
-        m_maxInDistance = maxInDistance;
-        m_maxOutDistance = maxOutDistance;
-        m_threshold = threshold;
-
+    public DistanceTransform2DOp(double maxInDistance, double maxOutDistance, double surfaceValue) {
+        this(maxInDistance, maxOutDistance, surfaceValue, 1);
     }
 
-    public void setDataChannel(GridDataChannel dataChannel){
-        m_dataChannel = dataChannel;
+    /**
+     @param inDistance maximal distance to calculate transform inside of the shape. Measured in meters
+     @param outDistance maximal distance to calculate transform outside of the shape. Measured in meters
+     @param surfaceValue value at surface of the shape 
+     @param interiorSign sign of shape interior
+    */
+    public DistanceTransform2DOp(double maxInDistance, double maxOutDistance, double surfaceValue, int interiorSign) {
+        addParams(m_param);
+        mp_maxInDist.setValue(maxInDistance);
+        mp_maxOutDist.setValue(maxOutDistance);
+        mp_surfaceValue.setValue(surfaceValue);
     }
+
+    //public void setDataChannel(GridDataChannel dataChannel){
+    //    m_dataChannel = dataChannel;
+    //}
 
     
     /**
        set sign to be used for interior of the input shape
      */
     public void setInteriorSign(int interiorSign){
-        m_interiorSign = interiorSign;
+        mp_interiorSign.setValue(interiorSign);
     }
 
     public void setInterpolation(int interpolation){
-        m_interpolation = interpolation;
+        mp_interpolation.setValue(interpolation);
     }
+
+
+    //
+    // local class variable 
+    //
+    private double m_maxInDistance;
+    private double m_maxOutDistance;
+    private double m_voxelSize;
+    private int m_nx;
+    private int m_ny;
+    private int m_neighbors[];
+    private int m_subvoxelResolution = 100;
+    private double m_surfaceValue;
+    // sign of input data inside of shape 
+    private int m_interiorSign;
+    int m_interpolation = INTERP_LINEAR;
+
+    private GridDataChannel m_dataChannel;
+    private PointMap m_points;
+    private Grid2D m_indexGrid;
+    private Grid2D m_distanceGrid;
 
 
     /**
@@ -132,6 +151,13 @@ public class DistanceTransform2DOp implements Operation2D {
     public Grid2D execute(Grid2D grid) {
 
         long t0 = time();
+        double surfaceLayerThickness = mp_surfaceLayerThickness.getValue();
+        m_interpolation = mp_interpolation.getValue();
+        m_maxInDistance = mp_maxInDist.getValue();
+        m_maxOutDistance = mp_maxOutDist.getValue();
+        m_surfaceValue = mp_surfaceValue.getValue();
+        m_interiorSign = mp_interiorSign.getValue();
+
         if(DEBUG)printf("DistanceTransform2D.execute(%s)\n", grid.getClass().getName());
         if(DEBUG)printf("  m_inDistance: %7.3f mm  m_outDistance: %7.3f mm \n", m_maxInDistance/MM, m_maxOutDistance/MM);
         m_voxelSize = grid.getVoxelSize();
@@ -139,7 +165,7 @@ public class DistanceTransform2DOp implements Operation2D {
         m_ny = grid.getHeight();
         
         m_dataChannel = grid.getDataDesc().getChannel(0);
-        m_neighbors = Neighborhood.makeDisk(m_layerThickness+1);
+        m_neighbors = Neighborhood.makeDisk(surfaceLayerThickness+1);
 
         Bounds bounds = grid.getGridBounds();
 
@@ -148,15 +174,15 @@ public class DistanceTransform2DOp implements Operation2D {
         GridDataChannel distChannel = new GridDataChannel(GridDataChannel.DISTANCE, "dist", 16, 0, -m_maxInDistance, m_maxOutDistance);
         m_distanceGrid.setDataDesc(new GridDataDesc(distChannel));
 
-        //GridUtil.fill(m_distanceGrid, (long)((m_maxOutDistance/m_voxelSize) * m_subvoxelResolution));
-        GridUtil.fill(m_distanceGrid, (long)(m_layerThickness * m_subvoxelResolution));
+        // init dist grid with value outside of syrface layer 
+        GridUtil.fill(m_distanceGrid, distChannel.makeAtt(surfaceLayerThickness));
 
-        m_points = new PointMap(1.24/m_subvoxelResolution);
+        m_points = new PointMap(0.01); // subvoxel precision ofd point hash map 
         m_points.add(0, 0, 0);
         
         // find surface points 
         // initialize distanceas in thin layer around surface 
-        initializeSurfaceLayer(grid);
+        initializeSurfaceLayer(grid, surfaceLayerThickness);
         int pcnt = m_points.getPointCount();
         double px[] = new double[pcnt];
         double py[] = new double[pcnt];
@@ -175,7 +201,7 @@ public class DistanceTransform2DOp implements Operation2D {
 
         ClosestPointIndexer.getPointsInWorldUnits(m_indexGrid, px, py);
 
-        Grid2D interiorGrid = makeInteriorGrid(grid, m_dataChannel, m_threshold, m_interiorSign);
+        Grid2D interiorGrid = makeInteriorGrid(grid, m_dataChannel, m_surfaceValue, m_interiorSign);
         ClosestPointIndexer.makeDistanceGrid2D(m_indexGrid, px,py, 
                                                interiorGrid,                                                
                                                m_maxInDistance, 
@@ -195,7 +221,7 @@ public class DistanceTransform2DOp implements Operation2D {
         return m_distanceGrid;
     }
 
-    void initializeSurfaceLayer(Grid2D dataGrid){
+    void initializeSurfaceLayer(Grid2D dataGrid, double surfaceThickness){
         int nx = dataGrid.getWidth();
         int ny = dataGrid.getHeight();
         GridDataChannel dataConverter = m_dataChannel;
@@ -205,7 +231,7 @@ public class DistanceTransform2DOp implements Operation2D {
         Bounds bounds = dataGrid.getGridBounds();
         double xmin = bounds.xmin;
         double ymin = bounds.ymin;
-        double th = m_threshold;
+        double th = m_surfaceValue;
 
 
         for(int iy = 0; iy < ny1; iy++){
@@ -218,11 +244,11 @@ public class DistanceTransform2DOp implements Operation2D {
 
                 if((v0 <= 0. && vx > 0) || (v0 >= 0. && vx < 0)){
                     // add point on x segment 
-                    addPoint(x+coeff(v0, vx), y);                    
+                    addPoint(x+coeff(v0, vx), y, surfaceThickness);
                 }
                 if((v0 <= 0. && vy > 0) || (v0 >= 0. && vy < 0)){
                     // add point on y segment 
-                    addPoint(x, y+coeff(v0, vy));                    
+                    addPoint(x, y+coeff(v0, vy),surfaceThickness);                    
                 }
             }
         }
@@ -253,12 +279,12 @@ public class DistanceTransform2DOp implements Operation2D {
     }
 
     final double coeff_IF(double v0, double v1){
-        return MathUtil.coeffIF((v0+m_threshold), (v1+m_threshold));
+        return MathUtil.coeffIF((v0+m_surfaceValue), (v1+m_surfaceValue));
     }
 
     // add point to the neigborhood in indexGrid 
     // and update layerDistanceGrid 
-    final void addPoint(double px, double py){
+    final void addPoint(double px, double py,double surfaceThickness){
 
         //printf("addPoint(%7.4f, %7.4f)\n", px, py);
         int x0 = iround(px);
@@ -278,7 +304,7 @@ public class DistanceTransform2DOp implements Operation2D {
                     dx = vx + HALF - px,
                     dy = vy + HALF - py;
                 double dist = sqrt(dx*dx + dy*dy);
-                if(dist <= m_layerThickness-TOL) {
+                if(dist <= surfaceThickness-TOL) {
                     int newdist = (int)(dist*m_subvoxelResolution + 0.5);
                     int olddist = (int)m_distanceGrid.getAttribute(vx, vy);
                     if(newdist < olddist){

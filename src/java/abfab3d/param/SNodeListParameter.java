@@ -184,8 +184,6 @@ public class SNodeListParameter extends BaseParameter {
                 sb.append(((Parameterizable)p).getParamString());
             } else if (p instanceof SourceWrapper) {
                 sb.append(((SourceWrapper) p).getParamString());
-            } else if (p instanceof ExpensiveInitializable) {
-                sb.append(((ExpensiveInitializable) p).getParamString());
             } else if (p instanceof ValueHash) {
                 sb.append(((ValueHash) p).getParamString());
             } else if (p == null) {

@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2017
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -9,18 +9,21 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-
 package abfab3d.core;
 
+import java.awt.image.BufferedImage;
+
 /**
-   interface to supply object with VecTransform 
-   
+ * Able to produce a BufferedImage result
+ *
+ * @author Vladimir Bulatov
  */
-public interface Transformer {
+public interface ImageProducer {
 
     /**
-       
+     * Return a BuffereImage produced by the object 
+     * @return The image
      */
-    public void setTransform(VecTransform vt);
-    
+    public BufferedImage getImage();
+
 }

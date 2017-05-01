@@ -15,6 +15,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import abfab3d.core.Initializable;
+
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 
@@ -166,14 +168,18 @@ public class BaseParameterizable implements Parameterizable, SNode {
     public static String getParamString(String name,Parameter aparam[]){
         StringBuilder sb = new StringBuilder();
         sb.append(name);
-        sb.append(":");
+        sb.append("{");
         for(int i = 0; i < aparam.length; i++){
             Parameter p = aparam[i];
             sb.append(p.getName());
-            sb.append("=\"");
+            sb.append(":");
             p.getParamString(sb);
-            sb.append("\";");
+            if(i < aparam.length-1)
+                sb.append(",");
+            else 
+                sb.append("");
         }
+        sb.append("}");
         return sb.toString();
     }
 
@@ -197,14 +203,15 @@ public class BaseParameterizable implements Parameterizable, SNode {
     public static String getParamString(String name,Parameter aparam[], String add1, String add2){
         StringBuilder sb = new StringBuilder();
         sb.append(name);
-        sb.append(":");
+        sb.append("{");
         for(int i = 0; i < aparam.length; i++){
             Parameter p = aparam[i];
             sb.append(p.getName());
-            sb.append("=\"");
+            sb.append(":\"");
             p.getParamString(sb);
-            sb.append("\";");
+            sb.append("\",");
         }
+        sb.append("}");
 
         if (add1 != null) {
             sb.append(add1);
@@ -222,16 +229,17 @@ public class BaseParameterizable implements Parameterizable, SNode {
     public static String getParamString(String name,Set<String> ignore,Parameterizable pnode){
         StringBuilder sb = new StringBuilder();
         sb.append(name);
-        sb.append(":");
+        sb.append("{");
 
         Map<String,Parameter> map = pnode.getParamMap();
         for(Parameter p : map.values()){
             if (ignore.contains(p.getName())) continue;
             sb.append(p.getName());
-            sb.append("=\"");
+            sb.append(":\"");
             p.getParamString(sb);
-            sb.append("\";");
+            sb.append("\",");
         }
+        sb.append("}");
 
         return sb.toString();
     }
@@ -328,5 +336,12 @@ public class BaseParameterizable implements Parameterizable, SNode {
         sb.append("]");
         return sb.toString();
     }
+
+    public final static void initialize(Object obj){
+        if(obj instanceof Initializable){
+            ((Initializable)obj).initialize();
+        }
+    }
+
 
 }

@@ -20,6 +20,7 @@ import abfab3d.core.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.ArrayAttributeGridByte;
+import abfab3d.grid.op.ImageReader;
 
 import abfab3d.io.input.AttributedMeshReader;
 import abfab3d.io.input.GridLoader;
@@ -817,7 +818,46 @@ public class ShapeJSGlobal {
      * js function to load image
      * returns BufferedImage
      */
+
     public static Object loadImage(Context cx, Scriptable thisObj,
+                                   Object[] args, Function funObj) {
+        
+        if (args.length < 1) {
+            throw Context.reportRuntimeError(
+                    "No file provided for loadImage() command");
+        }
+        String filename = Context.toString(args[0]);
+        if (filename == null || filename.length() == 0) {
+            throw Context.reportRuntimeError("No file provided for load() command");
+        }
+        double psize = 0.1 * MM;
+
+        if (args.length > 1) {
+            psize = getDouble(args[1]);
+        }
+        if (filename.startsWith("http") || filename.startsWith("https")) {
+            try {
+                printf("Downloading url: %s\n", filename);
+                filename = URIUtils.downloadURI("loadImage", filename);
+            } catch (Exception ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        ImageReader reader = new ImageReader(filename);
+        int w = reader.getWidth();
+        int h = reader.getHeight();
+        if (w * h > MAX_IMAGE_PIXEL_COUNT) {
+            throw new IllegalArgumentException(fmt("image dimensions [%d x %d] exceed max allowed: %d", w, h, MAX_IMAGE_PIXEL_COUNT));
+        }
+
+        Scriptable ret_val = (Scriptable) cx.javaToJS(reader, thisObj);
+        return ret_val;
+
+    }
+
+    /*
+    public static Object loadImage_v0(Context cx, Scriptable thisObj,
                                    Object[] args, Function funObj) {
         long t0 = time();
         if (args.length < 1) {
@@ -889,7 +929,7 @@ public class ShapeJSGlobal {
         Scriptable ret_val = (Scriptable) cx.javaToJS(wrapper, thisObj);
         return ret_val;
     }
-
+    */
     /**
      * js function to load urls
      * returns map of return value

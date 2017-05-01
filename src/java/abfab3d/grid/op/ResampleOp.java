@@ -17,6 +17,9 @@ package abfab3d.grid.op;
 // Internal Imports
 import abfab3d.core.Grid2D;
 import abfab3d.core.GridDataChannel;
+
+import abfab3d.param.BaseParameterizable;
+
 import abfab3d.grid.*;
 
 import static abfab3d.util.ImageUtil.us2i;
@@ -26,8 +29,9 @@ import static abfab3d.util.ImageUtil.us2i;
  *
  * @author Alan Hudson
  */
-public class ResampleOp implements Operation2D {
-    private static final boolean DEBUG = true;
+public class ResampleOp extends BaseParameterizable implements Operation2D {
+
+    private static final boolean DEBUG = false;
     public static final int WEIGHTING_MINIMUM = 0;  // take the minimum of all involved pixels
     public static final int WEIGHTING_AVERAGE = 1;  // take the average of all involved pixels
     public static final int WEIGHTING_MAXIMUM = 2;  // take the average of all involved pixels

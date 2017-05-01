@@ -379,8 +379,8 @@ public class TestGridMaker extends TestCase {
         image.setTiles(12,1);
         image.setUseGrayscale(true);        
         image.setImage("apps/ringpopper/images/tile_02.png");
-        image.setInterpolationType(Image3D.INTERPOLATION_MIPMAP);
-        image.setPixelWeightNonlinearity(-1.);
+        //image.setInterpolationType(Image3D.INTERPOLATION_MIPMAP);
+        //image.setPixelWeightNonlinearity(-1.);
         //image.setProbeSize(0.5*MM);
 
         Image3D crossSect = new Image3D();
@@ -1891,7 +1891,7 @@ public class TestGridMaker extends TestCase {
         image.setImagePlace(imagePlace);
         image.setImageType(imageType);
         image.setBaseThreshold(imageBaseThreshold);
-        image.setInterpolationType(imageInterpolation);        
+        //image.setInterpolationType(imageInterpolation);        
 
         
         DataTransformer shape = new DataTransformer();

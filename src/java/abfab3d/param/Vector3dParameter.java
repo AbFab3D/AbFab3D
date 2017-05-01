@@ -88,30 +88,24 @@ public class Vector3dParameter extends NumberParameter {
      */
     public void getParamString(StringBuilder sb) {
         if (value == null) {
-            sb.append("null");
+            sb.append("[]");
             return;
         }
 
         Vector3d val = (Vector3d) value;
+        sb.append("[");
         DoubleToString.appendFormatted(sb, (Double) val.x, 6);
         sb.append(",");
         DoubleToString.appendFormatted(sb, (Double) val.y, 6);
         sb.append(",");
         DoubleToString.appendFormatted(sb, (Double) val.z, 6);
+        sb.append("]");
     }
 
     public String getParamString() {
-        if (value == null) return "null";
-
+        
         StringBuilder sb = new StringBuilder();
-        Vector3d val = (Vector3d) value;
-
-        DoubleToString.appendFormatted(sb, (Double) val.x, 6);
-        sb.append(",");
-        DoubleToString.appendFormatted(sb, (Double) val.y, 6);
-        sb.append(",");
-        DoubleToString.appendFormatted(sb, (Double) val.z, 6);
-
+        getParamString(sb);
         return sb.toString();
     }
 }

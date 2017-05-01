@@ -18,6 +18,8 @@ import java.awt.TextField;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.TextEvent;
+import java.awt.event.TextListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
@@ -46,6 +48,8 @@ public class FormattedTextEditor extends BaseEditor implements FocusListener {
         }
         m_textArea.setText(sval);
         m_textArea.addFocusListener(this);
+        m_textArea.addTextListener(new MyTextListener());
+
     }
     
     @Override
@@ -55,11 +59,14 @@ public class FormattedTextEditor extends BaseEditor implements FocusListener {
 
     @Override
     public void focusLost(FocusEvent e) {
+        updateTextValue();
+    }
+
+    void updateTextValue(){
         String newValue = m_textArea.getText();
         m_param.setValue(newValue);
         informParamChangedListeners();
     }
-
     /**
        
        @Override
@@ -78,6 +85,12 @@ public class FormattedTextEditor extends BaseEditor implements FocusListener {
         
         m_textArea.setText((String)m_param.getValue());
         
+    }
+
+    class MyTextListener implements TextListener {
+        public void textValueChanged(TextEvent e){
+            //updateTextValue();
+        }
     }
 
 }

@@ -17,9 +17,22 @@ import abfab3d.core.Initializable;
 import abfab3d.core.LabeledBuffer;
 import abfab3d.core.MaterialType;
 import abfab3d.core.VecTransform;
+
 import abfab3d.datasources.AttributeGridSourceWrapper;
 import abfab3d.datasources.DistanceToMeshDataSource;
-import abfab3d.param.*;
+
+import abfab3d.param.Parameter;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.BooleanParameter;
+import abfab3d.param.IntParameter;
+import abfab3d.param.LongParameter;
+import abfab3d.param.EnumParameter;
+import abfab3d.param.ObjectParameter;
+import abfab3d.param.BaseParameterizable;
+import abfab3d.param.ParamCache;
+import abfab3d.param.CPUCache;
+import abfab3d.param.ValueHash;
+
 import abfab3d.util.URIUtils;
 import com.google.common.io.Files;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -44,7 +57,7 @@ import static abfab3d.core.Units.MM;
  *
  * @author Alan Hudson
  */
-public class ModelLoader extends BaseParameterizable implements GridProducer, ExpensiveInitializable {
+public class ModelLoader extends BaseParameterizable implements GridProducer {
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_TIMING = true;
 
@@ -637,7 +650,6 @@ public class ModelLoader extends BaseParameterizable implements GridProducer, Ex
         sb.append(BaseParameterizable.getParamString("ModelLoader", getParams()));
     }
 
-    @Override
     public int initialize() {
         return 0;
     }

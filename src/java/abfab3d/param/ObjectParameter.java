@@ -66,10 +66,6 @@ public class ObjectParameter extends BaseParameter {
             return ((SourceWrapper)value).getParamString();
         }
 
-        if (value instanceof ExpensiveInitializable) {
-            return ((ExpensiveInitializable)value).getParamString();
-        }
-
         if (value instanceof ValueHash) {
             return ((ValueHash)value).getParamString();
         }
@@ -87,11 +83,6 @@ public class ObjectParameter extends BaseParameter {
         if (DEBUG) printf("ObjectParam.getParamString(sb).  name: %s value: %s\n",name,value);
         if (value instanceof SourceWrapper) {
             ((SourceWrapper)value).getParamString(sb);
-            return;
-        }
-
-        if (value instanceof ExpensiveInitializable) {
-            ((ExpensiveInitializable)value).getParamString(sb);
             return;
         }
 

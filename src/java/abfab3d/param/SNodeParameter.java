@@ -26,24 +26,28 @@ public class SNodeParameter extends BaseParameter {
 
     public SNodeParameter(String name) {
 
-        this(name, name, new UndefinedParameter(), new BaseSNodeFactory());
+        this(name, name, new BaseParameterizable(), new BaseSNodeFactory());
     }
 
     public SNodeParameter(String name,  SNodeFactory nodeFactory) {
 
-        this(name, name, new UndefinedParameter("undefined"), nodeFactory);
+        this(name, name, new BaseParameterizable(), nodeFactory);
     }
 
     public SNodeParameter(String name, String desc) {
 
-        this(name, desc, new UndefinedParameter(), new BaseSNodeFactory());
+        this(name, desc, new BaseParameterizable(), new BaseSNodeFactory());
     }
 
-    public SNodeParameter(String name, Object initialValue) {
+    public SNodeParameter(String name, Parameterizable initialValue) {
         this(name, name, initialValue, new BaseSNodeFactory());        
     }
 
-    public SNodeParameter(String name, String desc, Object initialValue, SNodeFactory nodeFactory) {
+    public SNodeParameter(String name, String desc, Parameterizable initialValue) {
+        this(name, desc, initialValue, new BaseSNodeFactory());        
+    }
+
+    public SNodeParameter(String name, String desc, Parameterizable initialValue, SNodeFactory nodeFactory) {
 
         super(name, desc);
         m_nodeFactory = nodeFactory;

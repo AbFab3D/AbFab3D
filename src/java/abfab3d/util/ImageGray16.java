@@ -204,7 +204,7 @@ public class ImageGray16 {
     
     
     /**
-       make 2 dimensional convolution with 1 dimensional kernel K2(x,y) = k(x)*k(y)
+       make 2 dimensional convolution with 2 dimensional kernel K2(x,y) = k(x)*k(y)
      */
     public void convolute(double kernel[]){
         
