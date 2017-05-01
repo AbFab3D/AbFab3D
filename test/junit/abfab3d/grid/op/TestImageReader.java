@@ -47,7 +47,7 @@ public class TestImageReader extends TestCase {
         //String path = "test/images/letter_S_blurred.svg";
         String path = "test/images/square.svg";
         
-        for(int i = 0; i < 10; i++){
+        for(int i = 0; i < 1; i++){
             long t0 = time();
             ImageReader reader = new ImageReader(path);
             reader.set("svgRasterizationWidth", 2000);

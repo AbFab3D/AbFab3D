@@ -26,6 +26,7 @@ import org.apache.batik.transcoder.image.ImageTranscoder;
 import org.apache.batik.transcoder.TranscodingHints;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.SVGAbstractTranscoder;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.util.SVGConstants;
@@ -59,7 +60,7 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
     static final boolean DEBUG = false;
 
     URIParameter mp_uri = new URIParameter("uri", "image path");
-    IntParameter mp_svgRasterizationWidth = new IntParameter("svgRasterizationWidth", "svg Rasterizattion Width", 500);
+    IntParameter mp_svgRasterizationWidth = new IntParameter("svgRasterizationWidth", "svg Rasterizattion Width", 1000);
     Parameter m_params[] = new Parameter[]{
         mp_uri,
         mp_svgRasterizationWidth
@@ -149,6 +150,7 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
         th.put(ImageTranscoder.KEY_DOM_IMPLEMENTATION,SVGDOMImplementation.getDOMImplementation());
         th.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT_NAMESPACE_URI,SVGConstants.SVG_NAMESPACE_URI);
         th.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT, "svg");
+        th.put(SVGAbstractTranscoder.KEY_EXECUTE_ONLOAD, new Boolean(false));
         th.put(ImageTranscoder.KEY_WIDTH, new Float(width));
         //th.put(ImageTranscoder.KEY_HEIGHT, new Float(1000));
         th.put(ImageTranscoder.KEY_BACKGROUND_COLOR, background);
