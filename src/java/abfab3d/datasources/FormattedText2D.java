@@ -41,14 +41,16 @@ import static abfab3d.core.Units.MM;
  * @author Alan Hudson
  */
 public class FormattedText2D extends BaseParameterizable implements ImageProducer {
+
+    static final boolean DEBUG_VIZ = false;
     static final boolean DEBUG = false;
     static final boolean CACHING_ENABLED = true;
 
     BufferedImage m_bitmap = null;
 
     DoubleParameter mp_height = new DoubleParameter("height", "height of text", 5 * MM);
-    DoubleParameter mp_width = new DoubleParameter("width", "width of text", 0 * MM); // width is initially undefined
-    DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize", "size of voxel for text rendering", 0.1 * MM);
+    DoubleParameter mp_width = new DoubleParameter("width", "width of text", 5 * MM); // width is initially undefined ??
+    DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize", "size of voxel for text rendering", 0.05 * MM);
     StringParameter mp_source = new StringParameter("source", "text to be created", "Hello<br/>World");
 
     Parameter m_param[] = new Parameter[]{
@@ -69,7 +71,6 @@ public class FormattedText2D extends BaseParameterizable implements ImageProduce
     }
 
     public void setSource(String val) {
-        m_bitmap = null;
         mp_source.setValue(val);
     }
 
@@ -78,7 +79,6 @@ public class FormattedText2D extends BaseParameterizable implements ImageProduce
      * @param val The size in meters
      */
     public void setVoxelSize(double val) {
-        m_bitmap = null;
         mp_voxelSize.setValue(val);
     }
 
@@ -91,8 +91,6 @@ public class FormattedText2D extends BaseParameterizable implements ImageProduce
     }
     
     public void set(String param, Object val) {
-        // change of param causes change of bitmap
-        m_bitmap = null;
         super.set(param, val);
     }
 
@@ -100,8 +98,6 @@ public class FormattedText2D extends BaseParameterizable implements ImageProduce
         if (val <= 0) {
             throw new IllegalArgumentException("Text2D width cannot be <= 0");
         }
-
-        m_bitmap = null;
         mp_width.setValue(val);
     }
 
@@ -113,8 +109,6 @@ public class FormattedText2D extends BaseParameterizable implements ImageProduce
         if (val <= 0) {
             throw new IllegalArgumentException(fmt("illegal Text2D height:%11.9", val));
         }
-
-        m_bitmap = null;
         mp_height.setValue(val);
     }
 
@@ -128,8 +122,7 @@ public class FormattedText2D extends BaseParameterizable implements ImageProduce
      */
     public BufferedImage getImage() {
 
-        if (m_bitmap == null)
-            initialize();
+        initialize();
 
         return m_bitmap;
     }
@@ -190,12 +183,11 @@ public class FormattedText2D extends BaseParameterizable implements ImageProduce
                     text.getBytes("UTF-8"));
             doc = builder.parse(input);
 
-            System.out.printf("Rendering:  w: %d  h: %d\n", width, height);
+            if(DEBUG)printf("FormattedText2D  Rendering:  [%d x %d]\n", width, height);
             Java2DRenderer renderer = new Java2DRenderer(doc, width, height);
             renderer.setBufferedImageType(BufferedImage.TYPE_INT_RGB);
             bitmap = renderer.getImage();
-
-            ImageIO.write(m_bitmap, "png", new File("/tmp/formatted.png"));
+            if(DEBUG_VIZ)ImageIO.write(bitmap, "png", new File("/tmp/formatted.png"));
         } catch (Exception e) {
             e.printStackTrace();
         }

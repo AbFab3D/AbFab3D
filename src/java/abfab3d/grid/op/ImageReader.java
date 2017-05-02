@@ -152,8 +152,8 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
         th.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT, "svg");
         th.put(SVGAbstractTranscoder.KEY_EXECUTE_ONLOAD, new Boolean(false));
         th.put(ImageTranscoder.KEY_WIDTH, new Float(width));
-        //th.put(ImageTranscoder.KEY_HEIGHT, new Float(1000));
         th.put(ImageTranscoder.KEY_BACKGROUND_COLOR, background);
+        //th.put(ImageTranscoder.KEY_HEIGHT, new Float(1000));
         //th.put(ImageTranscoder.KEY_PIXEL_TO_MM, new Float(0.1));
         //th.put(ImageTranscoder.KEY_USER_STYLESHEET_URI, cssFile.toURI().toString());
         

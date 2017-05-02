@@ -17,15 +17,35 @@ import javax.vecmath.Vector3d;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+
 import java.io.File;
 import java.io.IOException;
 
+import java.util.Vector;
 
+
+import abfab3d.core.Bounds;
 import abfab3d.core.ResultCodes;
 import abfab3d.core.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.core.GridDataChannel;
-import abfab3d.param.*;
+import abfab3d.core.Grid2DProducer;
+import abfab3d.core.ImageProducer;
+
+import abfab3d.grid.Operation2D;
+
+import abfab3d.param.BaseParameterizable;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.SNodeParameter;
+import abfab3d.param.Vector3dParameter;
+import abfab3d.param.BooleanParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.ParamCache;
+
+import abfab3d.grid.op.ImageReader;
+import abfab3d.grid.op.ImageToGrid2D;
+import abfab3d.grid.op.GaussianBlur;
+
 
 import abfab3d.core.Vec;
 import abfab3d.util.ImageGray16;
@@ -40,6 +60,7 @@ import static abfab3d.core.MathUtil.step01;
 import static abfab3d.core.MathUtil.step10;
 import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.time;
 
 
@@ -60,6 +81,7 @@ import static abfab3d.core.Output.time;
 public class ImageMap extends TransformableDataSource {
     final static boolean DEBUG = true;
     final static boolean DEBUG_VIZ = false;
+    final static boolean CACHING_ENABLED = true;
 
     public static int REPEAT_NONE = 0, REPEAT_X = 1, REPEAT_Y = 2, REPEAT_BOTH = 3;
     
@@ -79,8 +101,9 @@ public class ImageMap extends TransformableDataSource {
     private int m_imageSizeX, m_imageSizeY; 
     private double m_valueOffset, m_valueFactor;
 
+    SNodeParameter mp_source = new SNodeParameter("source","Image source", null);
     // public parameters 
-    ObjectParameter  mp_imageSource = new ObjectParameter("image","image source",null);
+    //ObjectParameter  mp_imageSource = new ObjectParameter("image","image source",null);
     Vector3dParameter  mp_center = new Vector3dParameter("center","center of the image box",new Vector3d(0.,0.,0.));
     Vector3dParameter  mp_size = new Vector3dParameter("size","size of the image box",new Vector3d(0.1,0.1,0.1));
     BooleanParameter  mp_repeatX = new BooleanParameter("repeatX","repeat image along X", false);
@@ -90,7 +113,8 @@ public class ImageMap extends TransformableDataSource {
     DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
 
     private final Parameter m_aparams[] = new Parameter[]{
-        mp_imageSource, 
+        mp_source,
+        //mp_imageSource, 
         mp_center,
         mp_size,
         mp_repeatX,
@@ -102,8 +126,11 @@ public class ImageMap extends TransformableDataSource {
     };
 
     /** Params which require changes in the underlying image */
-    private final Parameter[] imageParams = new Parameter[] {
-            mp_imageSource, mp_size, mp_blurWidth
+    private final Parameter[] m_imageParams = new Parameter[] {
+        mp_source,
+        //mp_imageSource, 
+        mp_size, 
+        mp_blurWidth
     };
 
     // 
@@ -111,19 +138,44 @@ public class ImageMap extends TransformableDataSource {
     // converted to get physical value from grid attribute
     protected GridDataChannel m_dataChannel;
 
+
     /**
      * Creates ImageMap from a file
      *
-     * @param imageSource source of the image. Can be url, BufferedImage or ImageWrapper
+     * @param path source of the image. Can be url
      * @param sizex - width of the image
      * @param sizey - height of the image
      * @param sizez - depth of the image
      */
-    public ImageMap(Object imageSource, double sizex, double sizey, double sizez) {
+    public ImageMap(String path, double sizex, double sizey, double sizez) {
+        this(new ImageToGrid2D(new ImageReader(path)), sizex, sizey, sizez);
+    }
+
+    /**
+     * Creates ImageMap from a file
+     *
+     * @param reader source of the image. 
+     * @param sizex - width of the image
+     * @param sizey - height of the image
+     * @param sizez - depth of the image
+     */
+    public ImageMap(ImageProducer imageProducer, double sizex, double sizey, double sizez) {
+        this(new ImageToGrid2D(imageProducer), sizex, sizey, sizez);
+    }
+
+    /**
+     * Creates ImageMap from a file
+     *
+     * @param producer source of the image. 
+     * @param sizex - width of the image
+     * @param sizey - height of the image
+     * @param sizez - depth of the image
+     */
+    public ImageMap(Grid2DProducer producer, double sizex, double sizey, double sizez) {
 
         initParams();
 
-        mp_imageSource.setValue(imageSource);
+        mp_source.setValue(producer);
         mp_size.setValue(new Vector3d(sizex, sizey, sizez));
 
     }
@@ -140,16 +192,16 @@ public class ImageMap extends TransformableDataSource {
      * Set the source image
      * @param val
      */
-    public void setImage(Object val) {
-        mp_imageSource.setValue(val);
+    public void setImage(Grid2DProducer producer) {
+        mp_source.setValue(producer);
     }
 
     /**
      * Get the source image
      * @return
      */
-    public Object getImage() {
-        return mp_imageSource.getValue();
+    public Grid2DProducer getImage() {
+        return (Grid2DProducer)mp_source.getValue();
     }
 
     /**
@@ -277,7 +329,7 @@ public class ImageMap extends TransformableDataSource {
      * @return
      */
     public String getBufferLabel() {
-        return BaseParameterizable.getParamString(getClass().getSimpleName(), imageParams);
+        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_imageParams);
     }
 
     /**
@@ -347,19 +399,20 @@ public class ImageMap extends TransformableDataSource {
         m_valueFactor = white - black;
 
         long t0 = System.currentTimeMillis();
-        String vhash = getParamString(imageParams);
-        Object co = ParamCache.getInstance().get(vhash);
-        if (co == null) {
-            int res = prepareImage();
-            if(res != ResultCodes.RESULT_OK){
-                // something wrong with the image
-                throw new IllegalArgumentException("undefined image");
-            }
-            ParamCache.getInstance().put(vhash, m_imageGrid);
 
+        String label = BaseParameterizable.getParamString(getClass().getSimpleName(), m_imageParams);
+
+        Object co = null;
+        if(CACHING_ENABLED)co = ParamCache.getInstance().get(label);
+        if (co == null) {
+            m_imageGrid = prepareImage();
+            if(CACHING_ENABLED)ParamCache.getInstance().put(label, m_imageGrid);
+            if (DEBUG) printf("Image3D: caching image: %s -> %s\n",label, m_imageGrid);
         } else {
             m_imageGrid = (Grid2D) co;
+            if (DEBUG) printf("Image3D: got cached image %s -> %s\n",label, m_imageGrid);
         }
+
 
         m_dataChannel = m_imageGrid.getDataDesc().getDefaultChannel();
         m_imageSizeX  = m_imageGrid.getWidth();
@@ -369,10 +422,74 @@ public class ImageMap extends TransformableDataSource {
         
     }
 
+    private Grid2D prepareImage(){
+        
+        return prepareImage_v1();
+
+    }
+        
+    private Grid2D prepareImage_v1(){
+        
+        Object obj = mp_source.getValue(); 
+        if(DEBUG) printf("prepareImage_v1(%s)\n", obj);
+        if(obj == null || !(obj instanceof Grid2DProducer))
+            throw new RuntimeException(fmt("unrecoginized grid source: %s\n",obj.getClass().getName()));
+
+        Grid2DProducer producer = (Grid2DProducer)obj; 
+        
+        Grid2D grid = producer.getGrid2D(); 
+        if(DEBUG) printf("ImageMap grid: %s\n", grid);
+        grid.setGridBounds(getBounds());
+
+        
+        grid = executeOps(grid, createOps(grid));
+
+        return grid;
+        
+    }
+
+    /**
+       @Override 
+    */
+    public Bounds getBounds(){
+        Vector3d size = mp_size.getValue();
+        Vector3d center = mp_center.getValue();
+        return new Bounds(center.x - size.x/2,center.x + size.x/2,center.y - size.y/2,center.y + size.y/2,center.z - size.z/2,center.z + size.z/2);
+    }
+
+    /**
+       makes sequence of operations to apply to the image 
+    */
+    private Vector<Operation2D> createOps(Grid2D grid){
+        
+        Vector<Operation2D> ops = new Vector<Operation2D>(5);
+        
+        double blurWidth = mp_blurWidth.getValue();
+        if(blurWidth > 0.){
+            ops.add(new  GaussianBlur(blurWidth));            
+        }
+        
+        return ops;
+    }
+
+    
+    /**
+       exacutes sequence of opeations 
+     */
+    private Grid2D executeOps(Grid2D grid, Vector<Operation2D> ops){
+        
+        for(int i = 0; i < ops.size(); i++){
+            grid = ops.get(i).execute(grid);
+        }
+        return grid;
+    }
+
+    
     /**
      * @noRefGuide
      */
-    private int prepareImage(){
+    /*
+    private int prepareImage_v0(){
 
         long t0 = time();
 
@@ -484,7 +601,7 @@ public class ImageMap extends TransformableDataSource {
 
         return ResultCodes.RESULT_OK;
     }
-
+    */
     /**
      * @noRefGuide
      */
@@ -505,12 +622,8 @@ public class ImageMap extends TransformableDataSource {
         // xy are in (0,1) range 
         if(m_repeatX) 
             x -= floor(x);
-        else 
-            x = min(1, max(0,x));
         if(m_repeatY) 
             y -= floor(y);
-        else 
-            y = min(1, max(0,y));
        
         // x in [0, imageSizeX]
         // y in [0, imageSizeY]
@@ -523,9 +636,26 @@ public class ImageMap extends TransformableDataSource {
         
         int ix = (int)floor(x);
         int iy = (int)floor(y);
+        int ix1 = ix + 1;
+        int iy1 = iy + 1;
         double dx = x - ix;
         double dy = y - iy;
+        if(m_repeatX){
+            ix -= m_imageSizeX*floor((double)ix/m_imageSizeX);
+            ix1 -= m_imageSizeX*floor((double)ix1/m_imageSizeX);
+        } else {
+            ix = clamp(ix, 0, m_imageSizeX-1);            
+            ix1 = clamp(ix1, 0, m_imageSizeX-1);            
+        }
+        if(m_repeatY){
+            iy -= m_imageSizeY*floor((double)iy/m_imageSizeY);
+            iy1 -= m_imageSizeY*floor((double)iy1/m_imageSizeY);
+        } else {
+            iy = clamp(iy, 0, m_imageSizeY-1);            
+            iy1 = clamp(iy1, 0, m_imageSizeY-1);            
+        }
 
+        /*
         if(ix < 0){
             if(m_repeatX) ix = m_imageSizeX-1;
             else ix = 0;
@@ -534,17 +664,15 @@ public class ImageMap extends TransformableDataSource {
             if(m_repeatY) iy = m_imageSizeY-1;
             else iy = 0;
         }
-        int ix1 = ix + 1;
         if(ix1 >= m_imageSizeX){
             if(m_repeatX) ix1 = 0;
             else ix1 = m_imageSizeX-1;            
         }
-        int iy1 = iy + 1;
         if(iy1 >= m_imageSizeY){
             if(m_repeatY) iy1 = 0;
             else iy1 = m_imageSizeY-1;            
         }
-
+        */
         double 
             v00 = m_dataChannel.getValue(m_imageGrid.getAttribute(ix, iy)),
             v10 = m_dataChannel.getValue(m_imageGrid.getAttribute(ix1, iy)),

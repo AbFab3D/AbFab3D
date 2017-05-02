@@ -130,7 +130,6 @@ public class Image3D extends TransformableDataSource {
     DoubleParameter  mp_baseThreshold = new DoubleParameter("baseThreshold", "threshold of the image", 0.01);
     DoubleParameter  mp_pixelsPerVoxel = new DoubleParameter("pixelsPerVoxel", "image pixels per voxel", 3.);
     DoubleParameter  mp_maxDist = new DoubleParameter("maxDist", "maximal distance to calculate distance transform", 20*MM);
-    //LongParameter  mp_imageFileTimeStamp = new LongParameter("imageTimeStamp", 0);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_source, 
@@ -733,9 +732,9 @@ public class Image3D extends TransformableDataSource {
 
     }
 
-    //
-    // 
-    //
+    /**
+       @Override 
+    */
     public Bounds getBounds(){
         Vector3d size = mp_size.getValue();
         Vector3d center = mp_center.getValue();

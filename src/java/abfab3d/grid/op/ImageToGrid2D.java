@@ -64,8 +64,20 @@ public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer
     // loaded image converted into grid
     Grid2D m_grid;
 
+
     /**
-       @param path - image path
+       @param imageProducer - image producer
+       @param useColor - use color or convert to gray
+     */
+    public ImageToGrid2D(ImageProducer imageProducer, boolean useColor){
+        addParams(m_params);
+        mp_imageProducer.setValue(imageProducer);        
+        mp_useColor.setValue(useColor);        
+
+    }
+
+    /**
+       @param imageProducer - image producer
      */
     public ImageToGrid2D(ImageProducer imageProducer){
         addParams(m_params);
@@ -97,7 +109,7 @@ public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer
             co = ParamCache.getInstance().get(label);
         }
         if (co == null) {
-            m_grid = loadImage();
+            m_grid = prepareGrid();
             if(CACHING_ENABLED){
                 ParamCache.getInstance().put(label, m_grid);
                 if (DEBUG) printf("ImageReader: caching image: %s -> %s\n",label, m_grid);                
@@ -111,19 +123,15 @@ public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer
     }
     
 
-    protected Grid2D loadImage(){
+    protected Grid2D prepareGrid(){
 
-        if (DEBUG) printf("%s.loadImage()\n",this);
+        if (DEBUG) printf("%s.prepareGrid()\n",this);
         ImageProducer producer = (ImageProducer)mp_imageProducer.getValue(); 
         BufferedImage image = producer.getImage();
-        return makeGrid(image, mp_pixelSize.getValue());
-    }
-
-
-    public static Grid2D makeGrid(BufferedImage image, double pixelSize) {
-
-        return makeGrayGrid(image, pixelSize);
-
+        if(mp_useColor.getValue())
+            return makeColorGrid(image, mp_pixelSize.getValue());
+        else 
+            return makeGrayGrid(image, mp_pixelSize.getValue());
     }
     
     public static Grid2D makeGrayGrid(BufferedImage image, double pixelSize) {

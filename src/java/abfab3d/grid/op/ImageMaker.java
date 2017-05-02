@@ -78,13 +78,14 @@ public class ImageMaker {
 
 
         for(int v = 0; v < height; v++){
+            int offy = width*(height-1-v);
             for(int u = 0; u < width; u++){
 
                 pnt.v[0] = umin + u*du;
                 pnt.v[1] = vmin + v*dv;
                 pnt.v[2] = wmin;
                 imgRenderer.getDataValue(pnt, data);
-                imageData[u + width*v] = makeARGB(data.v[0],data.v[1],data.v[2],data.v[3]);
+                imageData[u + offy] = makeARGB(data.v[0],data.v[1],data.v[2],data.v[3]);
             }
         }
     }

@@ -91,13 +91,15 @@ public class SliceMaker {
         
         
         for(int v = 0; v < nv; v++){
+            int offy = nu*(nv-1-v);
+
             for(int u = 0; u < nu; u++){
 
                 pnt.v[0] = x0 + u*ux + v*vx;
                 pnt.v[1] = y0 + u*uy + v*vy;
                 pnt.v[2] = z0 + u*uz + v*vz;
                 dataSource.getDataValue(pnt, data);
-                imageData[u + nu*v] = colorMapper.getColor(data.v[channelID]);
+                imageData[u + offy] = colorMapper.getColor(data.v[channelID]);
             }
         }
     }
