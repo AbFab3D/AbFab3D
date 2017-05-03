@@ -63,6 +63,7 @@ public class TestImageMap extends TestCase {
         assertFalse("has memory reference",vhash.contains("@"));
 
     }
+
     public void devTestImageMap() throws Exception{
         
         double sizeZ = 2*MM;
@@ -107,7 +108,7 @@ public class TestImageMap extends TestCase {
                                new Vector3d(bounds.xmax, bounds.ymin,zs),
                                new Vector3d(bounds.xmin, bounds.ymax,zs), 
                                img, 0, new ColorMapperDistance(distanceBand));
-        if(DEBUG_VIZ)ImageIO.write(image, "png", new File("/tmp/00_imageMap_XY.png"));
+        ImageIO.write(image, "png", new File("/tmp/00_imageMap_XY.png"));
    }
 
 

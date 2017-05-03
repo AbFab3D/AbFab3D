@@ -518,6 +518,12 @@ public class ImageUtil {
                 break;
                 
             }
+        case BufferedImage.TYPE_INT_ARGB:
+            {                
+                INT_ARGB_2_INT_ARGB(((DataBufferInt)dataBuffer).getData(), intData);            
+                break;
+                
+            }
         case BufferedImage.TYPE_3BYTE_BGR:
             {
                 
@@ -596,6 +602,18 @@ public class ImageUtil {
     
         }        
     }
+
+    /**
+       convert array of INT_ARGB to INT_ARGB (simple copy) 
+     */
+    public static void INT_ARGB_2_INT_ARGB(int imageData[], int intData[]){
+
+        int len = intData.length;
+        for(int i = 0; i < len; i++){            
+            intData [i] = imageData[i];
+        }        
+    }
+
 
     /**
        convert array of 4 ARGB byte data in ARGB int 

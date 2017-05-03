@@ -46,6 +46,7 @@ import abfab3d.grid.op.ImageReader;
 import abfab3d.grid.op.ImageToGrid2D;
 import abfab3d.grid.op.GaussianBlur;
 
+import abfab3d.util.ColorMapperDistance;
 
 import abfab3d.core.Vec;
 import abfab3d.util.ImageGray16;
@@ -421,19 +422,13 @@ public class ImageMap extends TransformableDataSource {
         return ResultCodes.RESULT_OK;
         
     }
-
+        
     private Grid2D prepareImage(){
-        
-        return prepareImage_v1();
-
-    }
-        
-    private Grid2D prepareImage_v1(){
         
         Object obj = mp_source.getValue(); 
         if(DEBUG) printf("prepareImage_v1(%s)\n", obj);
         if(obj == null || !(obj instanceof Grid2DProducer))
-            throw new RuntimeException(fmt("unrecoginized grid source: %s\n",obj.getClass().getName()));
+            throw new RuntimeException(fmt("unrecoginized grid source: %s\n",obj));
 
         Grid2DProducer producer = (Grid2DProducer)obj; 
         

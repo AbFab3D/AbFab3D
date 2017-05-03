@@ -18,7 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import java.awt.Color;
+import abfab3d.core.Color;
 
 import javax.imageio.ImageIO;
 
@@ -36,6 +36,7 @@ import abfab3d.core.ImageProducer;
 
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.URIParameter;
+import abfab3d.param.ColorParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.BooleanParameter;
 import abfab3d.param.IntParameter;
@@ -61,9 +62,11 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
 
     URIParameter mp_uri = new URIParameter("uri", "image path");
     IntParameter mp_svgRasterizationWidth = new IntParameter("svgRasterizationWidth", "svg Rasterizattion Width", 1000);
+    ColorParameter mp_backgroundColor = new ColorParameter("backgroundColor", "background color", new Color(1,1,1));
     Parameter m_params[] = new Parameter[]{
         mp_uri,
-        mp_svgRasterizationWidth
+        mp_svgRasterizationWidth,
+        mp_backgroundColor
     };
 
     // loaded image converted into grid
@@ -131,11 +134,12 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
 
         try {
             if(path.endsWith(".svg")){
-                return readImageSVG(path, mp_svgRasterizationWidth.getValue(), Color.white);
+                return readImageSVG(path, mp_svgRasterizationWidth.getValue(), mp_backgroundColor.getValue());
             }
             BufferedImage image = ImageIO.read(new File(path)); 
             return image;
         } catch (Exception e){
+            e.printStackTrace();
             throw new RuntimeException(fmt("exception reading image %s", path));
         }        
         
@@ -145,6 +149,8 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
     
     public static BufferedImage readImageSVG(String path, int width, Color background) throws Exception {
         
+
+        java.awt.Color color = new java.awt.Color((float)background.getr(),(float)background.getg(),(float)background.getb(),(float)background.geta());
         TranscodingHints th = new TranscodingHints();
         th.put(ImageTranscoder.KEY_XML_PARSER_VALIDATING, Boolean.FALSE);
         th.put(ImageTranscoder.KEY_DOM_IMPLEMENTATION,SVGDOMImplementation.getDOMImplementation());
@@ -152,7 +158,7 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
         th.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT, "svg");
         th.put(SVGAbstractTranscoder.KEY_EXECUTE_ONLOAD, new Boolean(false));
         th.put(ImageTranscoder.KEY_WIDTH, new Float(width));
-        th.put(ImageTranscoder.KEY_BACKGROUND_COLOR, background);
+        th.put(ImageTranscoder.KEY_BACKGROUND_COLOR, color);
         //th.put(ImageTranscoder.KEY_HEIGHT, new Float(1000));
         //th.put(ImageTranscoder.KEY_PIXEL_TO_MM, new Float(0.1));
         //th.put(ImageTranscoder.KEY_USER_STYLESHEET_URI, cssFile.toURI().toString());

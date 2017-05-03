@@ -21,14 +21,46 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 
-// Internal Imports
+import javax.vecmath.Vector3d;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 
-        import abfab3d.core.Vec;
+import java.io.File;
+import java.io.IOException;
+
+import java.util.Vector;
 
 
-        import static abfab3d.core.Output.printf;
+import abfab3d.core.Color;
+import abfab3d.core.Vec;
+import abfab3d.core.Bounds;
+import abfab3d.core.ResultCodes;
+import abfab3d.core.Grid2D;
+import abfab3d.grid.Grid2DShort;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.Grid2DProducer;
+import abfab3d.core.ImageProducer;
 
-        import static abfab3d.core.MathUtil.normalizePlane;
+import abfab3d.grid.Operation2D;
+import abfab3d.grid.op.SliceMaker;
+import abfab3d.grid.op.ImageMaker;
+
+import abfab3d.param.BaseParameterizable;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.SNodeParameter;
+import abfab3d.param.Vector3dParameter;
+import abfab3d.param.BooleanParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.ParamCache;
+
+import abfab3d.grid.op.ImageReader;
+import abfab3d.grid.op.ImageToGrid2D;
+import abfab3d.util.ColorMapperDistance;
+
+
+import static abfab3d.core.Units.MM;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.MathUtil.normalizePlane;
 
 /**
  * Tests the functionality of ImageColorMap
@@ -119,8 +151,43 @@ public class TestImageColorMap extends TestCase {
         
      }
 
-   public static void main(String[] args) {
-        //new TestImageColorMap().devTestColorImage();
-        new TestImageColorMap().devTestBadImage();
-    }
+
+    //
+    //
+    //
+    public void devTestImageColorMap() throws Exception{
+        
+        double sizeZ = 2*MM;
+        double sizeX = 100*MM;
+        double sizeY = 100*MM;
+        double margin = 5*MM;
+        double blur = 0.*MM;
+        double distanceBand = 1*MM;
+        String path = "test/images/color_boxes.svg";
+        ImageReader reader = new ImageReader(path);
+        reader.set("svgRasterizationWidth", 100);
+        reader.set("backgroundColor", new Color(1,1,1,0));
+        
+        ImageColorMap img = new ImageColorMap(reader, sizeX,sizeY,sizeZ);
+
+        Bounds bounds = new Bounds(-sizeX/2, sizeX/2, -sizeY/2, sizeY/2, -sizeZ/2,sizeZ/2);
+        bounds.expand(margin);
+                                
+        int nux = 1000;
+        int nvy = (int)(nux * bounds.getSizeY()/bounds.getSizeX());
+        int nvz = (int)(nux * bounds.getSizeZ()/bounds.getSizeX());
+        double ys = (bounds.ymin + bounds.ymax)/2; // y coord of xz slice
+        double zs = (bounds.ymin + bounds.ymax)/2; // z coordinate of xy slice
+
+        ImageMaker sm = new ImageMaker();        
+        BufferedImage image;
+        img.initialize();
+        image = sm.renderImage(nux, nvy, bounds, img);
+        ImageIO.write(image, "png", new File("/tmp/00_imageColorMap_XY.png"));
+   }
+
+   public static void main(String[] args) throws Exception {
+       new TestImageColorMap().devTestImageColorMap();
+       //new TestImageColorMap().devTestBadImage();
+   }
 }

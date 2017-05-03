@@ -47,11 +47,20 @@ public class Color implements Cloneable {
     private double r;
     private double g;
     private double b;
+    private double a;
 
     public Color(double r, double g, double b) {
         this.r = r;
         this.g = g;
         this.b = b;
+        this.a = 1;
+    }
+
+    public Color(double r, double g, double b, double a) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
     }
 
     public double getr() {
@@ -78,8 +87,16 @@ public class Color implements Cloneable {
         b = val;
     }
 
+    public double geta() {
+        return a;
+    }
+
+    public void seta(double val)  {
+        a = val;
+    }
+
     public static Color fromColor(java.awt.Color color) {
-        return new Color(color.getRed()/255.0f,color.getGreen()/255.0f,color.getBlue()/255.0f);
+        return new Color(color.getRed()/255.0f,color.getGreen()/255.0f,color.getBlue()/255.0f, 1.);
     }
 
     /**
@@ -190,5 +207,6 @@ public class Color implements Cloneable {
     public String toString(){
         return toString(this);
     }
+
 
 }

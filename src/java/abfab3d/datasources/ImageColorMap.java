@@ -12,10 +12,26 @@
 package abfab3d.datasources;
 
 
+import abfab3d.core.Bounds;
 import abfab3d.core.ResultCodes;
-import abfab3d.param.*;
-import abfab3d.util.ImageColor;
+import abfab3d.core.Grid2D;
 import abfab3d.core.Vec;
+import abfab3d.core.Grid2DProducer;
+import abfab3d.core.ImageProducer;
+
+
+import abfab3d.param.BaseParameterizable;
+import abfab3d.param.ParamCache;
+import abfab3d.param.Parameter;
+import abfab3d.param.BooleanParameter;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Vector3dParameter;
+import abfab3d.param.SNodeParameter;
+
+import abfab3d.grid.op.ImageToGrid2D;
+import abfab3d.grid.op.ImageReader;
+
+import abfab3d.util.ImageColor;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Vector3d;
@@ -24,7 +40,9 @@ import java.io.File;
 import java.io.IOException;
 
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.time;
+import static abfab3d.core.MathUtil.clamp;
 import static java.lang.Math.floor;
 
 
@@ -44,7 +62,7 @@ import static java.lang.Math.floor;
  */
 public class ImageColorMap extends TransformableDataSource {
 
-    final static boolean DEBUG = false;
+    final static boolean DEBUG = true;
 
     private boolean m_repeatX = false;
     private boolean m_repeatY = false;
@@ -58,7 +76,8 @@ public class ImageColorMap extends TransformableDataSource {
     private int m_imageSizeX, m_imageSizeY;
 
     // public parameters 
-    ObjectParameter mp_imageSource = new ObjectParameter("image", "image source", null);
+    SNodeParameter mp_imageSource = new SNodeParameter("image", "image source", null);
+    //ObjectParameter mp_imageSource = new ObjectParameter("image", "image source", null);
     Vector3dParameter mp_center = new Vector3dParameter("center", "center of the image box", new Vector3d(0., 0., 0.));
     Vector3dParameter mp_size = new Vector3dParameter("size", "size of the image box", new Vector3d(0.1, 0.1, 0.1));
     BooleanParameter mp_repeatX = new BooleanParameter("repeatX", "repeat image along X", false);
@@ -80,7 +99,7 @@ public class ImageColorMap extends TransformableDataSource {
     };
 
     // 
-    private ImageColor m_imageData;
+    private Grid2D m_imageData;
 
     /**
      * Creates ImageColorMap from a file
@@ -90,11 +109,18 @@ public class ImageColorMap extends TransformableDataSource {
      * @param sizey - height of the image
      * @param sizez - depth of the image
      */
-    public ImageColorMap(Object imageSource, double sizex, double sizey, double sizez) {
+    public ImageColorMap(String path, double sizex, double sizey, double sizez) {
+        this(new ImageToGrid2D(new ImageReader(path), true), sizex, sizey, sizez);
+    }
+
+    public ImageColorMap(ImageProducer producer, double sizex, double sizey, double sizez) {
+        this(new ImageToGrid2D(producer, true), sizex, sizey, sizez);
+    }
+
+    public ImageColorMap(Grid2DProducer gridProducer, double sizex, double sizey, double sizez) {
 
         super.addParams(m_aparams);
-
-        mp_imageSource.setValue(imageSource);
+        mp_imageSource.setValue(gridProducer);
         mp_size.setValue(new Vector3d(sizex, sizey, sizez));
     }
 
@@ -198,10 +224,18 @@ public class ImageColorMap extends TransformableDataSource {
         int ny = m_imageData.getHeight();
         for (int y = 0; y < ny; y++) {
             for (int x = 0; x < nx; x++) {
-                int d = m_imageData.getDataI(x, y);
-                data[x + y * nx] = d;
+                long d = m_imageData.getAttribute(x, y);
+                data[x + y * nx] = (int)(d & 0xFFFFFFFF);
             }
         }
+    }
+
+    /**
+     * Get a label for the OpenCL buffer, account for all params which change the buffer value
+     * @return
+     */
+    public String getBufferLabel() {
+        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparams);
     }
 
     /**
@@ -210,28 +244,15 @@ public class ImageColorMap extends TransformableDataSource {
     public int initialize() {
         super.initialize();
 
-        // this may be different depending on the image 
-        m_channelsCount = 3;
 
         String vhash = getParamString(imageParams);
 
         Object co = ParamCache.getInstance().get(vhash);
         if (co == null) {
             long t0 = time();
-            int res = prepareImage();
+            m_imageData = prepareImage();
             if(DEBUG)printf("ImageColorMap.prepareImage() time: %d ms\n", (time() - t0));            
-            if(false) {
-                printf("ImageColorMap.prepareImage();\n");
-                printf("sizeX: %f\n", m_sizeX);
-                printf("sizeY: %f\n", m_sizeY);
-                printf("sizeZ: %f\n", m_sizeZ);
-                printf("originX: %f\n", m_originX);
-                printf("originY: %f\n", m_originY);
-                printf("originZ: %f\n", m_originZ);
-                printf("imageSizeX: %d\n", m_imageSizeX);
-                printf("imageSizeY: %d\n", m_imageSizeY);
-            }
-            if(res != ResultCodes.RESULT_OK){
+            if(m_imageData == null){
                 // something wrong with the image
                 throw new IllegalArgumentException("undefined image");
             }
@@ -239,8 +260,9 @@ public class ImageColorMap extends TransformableDataSource {
             ParamCache.getInstance().put(vhash, m_imageData);
 
         } else {
-            m_imageData = (ImageColor) co;
+            m_imageData = (Grid2D) co;
         }
+
 
         Vector3d center = (Vector3d) mp_center.getValue();
         Vector3d size = (Vector3d) mp_size.getValue();
@@ -256,14 +278,47 @@ public class ImageColorMap extends TransformableDataSource {
         m_repeatX = mp_repeatX.getValue();
         m_repeatY = mp_repeatY.getValue();
 
+        // this may be different depending on the image 
+        // good for general ARGB 
+        m_channelsCount = 4;
+
         return ResultCodes.RESULT_OK;
 
+    }
+
+    private Grid2D prepareImage() {
+
+        Object obj = mp_imageSource.getValue(); 
+        if(DEBUG) printf("ImageColorMap.prepareImage() source: %s\n", obj);
+        if(obj == null || !(obj instanceof Grid2DProducer))
+            throw new RuntimeException(fmt("unrecoginized grid source: %s\n",obj));
+        
+        
+        Grid2DProducer producer = (Grid2DProducer)obj; 
+        
+        Grid2D grid = producer.getGrid2D(); 
+        if(DEBUG) printf("ImageMap grid: %s\n", grid);
+        grid.setGridBounds(getBounds());
+
+        if(DEBUG) printf("ImageColorMap() image: [%d x %d]\n", grid.getWidth(), grid.getHeight());
+
+        return grid;
+    }
+    
+    
+    @Override
+    public Bounds getBounds(){
+
+        Vector3d size = mp_size.getValue();
+        Vector3d center = mp_center.getValue();
+        return new Bounds(center.x - size.x/2,center.x + size.x/2,center.y - size.y/2,center.y + size.y/2,center.z - size.z/2,center.z + size.z/2);
     }
 
     /**
      * @noRefGuide
      */
-    private int prepareImage() {
+    /*
+    private int prepareImage_v0() {
 
         long t0 = time();
 
@@ -321,14 +376,7 @@ public class ImageColorMap extends TransformableDataSource {
 
         return ResultCodes.RESULT_OK;
     }
-
-    /**
-     * Get a label for the OpenCL buffer, account for all params which change the buffer value
-     * @return
-     */
-    public String getBufferLabel() {
-        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparams);
-    }
+    */
 
     /**
      * @noRefGuide
@@ -364,6 +412,28 @@ public class ImageColorMap extends TransformableDataSource {
         x -= 0.5;
         y -= 0.5;
 
+        int ix = (int)floor(x);
+        int iy = (int)floor(y);
+        int ix1 = ix + 1;
+        int iy1 = iy + 1;
+        double dx = x - ix;
+        double dy = y - iy;
+        if(m_repeatX){
+            ix -= m_imageSizeX*floor((double)ix/m_imageSizeX);
+            ix1 -= m_imageSizeX*floor((double)ix1/m_imageSizeX);
+        } else {
+            ix = clamp(ix, 0, m_imageSizeX-1);            
+            ix1 = clamp(ix1, 0, m_imageSizeX-1);            
+        }
+        if(m_repeatY){
+            iy -= m_imageSizeY*floor((double)iy/m_imageSizeY);
+            iy1 -= m_imageSizeY*floor((double)iy1/m_imageSizeY);
+        } else {
+            iy = clamp(iy, 0, m_imageSizeY-1);            
+            iy1 = clamp(iy1, 0, m_imageSizeY-1);            
+        }
+
+        /*
         //printf("[%3.1f %3.1f]", x, y);
 
         int ix = (int) floor(x);
@@ -389,43 +459,50 @@ public class ImageColorMap extends TransformableDataSource {
             if (m_repeatY) iy = 0;
             else iy = m_imageSizeY - 1;
         }
+        */
 
         double
-                dx1 = 1. - dx,
-                dy1 = 1. - dy,
-                dxdy = dx * dy,
-                dx1dy = dx1 * dy,
-                dxdy1 = dx * dy1,
-                dx1dy1 = dx1 * dy1;
-
+            dx1 = 1. - dx,
+            dy1 = 1. - dy,
+            dxdy = dx * dy,
+            dx1dy = dx1 * dy,
+            dxdy1 = dx * dy1,
+            dx1dy1 = dx1 * dy1;
+        
         int
-                v00 = m_imageData.getDataI(ix, iy),
-                v10 = m_imageData.getDataI(ix1, iy),
-                v01 = m_imageData.getDataI(ix, iy1),
-                v11 = m_imageData.getDataI(ix1, iy1);
-
+            v00 = getPixelData(ix, iy),
+            v10 = getPixelData(ix1, iy),
+            v01 = getPixelData(ix, iy1),
+            v11 = getPixelData(ix1, iy1);
+        
         int
-                r00 = getRed(v00),
-                r10 = getRed(v10),
-                r01 = getRed(v01),
-                r11 = getRed(v11),
-                g00 = getGreen(v00),
-                g10 = getGreen(v10),
-                g01 = getGreen(v01),
-                g11 = getGreen(v11),
-                b00 = getBlue(v00),
-                b10 = getBlue(v10),
-                b01 = getBlue(v01),
-                b11 = getBlue(v11);
-
+            r00 = getRed(v00),
+            r10 = getRed(v10),
+            r01 = getRed(v01),
+            r11 = getRed(v11),
+            g00 = getGreen(v00),
+            g10 = getGreen(v10),
+            g01 = getGreen(v01),
+            g11 = getGreen(v11),
+            b00 = getBlue(v00),
+            b10 = getBlue(v10),
+            b01 = getBlue(v01),
+            b11 = getBlue(v11),
+            a00 = getAlpha(v00),
+            a10 = getAlpha(v10),
+            a01 = getAlpha(v01),
+            a11 = getAlpha(v11);            
+        
 
         double r = (dxdy * r11 + dx1dy * r01 + dxdy1 * r10 + dx1dy1 * r00) / 255.;
         double g = (dxdy * g11 + dx1dy * g01 + dxdy1 * g10 + dx1dy1 * g00) / 255.;
         double b = (dxdy * b11 + dx1dy * b01 + dxdy1 * b10 + dx1dy1 * b00) / 255.;
+        double a = (dxdy * a11 + dx1dy * a01 + dxdy1 * a10 + dx1dy1 * a00) / 255.;
 
         dataValue.v[0] = r;
         dataValue.v[1] = g;
         dataValue.v[2] = b;
+        dataValue.v[3] = a;
 
         return ResultCodes.RESULT_OK;
     }
@@ -442,4 +519,13 @@ public class ImageColorMap extends TransformableDataSource {
         return (color) & 0xFF;
     }
 
+    final static int getAlpha(int color) {
+        return (color >> 24) & 0xFF;
+    }
+
+    final int getPixelData(int x, int y) {
+
+        return (int)m_imageData.getAttribute(x, y);
+
+    }
 }

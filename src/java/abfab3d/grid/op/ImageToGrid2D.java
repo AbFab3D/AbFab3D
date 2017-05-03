@@ -13,6 +13,7 @@
 package abfab3d.grid.op;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 
 import java.io.File;
 
@@ -35,9 +36,11 @@ import abfab3d.param.Parameter;
 import abfab3d.param.ParamCache;
 
 import abfab3d.grid.Grid2DShort;
+import abfab3d.grid.Grid2DInt;
 
 
 import static abfab3d.util.ImageUtil.getGray16Data;
+import static abfab3d.util.ImageUtil.getImageData_INT_ARGB;
 import static abfab3d.core.Units.PT;
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
@@ -156,8 +159,20 @@ public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer
 
     public static Grid2D makeColorGrid(BufferedImage image, double pixelSize) {
 
-        if(false)return null;
-        throw new RuntimeException("not implemented");
+        int nx = image.getWidth();
+        int ny = image.getHeight();
+        if(DEBUG) printf("ImageToGrid2D.makeColorGrid() %d x %d\n", nx, ny);
+        int[] imageData = getImageData_INT_ARGB(image);
+
+        Grid2DInt grid = new Grid2DInt(nx, ny,pixelSize);
+        for(int y = 0; y < ny; y++){
+            int yoff = nx*(ny - 1 - y);
+            for(int x = 0; x < nx; x++){
+                grid.setAttribute(x,y,imageData[x + yoff]);
+            }
+        }
+        if(DEBUG) printf("ImageToGrid2D. color grid %d x %d\n", grid.getWidth(), grid.getHeight());
+        return grid;
     }
 
 
