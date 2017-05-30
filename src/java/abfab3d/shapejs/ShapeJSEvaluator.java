@@ -32,6 +32,7 @@ import java.util.*;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
 
 /**
  * Evaluate a ShapeJS script to get its graph.
@@ -327,7 +328,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
      * @return
      */
     public void parseScript(String val) {
-        long t0 = System.currentTimeMillis();
+        long t0 = time();
 
         if (sandboxed && !ContextFactory.hasExplicitGlobal()) {
             org.mozilla.javascript.ContextFactory.GlobalSetter gsetter = ContextFactory.getGlobalSetter();
@@ -372,9 +373,10 @@ public class ShapeJSEvaluator implements MaterialMapper {
             try {
                 scene = cx.evaluateString(scope, script, "<cmd>", 1, null);
             } catch (Exception e) {
-                e.printStackTrace(System.out);
+                printf("evaluateString() failed: %s\n", e.getMessage());
+                if(false)e.printStackTrace(System.out);
                 if(DEBUG)printf("Script failed: %s\nScript:\n%s", e.getMessage(),script);
-                result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, e.getMessage(), getPrintLogs(cx),System.currentTimeMillis() - t0);
+                result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, addErrorLine(e.getMessage(), script, headerLines), getPrintLogs(cx),time() - t0);
                 return;
             }
 
@@ -383,7 +385,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 Object ptypes = scope.get("types", scope);
                 types = parseDefinition(ptypes, true);
             } catch (ClassCastException cce) {
-                result =  new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, cce.getMessage(), getPrintLogs(cx),System.currentTimeMillis() - t0);
+                result =  new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, cce.getMessage(), getPrintLogs(cx),time() - t0);
                 return;
             }
 
@@ -399,7 +401,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                     //addDataSourceParams(result1)
                 }
             } catch (ClassCastException cce) {
-                result =  new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, cce.getMessage(), getPrintLogs(cx),System.currentTimeMillis() - t0);
+                result =  new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, cce.getMessage(), getPrintLogs(cx),time() - t0);
                 return;
             }
 
@@ -408,7 +410,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
         }
 
         if (DEBUG) printf("Eval worked.  defs: %s\n",defs);
-        result = new EvaluatedScript(true,val,null,null,null,null,defs,(System.currentTimeMillis() - t0));
+        result = new EvaluatedScript(true,val,null,null,null,null,defs,(time() - t0));
     }
 
     private ClassShutter getShutter() {
@@ -500,7 +502,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
      * @return
      */
     public EvaluatedScript reevalScript(String script, Map<String, Object> namedParams) {
-        long t0 = System.currentTimeMillis();
+        long t0 = time();
         Context cx = Context.enter();
         DebugLogger.clearLog(cx);
 
@@ -517,7 +519,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             		mungeParams(namedParams,false);
             	} catch (IllegalArgumentException iae) {
             		// TODO: Use INVALID_PARAMETER_VALUE error string and include parameter name and value
-            		return new EvalResult(ErrorType.INVALID_PARAMETER_VALUE, iae.getMessage(), System.currentTimeMillis() - t0);
+            		return new EvalResult(ErrorType.INVALID_PARAMETER_VALUE, iae.getMessage(), time() - t0);
             	}
 */
                 for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
@@ -577,7 +579,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
                     if (onChange == null) {
                         String[] args = new String[] {pd.getName()};
-                        result = new EvaluatedScript(ShapeJSErrors.ErrorType.ONCHANGE_PROPERTY_NOT_FOUND, args, System.currentTimeMillis() - t0);
+                        result = new EvaluatedScript(ShapeJSErrors.ErrorType.ONCHANGE_PROPERTY_NOT_FOUND, args, time() - t0);
                         return result;
                     }
                     if (main_called && onChange.equals("main")) {
@@ -586,13 +588,13 @@ public class ShapeJSEvaluator implements MaterialMapper {
                     Object o = scope.get(onChange, scope);
                     if (o == null) {
                         String[] args = new String[] {pd.getName(), onChange};
-                        result = new EvaluatedScript(ShapeJSErrors.ErrorType.ONCHANGE_FUNCTION_NOT_FOUND, args, System.currentTimeMillis() - t0);
+                        result = new EvaluatedScript(ShapeJSErrors.ErrorType.ONCHANGE_FUNCTION_NOT_FOUND, args, time() - t0);
                         return result;
                     }
 
                     if (!(o instanceof Function)) {
                         String[] args = new String[] {pd.getName(), onChange};
-                        result = new EvaluatedScript(ShapeJSErrors.ErrorType.ONCHANGE_FUNCTION_NOT_FOUND, args, System.currentTimeMillis() - t0);
+                        result = new EvaluatedScript(ShapeJSErrors.ErrorType.ONCHANGE_FUNCTION_NOT_FOUND, args, time() - t0);
                         return result;
                     }
 
@@ -621,7 +623,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                             msg = e.getMessage();
                         }
 
-                        result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, addErrorLine(msg, this.script, headerLines), getPrintLogs(cx),System.currentTimeMillis() - t0);
+                        result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, addErrorLine(msg, this.script, headerLines), getPrintLogs(cx),time() - t0);
                         return result;
                     }
                     if (DEBUG) printf("result of JS evaluation: %s\n", result2);
@@ -640,7 +642,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 }
             }
 
-            result = new EvaluatedScript(true,script,scene,getPrintLogs(cx),null,null,defs,System.currentTimeMillis() - t0);
+            result = new EvaluatedScript(true,script,scene,getPrintLogs(cx),null,null,defs,time() - t0);
 
             // Get all errors in a string array
             List<JsError> errorList = errors.getErrors();
@@ -657,7 +659,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 }
             }
 
-            if (DEBUG) printf("reeval done.  time: %d ms\n",(System.currentTimeMillis() - t0));
+            if (DEBUG) printf("reeval done.  time: %d ms\n",(time() - t0));
             return result;
         } finally {
             Context.exit();
@@ -1140,7 +1142,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
      * @return
      */
     public EvaluatedScript evalScript(String script, String method, Map<String, Object> namedParams) {
-        long t0 = System.currentTimeMillis();
+        long t0 = time();
 
         if (sandboxed && !ContextFactory.hasExplicitGlobal()) {
             org.mozilla.javascript.ContextFactory.GlobalSetter gsetter = ContextFactory.getGlobalSetter();
@@ -1170,7 +1172,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                     mungeParams(namedParams, true);
                 } catch (IllegalArgumentException iae) {
                     // TODO: Use INVALID_PARAMETER_VALUE error string and include parameter name and value
-                    return new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, iae.getMessage(), getPrintLogs(cx),System.currentTimeMillis() - t0);
+                    return new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, iae.getMessage(), getPrintLogs(cx),time() - t0);
                 }
 
                 for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
@@ -1222,7 +1224,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             }
 
             if (method == null) {
-                result = new EvaluatedScript(true,script,null,null,null,null,defs,(System.currentTimeMillis() - t0));
+                result = new EvaluatedScript(true,script,null,null,null,null,defs,(time() - t0));
 
                 // Get all errors in a string array
                 List<JsError> errorList = errors.getErrors();
@@ -1245,8 +1247,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
             Object o = scope.get(method, scope);
 
             if (o == org.mozilla.javascript.Scriptable.NOT_FOUND) {
-                System.out.println("Cannot find function main");
-                result = new EvaluatedScript(ShapeJSErrors.ErrorType.MAIN_FUNCTION_NOT_FOUND, System.currentTimeMillis() - t0);
+                printf("Cannot find function main()\n");
+                result = new EvaluatedScript(ShapeJSErrors.ErrorType.MAIN_FUNCTION_NOT_FOUND, time() - t0);
                 return result;
             }
             Function main = (Function) o;
@@ -1262,13 +1264,13 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 if (e instanceof EcmaError) {
                     printf("line: %d  col: %d\n",((EcmaError)e).lineNumber(),((EcmaError) e).columnNumber());
                 }
-                result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, addErrorLine(e.getMessage(), this.script, headerLines), getPrintLogs(cx),System.currentTimeMillis() - t0);
+                result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, addErrorLine(e.getMessage(),script, headerLines), getPrintLogs(cx),time() - t0);
                 return result;
             }
             if (DEBUG) printf("result of JS evaluation: %s\n", result2);
 
             if (result2 == null) {
-                result = new EvaluatedScript(true,script,null,null,null,null,defs,(System.currentTimeMillis() - t0));
+                result = new EvaluatedScript(true,script,null,null,null,null,defs,(time() - t0));
                 return result;
             }
 
@@ -1285,7 +1287,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
                 String[] print_logs = prints != null ? (String[])prints.toArray(new String[prints.size()]) : null;
 
-                result = new EvaluatedScript(true,script,scene,print_logs,null,null, defs,System.currentTimeMillis() - t0);
+                result = new EvaluatedScript(true,script,scene,print_logs,null,null, defs,time() - t0);
 
                 // Get all errors in a string array
                 List<JsError> errorList = errors.getErrors();
@@ -1373,7 +1375,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
      * @return
      */
     public EvaluatedScript executeScript(String method, Map<String, Object> namedParams) {
-        long t0 = System.currentTimeMillis();
+        long t0 = time();
 
         if (sandboxed && !ContextFactory.hasExplicitGlobal()) {
             org.mozilla.javascript.ContextFactory.GlobalSetter gsetter = ContextFactory.getGlobalSetter();
@@ -1442,7 +1444,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
             if (method == null) {
 
-                result = new EvaluatedScript(true,script,null,null,null,null,defs,(System.currentTimeMillis() - t0));
+                result = new EvaluatedScript(true,script,null,null,null,null,defs,(time() - t0));
 
                 // Get all errors in a string array
                 List<JsError> errorList = errors.getErrors();
@@ -1465,8 +1467,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
             Object o = scope.get(method, scope);
 
             if (o == org.mozilla.javascript.Scriptable.NOT_FOUND) {
-                System.out.println("Cannot find function main");
-                result = new EvaluatedScript(ShapeJSErrors.ErrorType.MAIN_FUNCTION_NOT_FOUND, System.currentTimeMillis() - t0);
+                printf("Cannot find function main()\n");
+                result = new EvaluatedScript(ShapeJSErrors.ErrorType.MAIN_FUNCTION_NOT_FOUND, time() - t0);
                 return result;
             }
             Function main = (Function) o;
@@ -1482,14 +1484,14 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 if (e instanceof EcmaError) {
                     printf("line: %d  col: %d\n",((EcmaError)e).lineNumber(),((EcmaError) e).columnNumber());
                 }
-                result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, addErrorLine(e.getMessage(), this.script, headerLines), getPrintLogs(cx),System.currentTimeMillis() - t0);
+                result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, addErrorLine(e.getMessage(), this.script, headerLines), getPrintLogs(cx),time() - t0);
                 return result;
             }
             if (DEBUG) printf("result of JS evaluation: %s\n", result2);
 
             if (result2 == null || result2 instanceof Undefined) {
                 // This used to be a success, changed to a failure as we require a Scene to be returned
-                result = new EvaluatedScript(ShapeJSErrors.ErrorType.EMPTY_SCENE, System.currentTimeMillis() - t0);
+                result = new EvaluatedScript(ShapeJSErrors.ErrorType.EMPTY_SCENE, time() - t0);
                 return result;
             }
 
@@ -1505,7 +1507,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
                 String[] print_logs = prints != null ? (String[])prints.toArray(new String[prints.size()]) : null;
 
-                result = new EvaluatedScript(true, script,scene,print_logs,null,null, defs,System.currentTimeMillis() - t0);
+                result = new EvaluatedScript(true, script,scene,print_logs,null,null, defs,time() - t0);
 
                 // Get all errors in a string array
                 List<JsError> errorList = errors.getErrors();

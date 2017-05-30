@@ -147,4 +147,30 @@ public class Copy implements Operation, AttributeOperation, Operation2D, ClassTr
         // not used
         return false;
     }
+
+    /**
+       convenience method to copy grids
+     */
+    public static void copy(Grid2D srcGrid, Grid2D destGrid){
+
+        int w = srcGrid.getWidth();
+        int h = srcGrid.getHeight();
+
+        for(int y = 0; y < h; y++){
+            for(int x = 0; x < w; x++){
+                destGrid.setAttribute(x,y,srcGrid.getAttribute(x,y));
+            }
+        }
+    }
+
+    /**
+       convenience method to copy grid into new one
+     */
+    public static Grid2D createCopy(Grid2D grid){
+
+        Grid2D dest = grid.createEmpty(grid.getWidth(),grid.getHeight(),grid.getVoxelSize());
+        dest.setDataDesc(grid.getDataDesc());
+        copy(grid, dest);
+        return dest;
+    }
 }

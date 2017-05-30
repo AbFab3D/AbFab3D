@@ -13,6 +13,7 @@
 package abfab3d.grid.op;
 
 import java.awt.image.BufferedImage;
+import java.awt.Graphics;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import abfab3d.core.Color;
 
 import javax.imageio.ImageIO;
+
 
 import org.apache.batik.transcoder.image.ImageTranscoder;
 import org.apache.batik.transcoder.TranscodingHints;
@@ -58,7 +60,7 @@ import static abfab3d.core.Output.printf;
 public class ImageReader extends BaseParameterizable implements ImageProducer {
     
     static final boolean CACHING_ENABLED = true;
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     URIParameter mp_uri = new URIParameter("uri", "image path");
     IntParameter mp_svgRasterizationWidth = new IntParameter("svgRasterizationWidth", "svg Rasterizattion Width", 1000);
@@ -129,7 +131,9 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
 
         if (DEBUG) printf("%s.loadImage(%s)\n",this, path);
         if (!new File(path).exists()) {
-            throw new IllegalArgumentException(fmt("image %s does not exist", path));
+            //throw new IllegalArgumentException(fmt("image %s does not exist", path));
+            printf(fmt("image file %s does not exist, using default image\n", path));
+            return makeDefaultImage(10,10);
         }
 
         try {
@@ -139,10 +143,25 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
             BufferedImage image = ImageIO.read(new File(path)); 
             return image;
         } catch (Exception e){
-            e.printStackTrace();
-            throw new RuntimeException(fmt("exception reading image %s", path));
+            //e.printStackTrace();
+            //throw new RuntimeException(fmt("exception reading image %s", path));
+            printf(fmt("exception %s reading image file: %s \n", e.getMessage(),path));            
         }        
+        return makeDefaultImage(10,10);        
         
+    }
+
+    BufferedImage makeDefaultImage(int width, int height){
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics g = image.getGraphics();
+        g.setColor(java.awt.Color.white);
+        g.fillRect(0,0,width, height);
+        g.setColor(java.awt.Color.black);
+        int w1 = width/2;
+        int h1 = height/2;
+        g.fillRect(1,1,w1, h1);
+        g.fillRect(w1,h1,w1, h1);
+        return image;
     }
 
 
@@ -196,4 +215,4 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
         }        
     }
 
-} // class ImageReader
+} // class ImageReadre

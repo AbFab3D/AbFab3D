@@ -89,6 +89,7 @@ public class TestImageColorMap extends TestCase {
         double boxHeight = 20;
         double boxDepth = 20;
 
+        //ImageColorMap image = new ImageColorMap("test/images/color_boxes.png", boxWidth,boxHeight,boxDepth);
         ImageColorMap image = new ImageColorMap("test/images/redcircle_20.png", boxWidth,boxHeight,boxDepth);
         image.initialize();
         
@@ -163,7 +164,7 @@ public class TestImageColorMap extends TestCase {
         double margin = 5*MM;
         double blur = 0.*MM;
         double distanceBand = 1*MM;
-        String path = "test/images/color_boxes.svg";
+        String path = "test/images/color_boxes.png";
         ImageReader reader = new ImageReader(path);
         reader.set("svgRasterizationWidth", 100);
         reader.set("backgroundColor", new Color(1,1,1,0));
@@ -183,7 +184,7 @@ public class TestImageColorMap extends TestCase {
         BufferedImage image;
         img.initialize();
         image = sm.renderImage(nux, nvy, bounds, img);
-        ImageIO.write(image, "png", new File("/tmp/00_imageColorMap_XY.png"));
+       ImageIO.write(image, "png", new File("/tmp/00_imageColorMap_XY.png"));
    }
 
    public static void main(String[] args) throws Exception {

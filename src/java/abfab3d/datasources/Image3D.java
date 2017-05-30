@@ -19,11 +19,11 @@ import abfab3d.core.Output;
 import abfab3d.core.ResultCodes;
 import abfab3d.core.Vec;
 import abfab3d.core.Grid2D;
-import abfab3d.grid.Grid2DShort;
 import abfab3d.core.GridDataChannel;
 import abfab3d.core.Grid2DProducer;
 import abfab3d.core.ImageProducer;
 
+import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.Operation2D;
 import abfab3d.grid.op.GridValueTransformer;
 import abfab3d.grid.op.GaussianBlur;
@@ -31,6 +31,7 @@ import abfab3d.grid.op.ResampleOp;
 import abfab3d.grid.op.DistanceTransform2DOp;
 import abfab3d.grid.op.ImageReader;
 import abfab3d.grid.op.ImageToGrid2D;
+import abfab3d.grid.op.Copy;
 
 import abfab3d.param.ObjectParameter;
 import abfab3d.param.Vector3dParameter;
@@ -42,8 +43,6 @@ import abfab3d.param.SNodeParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.ParamCache;
-import abfab3d.param.SourceWrapper;
-
 
 import abfab3d.util.ImageMipMapGray16;
 import abfab3d.util.ImageGray16;
@@ -101,7 +100,7 @@ import static java.lang.Math.sqrt;
  */
 public class Image3D extends TransformableDataSource {
 
-    final static boolean DEBUG = false;
+    final static boolean DEBUG = true;
     final static boolean DEBUG_VIZ = false;
     final static boolean CACHING_ENABLED = true;
 
@@ -119,12 +118,13 @@ public class Image3D extends TransformableDataSource {
     Vector3dParameter  mp_size = new Vector3dParameter("size","size of the image box",new Vector3d(0.1,0.1,0.1));
     // rounding of the edges
     DoubleParameter  mp_rounding = new DoubleParameter("rounding","rounding of the box edges", 0.);
-    IntParameter  mp_imageType = new IntParameter("imageType","placement of the image", IMAGE_TYPE_EMBOSSED, 0, IMAGE_TYPE_ENGRAVED);
+    IntParameter  mp_imageType = new IntParameter("imageType","placement of the image", IMAGE_TYPE_EMBOSSED, 0, 1);
     IntParameter  mp_imagePlace = new IntParameter("imagePlace","placement of the image", IMAGE_PLACE_TOP, 0, IMAGE_PLACE_BOTH);
     IntParameter  mp_tilesX = new IntParameter("tilesX","image tiles in x-direction", 1);
     IntParameter  mp_tilesY = new IntParameter("tilesY","image tiles in y-direction", 1);
     DoubleParameter  mp_baseThickness = new DoubleParameter("baseThickness","relative thickness of image base", 0.);
     BooleanParameter  mp_useGrayscale = new BooleanParameter("useGrayscale","Use grayscale for image rendering", true);
+    BooleanParameter  mp_useImageProcessing =  new BooleanParameter("useImageProcessing","Use default image processing", true);
     DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
     DoubleParameter  mp_voxelSize = new DoubleParameter("voxelSize", "size of voxel to use for image voxelization", 0.);
     DoubleParameter  mp_baseThreshold = new DoubleParameter("baseThreshold", "threshold of the image", 0.01);
@@ -148,6 +148,7 @@ public class Image3D extends TransformableDataSource {
         mp_voxelSize,
         mp_maxDist,
         mp_pixelsPerVoxel,
+        mp_useImageProcessing,
     };
 
     // Params which require changes in the underlying image 
@@ -174,6 +175,8 @@ public class Image3D extends TransformableDataSource {
     // location of the box
     protected double m_centerX = 0, m_centerY = 0, m_centerZ = 0;
 
+    int m_imagePlace;
+
     protected double m_baseRelThickness = 0.0; // relative thickness of solid base
     protected double m_baseThickness = 0.0; // thickness of solid base in physical units
     protected double m_baseRelThreshold = 0.01; // threshold to make cut from base of the image (in relative units)    
@@ -187,7 +190,7 @@ public class Image3D extends TransformableDataSource {
     protected int m_dataChannelIndex = 0; // data channel index to use 
 
     //protected int m_imageType = IMAGE_TYPE_EMBOSSED;
-    protected int m_imagePlace = IMAGE_PLACE_TOP;
+
 
     protected int m_tilesX = 1; // number of image tiles in x-direction 
     protected int m_tilesY = 1; // number of image tiles in y-direction 
@@ -254,17 +257,21 @@ public class Image3D extends TransformableDataSource {
      * @param voxelSize size of voxel to be used for image voxelization
      */
     public Image3D(String imagePath, double sx, double sy, double sz, double voxelSize) {
+        this(new ImageToGrid2D(new ImageReader(imagePath)), sx, sy, sz,voxelSize);
+    }
 
-        initParams();
-        // create ImageToGrid2D as grid source 
-        mp_source.setValue(new ImageToGrid2D(new ImageReader(imagePath)));
-        setSize(sx, sy, sz);
-        setVoxelSize(voxelSize);
-        if(false){ 
-            if (!new File(imagePath).exists()) {
-                throw new IllegalArgumentException("Image does not exist.  image: " + imagePath);
-            }
-        }
+    /**
+     * Image3D with given image path and size
+     *
+     * @param producer image producer
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box.
+     */
+    public Image3D(Grid2D grid, double sx, double sy, double sz) {
+        // use memory hash as label  
+        this((Grid2DProducer)(new Grid2DSourceWrapper(grid.toString(), grid)), sx, sy, sz);
+        mp_useImageProcessing.setValue(false);
     }
 
     /**
@@ -278,6 +285,33 @@ public class Image3D extends TransformableDataSource {
     public Image3D(Grid2DProducer producer, double sx, double sy, double sz) {
         this(producer, sx, sy, sz, 0.);
     }
+
+    /**
+     * Image3D with given image path and size
+     *
+     * @param imwrapper holder of BufferedImage
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box.
+     */
+    public Image3D(ImageProducer imgProducer, double sx, double sy, double sz) {
+        this(new ImageToGrid2D(imgProducer), sx, sy, sz, 0.);
+    }
+
+    
+    /**
+     * Image3D with given image and size
+     *
+     * @param imgProducer producer of the image 
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box. 
+     * @param voxelSize size of voxel to be used for image voxelization 
+     */
+    public Image3D(ImageProducer imgProducer, double sx, double sy, double sz, double voxelSize) {
+        this(new ImageToGrid2D(imgProducer), sx, sy, sz, voxelSize);
+    }
+    
 
     /**
      * Image3D with given image path and size
@@ -296,35 +330,6 @@ public class Image3D extends TransformableDataSource {
         setVoxelSize(vs);
     }
 
-    /**
-     * Image3D with given image path and size
-     *
-     * @param imwrapper holder of BufferedImage
-     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sz depth of the box.
-     */
-    public Image3D(ImageProducer imgProducer, double sx, double sy, double sz) {
-        this(imgProducer, sx, sy, sz, 0.);
-    }
-
-    /**
-     * Image3D with given image path and size
-     *
-     * @param imwrapper holder of BufferedImage 
-     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sz depth of the box. 
-     * @param voxelSize size of voxel to be used for image voxelization 
-     */
-    public Image3D(ImageProducer imgProducer, double sx, double sy, double sz, double voxelSize) {
-        initParams();
-        if(DEBUG)printf("Image3D(ImageProducer %s)\n", imgProducer);
-        mp_source.setValue(new ImageToGrid2D(imgProducer));
-        setSize(sx, sy, sz);
-        setVoxelSize(voxelSize);
-    }
-    
     int m_version = 1;
 
     public void setVersion(int version){
@@ -485,12 +490,7 @@ public class Image3D extends TransformableDataSource {
     
     public void setImage(Object val) {
         
-        //mp_source.setValue(val);
-        //if(val instanceof String){
-        //    mp_imageFileTimeStamp.setValue(new File((String)val).lastModified());
-        //} else {
-        //    mp_imageFileTimeStamp.setValue(0);
-        //}
+        mp_source.setValue(val);
 
     }
 
@@ -697,37 +697,31 @@ public class Image3D extends TransformableDataSource {
         return ResultCodes.RESULT_OK;
     }
 
-    /**
-     * @noRefGuide
-     */
     private Grid2D prepareImage(){
 
-        if(DEBUG)printf("prepare image_v%d\n", m_version);
-
-        if(m_version == 0)
-            return prepareImage_v0();
-        else 
-            return prepareImage_v1();
-    }
-
-    //
-    // 
-    //
-    private Grid2D prepareImage_v1(){
-
+        long t0=0;
         Object obj = mp_source.getValue(); 
-        if(DEBUG) printf("prepareImage_v1(%s)\n", obj);
+
+        if(DEBUG) printf("Image3D.prepareImage(%s)\n", obj);
+        if(DEBUG)  t0 = time();
+
         if(obj == null || !(obj instanceof Grid2DProducer))
-            throw new RuntimeException(fmt("unrecoginized grid source: %s\n",obj.getClass().getName()));
+            throw new RuntimeException(fmt("unknown grid source: %s expecting Grid2DProducer, found %s",obj, obj.getClass().getName()));
 
         Grid2DProducer producer = (Grid2DProducer)obj; 
         
         Grid2D grid = producer.getGrid2D(); 
-        grid.setGridBounds(getBounds());
 
-        
-        grid = executeOps(grid, createOps(grid));
+        if(mp_useImageProcessing.getValue()){
+            // need copy grid to preserve the original for future use 
+            grid = Copy.createCopy(grid);
+            grid.setGridBounds(getBounds());
+            grid = executeOps(grid, createOps(grid));
+        }
+        if(DEBUG)  {
+            printf("Image3D.prepareImage() grid:%s [%d x %d] ready %d ms\n", grid, grid.getWidth(), grid.getHeight(), (time() - t0));
 
+        }
         return grid;
 
     }
@@ -748,7 +742,7 @@ public class Image3D extends TransformableDataSource {
     private Vector<Operation2D> createOps(Grid2D grid){
         
         Vector<Operation2D> ops = new Vector<Operation2D>(5);
-        
+
         double voxelSize = mp_voxelSize.getValue();
         if(voxelSize / grid.getVoxelSize() > mp_pixelsPerVoxel.getValue()){
             
@@ -793,6 +787,7 @@ public class Image3D extends TransformableDataSource {
     /**
        original outdated procedure
      */
+    /*
     private Grid2D prepareImage_v0(){
 
         if(DEBUG)printf("Image3D.prepareImage();\n");
@@ -907,11 +902,12 @@ public class Image3D extends TransformableDataSource {
         return m_dataGrid;
 
     }
-
+    */
     /**
        we already have distance grid 
        will use it directly 
      */
+    /*
     protected int prepareDataFromDistance(Grid2D distGrid){
 
         m_imageSizeX = distGrid.getWidth();
@@ -923,13 +919,14 @@ public class Image3D extends TransformableDataSource {
         m_dataChannel = m_dataGrid.getDataDesc().getChannel(m_dataChannelIndex);
         return 0;
     }
-
+    */
 
     /**
        makes data for black and white image 
        data is represented as distance from 2D outline of the image
        @noRefGuide
      */
+    /*
     protected int makeImageBlack(ImageGray16 image){
 
         long t0 = time();
@@ -965,10 +962,11 @@ public class Image3D extends TransformableDataSource {
         
         
     }
-
+    */
     /**
      * @noRefGuide
      */
+    /*
     protected int makeImageGray(ImageGray16 image){
 
         long t0 = time();
@@ -984,7 +982,7 @@ public class Image3D extends TransformableDataSource {
         return ResultCodes.RESULT_OK;
                 
     }
-
+    */
     /**
      * calculates value of shape distance or density 
      * the 
@@ -1276,4 +1274,6 @@ public class Image3D extends TransformableDataSource {
             return 1;
         }
     }
+
+
 }  // class Image3D

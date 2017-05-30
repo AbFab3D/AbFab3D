@@ -69,31 +69,6 @@ public class ImageWrapper extends BaseParameterizable implements SourceWrapper {
     }
 
     /**
-       return grid produced from this image 
-       @Override 
-     */
-    //public Grid2D getGrid2D(){
-
-    //return getGrid();
-
-    //}
-
-
-    /**
-     * Get a 2D grid representation of this image
-     * @return
-     */
-    /*
-    public Grid2D getGrid() {
-        
-        if (grid != null) return grid;
-
-        grid = new Grid2DSourceWrapper(source,Grid2DShort.convertImageToGrid(image, vs));
-
-        return grid;
-    }
-    */
-    /**
      * Set the source for this wrapper.  This will be returned as the getParamString for this object until a setter is called.
      */
     public void setSource(String val) {

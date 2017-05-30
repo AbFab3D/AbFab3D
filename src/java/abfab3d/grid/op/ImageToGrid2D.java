@@ -53,7 +53,7 @@ public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer
     
     static final double DEFAULT_PIXEL_SIZE = PT; // 1 point 
     static final boolean CACHING_ENABLED = true;
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     SNodeParameter mp_imageProducer = new SNodeParameter("imageProducer", "image producer");
     DoubleParameter mp_pixelSize = new DoubleParameter("pixelSize", "pixel Size", DEFAULT_PIXEL_SIZE);
@@ -115,11 +115,11 @@ public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer
             m_grid = prepareGrid();
             if(CACHING_ENABLED){
                 ParamCache.getInstance().put(label, m_grid);
-                if (DEBUG) printf("ImageReader: caching image: %s -> %s\n",label, m_grid);                
+                if (DEBUG) printf("ImageToGrid2D: caching image: %s -> %s\n",label, m_grid);                
             }
         } else {
             m_grid = (Grid2D) co;
-            if (DEBUG) printf("ImageReader: got cached image %s -> %s\n",label, m_grid);
+            if (DEBUG) printf("ImageToGrid2D: got cached image %s -> %s\n",label, m_grid);
         }        
         return m_grid;
     

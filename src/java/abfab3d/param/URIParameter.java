@@ -103,8 +103,17 @@ public class URIParameter extends BaseParameter {
      */
     public void getParamString(StringBuilder sb) {
 
-        //TODO - deal with real URI
-        String path = (String)value;        
+        //TODO - deal with network URI
+        String path = (String)value; 
+        if(path == null) {
+            sb.append("null");
+            return;
+        }
+        if(path.startsWith("http:") || path.startsWith("https:")) {
+            sb.append(path);
+            return;            
+        }
+
         long timeStamp = new File(path).lastModified();
         sb.append(path);
         sb.append(";");

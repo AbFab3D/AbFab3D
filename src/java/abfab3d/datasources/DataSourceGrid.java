@@ -22,7 +22,7 @@ import abfab3d.core.ResultCodes;
 import abfab3d.core.Vec;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.param.IntParameter;
-import abfab3d.param.ObjectParameter;
+import abfab3d.param.SNodeParameter;
 import abfab3d.param.Parameter;
 
 import static abfab3d.core.MathUtil.clamp;
@@ -86,14 +86,14 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     int m_nx1, m_ny1, m_nz1;
     double m_xmin, m_ymin, m_zmin, m_xscale, m_yscale, m_zscale;
 
-    ObjectParameter mp_grid = new ObjectParameter("grid", "grid to be used as source", null);
-    ObjectParameter mp_bufferDataPacker = new ObjectParameter("dataPacker", "packer for grid data into buffer", null);
+    SNodeParameter mp_grid = new SNodeParameter("grid", "grid to be used as source", null);
+    //ObjectParameter mp_bufferDataPacker = new ObjectParameter("dataPacker", "packer for grid data into buffer", null);
     IntParameter mp_gridDataTypeSize = new IntParameter("gridDataTypeSize", "size of grid data type in bytes", 1);
 
     Parameter m_aparam[] = new Parameter[]{
             mp_grid,
             mp_gridDataTypeSize,
-            mp_bufferDataPacker,
+            //mp_bufferDataPacker,
     };
 
     /**
@@ -443,7 +443,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
 
         super.initialize();
 
-        if (DEBUG) printf("Init called on DSG");
+        if (DEBUG) printf("DataSourceGrid.initialize()\n");
         //m_bufferDataPacker = (AttributePacker)mp_bufferDataPacker.getValue();
 
         //if(m_bufferDataPacker == null) {

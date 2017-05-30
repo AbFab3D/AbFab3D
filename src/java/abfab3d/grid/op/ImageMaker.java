@@ -67,17 +67,20 @@ public class ImageMaker {
         // TODO make it MT 
         //
         Vec pnt = new Vec(3);
-        Vec data = new Vec(4);
+        Vec data = new Vec(4); 
         double du = bounds.getSizeX()/width;
         double dv = bounds.getSizeY()/height;
 
         double umin = bounds.xmin + du/2; // half pixel shift 
         double vmin = bounds.ymin + dv/2;
+        // take w plane in the middle of bounds, or shall it be at zmin ? 
         double wmin = (bounds.zmin + bounds.zmax)/2;
         
 
 
         for(int v = 0; v < height; v++){
+
+            // images y-axis pointing down 
             int offy = width*(height-1-v);
             for(int u = 0; u < width; u++){
 

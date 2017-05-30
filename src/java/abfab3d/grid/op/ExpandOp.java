@@ -132,9 +132,6 @@ public class ExpandOp extends BaseParameterizable implements Operation, Operatio
             }
         }
 
-        // TODO: Need to restore for caching
-        //Grid2DSourceWrapper wrapper = new Grid2DSourceWrapper(vhash,dest);
-        //ParamCache.getInstance().put(vhash,wrapper);
         return dest;
     }
 

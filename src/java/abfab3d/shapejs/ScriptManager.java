@@ -55,7 +55,7 @@ import static abfab3d.core.Output.time;
  * @author Alan Hudson
  */
 public class ScriptManager {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final boolean STOP_CACHING = false;
     private static final int JOB_RETAIN_MS = 60 * 60 * 1000;
 
@@ -293,12 +293,12 @@ public class ScriptManager {
             t0 = time();
             if (DEBUG) printf("ScriptManager Execute script.  params: %s\n", params);
             sr.evaluatedScript = sr.eval.executeScript("main", params);
-            if (DEBUG) printf("ScriptManager Done eval time: %d ms\n", time() - t0);
+            if (DEBUG) printf("ScriptManager eval.executeScript() done time: %d ms\n", time() - t0);
         } else {
             t0 = time();
             if (DEBUG) printf("ScriptManager Reeval script.  params: %s\n", params);
             sr.evaluatedScript = sr.eval.reevalScript(sr.script, params);
-            if (DEBUG) printf("ScriptManager Done Reeval script.  %d ms\n", time() - t0);
+            if (DEBUG) printf("ScriptManager eval.reevalScript() done time:  %d ms\n", time() - t0);
         }
 
         t0 = time();

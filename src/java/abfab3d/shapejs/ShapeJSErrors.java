@@ -48,7 +48,7 @@ public class ShapeJSErrors {
     public static String INVALID_PARAMETER_VALUE = "Invalid parameter: name {0}, value {1}";
     public static String ONCHANGE_PROPERTY_NOT_FOUND = "Cannot find onChange property for: {0}";
     public static String ONCHANGE_FUNCTION_NOT_FOUND = "Cannot find onChange function: name {0}, onchange {1}";
-    public static String MAIN_FUNCTION_NOT_FOUND = "Cannot find main function";
+    public static String MAIN_FUNCTION_NOT_FOUND = "Cannot find function main()";
     
     public static String NUM_REGIONS_WARNING = "Some parts of your design aren't connected, and will be lost during printing.  Adjust your settings to fix.";
 	public static String PRINTER_BOUNDS_MIN_FAILURE = "Your design is smaller than the printer bounds.";

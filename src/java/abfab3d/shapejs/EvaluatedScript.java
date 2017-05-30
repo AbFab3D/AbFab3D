@@ -18,12 +18,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static abfab3d.core.Output.printf;
+
 /**
  * A ShapeJS script that has been evaluated
  *
  * @author Alan Hudson
  */
 public class EvaluatedScript extends BaseParameterizable {
+    
+    final boolean DEBUG = true;
+
     private Scene m_scene;
 
     /** Output from any prints in the script */
@@ -205,6 +210,7 @@ public class EvaluatedScript extends BaseParameterizable {
         }
 
         String log = ShapeJSErrors.getErrorMsg(type, args);
+            
         if (log != null) {
             Map<String, String> errorMap = new HashMap<String, String>();
             errorMap.put("type", type.toString());
@@ -223,6 +229,7 @@ public class EvaluatedScript extends BaseParameterizable {
         if (errorLogs == null) {
             errorLogs = new ArrayList<Map<String, String>>();
         }
+        if(DEBUG) printf("EvaluatedScript.addErrorLog(%s, %s)\n", type, msg);
         Map<String, String> errorMap = new HashMap<String, String>();
         errorMap.put("type", type.toString());
         errorMap.put("msg", msg);

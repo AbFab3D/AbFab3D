@@ -45,6 +45,7 @@ import abfab3d.param.ParamCache;
 import abfab3d.grid.op.ImageReader;
 import abfab3d.grid.op.ImageToGrid2D;
 import abfab3d.grid.op.GaussianBlur;
+import abfab3d.grid.op.Copy;
 
 import abfab3d.util.ColorMapperDistance;
 
@@ -80,7 +81,7 @@ import static abfab3d.core.Output.time;
  * @author Vladimir Bulatov
  */
 public class ImageMap extends TransformableDataSource {
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
     final static boolean DEBUG_VIZ = false;
     final static boolean CACHING_ENABLED = true;
 
@@ -115,7 +116,6 @@ public class ImageMap extends TransformableDataSource {
 
     private final Parameter m_aparams[] = new Parameter[]{
         mp_source,
-        //mp_imageSource, 
         mp_center,
         mp_size,
         mp_repeatX,
@@ -129,8 +129,6 @@ public class ImageMap extends TransformableDataSource {
     /** Params which require changes in the underlying image */
     private final Parameter[] m_imageParams = new Parameter[] {
         mp_source,
-        //mp_imageSource, 
-        mp_size, 
         mp_blurWidth
     };
 
@@ -155,6 +153,20 @@ public class ImageMap extends TransformableDataSource {
     /**
      * Creates ImageMap from a file
      *
+     * @param grid source of the image. 
+     * @param sizex - width of the image
+     * @param sizey - height of the image
+     * @param sizez - depth of the image
+     */
+    public ImageMap(Grid2D grid, double sizex, double sizey, double sizez) {
+        // use memory has as grid label 
+        this((Grid2DProducer)(new Grid2DSourceWrapper(grid.toString(),grid)), sizex, sizey, sizez);
+    }
+
+
+    /**
+     * Creates ImageMap from a file
+     *
      * @param reader source of the image. 
      * @param sizex - width of the image
      * @param sizey - height of the image
@@ -173,9 +185,9 @@ public class ImageMap extends TransformableDataSource {
      * @param sizez - depth of the image
      */
     public ImageMap(Grid2DProducer producer, double sizex, double sizey, double sizez) {
-
         initParams();
-
+        if(DEBUG)printf("ImageMap(%s, %7.5f, %7.5f, %7.5f )\n", producer, sizex, sizey, sizez);
+        
         mp_source.setValue(producer);
         mp_size.setValue(new Vector3d(sizex, sizey, sizez));
 
@@ -408,10 +420,10 @@ public class ImageMap extends TransformableDataSource {
         if (co == null) {
             m_imageGrid = prepareImage();
             if(CACHING_ENABLED)ParamCache.getInstance().put(label, m_imageGrid);
-            if (DEBUG) printf("Image3D: caching image: %s -> %s\n",label, m_imageGrid);
+            if (DEBUG) printf("ImageMap: caching image: %s -> %s\n",label, m_imageGrid);
         } else {
             m_imageGrid = (Grid2D) co;
-            if (DEBUG) printf("Image3D: got cached image %s -> %s\n",label, m_imageGrid);
+            if (DEBUG) printf("ImageMap got cached image %s -> %s\n",label, m_imageGrid);
         }
 
 
@@ -434,6 +446,7 @@ public class ImageMap extends TransformableDataSource {
         
         Grid2D grid = producer.getGrid2D(); 
         if(DEBUG) printf("ImageMap grid: %s\n", grid);
+        grid = Copy.createCopy(grid);
         grid.setGridBounds(getBounds());
 
         
@@ -480,123 +493,6 @@ public class ImageMap extends TransformableDataSource {
     }
 
     
-    /**
-     * @noRefGuide
-     */
-    /*
-    private int prepareImage_v0(){
-
-        long t0 = time();
-
-        Object imageSource = mp_imageSource.getValue();
-        if (DEBUG) printf("ImageMap.prepareImage().  source: %s\n",imageSource);
-
-        if(imageSource == null)
-            throw new RuntimeException("imageSource is null");
-
-        ImageGray16 imageData = null;
-
-        if(imageSource instanceof Grid2D){
-            m_imageGrid = (Grid2D)imageSource;
-            // nothing more to do 
-            return ResultCodes.RESULT_OK;
-        } else if(imageSource instanceof String){
-            
-            try {
-                String fname = (String)imageSource;
-                if(DEBUG)printf("reading image from file: %s\n",fname);
-                imageData = new ImageGray16(ImageIO.read(new File(fname)));
-            } catch(IOException e) {
-                // empty 1x1 image 
-                imageData = new ImageGray16();
-                throw new RuntimeException(e);
-            }
-
-        } else if(imageSource instanceof Text2D){
-            if (DEBUG) printf("Getting text2d image\n");
-            imageData = new ImageGray16(((Text2D)imageSource).getImage());
-        } else if(imageSource instanceof FormattedText2D){
-            if (DEBUG) printf("Getting formattedtext2d image\n");
-            imageData = new ImageGray16(((FormattedText2D)imageSource).getImage());
-        } else if(imageSource instanceof BufferedImage){
-
-            imageData = new ImageGray16((BufferedImage)imageSource);
-
-        } else if(imageSource instanceof ImageWrapper){
-
-           imageData = new ImageGray16(((ImageWrapper)imageSource).getImage());
-        } else if (imageSource instanceof Grid2DShort) {
-            long t1 = System.currentTimeMillis();
-            imageData = new ImageGray16(Grid2DShort.convertGridToImage((Grid2DShort)imageSource));
-            if(DEBUG)printf("Convert to grid.  time: %d ms\n",(System.currentTimeMillis() - t1));
-        }
-
-        if(DEBUG)printf("m_imageData: %s\n",imageData);
-
-        if (imageData == null) {
-            // Cast to String for now, not sure how to really handle this
-            String file = imageSource.toString();
-            printf("Converted to string: " + file);
-            try {
-                imageData = new ImageGray16(ImageIO.read(new File(file)));
-
-            } catch(IOException e) {
-                // empty 1x1 image
-                imageData = new ImageGray16();
-                throw new IllegalArgumentException("Unhandled imageSource: " + imageSource);
-            }
-        }
-
-
-        m_imageSizeX  = imageData.getWidth();
-        m_imageSizeY  = imageData.getHeight();
-
-        double blurWidth = mp_blurWidth.getValue();
-        if (blurWidth > 0.0) {
-            long t1 = System.currentTimeMillis();
-            double pixelSize = m_sizeX / m_imageSizeX;
-
-            double blurSizePixels = blurWidth / pixelSize;
-
-            imageData.gaussianBlur(blurSizePixels);
-            printf("ImageMap image[%d x %d] gaussian blur: %7.2f pixels blur width: %10.5fmm time: %d ms\n", 
-                   m_imageSizeX, m_imageSizeY, blurSizePixels, blurWidth/MM, (time() - t1));
-
-
-        }
-
-        if(DEBUG)printf("ImageMap.prepareImage() time: %d ms\n",(time() - t0));
-
-        if (DEBUG_VIZ) {
-            try {
-                printf("***Writing debug file for ImageMap");
-                String source = null;
-                Object src = mp_imageSource.getValue();
-                if (src instanceof SourceWrapper) {
-                    source = ((SourceWrapper)src).getParamString();
-                } else {
-                    source = "" + src.hashCode();
-                }
-                source = source.replace("\\","_");
-                source = source.replace("/","_");
-                source = source.replace(".","_");
-                source = source.replace("\"","_");
-                source = source.replace(";","_");
-
-                printf("final: %s\n",source);
-                imageData.write("/tmp/imagemap_" + source + ".png");
-            } catch(IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
-
-        double imagePixelSize = ((Vector3d)mp_size.getValue()).x/imageData.getWidth();
-        m_imageGrid = Grid2DShort.convertImageToGrid(imageData, false, imagePixelSize);
-        m_dataChannel = m_imageGrid.getDataDesc().getChannel(0);
-
-        return ResultCodes.RESULT_OK;
-    }
-    */
     /**
      * @noRefGuide
      */
@@ -650,24 +546,6 @@ public class ImageMap extends TransformableDataSource {
             iy1 = clamp(iy1, 0, m_imageSizeY-1);            
         }
 
-        /*
-        if(ix < 0){
-            if(m_repeatX) ix = m_imageSizeX-1;
-            else ix = 0;
-        }
-        if(iy < 0){
-            if(m_repeatY) iy = m_imageSizeY-1;
-            else iy = 0;
-        }
-        if(ix1 >= m_imageSizeX){
-            if(m_repeatX) ix1 = 0;
-            else ix1 = m_imageSizeX-1;            
-        }
-        if(iy1 >= m_imageSizeY){
-            if(m_repeatY) iy1 = 0;
-            else iy1 = m_imageSizeY-1;            
-        }
-        */
         double 
             v00 = m_dataChannel.getValue(m_imageGrid.getAttribute(ix, iy)),
             v10 = m_dataChannel.getValue(m_imageGrid.getAttribute(ix1, iy)),

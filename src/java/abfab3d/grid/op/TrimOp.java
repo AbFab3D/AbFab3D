@@ -414,12 +414,6 @@ public class TrimOp extends BaseParameterizable implements Operation, AttributeO
             }
         }
 
-        /*
-        Grid2DSourceWrapper wrapper = new Grid2DSourceWrapper(vhash,dest);
-
-        //ParamCache.getInstance().put(vhash,wrapper);
-        return wrapper;
-        */
         return dest;
 
     }

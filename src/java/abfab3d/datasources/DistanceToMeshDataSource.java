@@ -41,6 +41,7 @@ import abfab3d.grid.op.ClosestPointIndexerMT;
 
 import abfab3d.datasources.TransformableDataSource;
 
+import abfab3d.param.SNodeParameter;
 import abfab3d.param.ParamCache;
 import abfab3d.param.Parameter;
 import abfab3d.param.DoubleParameter;
@@ -91,7 +92,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     
     static final double MAX_DISTANCE_UNDEFINED = 1.e10;
     
-    ObjectParameter mp_meshProducer = new ObjectParameter("meshProducer", "mesh producer", null);
+    SNodeParameter mp_meshProducer = new SNodeParameter("meshProducer", "mesh producer", null);
     ObjectParameter mp_meshColorizer = new ObjectParameter("meshColorizer", "mesh colorizer", null);
     DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize", "size of rasterization voxel", DEFAULT_VOXEL_SIZE);
     DoubleParameter mp_surfaceVoxelSize = new DoubleParameter("surfaceVoxelSize", "surface voxel size", 1.);
@@ -278,7 +279,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
 
     /**
-       only use local params
+       only use local params withojut transforms 
      */
     public String getLocalParamString(){
 

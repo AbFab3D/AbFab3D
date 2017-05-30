@@ -6,6 +6,7 @@ import abfab3d.core.GridDataDesc;
 import abfab3d.core.Grid2D;
 import abfab3d.param.SourceWrapper;
 import abfab3d.core.Bounds;
+import abfab3d.core.Grid2DProducer;
 
 import static abfab3d.core.Output.printf;
 
@@ -14,7 +15,7 @@ import static abfab3d.core.Output.printf;
  *
  * @author Alan Hudson
  */
-public class Grid2DSourceWrapper implements Grid2D, SourceWrapper {
+public class Grid2DSourceWrapper implements Grid2D, SourceWrapper, Grid2DProducer {
     private static final boolean DEBUG = true;
     private Grid2D grid;
     private String source;
@@ -126,4 +127,13 @@ public class Grid2DSourceWrapper implements Grid2D, SourceWrapper {
         if (source == null) sb.append(toString());
         sb.append(source);
     }
+
+    /**
+     * Return a Grid2D produced by the object 
+     * @return The grid
+     */
+    public Grid2D getGrid2D(){
+        return grid;
+    }
+
 }

@@ -245,22 +245,24 @@ public class ImageColorMap extends TransformableDataSource {
         super.initialize();
 
 
-        String vhash = getParamString(imageParams);
+        String label = getParamString(imageParams);
 
-        Object co = ParamCache.getInstance().get(vhash);
+        Object co = ParamCache.getInstance().get(label);
         if (co == null) {
             long t0 = time();
             m_imageData = prepareImage();
-            if(DEBUG)printf("ImageColorMap.prepareImage() time: %d ms\n", (time() - t0));            
+            //if(DEBUG)printf("ImageColorMap.prepareImage() time: %d ms\n", (time() - t0));            
+            if (DEBUG) printf("ImageColorMap: caching image: %s -> %s\n",label, m_imageData);
             if(m_imageData == null){
                 // something wrong with the image
                 throw new IllegalArgumentException("undefined image");
             }
 
-            ParamCache.getInstance().put(vhash, m_imageData);
+            ParamCache.getInstance().put(label, m_imageData);
 
         } else {
             m_imageData = (Grid2D) co;
+            if (DEBUG) printf("ImageMap got cached image %s -> %s\n",label, m_imageData);
         }
 
 
@@ -298,6 +300,7 @@ public class ImageColorMap extends TransformableDataSource {
         
         Grid2D grid = producer.getGrid2D(); 
         if(DEBUG) printf("ImageMap grid: %s\n", grid);
+        // if we want image processing operations on the grid, we need to make a copy 
         grid.setGridBounds(getBounds());
 
         if(DEBUG) printf("ImageColorMap() image: [%d x %d]\n", grid.getWidth(), grid.getHeight());
