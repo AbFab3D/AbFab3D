@@ -344,6 +344,13 @@ public class Image3D extends TransformableDataSource {
     }
 
     /**
+     * @noRefGuide
+     * @deprecated Remove next release
+     */
+    public void setDistanceFactor(double value) {
+    }
+
+    /**
      * Set size of the image box
      * @param sx The x dimension in meters
      * @param sy The y dimension in meters
