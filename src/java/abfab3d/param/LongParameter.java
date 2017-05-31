@@ -108,8 +108,8 @@ public class LongParameter extends NumberParameter {
         if (val == null) return;
 
         long d = 0;
-        if (val instanceof Long) {
-            d = ((Long) val).longValue();
+        if (val instanceof Number) {
+            d = ((Number) val).longValue();
             this.value = val;        
         } else {
             throw new IllegalArgumentException("Unsupported type for Long: " + val + " in param: " + getName());

@@ -90,6 +90,7 @@ public class Image3D extends TransformableDataSource {
     Vector3dParameter mp_center = new Vector3dParameter("center", "center of the image box", new Vector3d(0, 0, 0));
     Vector3dParameter mp_size = new Vector3dParameter("size", "size of the image box", new Vector3d(0.1, 0.1, 0.1));
     // rounding of the edges
+
     DoubleParameter mp_rounding = new DoubleParameter("rounding", "rounding of the box edges", 0.);
     IntParameter mp_imageType = new IntParameter("imageType", "placement of the image", IMAGE_TYPE_EMBOSSED, 0, 1);
     IntParameter mp_imagePlace = new IntParameter("imagePlace", "placement of the image", IMAGE_PLACE_TOP, 0, IMAGE_PLACE_BOTH);
@@ -315,6 +316,14 @@ public class Image3D extends TransformableDataSource {
      */
     protected void initParams() {
         super.addParams(m_aparam);
+    }
+
+    /**
+     * @noRefGuide
+     * @deprecated Remove next release
+     */
+    public void setDistanceFactor(double value) {
+        //mp_distanceFactor.setValue(new Double(value));
     }
 
     /**
