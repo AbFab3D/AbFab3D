@@ -115,6 +115,7 @@ public class Image3D extends TransformableDataSource {
     DoubleParameter  mp_voxelSize = new DoubleParameter("voxelSize", "size of voxel to use for image voxelization", 0.);
     DoubleParameter  mp_baseThreshold = new DoubleParameter("baseThreshold", "threshold of the image", 0.01);
     LongParameter  mp_imageFileTimeStamp = new LongParameter("imageTimeStamp", 0);
+    DoubleParameter  mp_distanceFactor = new DoubleParameter("distanceFactor", "distance factor in the image plane", 0.1);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_imageSource, 
@@ -130,6 +131,7 @@ public class Image3D extends TransformableDataSource {
         mp_baseThreshold,
         mp_imagePlace,
         mp_voxelSize,
+        mp_distanceFactor
     };
 
     // Params which require changes in the underlying image 
@@ -396,6 +398,7 @@ public class Image3D extends TransformableDataSource {
      * @deprecated Remove next release
      */
     public void setDistanceFactor(double value) {
+        mp_distanceFactor.setValue(new Double(value));
     }
 
     /**

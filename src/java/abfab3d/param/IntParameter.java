@@ -126,12 +126,9 @@ public class IntParameter extends NumberParameter {
         if (val == null) return;
 
         int d = 0;
-        if (val instanceof Integer) {
-            d = ((Integer) val).intValue();
+        if (val instanceof Number) {
+            d = ((Number) val).intValue();
             this.value = val;        
-        }  else if (val instanceof Double) {
-            d = (int)Math.round(((Double) val).doubleValue());
-            this.value = new Integer(d);        
         } else {
             throw new IllegalArgumentException(fmt("Unsupported type for Integer: %s, %s in param: %s", val, val.getClass().getName(),getName()));
         }
