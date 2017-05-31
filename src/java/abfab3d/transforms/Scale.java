@@ -13,7 +13,6 @@ package abfab3d.transforms;
 
 import abfab3d.core.ResultCodes;
 import abfab3d.param.Parameter;
-import abfab3d.param.ValueHash;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.core.Initializable;
 import abfab3d.core.Vec;
@@ -25,7 +24,7 @@ import javax.vecmath.Vector3d;
 /**
  * Performs scaling by given factor
  */
-public class Scale extends BaseTransform implements VecTransform, Initializable, ValueHash {
+public class Scale extends BaseTransform implements VecTransform, Initializable {
 
     protected double sx = 1., sy = 1., sz = 1.;
     protected double cx = 0., cy = 0., cz = 0.;
@@ -172,34 +171,6 @@ public class Scale extends BaseTransform implements VecTransform, Initializable,
 
         return ResultCodes.RESULT_OK;
 
-    }
-
-    /**
-     * Implement this as a value
-     * @return
-     */
-    public String getParamString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Rotation:");
-        sb.append("center=\"");
-        sb.append(mp_center.getValue().toString());
-        sb.append("\";scale=\"");
-        sb.append(mp_scale.getValue().toString());
-        sb.append("\"");
-
-        return sb.toString();
-    }
-    /**
-     * Implement this as a value
-     * @return
-     */
-    public void getParamString(StringBuilder sb) {
-        sb.append("Rotation:");
-        sb.append("center=\"");
-        sb.append(mp_center.getValue().toString());
-        sb.append("\";scale=\"");
-        sb.append(mp_scale.getValue().toString());
-        sb.append("\"");
     }
 
 } // class Scale

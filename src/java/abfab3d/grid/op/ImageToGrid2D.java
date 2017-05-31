@@ -108,7 +108,7 @@ public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer
         Object co = null;
         String label = null;
         if(CACHING_ENABLED){
-            label = BaseParameterizable.getParamString(getClass().getSimpleName(), m_params);
+            label = getParamString(getClass().getSimpleName(), m_params);
             co = ParamCache.getInstance().get(label);
         }
         if (co == null) {

@@ -167,7 +167,7 @@ public class ImageMap extends TransformableDataSource {
     /**
      * Creates ImageMap from a file
      *
-     * @param reader source of the image. 
+     * @param imageProducer source of the image.
      * @param sizex - width of the image
      * @param sizey - height of the image
      * @param sizez - depth of the image
@@ -203,7 +203,7 @@ public class ImageMap extends TransformableDataSource {
 
     /**
      * Set the source image
-     * @param val
+     * @param producer
      */
     public void setImage(Grid2DProducer producer) {
         mp_source.setValue(producer);
@@ -341,10 +341,11 @@ public class ImageMap extends TransformableDataSource {
      * Get a label for the OpenCL buffer, account for all params which change the buffer value
      * @return
      */
+/*
     public String getBufferLabel() {
         return BaseParameterizable.getParamString(getClass().getSimpleName(), m_imageParams);
     }
-
+*/
     /**
      * @noRefGuide
      */
@@ -413,7 +414,7 @@ public class ImageMap extends TransformableDataSource {
 
         long t0 = System.currentTimeMillis();
 
-        String label = BaseParameterizable.getParamString(getClass().getSimpleName(), m_imageParams);
+        String label = getParamString(getClass().getSimpleName(), m_imageParams);
 
         Object co = null;
         if(CACHING_ENABLED)co = ParamCache.getInstance().get(label);

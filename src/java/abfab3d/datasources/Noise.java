@@ -109,11 +109,15 @@ public class Noise extends TransformableDataSource {  // Periodic noise in 3D
      * Get a label for the OpenCL buffer, account for all params which change the buffer value
      * @return
      */
-    public String getBufferLabel() {
+    public String getParamString() {
+        StringBuilder sb = new StringBuilder();
+
         // TODO: Taking account m_gradients which is not part of params is klunky
-        String st = BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparam);
-        if (m_gradients != null) st += m_gradients.toString();
-        return st;
+        getParamString(getClass().getSimpleName(), m_aparam,sb);
+        if (m_gradients != null) {
+            sb.append(m_gradients.toString());
+        }
+        return sb.toString();
     }
 
     public int initialize(){

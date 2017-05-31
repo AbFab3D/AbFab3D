@@ -111,7 +111,7 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
         Object co = null;
         String label = null;
         if(CACHING_ENABLED){
-            label = BaseParameterizable.getParamString(getClass().getSimpleName(), m_params);
+            label = getParamString(getClass().getSimpleName(), m_params);
             co = ParamCache.getInstance().get(label);
         }
         if (co == null) {
@@ -137,7 +137,7 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
         }
 
         try {
-            if(path.endsWith(".svg")){
+            if(path.endsWith(".svg") || path.endsWith(".SVG")){
                 return readImageSVG(path, mp_svgRasterizationWidth.getValue(), mp_backgroundColor.getValue());
             }
             BufferedImage image = ImageIO.read(new File(path)); 

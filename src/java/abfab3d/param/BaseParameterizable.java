@@ -150,21 +150,55 @@ public class BaseParameterizable implements Parameterizable, SNode {
     }
 
     public String getParamString(){
-        return getParamString(this);
+        StringBuilder sb = new StringBuilder();
+        getParamString(sb);
+
+        return sb.toString();
     }
 
+    public void getParamString(StringBuilder sb){
+        getParamString(getClass().getSimpleName(),m_paramArray,sb);
+    }
+
+    public void getParamString(String name,Parameter[] params,StringBuilder sb) {
+        sb.append("{");
+        sb.append(name);
+        sb.append(":{");
+        for(int i = 0; i < params.length; i++){
+            Parameter p = params[i];
+            sb.append(p.getName());
+            sb.append(":");
+            p.getParamString(sb);
+            if(i < params.length-1)
+                sb.append(",");
+            else
+                sb.append("");
+        }
+        sb.append("}}");
+    }
+
+    public String getParamString(String name,Parameter[] params) {
+        StringBuilder sb = new StringBuilder();
+        getParamString(name,params,sb);
+
+        return sb.toString();
+    }
+
+/*
     public String getParamString(Parameterizable pnode){
         return getParamString(pnode.getClass().getSimpleName(),pnode);
     }
-
+*/
+/*
     public String getParamString(Parameter[] aparam){
         return getParamString(getClass().getSimpleName(),aparam);
     }
-
+*/
     /**
      * saves array of parameters into a string in json format
      * @noRefGuide
      */
+/*
     public static String getParamString(String name,Parameter aparam[]){
         StringBuilder sb = new StringBuilder();
         sb.append("{");
@@ -183,7 +217,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
         sb.append("}}");
         return sb.toString();
     }
-
+ */
     /**
      * saves array of parameters into a string
      *
@@ -227,6 +261,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * saves array of parameters into a string
      * @noRefGuide
      */
+
     public static String getParamString(String name,Set<String> ignore,Parameterizable pnode){
         StringBuilder sb = new StringBuilder();
         sb.append(name);
@@ -249,35 +284,16 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * saves array of parameters into a string
      * @noRefGuide
      */
-    
+/*
     public static String getParamString(String name,Parameterizable pnode){
         return getParamString(name, pnode.getParams());
-        /*
-        StringBuilder sb = new StringBuilder();
-        sb.append(name);
-        sb.append("{");
-
-        if (pnode instanceof ValueHash) {
-            ((ValueHash)pnode).getParamString(sb);
-            return sb.toString();
-        }
-
-        Map<String,Parameter> map = pnode.getParamMap();
-        for(Parameter p : map.values()){
-            sb.append(p.getName());
-            sb.append(":\"");
-            p.getParamString(sb);
-            sb.append("\";");
-        }
-        sb.append("}");
-        return sb.toString();
-        */
     }
-    
+*/
     /**
      * Saves array of parameters into a string 
      * @noRefGuide
      */
+
     public static String getParamString(String name, Object src,Parameter aparam[]){
         StringBuilder sb = new StringBuilder();
         sb.append(name);
@@ -285,7 +301,9 @@ public class BaseParameterizable implements Parameterizable, SNode {
 
         String source = null;
         if (src instanceof SourceWrapper) {
-            source = ((SourceWrapper)src).getParamString();
+            source = ((SourceWrapper) src).getParamString();
+        } else if (src instanceof Parameterizable) {
+                source = ((Parameterizable)src).getParamString();
         } else {
             source = src.toString();
         }
@@ -308,6 +326,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * Saves array of parameters into a string
      * @noRefGuide
      */
+/*
     public static String getParamString(String name, Map<String,Parameter> params){
         StringBuilder sb = new StringBuilder();
         sb.append("{");
@@ -322,7 +341,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
         sb.append("}}");
         return sb.toString();
     }
-
+*/
     /**
      * Get the parameters as a string
      * @noRefGuide
@@ -330,6 +349,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
      * @param params
      * @return
      */
+/*
     public static String getParamObjString(String name,Map<String,Object> params) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
@@ -344,7 +364,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
         sb.append("}}");
         return sb.toString();
     }
-
+ */
     public final static void initialize(Object obj){
         if(obj instanceof Initializable){
             ((Initializable)obj).initialize();

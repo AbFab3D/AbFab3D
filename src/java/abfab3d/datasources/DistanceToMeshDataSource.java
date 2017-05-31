@@ -279,12 +279,11 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
 
     /**
-       only use local params withojut transforms 
+       only use local params without transforms
      */
     public String getLocalParamString(){
 
-        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparams);
-
+        return getParamString(getClass().getSimpleName(), m_aparams);
     } 
 
     protected int initPlainMesh(TriangleProducer producer){
@@ -336,7 +335,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     /**
        creates distance interpolator for given triangle mesh 
        @param producer triangle mesh
-       @param bounds for generated 
+       @param gridBounds for generated
        @param maxDistance maximal distance to calculate 
      */
     static IndexedDistanceInterpolator makeDistanceInterpolator(TriangleProducer producer, 

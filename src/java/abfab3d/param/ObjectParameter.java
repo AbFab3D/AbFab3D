@@ -66,8 +66,8 @@ public class ObjectParameter extends BaseParameter {
             return ((SourceWrapper)value).getParamString();
         }
 
-        if (value instanceof ValueHash) {
-            return ((ValueHash)value).getParamString();
+        if (value instanceof Parameterizable) {
+            return ((Parameterizable)value).getParamString();
         }
 
         if (value == null) return "null";
@@ -86,8 +86,8 @@ public class ObjectParameter extends BaseParameter {
             return;
         }
 
-        if (value instanceof ValueHash) {
-            ((ValueHash)value).getParamString(sb);
+        if (value instanceof Parameterizable) {
+            ((Parameterizable)value).getParamString(sb);
             return;
         }
 

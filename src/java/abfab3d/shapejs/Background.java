@@ -264,12 +264,14 @@ public class Background extends BaseParameterizable implements Initializable {
             }
         }
     }
+    
     /**
      * Get a label for the OpenCL buffer, account for all params which change the buffer value
      * @return
      */
+/*
     public String getBufferLabel() {
         return BaseParameterizable.getParamString(getClass().getSimpleName(), new Parameter[] {mp_imageSource});
     }
-
+*/
 }

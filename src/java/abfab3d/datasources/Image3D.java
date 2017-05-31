@@ -15,66 +15,39 @@ package abfab3d.datasources;
 
 import abfab3d.core.Bounds;
 import abfab3d.core.DataSource;
+import abfab3d.core.Grid2D;
+import abfab3d.core.Grid2DProducer;
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.ImageProducer;
 import abfab3d.core.Output;
 import abfab3d.core.ResultCodes;
 import abfab3d.core.Vec;
-import abfab3d.core.Grid2D;
-import abfab3d.core.GridDataChannel;
-import abfab3d.core.Grid2DProducer;
-import abfab3d.core.ImageProducer;
-
 import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.Operation2D;
-import abfab3d.grid.op.GridValueTransformer;
-import abfab3d.grid.op.GaussianBlur;
-import abfab3d.grid.op.ResampleOp;
+import abfab3d.grid.op.Copy;
 import abfab3d.grid.op.DistanceTransform2DOp;
+import abfab3d.grid.op.GaussianBlur;
+import abfab3d.grid.op.GridValueTransformer;
 import abfab3d.grid.op.ImageReader;
 import abfab3d.grid.op.ImageToGrid2D;
-import abfab3d.grid.op.Copy;
-
-import abfab3d.param.ObjectParameter;
-import abfab3d.param.Vector3dParameter;
+import abfab3d.grid.op.ResampleOp;
+import abfab3d.param.BaseParameterizable;
+import abfab3d.param.BooleanParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.IntParameter;
-import abfab3d.param.LongParameter;
-import abfab3d.param.BooleanParameter;
-import abfab3d.param.SNodeParameter;
-import abfab3d.param.Parameter;
-import abfab3d.param.BaseParameterizable;
 import abfab3d.param.ParamCache;
-
+import abfab3d.param.Parameter;
+import abfab3d.param.SNodeParameter;
+import abfab3d.param.Vector3dParameter;
 import abfab3d.util.ImageMipMapGray16;
-import abfab3d.util.ImageGray16;
-import abfab3d.util.ImageUtil;
-
-import javax.imageio.ImageIO;
-
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.Vector;
 
 import javax.vecmath.Vector3d;
+import java.util.Vector;
 
-import static abfab3d.util.ImageMipMapGray16.getScaledDownDataBlack;
-import static abfab3d.core.MathUtil.intervalCap;
-import static abfab3d.core.MathUtil.clamp;
-import static abfab3d.core.MathUtil.fmod;
-import static abfab3d.core.MathUtil.step01;
-import static abfab3d.core.MathUtil.step10;
-import static abfab3d.core.MathUtil.step;
-import static abfab3d.core.MathUtil.lerp2;
-import static abfab3d.core.MathUtil.blendMax;
-import static abfab3d.core.MathUtil.blendMin;
+import static abfab3d.core.MathUtil.*;
+import static abfab3d.core.Output.*;
 import static abfab3d.core.Units.MM;
-import static abfab3d.core.Output.printf;
-import static abfab3d.core.Output.fmt;
-import static abfab3d.core.Output.time;
-
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 
 
 /**
@@ -92,8 +65,8 @@ import static java.lang.Math.sqrt;
  * <p/>
  * <embed src="doc-files/Image3D_options.svg" type="image/svg+xml"/>
  * <p>
- * The image can by tiled (repeated) in both x and y directions finite number of times 
- * 
+ * The image can by tiled (repeated) in both x and y directions finite number of times
+ * <p>
  * </p>
  *
  * @author Vladimir Bulatov
@@ -109,30 +82,30 @@ public class Image3D extends TransformableDataSource {
     public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
     static final double MIN_GRADIENT = 0.05;
     static final String MEMORY_IMAGE = "[memory image]";
-    
-    SNodeParameter mp_source = new SNodeParameter("source","Image source", null);
+
+    SNodeParameter mp_source = new SNodeParameter("source", "Image source", null);
 
     // public params of the image 
     //ObjectParameter mp_image = new ObjectParameter("image","Image source", null); // obsolete 
-    Vector3dParameter  mp_center = new Vector3dParameter("center","center of the image box",new Vector3d(0,0,0));
-    Vector3dParameter  mp_size = new Vector3dParameter("size","size of the image box",new Vector3d(0.1,0.1,0.1));
+    Vector3dParameter mp_center = new Vector3dParameter("center", "center of the image box", new Vector3d(0, 0, 0));
+    Vector3dParameter mp_size = new Vector3dParameter("size", "size of the image box", new Vector3d(0.1, 0.1, 0.1));
     // rounding of the edges
-    DoubleParameter  mp_rounding = new DoubleParameter("rounding","rounding of the box edges", 0.);
-    IntParameter  mp_imageType = new IntParameter("imageType","placement of the image", IMAGE_TYPE_EMBOSSED, 0, 1);
-    IntParameter  mp_imagePlace = new IntParameter("imagePlace","placement of the image", IMAGE_PLACE_TOP, 0, IMAGE_PLACE_BOTH);
-    IntParameter  mp_tilesX = new IntParameter("tilesX","image tiles in x-direction", 1);
-    IntParameter  mp_tilesY = new IntParameter("tilesY","image tiles in y-direction", 1);
-    DoubleParameter  mp_baseThickness = new DoubleParameter("baseThickness","relative thickness of image base", 0.);
-    BooleanParameter  mp_useGrayscale = new BooleanParameter("useGrayscale","Use grayscale for image rendering", true);
-    BooleanParameter  mp_useImageProcessing =  new BooleanParameter("useImageProcessing","Use default image processing", true);
-    DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
-    DoubleParameter  mp_voxelSize = new DoubleParameter("voxelSize", "size of voxel to use for image voxelization", 0.);
-    DoubleParameter  mp_baseThreshold = new DoubleParameter("baseThreshold", "threshold of the image", 0.01);
-    DoubleParameter  mp_pixelsPerVoxel = new DoubleParameter("pixelsPerVoxel", "image pixels per voxel", 3.);
-    DoubleParameter  mp_maxDist = new DoubleParameter("maxDist", "maximal distance to calculate distance transform", 20*MM);
+    DoubleParameter mp_rounding = new DoubleParameter("rounding", "rounding of the box edges", 0.);
+    IntParameter mp_imageType = new IntParameter("imageType", "placement of the image", IMAGE_TYPE_EMBOSSED, 0, 1);
+    IntParameter mp_imagePlace = new IntParameter("imagePlace", "placement of the image", IMAGE_PLACE_TOP, 0, IMAGE_PLACE_BOTH);
+    IntParameter mp_tilesX = new IntParameter("tilesX", "image tiles in x-direction", 1);
+    IntParameter mp_tilesY = new IntParameter("tilesY", "image tiles in y-direction", 1);
+    DoubleParameter mp_baseThickness = new DoubleParameter("baseThickness", "relative thickness of image base", 0.);
+    BooleanParameter mp_useGrayscale = new BooleanParameter("useGrayscale", "Use grayscale for image rendering", true);
+    BooleanParameter mp_useImageProcessing = new BooleanParameter("useImageProcessing", "Use default image processing", true);
+    DoubleParameter mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
+    DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize", "size of voxel to use for image voxelization", 0.);
+    DoubleParameter mp_baseThreshold = new DoubleParameter("baseThreshold", "threshold of the image", 0.01);
+    DoubleParameter mp_pixelsPerVoxel = new DoubleParameter("pixelsPerVoxel", "image pixels per voxel", 3.);
+    DoubleParameter mp_maxDist = new DoubleParameter("maxDist", "maximal distance to calculate distance transform", 20 * MM);
 
     Parameter m_aparam[] = new Parameter[]{
-        mp_source, 
+        mp_source,
         //mp_image,
         mp_center,
         mp_size,
@@ -152,26 +125,27 @@ public class Image3D extends TransformableDataSource {
     };
 
     // Params which require changes in the underlying image 
-    Parameter m_imageParams[] = new Parameter[] {
-        mp_source, 
+    Parameter m_imageParams[] = new Parameter[]{
+        mp_source,
         //mp_imageFileTimeStamp,
-        mp_size, 
-        mp_tilesX, 
-        mp_tilesY, 
-        mp_blurWidth, 
-        mp_useGrayscale
+        mp_size,
+        mp_tilesX,
+        mp_tilesY,
+        mp_blurWidth,
+        mp_useGrayscale,
+        mp_useImageProcessing
     };
-    
-    public static final double DEFAULT_PIXEL_SIZE = 0.1*MM;
+
+    public static final double DEFAULT_PIXEL_SIZE = 0.1 * MM;
 
     //static double EPSILON = 1.e-3;
     //static final double MAX_PIXELS_PER_VOXEL = 3.;
 
-    public static final double DEFAULT_VOXEL_SIZE = 0.1*MM;
+    public static final double DEFAULT_VOXEL_SIZE = 0.1 * MM;
 
     // size of the box 
     protected double m_sizeX = 0., m_sizeY = 0., m_sizeZ = 0.;
-    protected double m_halfSizeX,  m_halfSizeY,  m_halfSizeZ;
+    protected double m_halfSizeX, m_halfSizeY, m_halfSizeZ;
     // location of the box
     protected double m_centerX = 0, m_centerY = 0, m_centerZ = 0;
 
@@ -206,9 +180,9 @@ public class Image3D extends TransformableDataSource {
 
     private boolean m_useGrayscale = true;
     private int m_imageSizeX, m_imageSizeY, m_imageSizeX1, m_imageSizeY1;
-    
+
     // the image data is stored in the Grid2D 
-    protected Grid2D m_dataGrid = null; 
+    protected Grid2D m_dataGrid = null;
     // converted to get physical value from grid attribute 
     protected GridDataChannel m_dataChannel;
 
@@ -226,7 +200,7 @@ public class Image3D extends TransformableDataSource {
     // it mostly affect precision of stored distance, because distance is stored in 16 bits of short
     //private double m_maxDistPixels = 100;
 
-    private static Grid2D m_emptyGrid = new Grid2DShort(1,1,DEFAULT_PIXEL_SIZE);
+    private static Grid2D m_emptyGrid = new Grid2DShort(1, 1, DEFAULT_PIXEL_SIZE);
 
     /**
      * @noRefGuide
@@ -239,9 +213,9 @@ public class Image3D extends TransformableDataSource {
      * Image3D with given image path and size
      *
      * @param imagePath path to the image file
-     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sz depth of the box.
+     * @param sx        width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy        height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz        depth of the box.
      */
     public Image3D(String imagePath, double sx, double sy, double sz) {
         this(imagePath, sx, sy, sz, 0.);
@@ -251,26 +225,26 @@ public class Image3D extends TransformableDataSource {
      * Image3D with given image path and size
      *
      * @param imagePath path to the image file
-     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sz depth of the box.
+     * @param sx        width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy        height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz        depth of the box.
      * @param voxelSize size of voxel to be used for image voxelization
      */
     public Image3D(String imagePath, double sx, double sy, double sz, double voxelSize) {
-        this(new ImageToGrid2D(new ImageReader(imagePath)), sx, sy, sz,voxelSize);
+        this(new ImageToGrid2D(new ImageReader(imagePath)), sx, sy, sz, voxelSize);
     }
 
     /**
      * Image3D with given image path and size
      *
-     * @param producer image producer
-     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sz depth of the box.
+     * @param grid image producer
+     * @param sx       width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy       height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz       depth of the box.
      */
     public Image3D(Grid2D grid, double sx, double sy, double sz) {
         // use memory hash as label  
-        this((Grid2DProducer)(new Grid2DSourceWrapper(grid.toString(), grid)), sx, sy, sz);
+        this((Grid2DProducer) (new Grid2DSourceWrapper(grid.toString(), grid)), sx, sy, sz);
         mp_useImageProcessing.setValue(false);
     }
 
@@ -278,9 +252,9 @@ public class Image3D extends TransformableDataSource {
      * Image3D with given image path and size
      *
      * @param producer image producer
-     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sz depth of the box.
+     * @param sx       width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy       height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz       depth of the box.
      */
     public Image3D(Grid2DProducer producer, double sx, double sy, double sz) {
         this(producer, sx, sy, sz, 0.);
@@ -289,42 +263,42 @@ public class Image3D extends TransformableDataSource {
     /**
      * Image3D with given image path and size
      *
-     * @param imwrapper holder of BufferedImage
-     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sz depth of the box.
+     * @param imgProducer holder of BufferedImage
+     * @param sx        width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy        height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz        depth of the box.
      */
     public Image3D(ImageProducer imgProducer, double sx, double sy, double sz) {
         this(new ImageToGrid2D(imgProducer), sx, sy, sz, 0.);
     }
 
-    
+
     /**
      * Image3D with given image and size
      *
-     * @param imgProducer producer of the image 
-     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sz depth of the box. 
-     * @param voxelSize size of voxel to be used for image voxelization 
+     * @param imgProducer producer of the image
+     * @param sx          width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy          height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz          depth of the box.
+     * @param voxelSize   size of voxel to be used for image voxelization
      */
     public Image3D(ImageProducer imgProducer, double sx, double sy, double sz, double voxelSize) {
         this(new ImageToGrid2D(imgProducer), sx, sy, sz, voxelSize);
     }
-    
+
 
     /**
      * Image3D with given image path and size
      *
      * @param producer image producer
-     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param sz depth of the box.
-     * @param vs voxel size used for image voxelization
+     * @param sx       width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy       height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz       depth of the box.
+     * @param vs       voxel size used for image voxelization
      */
     public Image3D(Grid2DProducer producer, double sx, double sy, double sz, double vs) {
         initParams();
-        if(DEBUG)printf("Image3D(Grid2DProducer %s) !!!\n", producer);
+        if (DEBUG) printf("Image3D(Grid2DProducer %s) !!!\n", producer);
         mp_source.setValue(producer);
         setSize(sx, sy, sz);
         setVoxelSize(vs);
@@ -332,19 +306,20 @@ public class Image3D extends TransformableDataSource {
 
     int m_version = 1;
 
-    public void setVersion(int version){
+    public void setVersion(int version) {
         m_version = version;
     }
-    
+
     /**
      * @noRefGuide
      */
-    protected void initParams(){
+    protected void initParams() {
         super.addParams(m_aparam);
     }
 
     /**
      * Set size of the image box
+     *
      * @param sx The x dimension in meters
      * @param sy The y dimension in meters
      * @param sz The z dimension in meters
@@ -355,6 +330,7 @@ public class Image3D extends TransformableDataSource {
 
     /**
      * Set size of the image box
+     *
      * @param size The size in meters
      */
     public void setSize(Vector3d size) {
@@ -370,6 +346,7 @@ public class Image3D extends TransformableDataSource {
 
     /**
      * Set center of the image box
+     *
      * @param cx The x location in meters
      * @param cy The y location in meters
      * @param cz The z location in meters
@@ -381,6 +358,7 @@ public class Image3D extends TransformableDataSource {
 
     /**
      * Set center of the image box
+     *
      * @param val The center in meters
      */
     public void setCenter(Vector3d val) {
@@ -390,6 +368,7 @@ public class Image3D extends TransformableDataSource {
 
     /**
      * Get center of the image box
+     *
      * @return
      */
     public Vector3d getCenter() {
@@ -398,6 +377,7 @@ public class Image3D extends TransformableDataSource {
 
     /**
      * Set image tiling
+     *
      * @param tilesX the number of X tiles
      * @param tilesY the number of Y tiles
      */
@@ -409,6 +389,7 @@ public class Image3D extends TransformableDataSource {
 
     /**
      * Set image tilingX
+     *
      * @param val The value
      */
     public void setTilesX(int val) {
@@ -424,6 +405,7 @@ public class Image3D extends TransformableDataSource {
 
     /**
      * Set image tilingY
+     *
      * @param val The value
      */
     public void setTilesY(int val) {
@@ -448,6 +430,7 @@ public class Image3D extends TransformableDataSource {
 
     /**
      * Set the blurring width to apply to the image
+     *
      * @param blurWidth The width in meters.  Default is 0.
      */
     public void setBlurWidth(double blurWidth) {
@@ -464,6 +447,7 @@ public class Image3D extends TransformableDataSource {
 
     /**
      * Set the rounding applied to the image.
+     *
      * @param rounding The rounding in meters
      */
     public void setRounding(double rounding) {
@@ -487,9 +471,9 @@ public class Image3D extends TransformableDataSource {
         mp_voxelSize.setValue(vs);
     }
 
-    
+
     public void setImage(Object val) {
-        
+
         mp_source.setValue(val);
 
     }
@@ -498,7 +482,6 @@ public class Image3D extends TransformableDataSource {
      * set options to image embossing type
      *
      * @param type Type ot the image. Possible values Image3D.IMAGE_TYPE_EMBOSSED (default value), Image3D.IMAGE_TYPE_ENGRAVED.
-     *             
      */
     public void setImageType(int type) {
 
@@ -526,89 +509,93 @@ public class Image3D extends TransformableDataSource {
      *              the black and white option is useful if one want to have image shape with sharp vertical walls.
      */
     public void setUseGrayscale(boolean value) {
-        
+
         mp_useGrayscale.setValue(new Boolean(value));
     }
 
 
     /**
-       returns physical data value which corresponds to the given attribute value 
+     * returns physical data value which corresponds to the given attribute value
      */
-    public double getPhysicalValue(long attribute){
+    public double getPhysicalValue(long attribute) {
         return m_dataChannel.getValue(attribute);
     }
 
     /**
      * @noRefGuide
      */
-    public int getBitmapWidth(){
+    public int getBitmapWidth() {
         return m_dataGrid.getWidth();
     }
 
     /**
      * @noRefGuide
      */
-    public int getBitmapHeight(){
+    public int getBitmapHeight() {
         return m_dataGrid.getHeight();
     }
 
     /**
      * @noRefGuide
      */
-    public void getBitmapData(byte data[]){
+    public void getBitmapData(byte data[]) {
         getBitmapDataUByte(data);
     }
 
     /**
      * @noRefGuide
      */
-    public void getBitmapDataUByte(byte data[]){
+    public void getBitmapDataUByte(byte data[]) {
 
         int nx = m_dataGrid.getWidth();
         int ny = m_dataGrid.getHeight();
         double base = m_baseRelThreshold;
-        for(int y = 0;  y < ny; y++){
-            for(int x = 0;  x < nx; x++){
+        for (int y = 0; y < ny; y++) {
+            for (int x = 0; x < nx; x++) {
                 double d = getImageValue(x, y);
                 // normalization to byte 
-                data[x + y * nx] = (byte)((int)(d * 0xFF) & 0xFF); 
+                data[x + y * nx] = (byte) ((int) (d * 0xFF) & 0xFF);
             }
         }
     }
 
     // store bitmap data as 16 bit shorts 
+
     /**
      * @noRefGuide
      */
-    public void getBitmapDataUShort(byte data[]){
+    public void getBitmapDataUShort(byte data[]) {
 
         int nx = m_dataGrid.getWidth();
         int ny = m_dataGrid.getHeight();
-        int nx2 = nx*2;
-        
-        for(int y = 0;  y < ny; y++){
-            for(int x = 0;  x < nx; x++){
+        int nx2 = nx * 2;
 
-                long id = m_dataGrid.getAttribute(x,y); 
-                
+        for (int y = 0; y < ny; y++) {
+            for (int x = 0; x < nx; x++) {
+
+                long id = m_dataGrid.getAttribute(x, y);
+
                 //double d = getImageValue(x,y);
                 // normalization to byte 
                 //int id = ((int)(d * 0xFFFF)) & 0xFFFF;
-                int ind = 2*x + y * nx2;
-                data[ind] = (byte)(id & 0xFF); 
-                data[ind + 1] = (byte)((id >> 8) & 0xFF);  
+                int ind = 2 * x + y * nx2;
+                data[ind] = (byte) (id & 0xFF);
+                data[ind + 1] = (byte) ((id >> 8) & 0xFF);
             }
         }
     }
 
     /**
      * Get a label for the OpenCL buffer, account for all params which change the buffer value
+     *
      * @return
      * @noRefGuide
      */
+/*
     public String getBufferLabel() {
         return BaseParameterizable.getParamString(getClass().getSimpleName(), m_imageParams);
     }
+*/
 
     /**
      * @noRefGuide
@@ -616,27 +603,27 @@ public class Image3D extends TransformableDataSource {
     public int initialize() {
 
         super.initialize();
-        
-        if(DEBUG)printf("%s.initialize()\n",this);
-        
-        Vector3d c = mp_center.getValue(); 
+
+        if (DEBUG) printf("%s.initialize()\n", this);
+
+        Vector3d c = mp_center.getValue();
         m_centerX = c.x;
         m_centerY = c.y;
         m_centerZ = c.z;
 
-        Vector3d s = mp_size.getValue(); 
+        Vector3d s = mp_size.getValue();
         m_sizeX = s.x;
         m_sizeY = s.y;
         m_sizeZ = s.z;
 
-        m_halfSizeX = m_sizeX/2;
-        m_halfSizeY = m_sizeY/2;
-        m_halfSizeZ = m_sizeZ/2;
+        m_halfSizeX = m_sizeX / 2;
+        m_halfSizeY = m_sizeY / 2;
+        m_halfSizeZ = m_sizeZ / 2;
 
         m_baseRelThreshold = mp_baseThreshold.getValue();
-        m_baseRelThickness = mp_baseThickness.getValue();        
+        m_baseRelThickness = mp_baseThickness.getValue();
         m_rounding = mp_rounding.getValue();
-       
+
         m_imagePlace = mp_imagePlace.getValue();
         m_useGrayscale = mp_useGrayscale.getValue();
 
@@ -650,75 +637,75 @@ public class Image3D extends TransformableDataSource {
         m_zmin = m_centerZ - m_halfSizeZ;
         m_zmax = m_centerZ + m_halfSizeZ;
 
-        m_imageThickness = (1. - m_baseRelThickness)*m_sizeZ;
-        m_baseThickness = m_baseRelThickness*m_sizeZ;
+        m_imageThickness = (1. - m_baseRelThickness) * m_sizeZ;
+        m_baseThickness = m_baseRelThickness * m_sizeZ;
         m_hasBase = (m_baseRelThickness > 0.);
-        m_baseHalfSizeZ = m_baseThickness/2;
+        m_baseHalfSizeZ = m_baseThickness / 2;
 
-        switch(m_imagePlace){
-        case IMAGE_PLACE_BOTH:            
-            m_baseCenterZ = m_centerZ;
-            m_slopeZcoeff = 4;
-            break;
-        case IMAGE_PLACE_TOP:            
-            m_baseCenterZ = m_zmin + m_baseHalfSizeZ;
-            m_slopeZcoeff= 1;
-            break;
-        case IMAGE_PLACE_BOTTOM:            
-            m_baseCenterZ = m_zmax - m_baseHalfSizeZ;
-            m_slopeZcoeff = 1;
-            break;
+        switch (m_imagePlace) {
+            case IMAGE_PLACE_BOTH:
+                m_baseCenterZ = m_centerZ;
+                m_slopeZcoeff = 4;
+                break;
+            case IMAGE_PLACE_TOP:
+                m_baseCenterZ = m_zmin + m_baseHalfSizeZ;
+                m_slopeZcoeff = 1;
+                break;
+            case IMAGE_PLACE_BOTTOM:
+                m_baseCenterZ = m_zmax - m_baseHalfSizeZ;
+                m_slopeZcoeff = 1;
+                break;
         }
 
-        String label = BaseParameterizable.getParamString(getClass().getSimpleName(), m_imageParams);
+        String label = getParamString(getClass().getSimpleName(), m_imageParams);
 
         Object co = null;
-        if(CACHING_ENABLED)co = ParamCache.getInstance().get(label);
+        if (CACHING_ENABLED) co = ParamCache.getInstance().get(label);
         if (co == null) {
             m_dataGrid = prepareImage();
-            if(CACHING_ENABLED)ParamCache.getInstance().put(label, m_dataGrid);
-            if (DEBUG) printf("Image3D: caching image: %s -> %s\n",label, m_dataGrid);
+            if (CACHING_ENABLED) ParamCache.getInstance().put(label, m_dataGrid);
+            if (DEBUG) printf("Image3D: caching image: %s -> %s\n", label, m_dataGrid);
         } else {
             m_dataGrid = (Grid2D) co;
-            if (DEBUG) printf("Image3D: got cached image %s -> %s\n",label, m_dataGrid);
+            if (DEBUG) printf("Image3D: got cached image %s -> %s\n", label, m_dataGrid);
         }
-        
+
         m_dataChannel = m_dataGrid.getDataDesc().getChannel(m_dataChannelIndex);
         m_imageSizeX = m_dataGrid.getWidth();
         m_imageSizeY = m_dataGrid.getHeight();
         m_imageSizeX1 = m_imageSizeX - 1;
         m_imageSizeY1 = m_imageSizeY - 1;
-        m_xfactor = m_imageSizeX/m_sizeX;
-        m_yfactor = m_imageSizeY/m_sizeY;
-        
-        m_gradXfactor = m_tilesX*m_imageThickness*m_xfactor/2;
-        m_gradYfactor = m_tilesY*m_imageThickness*m_yfactor/2;
+        m_xfactor = m_imageSizeX / m_sizeX;
+        m_yfactor = m_imageSizeY / m_sizeY;
+
+        m_gradXfactor = m_tilesX * m_imageThickness * m_xfactor / 2;
+        m_gradYfactor = m_tilesY * m_imageThickness * m_yfactor / 2;
 
         return ResultCodes.RESULT_OK;
     }
 
-    private Grid2D prepareImage(){
+    private Grid2D prepareImage() {
 
-        long t0=0;
-        Object obj = mp_source.getValue(); 
+        long t0 = 0;
+        Object obj = mp_source.getValue();
 
-        if(DEBUG) printf("Image3D.prepareImage(%s)\n", obj);
-        if(DEBUG)  t0 = time();
+        if (DEBUG) printf("Image3D.prepareImage(%s)\n", obj);
+        if (DEBUG) t0 = time();
 
-        if(obj == null || !(obj instanceof Grid2DProducer))
-            throw new RuntimeException(fmt("unknown grid source: %s expecting Grid2DProducer, found %s",obj, obj.getClass().getName()));
+        if (obj == null || !(obj instanceof Grid2DProducer))
+            throw new RuntimeException(fmt("unknown grid source: %s expecting Grid2DProducer, found %s", obj, obj.getClass().getName()));
 
-        Grid2DProducer producer = (Grid2DProducer)obj; 
-        
-        Grid2D grid = producer.getGrid2D(); 
+        Grid2DProducer producer = (Grid2DProducer) obj;
 
-        if(mp_useImageProcessing.getValue()){
+        Grid2D grid = producer.getGrid2D();
+
+        if (mp_useImageProcessing.getValue()) {
             // need copy grid to preserve the original for future use 
             grid = Copy.createCopy(grid);
             grid.setGridBounds(getBounds());
             grid = executeOps(grid, createOps(grid));
         }
-        if(DEBUG)  {
+        if (DEBUG) {
             printf("Image3D.prepareImage() grid:%s [%d x %d] ready %d ms\n", grid, grid.getWidth(), grid.getHeight(), (time() - t0));
 
         }
@@ -727,57 +714,57 @@ public class Image3D extends TransformableDataSource {
     }
 
     /**
-       @Override 
-    */
-    public Bounds getBounds(){
+     * @Override
+     */
+    public Bounds getBounds() {
         Vector3d size = mp_size.getValue();
         Vector3d center = mp_center.getValue();
-        return new Bounds(center.x - size.x/2,center.x + size.x/2,center.y - size.y/2,center.y + size.y/2,center.z - size.z/2,center.z + size.z/2);
+        return new Bounds(center.x - size.x / 2, center.x + size.x / 2, center.y - size.y / 2, center.y + size.y / 2, center.z - size.z / 2, center.z + size.z / 2);
     }
 
 
     /**
-       makes sequence of operations to apply to the image 
-    */
-    private Vector<Operation2D> createOps(Grid2D grid){
-        
+     * makes sequence of operations to apply to the image
+     */
+    private Vector<Operation2D> createOps(Grid2D grid) {
+
         Vector<Operation2D> ops = new Vector<Operation2D>(5);
 
         double voxelSize = mp_voxelSize.getValue();
-        if(voxelSize / grid.getVoxelSize() > mp_pixelsPerVoxel.getValue()){
-            
+        if (voxelSize / grid.getVoxelSize() > mp_pixelsPerVoxel.getValue()) {
+
             double newPixelSize = voxelSize / mp_pixelsPerVoxel.getValue();
             double sizeX = mp_size.getValue().x;
             double tilesX = mp_tilesX.getValue();
-            int newWidth = (int)Math.ceil((sizeX/tilesX) / newPixelSize);
+            int newWidth = (int) Math.ceil((sizeX / tilesX) / newPixelSize);
             int newHeight = (grid.getHeight() * newWidth) / grid.getWidth();
             ops.add(new ResampleOp(newWidth, newHeight, ResampleOp.WEIGHTING_MINIMUM));
         }
-        if(mp_imageType.getValue() == IMAGE_TYPE_EMBOSSED){
+        if (mp_imageType.getValue() == IMAGE_TYPE_EMBOSSED) {
             // invert the image 
             ops.add(new GridValueTransformer(new DensityInvertor()));
         }
         double blurWidth = mp_blurWidth.getValue();
-        if(blurWidth > 0.){
-            ops.add(new  GaussianBlur(blurWidth));            
+        if (blurWidth > 0.) {
+            ops.add(new GaussianBlur(blurWidth));
         }
-        
-        if(!mp_useGrayscale.getValue()){            
+
+        if (!mp_useGrayscale.getValue()) {
             // do distance transform 
             double maxDist = mp_maxDist.getValue();
-            ops.add(new DistanceTransform2DOp(maxDist, maxDist, m_imageThreshold));                                   
-        }     
+            ops.add(new DistanceTransform2DOp(maxDist, maxDist, m_imageThreshold));
+        }
 
         return ops;
     }
 
-    
+
     /**
-       exacutes sequence of opeations 
+     * exacutes sequence of opeations
      */
-    private Grid2D executeOps(Grid2D grid, Vector<Operation2D> ops){
-        
-        for(int i = 0; i < ops.size(); i++){
+    private Grid2D executeOps(Grid2D grid, Vector<Operation2D> ops) {
+
+        for (int i = 0; i < ops.size(); i++) {
             grid = ops.get(i).execute(grid);
         }
         return grid;
@@ -785,7 +772,7 @@ public class Image3D extends TransformableDataSource {
 
 
     /**
-       original outdated procedure
+     original outdated procedure
      */
     /*
     private Grid2D prepareImage_v0(){
@@ -904,8 +891,8 @@ public class Image3D extends TransformableDataSource {
     }
     */
     /**
-       we already have distance grid 
-       will use it directly 
+     we already have distance grid
+     will use it directly
      */
     /*
     protected int prepareDataFromDistance(Grid2D distGrid){
@@ -922,9 +909,9 @@ public class Image3D extends TransformableDataSource {
     */
 
     /**
-       makes data for black and white image 
-       data is represented as distance from 2D outline of the image
-       @noRefGuide
+     makes data for black and white image
+     data is represented as distance from 2D outline of the image
+     @noRefGuide
      */
     /*
     protected int makeImageBlack(ImageGray16 image){
@@ -983,97 +970,94 @@ public class Image3D extends TransformableDataSource {
                 
     }
     */
+
     /**
-     * calculates value of shape distance or density 
-     * the 
-     * @return ResultCodes.RESULT_OK
+     * calculates value of shape distance or density
+     * the
      *
+     * @return ResultCodes.RESULT_OK
      * @noRefGuide
      */
     public int getBaseValue(Vec pnt, Vec data) {
 
         double dist = getDistanceValue(pnt);
         data.v[0] = getShapeValue(dist, pnt);
-        
+
         return ResultCodes.RESULT_OK;
-        
+
     }
 
-    /**      
-     *
-     *  @return distance to the Image3D
-     *  
+    /**
+     * @return distance to the Image3D
      */
-    public double getDistanceValue(Vec pnt){
-        if(m_useGrayscale)
+    public double getDistanceValue(Vec pnt) {
+        if (m_useGrayscale)
             return getDistanceGray(pnt);
-        else 
+        else
             return getDistanceBW(pnt);
     }
 
 
     /**
-     *       
-     *   returns distance to gray image 3D 
-     *  
-     */    
-    public double getDistanceGray(Vec pnt){
+     * returns distance to gray image 3D
+     */
+    public double getDistanceGray(Vec pnt) {
 
         final boolean PRINT_VALUES = false;
 
         // original coord 
-        double 
+        double
             x0 = pnt.v[0],
             y0 = pnt.v[1],
             z0 = pnt.v[2];
-        if(PRINT_VALUES)printf("pnt: (%7.5f %7.5f %7.5f)\n",x0,y0,z0);
-        double x,y,z; // coord in image units
+        if (PRINT_VALUES) printf("pnt: (%7.5f %7.5f %7.5f)\n", x0, y0, z0);
+        double x, y, z; // coord in image units
         x = x0 - m_xmin;
         y = y0 - m_ymin;
         z = z0 - m_zmin;
         // transform coord treat all 3 cases in uniform way 
-        switch(m_imagePlace){
-        default:
-        case IMAGE_PLACE_TOP:  
-            // canonic orientation 
-            break;
-        case IMAGE_PLACE_BOTTOM:
-            // flip z 
-            z = m_sizeZ-z;
-            break;
-        case IMAGE_PLACE_BOTH: // both sides
-            // fold and scale z 
-            z = abs(2*z - m_sizeZ);
-            break;
+        switch (m_imagePlace) {
+            default:
+            case IMAGE_PLACE_TOP:
+                // canonic orientation
+                break;
+            case IMAGE_PLACE_BOTTOM:
+                // flip z
+                z = m_sizeZ - z;
+                break;
+            case IMAGE_PLACE_BOTH: // both sides
+                // fold and scale z
+                z = abs(2 * z - m_sizeZ);
+                break;
         }
-       
+
         x *= m_xfactor;
         y *= m_yfactor;
 
-        if(PRINT_VALUES)printf("pnt_grid: (%7.5f %7.5f %7.5f)\n",x,y,z);
+        if (PRINT_VALUES) printf("pnt_grid: (%7.5f %7.5f %7.5f)\n", x, y, z);
 
-        x = clamp(x, 0., (double)m_imageSizeX);
-        y = clamp(y, 0., (double)m_imageSizeY);
+        x = clamp(x, 0., (double) m_imageSizeX);
+        y = clamp(y, 0., (double) m_imageSizeY);
         // x, y are in [0, 0, m_imageSizeX, mageHeight] range
 
-        if(m_tilesX > 1) x = fmod(x*m_tilesX,(double)m_imageSizeX);
-        if(m_tilesY > 1) y = fmod(y*m_tilesY,(double)m_imageSizeY);
-        int ix = (int)x;
-        int iy = (int)y;
-        double 
+        if (m_tilesX > 1) x = fmod(x * m_tilesX, (double) m_imageSizeX);
+        if (m_tilesY > 1) y = fmod(y * m_tilesY, (double) m_imageSizeY);
+        int ix = (int) x;
+        int iy = (int) y;
+        double
             dx = x - ix,
             dy = y - iy;
 
         ix = clamp(ix, 0, m_imageSizeX1);
         iy = clamp(iy, 0, m_imageSizeY1);
-        int ix1 = ix+1;
-        int iy1 = iy+1;
+        int ix1 = ix + 1;
+        int iy1 = iy + 1;
         ix1 = clamp(ix1, 0, m_imageSizeX1);
         iy1 = clamp(iy1, 0, m_imageSizeY1);
-        int ix_1 = clamp(ix-1, 0, m_imageSizeX1);
-        int iy_1 = clamp(iy-1, 0, m_imageSizeY1);
-        int ix2 = clamp(ix+2, 0, m_imageSizeX1);
-        int iy2 = clamp(iy+2, 0, m_imageSizeY1);
+        int ix_1 = clamp(ix - 1, 0, m_imageSizeX1);
+        int iy_1 = clamp(iy - 1, 0, m_imageSizeY1);
+        int ix2 = clamp(ix + 2, 0, m_imageSizeX1);
+        int iy2 = clamp(iy + 2, 0, m_imageSizeY1);
 
         double v00 = getImageValue(ix, iy);
         double v10 = getImageValue(ix1, iy);
@@ -1083,7 +1067,7 @@ public class Image3D extends TransformableDataSource {
         double iValue = lerp2(v00, v10, v01, v11, dx, dy);
         // iValue is in range (0,1)
 
-        if(PRINT_VALUES) printf("iValue: %7.5f\n", iValue);
+        if (PRINT_VALUES) printf("iValue: %7.5f\n", iValue);
         //if(PRINT_VALUES) printf("hfDist: %7.5f\n", hfDist);        
         double v_10 = getImageValue(ix_1, iy);
         double v20 = getImageValue(ix2, iy);
@@ -1102,73 +1086,71 @@ public class Image3D extends TransformableDataSource {
         double gy10 = (v11 - v1_1);
         double gy01 = (v02 - v00);
         double gy11 = (v12 - v10);
-        
-        double gradX = lerp2(gx00, gx10, gx01, gx11, dx, dy)*m_gradXfactor;
-        double gradY = lerp2(gy00, gy10, gy01, gy11, dx, dy)*m_gradYfactor;
-        double slopeFactor = 1/sqrt(m_slopeZcoeff + gradX*gradX + gradY*gradY);
-        double thresholdFactor = m_imageThickness/max(MIN_GRADIENT, sqrt(gradX*gradX + gradY*gradY));
+
+        double gradX = lerp2(gx00, gx10, gx01, gx11, dx, dy) * m_gradXfactor;
+        double gradY = lerp2(gy00, gy10, gy01, gy11, dx, dy) * m_gradYfactor;
+        double slopeFactor = 1 / sqrt(m_slopeZcoeff + gradX * gradX + gradY * gradY);
+        double thresholdFactor = m_imageThickness / max(MIN_GRADIENT, sqrt(gradX * gradX + gradY * gradY));
         // distance in xy pane to image threshold 
-        double thresholdDist = -(iValue-m_baseRelThreshold)* thresholdFactor;
+        double thresholdDist = -(iValue - m_baseRelThreshold) * thresholdFactor;
 
         // image value in physical units
-        iValue = iValue*m_imageThickness+m_baseThickness;
+        iValue = iValue * m_imageThickness + m_baseThickness;
 
-        double dist = slopeFactor*(z - iValue); // distance to surface 
-        if(m_imagePlace != IMAGE_PLACE_BOTH) 
-             dist = max( dist, m_baseHalfSizeZ - z);
+        double dist = slopeFactor * (z - iValue); // distance to surface
+        if (m_imagePlace != IMAGE_PLACE_BOTH)
+            dist = max(dist, m_baseHalfSizeZ - z);
 
-        if(PRINT_VALUES) printf("grad: %7.5f %7.5f final hfDist: %7.5f\n", gradX, gradY, dist);
-               
-        dist = blendMax( dist, thresholdDist, m_rounding);
-        double distBoxXY = blendMax(abs(x0 - m_centerX) - m_halfSizeX,abs(y0 - m_centerY) - m_halfSizeY, m_rounding);
+        if (PRINT_VALUES) printf("grad: %7.5f %7.5f final hfDist: %7.5f\n", gradX, gradY, dist);
+
+        dist = blendMax(dist, thresholdDist, m_rounding);
+        double distBoxXY = blendMax(abs(x0 - m_centerX) - m_halfSizeX, abs(y0 - m_centerY) - m_halfSizeY, m_rounding);
         dist = blendMax(dist, distBoxXY, m_rounding);
         //add base      
-        if(m_hasBase){
+        if (m_hasBase) {
             double distBase = blendMax(distBoxXY, abs(z0 - m_baseCenterZ) - m_baseHalfSizeZ, m_rounding);
-            dist  = blendMin(dist, distBase, m_rounding);
+            dist = blendMin(dist, distBase, m_rounding);
         }
         return dist;
     }
 
-    
+
     /**
-     *
-     * returns distance to BW image 
-     *
+     * returns distance to BW image
      */
-    public double getDistanceBW(Vec pnt){
+    public double getDistanceBW(Vec pnt) {
 
         final boolean PRINT_VALUES = false;
-        double 
+        double
             x0 = pnt.v[0],
             y0 = pnt.v[1],
             z0 = pnt.v[2];
-        if(PRINT_VALUES)printf("pnt: (%7.5f %7.5f %7.5f)\n",x0,y0,z0);
-        double x,y,z; // coord in image units
+        if (PRINT_VALUES) printf("pnt: (%7.5f %7.5f %7.5f)\n", x0, y0, z0);
+        double x, y, z; // coord in image units
         x = x0 - m_xmin;
         y = y0 - m_ymin;
-        z = z0 - m_zmin;       
+        z = z0 - m_zmin;
         x *= m_xfactor;
         y *= m_yfactor;
 
-        if(PRINT_VALUES)printf("pnt_grid: (%7.5f %7.5f %7.5f)\n",x,y,z);
+        if (PRINT_VALUES) printf("pnt_grid: (%7.5f %7.5f %7.5f)\n", x, y, z);
 
-        x = clamp(x, 0., (double)m_imageSizeX);
-        y = clamp(y, 0., (double)m_imageSizeY);
+        x = clamp(x, 0., (double) m_imageSizeX);
+        y = clamp(y, 0., (double) m_imageSizeY);
         // x, y are in [0, 0, m_imageSizeX, mageHeight] range
 
-        if(m_tilesX > 1) x = fmod(x*m_tilesX,(double)m_imageSizeX);
-        if(m_tilesY > 1) y = fmod(y*m_tilesY,(double)m_imageSizeY);
-        int ix = (int)x;
-        int iy = (int)y;
-        double 
+        if (m_tilesX > 1) x = fmod(x * m_tilesX, (double) m_imageSizeX);
+        if (m_tilesY > 1) y = fmod(y * m_tilesY, (double) m_imageSizeY);
+        int ix = (int) x;
+        int iy = (int) y;
+        double
             dx = x - ix,
             dy = y - iy;
 
         ix = clamp(ix, 0, m_imageSizeX1);
         iy = clamp(iy, 0, m_imageSizeY1);
-        int ix1 = ix+1;
-        int iy1 = iy+1;
+        int ix1 = ix + 1;
+        int iy1 = iy + 1;
         ix1 = clamp(ix1, 0, m_imageSizeX1);
         iy1 = clamp(iy1, 0, m_imageSizeY1);
 
@@ -1176,37 +1158,37 @@ public class Image3D extends TransformableDataSource {
         double v10 = getImageValue(ix1, iy);
         double v01 = getImageValue(ix, iy1);
         double v11 = getImageValue(ix1, iy1);
-        
+
         // image is precalculated to return normalized value of distance 
         // tiling distort the distance 
-        double iValue = 1/(0.5*(m_tilesX + m_tilesY))*lerp2(v00, v10, v01, v11, dx, dy);
-        
-        double dist = iValue; 
+        double iValue = 1 / (0.5 * (m_tilesX + m_tilesY)) * lerp2(v00, v10, v01, v11, dx, dy);
+
+        double dist = iValue;
         // extrapolate distance outside of image box 
-        double ddx = (x0 - (x/m_xfactor + m_xmin));
-        double ddy = (y0 - (y/m_yfactor + m_ymin));
-        dist += sqrt(ddx*ddx + ddy*ddy);
+        double ddx = (x0 - (x / m_xfactor + m_xmin));
+        double ddy = (y0 - (y / m_yfactor + m_ymin));
+        dist += sqrt(ddx * ddx + ddy * ddy);
         dist = blendMax(dist, z - m_sizeZ, m_rounding); // top crop 
         dist = blendMax(dist, -z, m_rounding); // bottom crop 
-        
+
         // intersect with YX box 
-        double dBoxXY = blendMax(abs(x0 - m_centerX) - m_halfSizeX,abs(y0 - m_centerY) - m_halfSizeY, m_rounding);
+        double dBoxXY = blendMax(abs(x0 - m_centerX) - m_halfSizeX, abs(y0 - m_centerY) - m_halfSizeY, m_rounding);
         dist = blendMax(dist, dBoxXY, m_rounding);
-                
-        if(m_hasBase){
+
+        if (m_hasBase) {
             double dBase = blendMax(dBoxXY, abs(z0 - m_baseCenterZ) - m_baseHalfSizeZ, m_rounding);
-            dist  = blendMin(dist, dBase, m_rounding);            
+            dist = blendMin(dist, dBase, m_rounding);
         }
-        
-        return dist;        
+
+        return dist;
     }
 
     /**
-     * @return normalized value of image data at the given point 
+     * @return normalized value of image data at the given point
      * @noRefGuide
      */
     final double getImageValue(int ix, int iy) {
-        
+
         try {
             return m_dataChannel.getValue(m_dataGrid.getAttribute(ix, iy));
         } catch (Exception e) {
@@ -1217,6 +1199,7 @@ public class Image3D extends TransformableDataSource {
 
     //
     // linear approximation
+
     /**
      * @noRefGuide
      */
@@ -1247,7 +1230,7 @@ public class Image3D extends TransformableDataSource {
         double d01 = getImageValue(x0, y1);
         double d11 = getImageValue(x1, y1);
         return (dx1 * (d00 * dy1 + d01 * dy) + dx * (d11 * dy + d10 * dy1));
-        
+
     }
 
     /**
@@ -1262,15 +1245,15 @@ public class Image3D extends TransformableDataSource {
 
     }
 
-    
+
     static class DensityInvertor extends BaseParameterizable implements DataSource {
-                
-        public int getDataValue(Vec pnt, Vec dataValue){
+
+        public int getDataValue(Vec pnt, Vec dataValue) {
             dataValue.v[0] = 1. - pnt.v[0];
             return ResultCodes.RESULT_OK;
         }
 
-        public int getChannelsCount(){
+        public int getChannelsCount() {
             return 1;
         }
     }

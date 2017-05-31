@@ -141,7 +141,7 @@ public class FormattedText2D extends BaseParameterizable implements ImageProduce
 
         if (DEBUG) printf("FormattedText2D.initialize()\n");
 
-        String label = BaseParameterizable.getParamString(getClass().getSimpleName(), m_param);
+        String label = getParamString(getClass().getSimpleName(), m_param);
         Object co = null;
         if(CACHING_ENABLED)co = ParamCache.getInstance().get(label);
         if (co == null) {
@@ -198,16 +198,4 @@ public class FormattedText2D extends BaseParameterizable implements ImageProduce
 
     }
 
-    /**
-     * Implement this as a value
-     * @return
-     */
-    public String getParamString() {
-        return BaseParameterizable.getParamString("Text2D", getParams());
-    }
-
-    public void getParamString(StringBuilder sb) {
-        sb.append(BaseParameterizable.getParamString("Text2D", getParams()));
-    }
-
-}  // class Text2D 
+}  // class Text2D

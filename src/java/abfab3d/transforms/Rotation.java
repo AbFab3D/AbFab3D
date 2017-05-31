@@ -18,21 +18,18 @@ import javax.vecmath.AxisAngle4d;
 
 import abfab3d.core.ResultCodes;
 import abfab3d.param.AxisAngle4dParameter;
-import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameter;
-import abfab3d.param.ValueHash;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.core.Vec;
 import abfab3d.core.Initializable;
 import abfab3d.core.VecTransform;
 
 import static abfab3d.core.Output.printf;
-import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 /**
    performs rotation about given axis 
 */
-public class Rotation extends BaseTransform implements VecTransform, Initializable, ValueHash {
+public class Rotation extends BaseTransform implements VecTransform, Initializable {
     
     private Vector3d m_axis = new Vector3d(1,0,0); 
     private double m_angle = 0;
@@ -186,34 +183,6 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
         
         return ResultCodes.RESULT_OK;
         
-    }
-
-    /**
-     * Implement this as a value
-     * @return
-     */
-    public String getParamString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Rotation:");
-        sb.append("center=\"");
-        sb.append(mp_center.getValue().toString());
-        sb.append("\";rotation=\"");
-        sb.append(mp_rotation.getValue().toString());
-        sb.append("\"");
-
-        return sb.toString();
-    }
-    /**
-     * Implement this as a value
-     * @return
-     */
-    public void getParamString(StringBuilder sb) {
-        sb.append("Rotation:");
-        sb.append("center=\"");
-        sb.append(mp_center.getValue().toString());
-        sb.append("\";rotation=\"");
-        sb.append(mp_rotation.getValue().toString());
-        sb.append("\"");
     }
 
 } // class Rotation

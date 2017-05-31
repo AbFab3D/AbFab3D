@@ -21,18 +21,7 @@ import abfab3d.core.VecTransform;
 import abfab3d.datasources.AttributeGridSourceWrapper;
 import abfab3d.datasources.DistanceToMeshDataSource;
 
-import abfab3d.param.Parameter;
-import abfab3d.param.URIParameter;
-import abfab3d.param.DoubleParameter;
-import abfab3d.param.BooleanParameter;
-import abfab3d.param.IntParameter;
-import abfab3d.param.LongParameter;
-import abfab3d.param.EnumParameter;
-import abfab3d.param.ObjectParameter;
-import abfab3d.param.BaseParameterizable;
-import abfab3d.param.ParamCache;
-import abfab3d.param.CPUCache;
-import abfab3d.param.ValueHash;
+import abfab3d.param.*;
 
 import abfab3d.util.URIUtils;
 import com.google.common.io.Files;
@@ -519,8 +508,8 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         // TODO: transform should likely be a parameter but need to think through
         // TODO: we need to get a value hash of trans not its default memory address
         String trans = null;
-        if (m_transform instanceof ValueHash) {
-            trans = ((ValueHash) m_transform).getParamString();
+        if (m_transform instanceof Parameterizable) {
+            trans = ((Parameterizable) m_transform).getParamString();
         } else {
             if (m_transform == null) {
                 trans = "null";
@@ -624,18 +613,6 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             this.uri = uri;
             this.filename = filename;
         }
-    }
-
-    /**
-     * Implement this as a value
-     * @return
-     */
-    public String getParamString() {
-        return BaseParameterizable.getParamString("ModelLoader", getParams());
-    }
-
-    public void getParamString(StringBuilder sb) {
-        sb.append(BaseParameterizable.getParamString("ModelLoader", getParams()));
     }
 
     public int initialize() {

@@ -234,10 +234,11 @@ public class ImageColorMap extends TransformableDataSource {
      * Get a label for the OpenCL buffer, account for all params which change the buffer value
      * @return
      */
+/*
     public String getBufferLabel() {
         return BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparams);
     }
-
+*/
     /**
      * @noRefGuide
      */
@@ -245,7 +246,7 @@ public class ImageColorMap extends TransformableDataSource {
         super.initialize();
 
 
-        String label = getParamString(imageParams);
+        String label = getParamString(getClass().getSimpleName(), imageParams);
 
         Object co = ParamCache.getInstance().get(label);
         if (co == null) {

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+
+import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 
 /**
@@ -22,6 +24,8 @@ public class ParamCache {
     private static final boolean STOP_CACHING = false;
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_MISSES = true;
+    private static final boolean REPORT_MEMORY_REFERENCE = true;
+
     private static final int JOB_RETAIN_MS = 60 * 60 * 1000;
 
     private static ParamCache instance;
@@ -36,6 +40,10 @@ public class ParamCache {
         if (STOP_CACHING) {
             printf("*** Param Cache caching is turned off ***\n");
             new Exception().printStackTrace();
+        }
+
+        if (REPORT_MEMORY_REFERENCE) {
+            printf("*** Report memory reference is turned on.  Do not release this code  ***\n");
         }
     }
 
@@ -67,6 +75,9 @@ public class ParamCache {
 
     public Object get(String key) {
         if (STOP_CACHING) return null;
+        if (REPORT_MEMORY_REFERENCE) {
+            if (key.contains("@")) throw new IllegalArgumentException(fmt("Key contains @: %s",key));
+        }
 
         try {
             Object co = cache.get(key);
@@ -91,6 +102,9 @@ public class ParamCache {
 
     public void put(String key, Object o) {
         if (STOP_CACHING) return;
+        if (REPORT_MEMORY_REFERENCE) {
+            if (key.contains("@")) throw new IllegalArgumentException(fmt("Key contains @: %s",key));
+        }
 
         if (DEBUG) {
             printf("Cache.put: %s\n", key);

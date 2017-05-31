@@ -26,6 +26,15 @@ public interface Parameterizable {
      */
     public String getParamString();
 
+    /**
+     return string representation of this parametrizable
+     */
+    public void getParamString(StringBuilder sb);
+
+    /**
+     return string representation of this parametrizable
+     */
+    public void getParamString(String name,Parameter[] params,StringBuilder sb);
 
     /**
      * Returns the underlying parameter list, this is a live list.
