@@ -100,7 +100,7 @@ import static java.lang.Math.sqrt;
  */
 public class Image3D extends TransformableDataSource {
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
     final static boolean DEBUG_VIZ = false;
     final static boolean CACHING_ENABLED = true;
 
@@ -263,7 +263,7 @@ public class Image3D extends TransformableDataSource {
     /**
      * Image3D with given image path and size
      *
-     * @param producer image producer
+     * @param grid grid tro be used for image directly 
      * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param sz depth of the box.

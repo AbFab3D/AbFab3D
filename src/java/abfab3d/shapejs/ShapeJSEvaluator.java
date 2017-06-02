@@ -44,7 +44,7 @@ import static abfab3d.core.Output.time;
  */
 public class ShapeJSEvaluator implements MaterialMapper {
 
-    final static boolean DEBUG = false;
+    final static boolean DEBUG = true;
     final static boolean DEBUG_SECURITY = false;
 
     /** Packages allowed to be imported.  Security mechanism */
@@ -410,6 +410,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
         }
 
         if (DEBUG) printf("Eval worked.  defs: %s\n",defs);
+        
         result = new EvaluatedScript(true,val,null,null,null,null,defs,(time() - t0));
     }
 
@@ -502,6 +503,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
      * @return
      */
     public EvaluatedScript reevalScript(String script, Map<String, Object> namedParams) {
+        if(DEBUG)printf("ShapeJSEvaluatro.reevalScript()\n");
         long t0 = time();
         Context cx = Context.enter();
         DebugLogger.clearLog(cx);
@@ -529,13 +531,13 @@ public class ShapeJSEvaluator implements MaterialMapper {
                     } else {
                         if (DEBUG) printf("Changing arg: %s -> %s\n", entry.getKey(), entry.getValue().toString());
                         Object argVal = entry.getValue();
-
+                        
                         if (argVal instanceof SandboxNativeJavaObject) {
                             SandboxNativeJavaObject wrapper = (SandboxNativeJavaObject) argVal;
                             Object no = wrapper.unwrap();
                             if (no instanceof LocationParameter) {
                                 LocationParameter lp = (LocationParameter) no;
-                                if (DEBUG) printf("---> param: %s point: %s normal: %s\n",no,lp.getPoint(),lp.getNormal());
+                                if (DEBUG) printf("   lp param: %s point: %s normal: %s\n",no,lp.getPoint(),lp.getNormal());
                             } else if (no instanceof UserDefinedParameter) {
                                 UserDefinedParameter udp = (UserDefinedParameter) no;
                                 Map<String, Parameter> udpvals = udp.getValue();
@@ -558,8 +560,10 @@ public class ShapeJSEvaluator implements MaterialMapper {
                                 cce.printStackTrace();
                             }
                         }
-
+                        
                         argsMap.defineProperty(entry.getKey(), argVal, 0);
+                        if(DEBUG)printf("  argsMap.defineProperty(%s, %s)\n", entry.getKey(), argVal);
+
                     }
                 }
 
@@ -1142,6 +1146,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
      * @return
      */
     public EvaluatedScript evalScript(String script, String method, Map<String, Object> namedParams) {
+        
         long t0 = time();
 
         if (sandboxed && !ContextFactory.hasExplicitGlobal()) {
@@ -1193,7 +1198,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                             Object no = wrapper.unwrap();
                             if (no instanceof LocationParameter) {
                                 LocationParameter lp = (LocationParameter) no;
-                                if (DEBUG) printf("---> param: %s point: %s normal: %s\n",no,lp.getPoint(),lp.getNormal());
+                                if (DEBUG) printf("  lp ---> param: %s point: %s normal: %s\n",no,lp.getPoint(),lp.getNormal());
                             } else if (no instanceof UserDefinedParameter) {
                                 UserDefinedParameter udp = (UserDefinedParameter) no;
                                 Map<String, Parameter> udpvals = udp.getValue();
@@ -1207,18 +1212,18 @@ public class ShapeJSEvaluator implements MaterialMapper {
                             } else {
                                 if (DEBUG) printf("---> param: %s\n",entry.getKey());
                             }
+                        } else if (argVal instanceof ParameterJSWrapper) {
+                            ParameterJSWrapper wrapper = (ParameterJSWrapper) argVal;
+                            Parameter p = wrapper.getParameter();
+                            argVal = convToJSRep(p,wrapper);
                         } else {
-                            if (argVal instanceof ParameterJSWrapper) {
-                                ParameterJSWrapper wrapper = (ParameterJSWrapper) argVal;
-                                Parameter p = wrapper.getParameter();
-                                argVal = convToJSRep(p,wrapper);
-                            } else {
-                                printf("Unhandled type in executeScript.  key: %s  val: %s\n",entry.getKey(),entry.getValue());
-                                continue;
-                            }
+                            printf("Unhandled type in evalScript.  key: %s  val: %s\n",entry.getKey(),entry.getValue());
+                            continue;                        
                         }
 
                         argsMap.defineProperty(entry.getKey(), argVal, 0);
+                        if(DEBUG)printf("  argsMap.defineProperty(%s, %s)\n", entry.getKey(), argVal);
+
                     }
                 }
             }
@@ -1368,13 +1373,14 @@ public class ShapeJSEvaluator implements MaterialMapper {
     }
 
     /**
-     * Evaluate the script the first time.
+     * Execute the script 
      *
      * @param method
      * @param namedParams   JSON encoded values
      * @return
      */
     public EvaluatedScript executeScript(String method, Map<String, Object> namedParams) {
+        if(DEBUG)printf("ShapeJSEvaluator.executeScript()\n");
         long t0 = time();
 
         if (sandboxed && !ContextFactory.hasExplicitGlobal()) {
@@ -1385,7 +1391,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             }
         }
 
-        if (DEBUG) printf("executeScript(script, sandbox: %b namedParams)\n", sandboxed, namedParams);
+        if (DEBUG) printf("executeScript(script, sandbox: %b namedParams:%s)\n", sandboxed, namedParams);
         Context cx = Context.enter();
 
         try {
@@ -1396,49 +1402,58 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
             DebugLogger.clearLog(cx);
 
+            if(DEBUG)printf("initializing argsMap\n");
+
             for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
-                if (defs.get(entry.getKey()) == null) {
-                    printf("Undefined parameter %s, ignoring\n", entry.getKey());
+                Object argVal = entry.getValue();
+                String entryKey = entry.getKey();
+                if(DEBUG){
+                    printf("entry:%s value:%s\n", entryKey, argVal);
+                    if(argVal != null) printf("  value class:%s\n", argVal.getClass().getName());
+                }
+                if (defs.get(entryKey) == null) {
+                    if(DEBUG)printf("Undefined parameter %s, ignoring\n", entryKey);
                     continue;
                 }
 
-                if (entry.getValue() == null) {
-                    if (DEBUG) printf("Removing arg: %s\n", entry.getKey());
-                    argsMap.remove(entry.getKey());
+                if (argVal == null) {
+                    if (DEBUG) printf("Removing arg: %s\n", entryKey);
+                    argsMap.remove(entryKey);
                 }  else {
-                    Object argVal = entry.getValue();
-
                     if (argVal instanceof SandboxNativeJavaObject) {
+                        if(DEBUG) printf("argVal instanceof SandboxNativeJavaObject\n");
                         SandboxNativeJavaObject wrapper = (SandboxNativeJavaObject) argVal;
                         Object no = wrapper.unwrap();
+                        if(DEBUG) printf("no: %s\n", no.getClass().getName());                        
                         if (no instanceof LocationParameter) {
                             LocationParameter lp = (LocationParameter) no;
-                            if (DEBUG) printf("---> param: %s point: %s normal: %s\n",no,lp.getPoint(),lp.getNormal());
+                            if (DEBUG) printf("  LocationParam: %s point: %s normal: %s\n",no,lp.getPoint(),lp.getNormal());
                         } else if (no instanceof UserDefinedParameter) {
                             UserDefinedParameter udp = (UserDefinedParameter) no;
                             Map<String, Parameter> udpvals = udp.getValue();
                             NativeObject udpArgs = new NativeObject();
-                            if (DEBUG) printf("---> param: %s vals: %s \n",udp.getName(),udpvals);
+                            if (DEBUG) printf("user defined param: %s vals: %s \n",udp.getName(),udpvals);
                             for (Map.Entry<String, Parameter> vals : udpvals.entrySet()) {
                                 Parameter val = vals.getValue();
                                 udpArgs.defineProperty(val.getName(), val.getValue(), 0);
                             }
                             argVal = udpArgs;
                         } else {
-                            if (DEBUG) printf("---> param: %s\n",entry.getKey());
+                            if (DEBUG) printf(" regular param: %s\n",argVal);
                         }
+                    } else if (argVal instanceof ParameterJSWrapper) {
+                        if (DEBUG) printf("argVal instanceof ParameterJSWrapper\n");
+                        ParameterJSWrapper wrapper = (ParameterJSWrapper) argVal;
+                        Parameter p = wrapper.getParameter();
+                        argVal = convToJSRep(p,wrapper);
                     } else {
-                        if (argVal instanceof ParameterJSWrapper) {
-                            ParameterJSWrapper wrapper = (ParameterJSWrapper) argVal;
-                            Parameter p = wrapper.getParameter();
-                            argVal = convToJSRep(p,wrapper);
-                        } else {
-                            if (DEBUG) printf("Unhandled type in executeScript.  key: %s  val: %s\n",entry.getKey(),entry.getValue());
-                            continue;
-                        }
+                        if (DEBUG) printf("Unhandled type in executeScript.  key: %s  val: %s\n",entryKey,argVal);
+                        continue;                        
                     }
 
-                    argsMap.defineProperty(entry.getKey(), argVal, 0);
+                    if(DEBUG)printf("  argsMap.defineProperty(%s, %s)\n", entryKey, argVal);
+                    argsMap.defineProperty(entryKey, argVal, 0);
+
                 }
             }
 

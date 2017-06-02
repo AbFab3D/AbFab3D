@@ -15,12 +15,17 @@ package abfab3d.param;
 
 import javax.vecmath.Vector3d;
 
+import static abfab3d.core.Output.printf;
+
 /**
  * A location parameter.  This is a point and a normal.
  *
  * @author Alan Hudson
  */
 public class LocationParameter extends BaseParameter implements Cloneable {
+
+    private static final boolean DEBUG = true;
+
     private static final Vector3d DEFAULT_POINT = null;
     private static final Vector3d DEFAULT_NORMAL = null;
     
@@ -113,6 +118,16 @@ public class LocationParameter extends BaseParameter implements Cloneable {
     
     @Override
     public void setValue(Object value) {
+
+        if(DEBUG){
+            printf("LocationParameter.setValue(%s)\n", value);
+            if(value != null ){ 
+                Vector3d[] v = (Vector3d[])value;
+                printf("    v[0]: [%7.5f, %7.5f, %7.5f]\n", v[0].x,v[0].y,v[0].z);
+                printf("    v[1]: [%7.5f, %7.5f, %7.5f]\n", v[1].x,v[1].y,v[1].z);
+            }
+        }
+        
         validate(value);
 
         this.value = value;
@@ -136,6 +151,7 @@ public class LocationParameter extends BaseParameter implements Cloneable {
     }
     
     public void setPoint(Vector3d val) {
+
     	validatePoint(val);
     	
     	if (value == null) {
@@ -196,6 +212,11 @@ public class LocationParameter extends BaseParameter implements Cloneable {
      * @param val The proposed value
      */
     public void validate(Object val) {
+        if(DEBUG){
+            printf("LocationParam.validate(%s)\n", val);
+            if(val != null)printf("      class: %s\n", val.getClass().getName());
+        }
+        if(val == null) return;
         if (!(val instanceof Vector3d[])) {
             throw new IllegalArgumentException("Unsupported type for Location: " + val + " in param: " + getName());
         }

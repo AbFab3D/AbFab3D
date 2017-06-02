@@ -49,8 +49,10 @@ public class ParamJson {
      */
     public static Object getJsonFromList(ArrayList list, ParameterType type){
         ArrayList vv = new ArrayList();
-        for(Object item: list){
-            vv.add(getJsonValue(item, type));        
+        if(list != null){
+            for(Object item: list){
+                vv.add(getJsonValue(item, type));        
+            }
         }
         return vv;                
     }
@@ -58,26 +60,32 @@ public class ParamJson {
     public static Object getJsonFromVector3d(Vector3d v){
 
         ArrayList vv = new ArrayList(3);
-        vv.add(new Double(v.x));
-        vv.add(new Double(v.y));
-        vv.add(new Double(v.z));
+        if(v != null){
+            vv.add(new Double(v.x));
+            vv.add(new Double(v.y));
+            vv.add(new Double(v.z));
+        }
         return vv;
     }
 
     public static Object getJsonFromAxisAngle4d(AxisAngle4d a){
         ArrayList vv = new ArrayList(4);
-        vv.add(new Double(a.x));
-        vv.add(new Double(a.y));
-        vv.add(new Double(a.z));
-        vv.add(new Double(a.angle));
+        if(a != null){
+            vv.add(new Double(a.x));
+            vv.add(new Double(a.y));
+            vv.add(new Double(a.z));
+            vv.add(new Double(a.angle));
+        }
         return vv;        
     }
 
     public static Object getJsonFromColor(Color c){
         ArrayList vv = new ArrayList(3);
-        vv.add(new Double(c.getr()));
-        vv.add(new Double(c.getg()));
-        vv.add(new Double(c.getb()));
+        if(c != null){
+            vv.add(new Double(c.getr()));
+            vv.add(new Double(c.getg()));
+            vv.add(new Double(c.getb()));
+        }
         return vv;
     }
 
@@ -85,8 +93,10 @@ public class ParamJson {
     public static Object getJsonFromVector3dArray(Vector3d a[]){
 
         ArrayList list = new ArrayList();
-        for(int i = 0; i < a.length; i++){
-            list.add(getJsonFromVector3d(a[i]));
+        if(a != null){
+            for(int i = 0; i < a.length; i++){
+                list.add(getJsonFromVector3d(a[i]));
+            }
         }
         return list;
     }
@@ -178,10 +188,14 @@ public class ParamJson {
 
     public static Vector3d getVector3dFromJson(JsonElement value){
         JsonArray array = value.getAsJsonArray();
-        double x = array.get(0).getAsDouble();
-        double y = array.get(1).getAsDouble();
-        double z = array.get(2).getAsDouble();
-        return new Vector3d(x,y,z);
+        if(array.size() >= 3) {
+            double x = array.get(0).getAsDouble();
+            double y = array.get(1).getAsDouble();
+            double z = array.get(2).getAsDouble();
+            return new Vector3d(x,y,z);
+        } else {
+            return null;
+        }
     }
 
     public static Color getColorFromJson(JsonElement value){
@@ -210,8 +224,22 @@ public class ParamJson {
         return str;
     }
 
+    
+    public static Vector3d[] getVector3dArrayFromJson(JsonElement value, int expectedCount){
+
+        JsonArray array = value.getAsJsonArray();        
+        if(array.size() < expectedCount) 
+            return null;
+
+        Vector3d vect[] = new Vector3d[array.size()];        
+        for(int i = 0; i < array.size(); i++){
+            vect[i] = getVector3dFromJson(array.get(i));
+        } 
+        return vect;
+    }
+
     public static Vector3d[] getVector3dArrayFromJson(JsonElement value){
-        JsonArray array = value.getAsJsonArray();
+        JsonArray array = value.getAsJsonArray();        
         Vector3d vect[] = new Vector3d[array.size()];
         for(int i = 0; i < array.size(); i++){
             vect[i] = getVector3dFromJson(array.get(i));
@@ -278,7 +306,7 @@ public class ParamJson {
             param.setValue(getStringListFromJson(value));
             break;
         case LOCATION:
-            param.setValue(getVector3dArrayFromJson(value));
+            param.setValue(getVector3dArrayFromJson(value,2));
             break;
         case ENUM:
             param.setValue(value.getAsString());
@@ -329,11 +357,34 @@ public class ParamJson {
         
     }
 
+    /**
+       parses and set value of parameter from json string 
+     */
+    public static void getParamValueFromJson(String json, Parameter param){
+
+        JsonParser parser = new JsonParser();
+        JsonObject obj = parser.parse(json).getAsJsonObject();
+        getParamValueFromJson(obj, param);
+        
+    }
+
+
+
     public static SNode getSNodeFromJson(String json){
 
         JsonParser parser = new JsonParser();        
         JsonObject obj = parser.parse(json).getAsJsonObject();
         return getSNodeFromJson(obj);        
+    }
+
+    /**
+       return value of parameter as JSON string 
+     */
+    public static String getValueAsJsonString(Parameter param){
+
+        Gson gson = new GsonBuilder().create();
+        return gson.toJson(getJsonValue(param.getValue(), param.getType()));  
+
     }
 
 }
