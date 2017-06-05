@@ -537,9 +537,11 @@ public class Image3D extends TransformableDataSource {
         } else if (val instanceof BufferedImage) {
             val = new ImageToGrid2D((BufferedImage)val);
         } else if (val instanceof ImageProducer) {
+            val = new ImageToGrid2D((ImageProducer) val);
+        } else if (val instanceof ImageToGrid2D) {
             // fine
         } else {
-            throw new IllegalArgumentException("Unsupported object for Image3D");
+            throw new IllegalArgumentException("Unsupported object for Image3D: " + val.getClass());
         }
 
         mp_source.setValue(val);
