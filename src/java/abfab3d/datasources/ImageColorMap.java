@@ -62,7 +62,7 @@ import static java.lang.Math.floor;
  */
 public class ImageColorMap extends TransformableDataSource {
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
 
     private boolean m_repeatX = false;
     private boolean m_repeatY = false;
@@ -273,7 +273,7 @@ public class ImageColorMap extends TransformableDataSource {
 
         } else {
             m_imageData = (Grid2D) co;
-            if (DEBUG) printf("ImageMap got cached image %s -> %s\n",label, m_imageData);
+            if (DEBUG) printf("ImageColorMap got cached image %s -> %s\n",label, m_imageData);
         }
 
 
@@ -310,7 +310,7 @@ public class ImageColorMap extends TransformableDataSource {
         Grid2DProducer producer = (Grid2DProducer)obj; 
         
         Grid2D grid = producer.getGrid2D(); 
-        if(DEBUG) printf("ImageMap grid: %s\n", grid);
+        if(DEBUG) printf("ImageColorMap grid: %s\n", grid);
         // if we want image processing operations on the grid, we need to make a copy 
         grid.setGridBounds(getBounds());
 
