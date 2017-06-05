@@ -150,7 +150,7 @@ public class BufferDiskCache implements Runnable {
         if (!CACHE_ENABLED) return;
 
         if (buff.getLabel().contains("@")) {
-            printf("Not caching buffer incorrect buffer: %s\n",buff.getLabel());
+            printf("Not disk caching buffer incorrect buffer: %s\n",buff.getLabel());
             return;
         }
 
@@ -179,7 +179,7 @@ public class BufferDiskCache implements Runnable {
         if (!CACHE_ENABLED) return;
 
         if (buff.getLabel().contains("@")) {
-            printf("Not caching buffer incorrect buffer: %s\n",buff.getLabel());
+            printf("Not disk caching buffer incorrect buffer: %s\n",buff.getLabel());
             return;
         }
 

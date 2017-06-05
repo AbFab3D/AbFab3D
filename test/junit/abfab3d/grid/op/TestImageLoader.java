@@ -17,18 +17,18 @@ import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.time;
 
 /**
- * Test ImageReader
+ * Test ImageLoader
  *
  * @author Vladimir Bulatov
  */
-public class TestImageReader extends TestCase {
+public class TestImageLoader extends TestCase {
     public static final boolean DEBUG = false;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestImageReader.class);
+        return new TestSuite(TestImageLoader.class);
     }
 
     public void testNothing() {
@@ -49,7 +49,7 @@ public class TestImageReader extends TestCase {
         
         for(int i = 0; i < 1; i++){
             long t0 = time();
-            ImageReader reader = new ImageReader(path);
+            ImageLoader reader = new ImageLoader(path);
             reader.set("svgRasterizationWidth", 2000);
             BufferedImage img = reader.getImage();            
             int w = img.getWidth();
@@ -67,7 +67,7 @@ public class TestImageReader extends TestCase {
 
     public static void main(String args[]) throws Exception {
 
-        new TestImageReader().devTestReadSVG();
+        new TestImageLoader().devTestReadSVG();
         
     }
 

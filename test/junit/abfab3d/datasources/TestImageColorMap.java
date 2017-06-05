@@ -16,56 +16,25 @@ package abfab3d.datasources;
 
 
 // external imports
+
+import abfab3d.core.Bounds;
+import abfab3d.core.Color;
+import abfab3d.core.Vec;
+import abfab3d.grid.op.ImageLoader;
+import abfab3d.grid.op.ImageMaker;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-
-import javax.vecmath.Vector3d;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-
 import java.io.File;
-import java.io.IOException;
 
-import java.util.Vector;
-
-
-import abfab3d.core.Color;
-import abfab3d.core.Vec;
-import abfab3d.core.Bounds;
-import abfab3d.core.ResultCodes;
-import abfab3d.core.Grid2D;
-import abfab3d.grid.Grid2DShort;
-import abfab3d.core.GridDataChannel;
-import abfab3d.core.Grid2DProducer;
-import abfab3d.core.ImageProducer;
-
-import abfab3d.grid.Operation2D;
-import abfab3d.grid.op.SliceMaker;
-import abfab3d.grid.op.ImageMaker;
-
-import abfab3d.param.BaseParameterizable;
-import abfab3d.param.DoubleParameter;
-import abfab3d.param.SNodeParameter;
-import abfab3d.param.Vector3dParameter;
-import abfab3d.param.BooleanParameter;
-import abfab3d.param.Parameter;
-import abfab3d.param.ParamCache;
-
-import abfab3d.grid.op.ImageReader;
-import abfab3d.grid.op.ImageToGrid2D;
-import abfab3d.util.ColorMapperDistance;
-
-
-import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.printf;
-import static abfab3d.core.MathUtil.normalizePlane;
+import static abfab3d.core.Units.MM;
 
 /**
  * Tests the functionality of ImageColorMap
- *
- * @version
  */
 public class TestImageColorMap extends TestCase {
 
@@ -83,112 +52,112 @@ public class TestImageColorMap extends TestCase {
         printf("testBitmap()\n");
     }
 
-    public void devTestColorImage(){
-        
+    public void devTestColorImage() {
+
         double boxWidth = 20;
         double boxHeight = 20;
         double boxDepth = 20;
 
         //ImageColorMap image = new ImageColorMap("test/images/color_boxes.png", boxWidth,boxHeight,boxDepth);
-        ImageColorMap image = new ImageColorMap("test/images/redcircle_20.png", boxWidth,boxHeight,boxDepth);
+        ImageColorMap image = new ImageColorMap("test/images/redcircle_20.png", boxWidth, boxHeight, boxDepth);
         image.initialize();
-        
+
         int w = image.getBitmapWidth();
         int h = image.getBitmapHeight();
 
-        int bitmap[] = new int[w*h];
+        int bitmap[] = new int[w * h];
 
         image.getBitmapDataInt(bitmap);
-        
-        printf("==========================[%d x %d]\n", w,h);
-        for(int y = 0; y < h; y++){
-            for(int x = 0; x < w; x++){
-                printf("%8x ", bitmap[x + y*w]);
+
+        printf("==========================[%d x %d]\n", w, h);
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                printf("%8x ", bitmap[x + y * w]);
             }
             printf("\n");
         }
         printf("==========================\n");
 
-        double dx = boxWidth/w;
-        double dy = boxHeight/h;
+        double dx = boxWidth / w;
+        double dy = boxHeight / h;
         double dz = dx;
 
-        double x0 = -boxWidth/2;
-        double y0 = -boxHeight/2;
-        double z0 = -boxDepth/2;
+        double x0 = -boxWidth / 2;
+        double y0 = -boxHeight / 2;
+        double z0 = -boxDepth / 2;
 
         Vec pnt = new Vec(3);
         Vec value = new Vec(3);
 
-        for(int y = 0; y < h; y++){
-            for(int x = 0; x < w; x++){
-                double xx = (x+0.5)*dx + x0;
-                double yy = (y+0.5)*dy + y0;
-                double zz = (0.5)*dz + z0;
-                pnt.set(xx,yy,zz);
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                double xx = (x + 0.5) * dx + x0;
+                double yy = (y + 0.5) * dy + y0;
+                double zz = (0.5) * dz + z0;
+                pnt.set(xx, yy, zz);
                 image.getDataValue(pnt, value);
-                printf("%2d %2d %2d,", (int)(value.v[0]*10),(int)(value.v[1]*10),(int)(value.v[2]*10));
+                printf("%2d %2d %2d,", (int) (value.v[0] * 10), (int) (value.v[1] * 10), (int) (value.v[2] * 10));
             }
             printf("\n");
         }
         printf("==========================\n");
- 
+
     }
 
-     public void devTestBadImage(){
-   
- 
-         double boxWidth = 20;
-         double boxHeight = 20;
-         double boxDepth = 20;
-         String path = "test/images/image_datafile.jpg";
+    public void devTestBadImage() {
 
-         ImageColorMap image = new ImageColorMap(path, boxWidth,boxHeight,boxDepth);
-         
-         image.initialize();
-         int w = image.getBitmapWidth();
-         int h = image.getBitmapHeight();
-         printf("image %s: [%d x %d]\n", path, w,h);
-        
-     }
+
+        double boxWidth = 20;
+        double boxHeight = 20;
+        double boxDepth = 20;
+        String path = "test/images/image_datafile.jpg";
+
+        ImageColorMap image = new ImageColorMap(path, boxWidth, boxHeight, boxDepth);
+
+        image.initialize();
+        int w = image.getBitmapWidth();
+        int h = image.getBitmapHeight();
+        printf("image %s: [%d x %d]\n", path, w, h);
+
+    }
 
 
     //
     //
     //
-    public void devTestImageColorMap() throws Exception{
-        
-        double sizeZ = 2*MM;
-        double sizeX = 100*MM;
-        double sizeY = 100*MM;
-        double margin = 5*MM;
-        double blur = 0.*MM;
-        double distanceBand = 1*MM;
+    public void devTestImageColorMap() throws Exception {
+
+        double sizeZ = 2 * MM;
+        double sizeX = 100 * MM;
+        double sizeY = 100 * MM;
+        double margin = 5 * MM;
+        double blur = 0. * MM;
+        double distanceBand = 1 * MM;
         String path = "test/images/color_boxes.png";
-        ImageReader reader = new ImageReader(path);
+        ImageLoader reader = new ImageLoader(path);
         reader.set("svgRasterizationWidth", 100);
-        reader.set("backgroundColor", new Color(1,1,1,0));
-        
-        ImageColorMap img = new ImageColorMap(reader, sizeX,sizeY,sizeZ);
+        reader.set("backgroundColor", new Color(1, 1, 1, 0));
 
-        Bounds bounds = new Bounds(-sizeX/2, sizeX/2, -sizeY/2, sizeY/2, -sizeZ/2,sizeZ/2);
+        ImageColorMap img = new ImageColorMap(reader, sizeX, sizeY, sizeZ);
+
+        Bounds bounds = new Bounds(-sizeX / 2, sizeX / 2, -sizeY / 2, sizeY / 2, -sizeZ / 2, sizeZ / 2);
         bounds.expand(margin);
-                                
-        int nux = 1000;
-        int nvy = (int)(nux * bounds.getSizeY()/bounds.getSizeX());
-        int nvz = (int)(nux * bounds.getSizeZ()/bounds.getSizeX());
-        double ys = (bounds.ymin + bounds.ymax)/2; // y coord of xz slice
-        double zs = (bounds.ymin + bounds.ymax)/2; // z coordinate of xy slice
 
-        ImageMaker sm = new ImageMaker();        
+        int nux = 1000;
+        int nvy = (int) (nux * bounds.getSizeY() / bounds.getSizeX());
+        int nvz = (int) (nux * bounds.getSizeZ() / bounds.getSizeX());
+        double ys = (bounds.ymin + bounds.ymax) / 2; // y coord of xz slice
+        double zs = (bounds.ymin + bounds.ymax) / 2; // z coordinate of xy slice
+
+        ImageMaker sm = new ImageMaker();
         BufferedImage image;
         img.initialize();
         image = sm.renderImage(nux, nvy, bounds, img);
-       ImageIO.write(image, "png", new File("/tmp/00_imageColorMap_XY.png"));
-   }
+        ImageIO.write(image, "png", new File("/tmp/00_imageColorMap_XY.png"));
+    }
 
-   public static void main(String[] args) throws Exception {
-       new TestImageColorMap().devTestImageColorMap();
-       //new TestImageColorMap().devTestBadImage();
-   }
+    public static void main(String[] args) throws Exception {
+        new TestImageColorMap().devTestImageColorMap();
+        //new TestImageColorMap().devTestBadImage();
+    }
 }

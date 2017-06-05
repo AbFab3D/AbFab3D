@@ -24,7 +24,7 @@ public class ParamCache {
     private static final boolean STOP_CACHING = false;
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_MISSES = true;
-    private static final boolean REPORT_MEMORY_REFERENCE = true;
+    private static final boolean REPORT_MEMORY_REFERENCE = false;
 
     private static final int JOB_RETAIN_MS = 60 * 60 * 1000;
 
@@ -76,7 +76,7 @@ public class ParamCache {
     public Object get(String key) {
         if (STOP_CACHING) return null;
         if (REPORT_MEMORY_REFERENCE) {
-            if (key.contains("@")) throw new IllegalArgumentException(fmt("Key contains @: %s",key));
+            if (key.contains("@")) new IllegalArgumentException(fmt("Key contains @: %s",key)).printStackTrace();
         }
 
         try {
@@ -103,7 +103,7 @@ public class ParamCache {
     public void put(String key, Object o) {
         if (STOP_CACHING) return;
         if (REPORT_MEMORY_REFERENCE) {
-            if (key.contains("@")) throw new IllegalArgumentException(fmt("Key contains @: %s",key));
+            if (key.contains("@")) new IllegalArgumentException(fmt("Key contains @: %s",key)).printStackTrace();
         }
 
         if (DEBUG) {

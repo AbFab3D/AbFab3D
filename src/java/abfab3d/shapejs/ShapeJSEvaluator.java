@@ -188,8 +188,10 @@ public class ShapeJSEvaluator implements MaterialMapper {
         classImports.add("abfab3d.shapejs.Materials");
         classImports.add("abfab3d.shapejs.SingleColorMaterial");
         classImports.add("abfab3d.shapejs.FullColorMaterial");
+        classImports.add("abfab3d.shapejs.TracingParams");
 
         classImports.add("abfab3d.io.input.ModelLoader");
+        classImports.add("abfab3d.grid.op.ImageLoader");
 
         classImports.add("abfab3d.core.MathUtil");
         classImports.add("abfab3d.core.Color");

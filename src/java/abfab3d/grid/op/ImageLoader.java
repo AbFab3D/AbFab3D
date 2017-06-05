@@ -57,7 +57,7 @@ import static abfab3d.core.Output.printf;
 /**
    class to produce Grid2D from image file
  */
-public class ImageReader extends BaseParameterizable implements ImageProducer {
+public class ImageLoader extends BaseParameterizable implements ImageProducer {
     
     static final boolean CACHING_ENABLED = true;
     static final boolean DEBUG = true;
@@ -77,7 +77,7 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
     /**
        @param path - image path
      */
-    public ImageReader(String path){
+    public ImageLoader(String path){
         addParams(m_params);
         mp_uri.setValue(path);
     }
@@ -118,11 +118,11 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
             m_image = loadImage(mp_uri.getValue());
             if(CACHING_ENABLED){
                 ParamCache.getInstance().put(label, m_image);
-                if (DEBUG) printf("ImageReader: caching image: %s -> %s\n",label, m_image);                
+                if (DEBUG) printf("ImageLoader: caching image: %s -> %s\n",label, m_image);
             }
         } else {
             m_image = (BufferedImage) co;
-            if (DEBUG) printf("ImageReader: got cached image %s -> %s\n",label, m_image);
+            if (DEBUG) printf("ImageLoader: got cached image %s -> %s\n",label, m_image);
         }            
     }
     
@@ -131,9 +131,11 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
 
         if (DEBUG) printf("%s.loadImage(%s)\n",this, path);
         if (!new File(path).exists()) {
-            //throw new IllegalArgumentException(fmt("image %s does not exist", path));
+            throw new IllegalArgumentException(fmt("image %s does not exist", path));
+            /*
             printf(fmt("image file %s does not exist, using default image\n", path));
             return makeDefaultImage(10,10);
+            */
         }
 
         try {
@@ -143,11 +145,11 @@ public class ImageReader extends BaseParameterizable implements ImageProducer {
             BufferedImage image = ImageIO.read(new File(path)); 
             return image;
         } catch (Exception e){
-            //e.printStackTrace();
-            //throw new RuntimeException(fmt("exception reading image %s", path));
-            printf(fmt("exception %s reading image file: %s \n", e.getMessage(),path));            
+            e.printStackTrace();
+            throw new RuntimeException(fmt("exception reading image %s", path));
+            //printf(fmt("exception %s reading image file: %s \n", e.getMessage(),path));
         }        
-        return makeDefaultImage(10,10);        
+        //return makeDefaultImage(10,10);
         
     }
 

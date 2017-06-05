@@ -29,7 +29,7 @@ import abfab3d.param.Vector3dParameter;
 import abfab3d.param.SNodeParameter;
 
 import abfab3d.grid.op.ImageToGrid2D;
-import abfab3d.grid.op.ImageReader;
+import abfab3d.grid.op.ImageLoader;
 
 import abfab3d.util.ImageColor;
 
@@ -104,13 +104,13 @@ public class ImageColorMap extends TransformableDataSource {
     /**
      * Creates ImageColorMap from a file
      *
-     * @param imageSource source of the image. Can be url, BufferedImage or ImageWrapper
+     * @param path source of the image. Can be url, BufferedImage or ImageWrapper
      * @param sizex - width of the image
      * @param sizey - height of the image
      * @param sizez - depth of the image
      */
     public ImageColorMap(String path, double sizex, double sizey, double sizez) {
-        this(new ImageToGrid2D(new ImageReader(path), true), sizex, sizey, sizez);
+        this(new ImageToGrid2D(new ImageLoader(path), true), sizex, sizey, sizez);
     }
 
     public ImageColorMap(ImageProducer producer, double sizex, double sizey, double sizez) {
@@ -130,6 +130,16 @@ public class ImageColorMap extends TransformableDataSource {
      * @param val
      */
     public void setImage(Object val) {
+
+        if (val instanceof String) {
+            val = new ImageToGrid2D(new ImageLoader((String)val), true);
+        } else if (val instanceof ImageProducer) {
+            val = new ImageToGrid2D((ImageProducer) val, true);
+        } else if (val instanceof Grid2DProducer) {
+            // fine
+        } else {
+            throw new IllegalArgumentException("Unsupported object for ImageColorMap");
+        }
         mp_imageSource.setValue(val);
     }
 
@@ -528,6 +538,7 @@ public class ImageColorMap extends TransformableDataSource {
     }
 
     final int getPixelData(int x, int y) {
+        int ny = m_imageData.getHeight();
 
         return (int)m_imageData.getAttribute(x, y);
 

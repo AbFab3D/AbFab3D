@@ -20,8 +20,9 @@ import abfab3d.core.Grid2D;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.op.ImageReader;
+import abfab3d.grid.op.ImageLoader;
 
+import abfab3d.grid.op.ImageToGrid2D;
 import abfab3d.io.input.AttributedMeshReader;
 import abfab3d.io.input.GridLoader;
 import abfab3d.io.input.URIMapper;
@@ -844,14 +845,16 @@ public class ShapeJSGlobal {
             }
         }
 
-        ImageReader reader = new ImageReader(filename);
+        ImageLoader reader = new ImageLoader(filename);
         int w = reader.getWidth();
         int h = reader.getHeight();
         if (w * h > MAX_IMAGE_PIXEL_COUNT) {
             throw new IllegalArgumentException(fmt("image dimensions [%d x %d] exceed max allowed: %d", w, h, MAX_IMAGE_PIXEL_COUNT));
         }
 
-        Scriptable ret_val = (Scriptable) cx.javaToJS(reader, thisObj);
+        ImageToGrid2D conv = new ImageToGrid2D(reader);
+
+        Scriptable ret_val = (Scriptable) cx.javaToJS(conv, thisObj);
         return ret_val;
 
     }

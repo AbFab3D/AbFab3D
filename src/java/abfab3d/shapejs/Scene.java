@@ -21,6 +21,9 @@ import abfab3d.core.Material;
 import abfab3d.core.MaterialShader;
 import abfab3d.core.MaterialType;
 import abfab3d.datasources.ShapeList;
+import abfab3d.param.BaseSNodeFactory;
+import abfab3d.param.SNodeListParameter;
+import abfab3d.param.SNodeParameter;
 import abfab3d.param.Shape;
 import abfab3d.datasources.ImageColorMap;
 import abfab3d.datasources.TransformableDataSource;
@@ -55,6 +58,7 @@ public class Scene extends BaseParameterizable {
     final public static double DEFAULT_SMOOTHING_WIDTH = 0.5;
     final public static double DEFAULT_ERROR_FACTOR = 0.1;
     final public static int DEFAULT_MAX_PARTS_COUNT = Integer.MAX_VALUE;
+    final public static ArrayList<TracingParams> DEFAULT_TRACING_PARAMS;
 
     public static enum LightingRig {
         THREE_POINT, THREE_POINT_COLORED,
@@ -64,29 +68,35 @@ public class Scene extends BaseParameterizable {
 
     protected Bounds m_bounds = DEFAULT_BOUNDS;
     protected String m_name = "ShapeJS";
-    protected SceneLights m_lights = new SceneLights();
 
     // we support up to 4 materials
     // material[0] is base material
     // material[1,2,3] correspond to material channels
     protected SceneMaterials m_materials = new SceneMaterials();
-    protected SceneViewpoints m_viewpoints = new SceneViewpoints();
-    protected RenderingParams m_renderingParams;
     protected ArrayList<Shape> m_shapes = new ArrayList<>();
     protected LightingRig m_lightingRig = DEFAULT_LIGHTING_RIG;
-    protected Camera camera = new SimpleCamera();
-    protected Background m_background = new Background();
+
     protected int m_lastMaterial = 0;
 
     protected MaterialType m_materialType = MaterialType.SINGLE_MATERIAL;
 
     DoubleParameter mp_gradientStep = new DoubleParameter("gradientStep", "gradient step (in meters)", 0.001);
-    DoubleParameter mp_distanceStepFactor = new DoubleParameter("distanceStepFactor", "relative step size in ray surface intersection", 0.95);
-    DoubleParameter mp_surfacePrecision = new DoubleParameter("surfacePrecision", "surface precision (in meters)", 1.e-4);
     DoubleParameter mp_meshErrorFactor = new DoubleParameter("meshErrorFactor", "relative mesh error factor", DEFAULT_ERROR_FACTOR);
     DoubleParameter mp_meshSmoothingWidth = new DoubleParameter("meshSmoothingWidth", "relative mesh smooting width", DEFAULT_SMOOTHING_WIDTH);
     DoubleParameter mp_minShellVolume = new DoubleParameter("minShellVolume", "min shell volume to export", 0);
     IntParameter mp_maxPartsCount = new IntParameter("maxPartsCount", "max parts count to export", DEFAULT_MAX_PARTS_COUNT);
+
+    SNodeParameter mp_background = new SNodeParameter("background","Background Params", new Background());
+    SNodeParameter mp_camera = new SNodeParameter("camera", "Camera params", new SimpleCamera());
+    SNodeListParameter mp_viewpoints = new SNodeListParameter("viewpoints", "Viewpoints", new BaseSNodeFactory(new String[]{"viewpoint"}, new String[]{"abfab3d.shapejs.Viewpoint"}));
+    SNodeListParameter mp_lights = new SNodeListParameter("lights", "Lights", new BaseSNodeFactory(new String[]{"light"}, new String[]{"abfab3d.shapejs.Light"}));
+    SNodeListParameter mp_tracingParams = new SNodeListParameter("tracingParams", "Tracing Params", DEFAULT_TRACING_PARAMS,new BaseSNodeFactory(new String[]{"tracingParams"}, new String[]{"abfab3d.shapejs.TracingParams"}));
+
+    // TODO: Not ready to migrate this yet
+    //SNodeListParameter mp_materials = new SNodeListParameter("materials", "Materials", new BaseSNodeFactory(new String[]{"material"}, new String[]{"abfab3d.core.Material"}));
+
+    // TODO: Not certain about this concept now, it would need to be per material
+    //SNodeParameter mp_renderingParams = new SNodeParameter("renderingParams", "Rendering params", new RenderingParams());
 
     ShapeList root = new ShapeList();
     Material mats[] = new Material[SceneMaterials.MAX_MATERIALS];
@@ -94,15 +104,24 @@ public class Scene extends BaseParameterizable {
     // local params 
     protected Parameter m_aparam[] = new Parameter[]{
         mp_gradientStep,
-        mp_distanceStepFactor,
-        mp_surfacePrecision,
         mp_meshErrorFactor,
         mp_meshSmoothingWidth,
         mp_minShellVolume,
         mp_maxPartsCount,
-
+        mp_background,
+        mp_camera,
+        mp_viewpoints,
+        mp_lights,
+        mp_tracingParams
     };
-    
+
+    static {
+        DEFAULT_TRACING_PARAMS = new ArrayList<>();
+        DEFAULT_TRACING_PARAMS.add(new TracingParams(TracingParams.ModeType.DRAFT,5e-3,1.0));
+        DEFAULT_TRACING_PARAMS.add(new TracingParams(TracingParams.ModeType.NORMAL,1e-3,0.95));
+        DEFAULT_TRACING_PARAMS.add(new TracingParams(TracingParams.ModeType.FINE,6e-4,0.95));
+        DEFAULT_TRACING_PARAMS.add(new TracingParams(TracingParams.ModeType.SUPER_FINE,3e-4,0.95));
+    }
     public Scene(String name){
         m_name = name;
         initParams();
@@ -152,27 +171,27 @@ public class Scene extends BaseParameterizable {
         setLightingRig(m_lightingRig);
     }
 
-    public static Light[] getColoredLighting() {
-        Light[] lights = new Light[3];
+    public static List<Light> getColoredLighting() {
+        ArrayList<Light> lights = new ArrayList<>();
 
         double intensity = 0.9;
-        lights[0] = new Light(new Vector3d(10,0,20),new Color(1,0,0),0.1,intensity);
-        lights[1] = new Light(new Vector3d(10,10,20),new Color(0,1,0),0,intensity);
-        lights[2] = new Light(new Vector3d(0,10,20),new Color(0,0,1),0,intensity);
+        lights.add(new Light(new Vector3d(10,0,20),new Color(1,0,0),0.1,intensity));
+        lights.add(new Light(new Vector3d(10,10,20),new Color(0,1,0),0,intensity));
+        lights.add(new Light(new Vector3d(0,10,20),new Color(0,0,1),0,intensity));
         return lights;
     }
 
-    public static Light[] getTwoPointLighting() {
+    public static List<Light> getTwoPointLighting() {
         double a0 = 0.4;
         double a1 = 0.8;
 
-        Light[] lights = new Light[2];        
-        lights[0] = new Light(new Vector3d(20,0,20),new Color(a0,a0,a0),0.1,1);
-        lights[1] = new Light(new Vector3d(-10,0,20),new Color(a1,a1,a1),0,1);
+        ArrayList<Light> lights = new ArrayList<>();
+        lights.add(new Light(new Vector3d(20,0,20),new Color(a0,a0,a0),0.1,1));
+        lights.add(new Light(new Vector3d(-10,0,20),new Color(a1,a1,a1),0,1));
         return lights;
     }
 
-    public static Light[] getThreePointLighting() {
+    public static List<Light> getThreePointLighting() {
 
         double ambient = 0;
 
@@ -197,26 +216,22 @@ public class Scene extends BaseParameterizable {
         Light key_light = new Light(new Vector3d(10,-10,100),key_light_color,ambient,1);
         Light fill_light = new Light(new Vector3d(1000,100,100),fill_light_color,0,1);
         Light rim_light = new Light(new Vector3d(-1000,900,-200),rim_light_color,0,1);
-        
-        Light lights[] = new Light[] {key_light,fill_light,rim_light};
 
-        for(int i=0; i < lights.length; i++) {
-            lights[i].setCastShadows(true);
-            lights[i].setSamples(4);
+        ArrayList<Light> lights = new ArrayList<>();
+        lights.add(key_light);
+        lights.add(fill_light);
+        lights.add(rim_light);
+
+
+        for(int i=0; i < lights.size(); i++) {
+            lights.get(i).setCastShadows(true);
+            lights.get(i).setSamples(4);
             //lights[i].setRadius(50);
 
             // TODO: revisit this when area lights work better
-            lights[i].setRadius(0);
+            lights.get(i).setRadius(0);
         }
         return lights;
-    }
-
-    public void setCamera(Camera val) {
-        this.camera = val;
-    }
-
-    public Camera getCamera() {
-        return camera;
     }
 
     public void setName(String val) {
@@ -427,7 +442,7 @@ public class Scene extends BaseParameterizable {
      */
     public void reinitialize() {
         // reinitialize all properties.  Done after param changes.
-        m_background.initialize();
+        //m_background.initialize();
     }
 
     /**
@@ -468,28 +483,23 @@ public class Scene extends BaseParameterizable {
         m_lastMaterial--;
     }
 
-    public void setLights(Light[] lights) {
-        m_lights.setLights(lights);
-
-        buildParams();
-    }
-
-    public SceneLights getLights() {
-        return m_lights;
-    }
-
     public SceneMaterials getMaterials() {
         return m_materials;
     }
 
     public void setViewpoints(Viewpoint[] viewpoints) {
-        m_viewpoints.setViewpoints(viewpoints);
+        mp_viewpoints.clear();
 
-        buildParams();
+        for (int i = 0; i < viewpoints.length; i++) {
+            mp_viewpoints.add(viewpoints[i]);
+        }
+
+        clearParams();
+        addParam(mp_viewpoints);
     }
 
-    public SceneViewpoints getViewpoints() {
-        return m_viewpoints;
+    public List<Viewpoint> getViewpoints() {
+        return mp_viewpoints.getValue();
     }
 
     public int getMaterialID(Material mat) {
@@ -512,10 +522,10 @@ public class Scene extends BaseParameterizable {
 
         switch(m_lightingRig) {
             case THREE_POINT_COLORED:
-                m_lights.setLights(getColoredLighting());
+                mp_lights.setValue(getColoredLighting());
                 break;
             case THREE_POINT:
-                m_lights.setLights(getThreePointLighting());
+                mp_lights.setValue(getThreePointLighting());
                 break;
             default:
                 throw new IllegalArgumentException("Unhandled lighting rig: " + rig);
@@ -527,6 +537,7 @@ public class Scene extends BaseParameterizable {
         return m_lightingRig;
     }
 
+    /*
     public void setRenderingParams(RenderingParams params) {
         m_renderingParams = params;
     }
@@ -534,13 +545,42 @@ public class Scene extends BaseParameterizable {
     public RenderingParams getRenderingParams() {
         return m_renderingParams;
     }
+    */
 
     public void setBackground(Background val) {
-        m_background = val;
+        mp_background.setValue(val);
     }
 
     public Background getBackground() {
-        return m_background;
+        return (Background) mp_background.getValue();
+    }
+
+    public void setTracingParams(List<TracingParams> val) {
+        mp_tracingParams.setValue(val);
+    }
+
+    public List<TracingParams> getTracingParams() {
+        return (List<TracingParams>) mp_tracingParams.getValue();
+    }
+
+    public void setCamera(Camera val) {
+        mp_camera.setValue(val);
+    }
+
+    public Camera getCamera() {
+        return (Camera) mp_camera.getValue();
+    }
+
+    public void setLights(Light[] lights) {
+        mp_lights.clear();
+
+        for (int i = 0; i < lights.length; i++) {
+            mp_lights.add(lights[i]);
+        }
+    }
+
+    public List<Light> getLights() {
+        return mp_lights.getValue();
     }
 
     /**
@@ -552,10 +592,7 @@ public class Scene extends BaseParameterizable {
 
         
         clearParams();
-        addParams(m_lights.getParams());
         addParams(m_materials.getParams());
-        addParams(m_viewpoints.getParams());
-        addParams(m_background.getParams());
         addParams(m_aparam);
 
         if(DEBUG)printf("%s buildParams()\n", this);

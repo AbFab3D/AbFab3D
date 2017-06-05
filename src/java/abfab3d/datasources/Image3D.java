@@ -28,7 +28,7 @@ import abfab3d.grid.op.Copy;
 import abfab3d.grid.op.DistanceTransform2DOp;
 import abfab3d.grid.op.GaussianBlur;
 import abfab3d.grid.op.GridValueTransformer;
-import abfab3d.grid.op.ImageReader;
+import abfab3d.grid.op.ImageLoader;
 import abfab3d.grid.op.ImageToGrid2D;
 import abfab3d.grid.op.ResampleOp;
 import abfab3d.param.BaseParameterizable;
@@ -42,6 +42,7 @@ import abfab3d.param.Vector3dParameter;
 import abfab3d.util.ImageMipMapGray16;
 
 import javax.vecmath.Vector3d;
+import java.awt.image.BufferedImage;
 import java.util.Vector;
 
 import static abfab3d.core.MathUtil.*;
@@ -73,7 +74,7 @@ import static java.lang.Math.*;
  */
 public class Image3D extends TransformableDataSource {
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
     final static boolean DEBUG_VIZ = false;
     final static boolean CACHING_ENABLED = true;
 
@@ -128,13 +129,14 @@ public class Image3D extends TransformableDataSource {
     // Params which require changes in the underlying image 
     Parameter m_imageParams[] = new Parameter[]{
         mp_source,
-        //mp_imageFileTimeStamp,
+        mp_useImageProcessing,
         mp_size,
         mp_tilesX,
-        mp_tilesY,
+        mp_tilesY,  // Not technically used in prepare image?
+        mp_imageType,
         mp_blurWidth,
         mp_useGrayscale,
-        mp_useImageProcessing
+        mp_maxDist
     };
 
     public static final double DEFAULT_PIXEL_SIZE = 0.1 * MM;
@@ -232,7 +234,7 @@ public class Image3D extends TransformableDataSource {
      * @param voxelSize size of voxel to be used for image voxelization
      */
     public Image3D(String imagePath, double sx, double sy, double sz, double voxelSize) {
-        this(new ImageToGrid2D(new ImageReader(imagePath)), sx, sy, sz, voxelSize);
+        this(new ImageToGrid2D(new ImageLoader(imagePath)), sx, sy, sz, voxelSize);
     }
 
     /**
@@ -252,13 +254,44 @@ public class Image3D extends TransformableDataSource {
     /**
      * Image3D with given image path and size
      *
-     * @param producer image producer
+     * @param grid image producer
      * @param sx       width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param sy       height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param sz       depth of the box.
      */
-    public Image3D(Grid2DProducer producer, double sx, double sy, double sz) {
-        this(producer, sx, sy, sz, 0.);
+    public Image3D(Grid2D grid, double sx, double sy, double sz,double vs) {
+        // use memory hash as label
+        this((Grid2DProducer) (new Grid2DSourceWrapper(grid.toString(), grid)), sx, sy, sz);
+        mp_useImageProcessing.setValue(false);
+        setVoxelSize(vs);
+    }
+
+    /**
+     * Image3D with given image path and size
+     *
+     * @param imgProducer holder of BufferedImage
+     * @param sx        width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy        height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz        depth of the box.
+     */
+    public Image3D(BufferedImage imgProducer, double sx, double sy, double sz) {
+        // Added for backwards compatibility
+        this(new ImageToGrid2D(imgProducer), sx, sy, sz, 0.);
+    }
+
+
+    /**
+     * Image3D with given image and size
+     *
+     * @param imgProducer producer of the image
+     * @param sx          width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy          height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz          depth of the box.
+     * @param voxelSize   size of voxel to be used for image voxelization
+     */
+    public Image3D(BufferedImage imgProducer, double sx, double sy, double sz, double voxelSize) {
+        // Added for backwards compatibility
+        this(new ImageToGrid2D(imgProducer), sx, sy, sz, voxelSize);
     }
 
     /**
@@ -287,6 +320,17 @@ public class Image3D extends TransformableDataSource {
         this(new ImageToGrid2D(imgProducer), sx, sy, sz, voxelSize);
     }
 
+    /**
+     * Image3D with given image path and size
+     *
+     * @param producer image producer
+     * @param sx       width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy       height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz       depth of the box.
+     */
+    public Image3D(Grid2DProducer producer, double sx, double sy, double sz) {
+        this(producer, sx, sy, sz, 0.);
+    }
 
     /**
      * Image3D with given image path and size
@@ -304,6 +348,8 @@ public class Image3D extends TransformableDataSource {
         setSize(sx, sy, sz);
         setVoxelSize(vs);
     }
+
+
 
     int m_version = 1;
 
@@ -483,8 +529,20 @@ public class Image3D extends TransformableDataSource {
 
     public void setImage(Object val) {
 
-        mp_source.setValue(val);
+        if (val instanceof String) {
+            val = new ImageToGrid2D(new ImageLoader((String)val));
+        } else if (val instanceof Grid2D) {
+            Grid2D grid2d = (Grid2D) val;
+            val = new Grid2DSourceWrapper(grid2d.toString(),grid2d);
+        } else if (val instanceof BufferedImage) {
+            val = new ImageToGrid2D((BufferedImage)val);
+        } else if (val instanceof ImageProducer) {
+            // fine
+        } else {
+            throw new IllegalArgumentException("Unsupported object for Image3D");
+        }
 
+        mp_source.setValue(val);
     }
 
     /**
@@ -520,6 +578,22 @@ public class Image3D extends TransformableDataSource {
     public void setUseGrayscale(boolean value) {
 
         mp_useGrayscale.setValue(new Boolean(value));
+    }
+
+
+    /**
+     * Set the current value of a parameter.
+     * @param paramName The name
+     * @param value the value
+     */
+    @Override
+    public void set(String paramName, Object value) {
+        if (paramName.equals("distanceFactor")) {
+            // ignore for backwards compatibility
+            return;
+        }
+
+        super.set(paramName,value);
     }
 
 
@@ -690,6 +764,9 @@ public class Image3D extends TransformableDataSource {
         m_gradXfactor = m_tilesX * m_imageThickness * m_xfactor / 2;
         m_gradYfactor = m_tilesY * m_imageThickness * m_yfactor / 2;
 
+        if (DEBUG) printf("Image3D.  size: %d %d  xfac: %f yfac: %f\n",m_imageSizeX,m_imageSizeY,m_xfactor,m_yfactor);
+
+
         return ResultCodes.RESULT_OK;
     }
 
@@ -769,7 +846,7 @@ public class Image3D extends TransformableDataSource {
 
 
     /**
-     * exacutes sequence of opeations
+     * executes sequence of operations
      */
     private Grid2D executeOps(Grid2D grid, Vector<Operation2D> ops) {
 
@@ -1024,7 +1101,9 @@ public class Image3D extends TransformableDataSource {
         x = x0 - m_xmin;
         y = y0 - m_ymin;
         z = z0 - m_zmin;
-        // transform coord treat all 3 cases in uniform way 
+        // transform coord treat all 3 cases in uniform way
+
+
         switch (m_imagePlace) {
             default:
             case IMAGE_PLACE_TOP:
@@ -1107,6 +1186,7 @@ public class Image3D extends TransformableDataSource {
         iValue = iValue * m_imageThickness + m_baseThickness;
 
         double dist = slopeFactor * (z - iValue); // distance to surface
+
         if (m_imagePlace != IMAGE_PLACE_BOTH)
             dist = max(dist, m_baseHalfSizeZ - z);
 

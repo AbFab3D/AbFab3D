@@ -301,12 +301,16 @@ public class SNodeListEditor extends BaseEditor {
     class NewAction implements ActionListener {
 
         public void actionPerformed(ActionEvent e){
-            printf("New\n");
-            JPopupMenu menu = new JPopupMenu();            
+            JPopupMenu menu = new JPopupMenu();
             String names[]= m_param.getSNodeFactory().getNames();
             if(names.length < 1) 
                 return;
-                
+
+            if (names.length == 1) {
+                newNode(0);
+                return;
+            }
+            
             for(int i=0; i < names.length; i++) {
                 JMenuItem item = new JMenuItem(names[i]);
                 item.addActionListener(new NewItemAction(i));

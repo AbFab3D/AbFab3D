@@ -499,7 +499,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
             if(DEBUG)printf("(meshColorizer != null) conversion from texture coord to colors\n");
 
             Vec tex = new Vec(3);
-            Vec color = new Vec(3);            
+            Vec color = new Vec(4);
             for(int i = 1; i < pcount; i++){
                 switch(dataDimension){
                 case 6: tex.v[2] = pnts[5][i]; // no break here

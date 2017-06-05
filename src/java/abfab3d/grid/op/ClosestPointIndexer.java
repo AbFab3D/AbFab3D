@@ -1495,8 +1495,8 @@ public class ClosestPointIndexer {
 
         // TODO use variable channel dimension 
         Vec pntData = new Vec(3);        
-        Vec colorData = new Vec(3);        
-        Vec voxelData = new Vec(4);        
+        Vec colorData = new Vec(4);
+        Vec voxelData = new Vec(4);
         voxelData.v[0] = minDistance;
         long inAtt = attMaker.makeAttribute(voxelData);
         voxelData.v[0] = maxDistance;

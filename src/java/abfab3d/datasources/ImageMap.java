@@ -42,7 +42,7 @@ import abfab3d.param.BooleanParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.ParamCache;
 
-import abfab3d.grid.op.ImageReader;
+import abfab3d.grid.op.ImageLoader;
 import abfab3d.grid.op.ImageToGrid2D;
 import abfab3d.grid.op.GaussianBlur;
 import abfab3d.grid.op.Copy;
@@ -147,7 +147,7 @@ public class ImageMap extends TransformableDataSource {
      * @param sizez - depth of the image
      */
     public ImageMap(String path, double sizex, double sizey, double sizez) {
-        this(new ImageToGrid2D(new ImageReader(path)), sizex, sizey, sizez);
+        this(new ImageToGrid2D(new ImageLoader(path)), sizex, sizey, sizez);
     }
 
     /**
@@ -194,6 +194,19 @@ public class ImageMap extends TransformableDataSource {
     }
 
     /**
+     * Image3D with given image path and size
+     *
+     * @param imgProducer holder of BufferedImage
+     * @param sx        width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy        height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz        depth of the box.
+     */
+    public ImageMap(BufferedImage imgProducer, double sx, double sy, double sz) {
+        // Added for backwards compatibility
+        this(new ImageToGrid2D(imgProducer), sx, sy, sz);
+    }
+
+    /**
      * @noRefGuide
      */
     protected void initParams(){
@@ -203,10 +216,22 @@ public class ImageMap extends TransformableDataSource {
 
     /**
      * Set the source image
-     * @param producer
+     * @param val
      */
-    public void setImage(Grid2DProducer producer) {
-        mp_source.setValue(producer);
+    public void setImage(Object val) {
+        if (val instanceof String) {
+            val = new ImageToGrid2D(new ImageLoader((String) val));
+        } else if (val instanceof Grid2D) {
+            Grid2D grid2d = (Grid2D) val;
+            val = new Grid2DSourceWrapper(grid2d.toString(),grid2d);
+        } else if (val instanceof BufferedImage) {
+            val = new ImageToGrid2D((BufferedImage)val);
+        } else if (val instanceof ImageProducer) {
+            // fine
+        } else {
+            throw new IllegalArgumentException("Unsupported object for ImageMap");
+        }
+        mp_source.setValue(val);
     }
 
     /**

@@ -28,7 +28,7 @@ import abfab3d.core.Bounds;
 import abfab3d.util.ColorMapperDistance;
 
 import abfab3d.grid.op.SliceMaker;
-import abfab3d.grid.op.ImageReader;
+import abfab3d.grid.op.ImageLoader;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Units.MM;
@@ -57,7 +57,7 @@ public class TestImageMap extends TestCase {
         double size = 10*MM;
         ImageMap map = new ImageMap(text,size,size,size);
 
-        String vhash = BaseParameterizable.getParamString("test", map);
+        String vhash = map.getParamString();
         if(DEBUG)printf("vhash: %s\n",vhash);
 
         assertFalse("has memory reference",vhash.contains("@"));
@@ -77,7 +77,7 @@ public class TestImageMap extends TestCase {
         //String path = "test/images/letter_S_500.png";
         //String path = "test/images/snowflake.svg";
         String path = "test/images/square.svg";
-        ImageReader reader = new ImageReader(path);
+        ImageLoader reader = new ImageLoader(path);
         reader.set("svgRasterizationWidth", 100);
         //ImageMap img = new ImageMap(reader, sizeX,sizeY,sizeZ);
         FormattedText2D text = new FormattedText2D("Hello<br/>World");
