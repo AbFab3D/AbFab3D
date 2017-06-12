@@ -228,7 +228,7 @@ public class ImageMap extends TransformableDataSource {
             val = new ImageToGrid2D((BufferedImage)val);
         } else if (val instanceof ImageProducer) {
             val = new ImageToGrid2D((ImageProducer) val);
-        } else if (val instanceof ImageToGrid2D) {
+        } else if (val instanceof Grid2DProducer) {
             // fine
         } else {
             throw new IllegalArgumentException("Unsupported object for ImageMap: " + val.getClass());
