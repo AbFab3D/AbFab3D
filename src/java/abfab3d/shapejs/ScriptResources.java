@@ -25,40 +25,23 @@ public class ScriptResources {
     public String jobID;
     public EvaluatedScript evaluatedScript;
     public String script;
-    public Map<String,Object> params;
+    //public Map<String,Object> params;  // Get this from eval.getParameters
     public float quality;
     public ShapeJSEvaluator eval;
-    public boolean firstCreate;
     public boolean sensitiveData = false;
     public boolean sensitiveScript = false;
 
 
     public ScriptResources() {
-        params = new HashMap<String,Object>();
     }
 
     public void clear() {
-        if (params != null)
-            params.clear();
-
         evaluatedScript = null;
         eval = null;
     }
 
-    /**
-       return array of script parameters (if exist)
-     */
-    public Parameter[] getParams(){
-
-        if(params == null) 
-            return new Parameter[0];
-        
-        Parameter aparam[] = new Parameter[params.size()];
-        int idx = 0;
-        for(Object o: params.values()) {
-            aparam[idx++] = (Parameter)o;
-        }
-        return aparam;
+    public Map<String,Parameter> getParams() {
+        return eval.getParams();
     }
 
 }

@@ -12,6 +12,7 @@
 
 package abfab3d.param;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -33,7 +34,7 @@ import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
 
 /**
- * Utilites to read/write to from Json Maps 
+ * Utilities to read/write to from Json Maps
  *
  * @author Vladimir Bulatov
  */
@@ -272,6 +273,22 @@ public class ParamJson {
         return str;
     }
 
+    public static Map getUserDefinedFromJson(JsonObject value,UserDefinedParameter param) {
+        HashMap<String,Parameter> ret_val = new HashMap<>();
+
+        Map<String,Parameter> types = param.getProperties();
+
+        for(Parameter p : types.values()) {
+            JsonElement el = value.get(p.getName());
+
+            if (el == null) continue;
+            getParamValueFromJson(el,p);  // This feels weird to write the value into the types...
+            ret_val.put(p.getName(),p);
+        }
+
+        return ret_val;
+    }
+
     public static void getParamValueFromJson(JsonElement value, Parameter param){
         
         if(DEBUG) printf("parseJson(%s -> %s)\n", value, param);
@@ -329,6 +346,8 @@ public class ParamJson {
         case COLOR:
             param.setValue(getColorFromJson(value));            
             break;
+        case USERDEFINED:
+            param.setValue(getUserDefinedFromJson((JsonObject)value,(UserDefinedParameter)param));
         }
 
     }
@@ -355,6 +374,29 @@ public class ParamJson {
         //printf("elem: %s\n",obj.getClass().getName());
         getParamValuesFromJson(obj, params);
         
+    }
+
+    public static void getParamValuesFromJson(JsonObject obj, Map<String,Parameter> params){
+
+        if(DEBUG) printf("parseJson(%s -> %s)\n", obj, params);
+
+        for(Parameter param : params.values()){
+            String name = param.getName();
+            JsonElement value = obj.get(name);
+            if(value != null)
+                getParamValueFromJson(value, param);
+        }
+
+    }
+
+
+    public static void getParamValuesFromJson(String json, Map<String,Parameter> params){
+
+        JsonParser parser = new JsonParser();
+        JsonObject obj = parser.parse(json).getAsJsonObject();
+        //printf("elem: %s\n",obj.getClass().getName());
+        getParamValuesFromJson(obj, params);
+
     }
 
     /**

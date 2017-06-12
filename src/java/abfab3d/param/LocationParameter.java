@@ -13,6 +13,8 @@ package abfab3d.param;
 
 // External Imports
 
+import abfab3d.core.Location;
+
 import javax.vecmath.Vector3d;
 
 import static abfab3d.core.Output.printf;
@@ -31,50 +33,44 @@ public class LocationParameter extends BaseParameter implements Cloneable {
     
     private static final Vector3d DEFAULT_MIN_POINT = new Vector3d(-10000d, -10000d, -10000d);
     private static final Vector3d DEFAULT_MAX_POINT = new Vector3d(10000d, 10000d, 10000d);
-    
+
     private Vector3d minPoint;
     private Vector3d maxPoint;
-
+    
     public LocationParameter(String name) {
-        this(name, name, DEFAULT_POINT, DEFAULT_NORMAL);
+        this(name, name, null, DEFAULT_POINT, DEFAULT_NORMAL);
     }
 
     public LocationParameter(String name, String desc) {
-        this(name, desc, DEFAULT_POINT, DEFAULT_NORMAL);
-    }
-    
-    public LocationParameter(String name, Vector3d point, Vector3d normal) {
-        this(name, name, point, normal);        
+        this(name, desc, null, DEFAULT_POINT, DEFAULT_NORMAL);
     }
 
-    public LocationParameter(String name, String desc, Vector3d point, Vector3d normal) {
-        this(name, desc, point, normal, DEFAULT_MIN_POINT, DEFAULT_MAX_POINT);
+    public LocationParameter(String name, String desc, Location initialValue) {
+        this(name,desc,initialValue,DEFAULT_MIN_POINT,DEFAULT_MAX_POINT);
     }
 
-
-    public LocationParameter(String name, String desc, Vector3d point, Vector3d normal, Vector3d minPoint, Vector3d maxPoint) {
+    public LocationParameter(String name, String desc, Location initialValue, Vector3d minPoint, Vector3d maxPoint) {
         super(name, desc);
 
-        if (point == null) point = DEFAULT_POINT;
-        if (normal == null) normal = DEFAULT_NORMAL;
-    	if (minPoint == null) minPoint = DEFAULT_MIN_POINT;
-    	if (maxPoint == null) maxPoint = DEFAULT_MAX_POINT;
-    	
+        if (minPoint == null) minPoint = DEFAULT_MIN_POINT;
+        if (maxPoint == null) maxPoint = DEFAULT_MAX_POINT;
+
         setPointMin(minPoint);
         setPointMax(maxPoint);
-
-        if (point != null && normal != null) {
-        	setValue(new Vector3d[] {(Vector3d)point.clone(),(Vector3d)normal.clone()});
-        	defaultValue = value;
-        }
+        
+        if(initialValue != null) {
+            setValue(initialValue.clone());
+            defaultValue = value;
+        } else
+            setValue(null);
     }
-    
+
     /**
      * Set the min location point
      */
     public void setPointMin(Vector3d minPoint) {
-    	if (this.minPoint == null) this.minPoint = new Vector3d();
-    	
+        if (this.minPoint == null) this.minPoint = new Vector3d();
+
         this.minPoint.x = minPoint.x;
         this.minPoint.y = minPoint.y;
         this.minPoint.z = minPoint.z;
@@ -92,8 +88,8 @@ public class LocationParameter extends BaseParameter implements Cloneable {
      * Set the max location point
      */
     public void setPointMax(Vector3d maxPoint) {
-    	if (this.maxPoint == null) this.maxPoint = new Vector3d();
-    	
+        if (this.maxPoint == null) this.maxPoint = new Vector3d();
+
         this.maxPoint.x = maxPoint.x;
         this.maxPoint.y = maxPoint.y;
         this.maxPoint.z = maxPoint.z;
@@ -108,38 +104,25 @@ public class LocationParameter extends BaseParameter implements Cloneable {
     }
 
     public Vector3d getPointMin() {
-    	return minPoint;
+        return minPoint;
     }
-    
-    
+
+
     public Vector3d getPointMax() {
-    	return maxPoint;
+        return maxPoint;
     }
     
     @Override
     public void setValue(Object value) {
 
-        if(DEBUG){
-            printf("LocationParameter.setValue(%s)\n", value);
-            if(value != null ){ 
-                Vector3d[] v = (Vector3d[])value;
-                printf("    v[0]: [%7.5f, %7.5f, %7.5f]\n", v[0].x,v[0].y,v[0].z);
-                printf("    v[1]: [%7.5f, %7.5f, %7.5f]\n", v[1].x,v[1].y,v[1].z);
-            }
-        }
-        
         validate(value);
 
         this.value = value;
-        
-    	if (defaultValue == null) {
-    		defaultValue = value;
-    	}
     }
     
     @Override
-    public Vector3d[] getValue() {
-        return (Vector3d[]) value;
+    public Location getValue() {
+        return (Location) value;
     }
 
     /**
@@ -153,56 +136,24 @@ public class LocationParameter extends BaseParameter implements Cloneable {
     public void setPoint(Vector3d val) {
 
     	validatePoint(val);
-    	
-    	if (value == null) {
-    		value = new Vector3d[2];
-    		((Vector3d[])value)[0] = (Vector3d)val.clone();
-    	} else {
-    		Vector3d point = ((Vector3d[])value)[0];
-    		if (point == null) {
-    			point = new Vector3d();
-                ((Vector3d[])value)[0] = point;
-    		}
-            point.x = val.x;
-            point.y = val.y;
-            point.z = val.z;
-    	}
-    	
-    	if (defaultValue == null) {
-    		defaultValue = value;
-    	}
+
+        ((Location)value).setPoint(val);
     }
 
     public void setNormal(Vector3d val) {
-    	if (value == null) {
-    		value = new Vector3d[2];
-    		((Vector3d[])value)[1] = (Vector3d)val.clone();
-    	} else {
-            Vector3d normal = ((Vector3d[])value)[1];
-    		if (normal == null) {
-    			normal = new Vector3d();
-                ((Vector3d[])value)[1] = normal;
-    		}
-            normal.x = val.x;
-            normal.y = val.y;
-            normal.z = val.z;
-    	}
-    	
-    	if (defaultValue == null) {
-    		defaultValue = value;
-    	}
+        ((Location)value).setNormal(val);
     }
 
     public Vector3d getPoint() {
     	if (value == null) return null;
     	
-        return ((Vector3d[])value)[0];
+        return ((Location)value).getPoint();
     }
 
     public Vector3d getNormal() {
     	if (value == null) return null;
-    	
-        return ((Vector3d[])value)[1];
+
+        return ((Location)value).getNormal();
     }
 
     /**
@@ -217,16 +168,18 @@ public class LocationParameter extends BaseParameter implements Cloneable {
             if(val != null)printf("      class: %s\n", val.getClass().getName());
         }
         if(val == null) return;
-        if (!(val instanceof Vector3d[])) {
+        if (!(val instanceof Location)) {
             throw new IllegalArgumentException("Unsupported type for Location: " + val + " in param: " + getName());
         }
         
-        Vector3d p = ((Vector3d[]) val)[0];
+        Vector3d p = ((Location) val).getPoint();
         validatePoint(p);
     }
 
     public void validatePoint(Vector3d p)  {
     	boolean valid = true;
+
+    	if (p == null) return;
     	
         if (p.x < minPoint.x || p.y < minPoint.y || p.z < minPoint.z) {
         	valid = false;

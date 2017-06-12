@@ -20,6 +20,7 @@ import abfab3d.core.Initializable;
 import abfab3d.core.Material;
 import abfab3d.core.MaterialShader;
 import abfab3d.core.MaterialType;
+import abfab3d.core.ResultCodes;
 import abfab3d.datasources.ShapeList;
 import abfab3d.param.BaseSNodeFactory;
 import abfab3d.param.SNodeListParameter;
@@ -47,7 +48,7 @@ import static abfab3d.core.Output.fmt;
  *
  * @author Alan Hudson
  */
-public class Scene extends BaseParameterizable {
+public class Scene extends BaseParameterizable implements Initializable {
 
     final static boolean DEBUG = false;
 
@@ -162,6 +163,19 @@ public class Scene extends BaseParameterizable {
 
     private void initParams() {
         buildParams();
+    }
+
+
+    @Override
+    public int initialize() {
+        List<Parameterizable> list = getSource();
+        for (Parameterizable ds : list) {
+            if (ds instanceof Initializable) {
+                ((Initializable) ds).initialize();
+            }
+        }
+
+        return ResultCodes.RESULT_OK;
     }
 
     /**

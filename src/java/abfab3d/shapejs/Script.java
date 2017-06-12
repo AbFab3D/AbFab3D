@@ -16,7 +16,6 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Map;
 
 /**
  * A ShapeJS script
@@ -60,7 +59,8 @@ public class Script {
             ShapeJSEvaluator eval = new ShapeJSEvaluator();
             try {
                 String code = resolveURI(m_uri);
-                m_evalScript = eval.evalScript(code,"main",null);
+                eval.prepareScript(code,null);
+                m_evalScript = eval.executeScript("main");
             } catch(IOException ioe) {
                 ioe.printStackTrace();
             }

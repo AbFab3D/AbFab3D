@@ -199,7 +199,7 @@ public class TestAttributedMeshReader extends TestCase {
 
         DataSource atts = reader.getAttributeCalculator();
         Vec uv = new Vec(3);
-        Vec color = new Vec(3);
+        Vec color = new Vec(4);
 
         // upper left white
         Vec expected = new Vec(3);
@@ -286,7 +286,7 @@ public class TestAttributedMeshReader extends TestCase {
 
         Vec expected = new Vec(3);
         Vec uv = new Vec(3);
-        Vec color = new Vec(3);
+        Vec color = new Vec(4);
         double EPS = 0.1;
 
         expected.v[0] = 0;
@@ -367,7 +367,7 @@ public class TestAttributedMeshReader extends TestCase {
 
         DataSource atts = reader.getAttributeCalculator();
         Vec uv = new Vec(3);
-        Vec color = new Vec(3);
+        Vec color = new Vec(4);
 
         // translate known values x + 0.333
         double tx = 0.333333;
