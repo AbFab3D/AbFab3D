@@ -135,12 +135,10 @@ public class ImageColorMap extends TransformableDataSource {
             val = new ImageToGrid2D(new ImageLoader((String)val), true);
         } else if (val instanceof ImageProducer) {
             val = new ImageToGrid2D((ImageProducer) val, true);
-        } else if (val instanceof ImageToGrid2D) {
-            // fine
         } else if (val instanceof Grid2DProducer) {
             // fine
         } else {
-            throw new IllegalArgumentException("Unsupported object for ImageColorMap: "  + val.getClass());
+            throw new IllegalArgumentException(fmt("Unsupported object for ImageColorMap: %s", val.getClass()));
         }
         mp_imageSource.setValue(val);
     }

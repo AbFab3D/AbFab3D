@@ -10,6 +10,7 @@ import java.util.HashSet;
 public class BaseMeshReader {
     public static final String
             EXT_STL = "stl",
+            EXT_OBJ = "obj",
             EXT_X3DB = "x3db",
             EXT_X3D = "x3d",
             EXT_X3DV = "x3dv",

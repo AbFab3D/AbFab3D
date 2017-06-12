@@ -105,6 +105,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     BooleanParameter mp_useThinLayer = new BooleanParameter("useThinLayer", "use thin layer representation",false);
     BooleanParameter mp_extendDistance = new BooleanParameter("extendDistance", "whether to extend distance outside of grid",true);
     DoubleParameter mp_thinLayerHalfThickness = new DoubleParameter("thinLayerHalfThickness", "half thickness of thin layer (in voxels)",2.0);
+    BooleanParameter mp_makeSolid = new BooleanParameter("makeSolid", "make interior data for closed mash",true);
 
     protected long m_maxGridSize = 1000L*1000L*1000L;
     protected long m_minGridSize = 1000L;
@@ -123,7 +124,8 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         mp_interpolationType,
         mp_useThinLayer,
         mp_thinLayerHalfThickness,
-        mp_extendDistance
+        mp_extendDistance,
+        mp_makeSolid
     };
 
     protected String m_savedParamString = "";
@@ -295,14 +297,25 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         double maxDistance = getMaxDistance(gridBounds);
         //TODO - use it 
         int interpolationType = mp_interpolationType.getValue();
-        
-        IndexedDistanceInterpolator distData = makeDistanceInterpolator(producer, gridBounds, maxDistance, 
-                                                                        mp_surfaceVoxelSize.getValue(), 
-                                                                        mp_shellHalfThickness.getValue(),
-                                                                        false, // preserveZero 
-                                                                        mp_useMultiPass.getValue(), 
-                                                                        mp_extendDistance.getValue(),
-                                                                        threadCount);
+       
+        IndexedDistanceInterpolator distData;
+        if(mp_makeSolid.getValue()) {
+            distData = makeSolidInterpolator(producer, gridBounds, maxDistance, 
+                                            mp_surfaceVoxelSize.getValue(), 
+                                            mp_shellHalfThickness.getValue(),
+                                            false, // preserveZero 
+                                            mp_useMultiPass.getValue(), 
+                                            mp_extendDistance.getValue(),
+                                            threadCount);
+        } else {
+            distData = makeSurfaceInterpolator(producer, gridBounds, maxDistance, 
+                                               mp_surfaceVoxelSize.getValue(), 
+                                               mp_shellHalfThickness.getValue(),
+                                               false, // preserveZero 
+                                               mp_useMultiPass.getValue(), 
+                                               mp_extendDistance.getValue(),
+                                               threadCount);            
+        }
         //TODO
         // handle mutli resolution case 
         
@@ -333,12 +346,12 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
 
     /**
-       creates distance interpolator for given triangle mesh 
+       creates distance interpolator for given triangle mesh with interior
        @param producer triangle mesh
        @param gridBounds for generated
        @param maxDistance maximal distance to calculate 
      */
-    static IndexedDistanceInterpolator makeDistanceInterpolator(TriangleProducer producer, 
+    static IndexedDistanceInterpolator makeSolidInterpolator(TriangleProducer producer, 
                                                                 Bounds gridBounds, 
                                                                 double maxDistance, 
                                                                 double surfaceVoxelSize,
@@ -417,6 +430,75 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
     }
 
+    /**
+       creates interpolator for mesh without interior
+     */
+    static IndexedDistanceInterpolator makeSurfaceInterpolator(TriangleProducer producer, 
+                                                               Bounds gridBounds, 
+                                                               double maxDistance, 
+                                                               double surfaceVoxelSize,
+                                                               double shellHalfThickness,
+                                                               boolean preserveZero,
+                                                               boolean useMultiPass, 
+                                                               boolean extendDistance, 
+                                                               int threadCount
+                                                               ){
+        long t0 = time();
+        int gridDim[] = gridBounds.getGridSize();
+                
+        Bounds surfaceBounds = gridBounds.clone();
+        double voxelSize = gridBounds.getVoxelSize();
+
+        int svratio = Math.max(1, (int)Math.round(1./surfaceVoxelSize));
+        // surface voxel size 
+        double svs = gridBounds.getVoxelSize()/svratio;
+        surfaceBounds.setVoxelSize(svs);
+        if((svratio & 1) == 0){ // even ratio
+            double shift = svs/2;
+            // shift grid of surface rasterization by half voxel to align centers of surface grid with center of volume grid
+            surfaceBounds.translate(shift,shift,shift);
+        }
+
+        // triangles rasterizer         
+        TriangleMeshSurfaceBuilder surfaceBuilder = new TriangleMeshSurfaceBuilder(surfaceBounds);        
+        
+        surfaceBuilder.initialize();
+        
+        // get mesh from producer 
+        producer.getTriangles(surfaceBuilder);
+
+        int pcount = surfaceBuilder.getPointCount();
+        if(DEBUG)printf("DistanceToMeshDataSource pcount: %d\n", pcount);
+        double pnts[][] = new double[3][pcount];
+        surfaceBuilder.getPoints(pnts[0], pnts[1], pnts[2]);
+        
+        // builder of shell around rasterized points 
+        PointSetShellBuilder shellBuilder = new PointSetShellBuilder(); 
+        shellBuilder.setShellHalfThickness(shellHalfThickness);
+        shellBuilder.setPoints(new PointSetCoordArrays(pnts[0], pnts[1], pnts[2]));
+        shellBuilder.setShellHalfThickness(shellHalfThickness);
+
+        // create index grid 
+        AttributeGrid indexGrid = createIndexGrid(gridBounds, voxelSize);
+        // thicken surface points into thin layer 
+        shellBuilder.execute(indexGrid);
+
+        printf("surface building time: %d ms\n", time() - t0);
+
+        double maxDistanceVoxels = maxDistance/voxelSize;       
+        if(maxDistanceVoxels > shellHalfThickness){
+            t0 = time();
+            // spread distances to the whole grid 
+            ClosestPointIndexer.getPointsInGridUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
+            ClosestPointIndexerMT.PI3_MT(pnts[0], pnts[1], pnts[2], maxDistanceVoxels, indexGrid, threadCount, useMultiPass);
+            ClosestPointIndexer.getPointsInWorldUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
+            printf("distance sweeping time: %d ms\n", time() - t0);
+        }
+        
+        return new IndexedDistanceInterpolator(pnts, indexGrid, maxDistance, extendDistance);        
+
+    }
+        
     static IndexedDistanceInterpolator makeAttributedDistanceInterpolator(AttributedTriangleProducer atProducer, 
                                                                           DataSource meshColorizer,
                                                                           Bounds gridBounds, 
