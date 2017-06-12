@@ -115,6 +115,12 @@ public class AttributedMeshReader extends BaseMeshReader implements AttributedTr
             } else {
                 m_producer = new AttributedX3DReader(m_path);
             }            
+        } else if(m_format.equalsIgnoreCase(EXT_OBJ)){
+            if (m_is != null) {
+                m_producer = new OBJReader(m_is);
+            } else {
+                m_producer = new OBJReader(m_path);
+            }            
         }
         
         if (m_producer == null) throw new IllegalArgumentException("Unsupported format: " + m_format + " path: " + m_path);
