@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import javax.vecmath.Vector3d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.core.Location;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -90,6 +91,23 @@ public class ParamJson {
         return vv;
     }
 
+    public static Object getJsonFromLocation(Location l){
+
+        if (l == null) return null;
+        
+        HashMap<String,Object> ret_val = new HashMap<>();
+        Vector3d point = l.getPoint();
+        if (point != null) {
+            ret_val.put("point",getJsonFromVector3d(point));
+        }
+
+        Vector3d normal = l.getNormal();
+        if (normal != null) {
+            ret_val.put("normal",getJsonFromVector3d(normal));
+        }
+
+        return ret_val;
+    }
 
     public static Object getJsonFromVector3dArray(Vector3d a[]){
 
@@ -124,7 +142,7 @@ public class ParamJson {
         case URI:
             return value;
         case LOCATION:            
-            return getJsonFromVector3dArray((Vector3d[])value);                            
+            return getJsonFromLocation((Location)value);
         case VECTOR_3D:
             return getJsonFromVector3d((Vector3d)value);            
         case SNODE:
@@ -205,6 +223,23 @@ public class ParamJson {
         double y = array.get(1).getAsDouble();
         double z = array.get(2).getAsDouble();
         return new Color(x,y,z);
+    }
+
+    public static Location getLocationFromJson(JsonElement value){
+        JsonObject obj = value.getAsJsonObject();
+        JsonElement pointObj = obj.get("point");
+        Vector3d point = null;
+        if (pointObj != null) {
+            point = getVector3dFromJson(pointObj);
+        }
+        JsonElement normalObj = obj.get("normal");
+        Vector3d normal = null;
+        if (normalObj != null) {
+            normal = getVector3dFromJson(normalObj);
+        }
+
+        return new  Location(point,normal);
+
     }
 
     public static AxisAngle4d getAxisAngle4dFromJson(JsonElement value){
@@ -323,7 +358,7 @@ public class ParamJson {
             param.setValue(getStringListFromJson(value));
             break;
         case LOCATION:
-            param.setValue(getVector3dArrayFromJson(value,2));
+            param.setValue(getLocationFromJson(value));
             break;
         case ENUM:
             param.setValue(value.getAsString());

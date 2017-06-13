@@ -559,6 +559,17 @@ public class ShapeJSEvaluator implements MaterialMapper {
             }
             Function main = (Function) o;
 
+            // Check for changed parameters, update argsMap
+            for(Parameter p : defs.values()) {
+                if (p.hasChanged()) {
+                    Object jp = convParameterToJSObject(p);
+
+                    if (jp != null) {
+                        argsMap.defineProperty(p.getName(), jp,0);
+                    }
+                }
+            }
+            
             Object[] args = new Object[]{argsMap};
             Object result2 = null;
 

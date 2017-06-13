@@ -188,14 +188,14 @@ public class ScriptManager {
                 //Reapply the ones changed from downloading
                 sr.eval.updateParams(downloadedParams);
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             if (e instanceof IllegalArgumentException) {
-                sr.evaluatedScript = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE,e.getMessage());
+                sr.evaluatedScript = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, e.getMessage());
                 return sr;
             }
-            
+
             e.printStackTrace();
-            sr.evaluatedScript = new EvaluatedScript(ShapeJSErrors.ErrorType.UNKNOWN_CRASH,e.getMessage());
+            sr.evaluatedScript = new EvaluatedScript(ShapeJSErrors.ErrorType.UNKNOWN_CRASH, e.getMessage());
             return sr;
         }
 
@@ -224,7 +224,7 @@ public class ScriptManager {
      * @throws NotCachedException
      */
     public ScriptResources prepareScript(String jobID, Script script, Map<String, Object> params) {
-        return prepareScript(jobID,script.getCode(),params);
+        return prepareScript(jobID, script.getCode(), params);
     }
 
     /**
@@ -252,20 +252,13 @@ public class ScriptManager {
         // Apply all values in first pass
         sr.eval.updateParams(params);
 
-        Map<String,Object> downloadedParams = downloadURI(sr, params);
+        Map<String, Object> downloadedParams = downloadURI(sr, params);
         //Reapply the ones changed from downloading
         sr.eval.updateParams(downloadedParams);
 
 
         if (DEBUG) printf("ScriptManager.updateParams parse: %d ms\n", time() - t0);
         t0 = time();
-
-        // Cache the job only if script eval is a success
-        if (sr.evaluatedScript.isSuccess()) {
-            if (!STOP_CACHING) {
-                cache.put(jobID, sr);
-            }
-        }
 
         if (DEBUG) printf("ScriptManager.updateParams: %d ms\n", time() - t0);
 
@@ -279,11 +272,26 @@ public class ScriptManager {
      * @throws NotCachedException
      */
     public ScriptResources executeScript(ScriptResources sr) {
-        long t0;
+        return executeScript(sr, null);
+    }
 
-        t0 = time();
+    /**
+     * Execute the script.  This calls the main method and returns the Scene
+     *
+     * @param sr The current script resources.  Used to insure jobID caching can't fail
+     * @return
+     * @throws NotCachedException
+     */
+    public ScriptResources executeScript(ScriptResources sr, String method) {
+        long t0 = time();
+
+        String methodToCall = "main";
+        if (method != null) methodToCall = method;
+
+        sr.evaluatedScript = sr.eval.executeScript(methodToCall);
+
         if (DEBUG) printf("ScriptManager Execute script.");
-        sr.evaluatedScript = sr.eval.executeScript("main");
+        sr.evaluatedScript = sr.eval.executeScript(methodToCall);
         if (DEBUG) printf("ScriptManager eval.executeScript() done time: %d ms\n", time() - t0);
 
         if (sr.evaluatedScript.isSuccess()) {
@@ -309,6 +317,7 @@ public class ScriptManager {
 
     /**
      * Reset the parameter values to their default state
+     *
      * @param jobID
      */
     public void resetParams(String jobID) throws NotCachedException {
@@ -341,8 +350,8 @@ public class ScriptManager {
      * @param changedParams The changed params or null for all
      * @return The resolved parameters, feed these through updateParams
      */
-    private Map<String,Object> downloadURI(ScriptResources resources, Map<String, Object> changedParams) {
-        Map<String,Object> ret_val = new HashMap<>();
+    private Map<String, Object> downloadURI(ScriptResources resources, Map<String, Object> changedParams) {
+        Map<String, Object> ret_val = new HashMap<>();
 
         Map<String, Parameter> evalParams = resources.getParams();
         String workingDirName = null;
@@ -355,7 +364,7 @@ public class ScriptManager {
 
             if (changedParams != null && !changedParams.containsKey(key)) continue;
 
-            if (DEBUG) printf("ScriptManager downloading param: %s\n",param.getName());
+            if (DEBUG) printf("ScriptManager downloading param: %s\n", param.getName());
 
             try {
                 if (param.getType() == ParameterType.URI) {
@@ -377,7 +386,7 @@ public class ScriptManager {
 
                     // If urlStr is in cache, make sure cached file exists
                     if (file != null && (new File(file)).exists()) {
-                        ret_val.put(key,file);
+                        ret_val.put(key, file);
 
                         continue;
                     }
@@ -442,14 +451,14 @@ public class ScriptManager {
                             cache = true;
                         }
 
-                        ret_val.put(key,localPath);
+                        ret_val.put(key, localPath);
 //                		System.out.println("*** uri, " + key + " : " + up.getValue());
                     } else if (urlStr.startsWith("data:")) {
                         if (workingDirName == null) {
                             workingDirPath = Files.createTempDirectory("downloaddata").toAbsolutePath().toString();
                         }
                         localPath = URIUtils.writeDataURIToFile(key, urlStr, workingDirPath);
-                        ret_val.put(key,localPath);
+                        ret_val.put(key, localPath);
                     } else if (urlStr.startsWith("urn:shapeways:")) {
                         if (media.get(urlStr) == null) {
                             throw new Exception("Invalid media resource: " + urlStr);
@@ -464,18 +473,18 @@ public class ScriptManager {
                             }
                         }
 
-                        ret_val.put(key,localPath);
+                        ret_val.put(key, localPath);
                         cache = true;
                     }
 
                     // Do not cache data URI
                     if (localPath != null && !urlStr.startsWith("data:") && !localPath.endsWith(BASE64_FILE_EXTENSION)) {
-                        ret_val.put(key,localPath);
+                        ret_val.put(key, localPath);
                     }
 
                     if (cache) {
                         localPath = ShapeJSGlobal.putURL(urlStr, localPath);
-                        ret_val.put(key,localPath);
+                        ret_val.put(key, localPath);
                     }
 
                 } else if (param.getType() == ParameterType.URI_LIST) {
