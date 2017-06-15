@@ -325,68 +325,57 @@ public class ParamJson {
     }
 
     public static void getParamValueFromJson(JsonElement value, Parameter param){
-        
+
+        if(DEBUG) printf("parseJson(%s -> %s)\n", value, param);
+        Object o = getObjectValueFromJson(value,param);
+        param.setValue(o);
+    }
+
+    public static Object getObjectValueFromJson(JsonElement value, Parameter param) {
+
         if(DEBUG) printf("parseJson(%s -> %s)\n", value, param);
         switch(param.getType()){
-        default:
-            throw new RuntimeException(fmt("getJsonValue(%s, type:%s) not implemented\n", value.getClass().getName(), param.getType()));
-        case BOOLEAN:
-            param.setValue(new Boolean(value.getAsJsonPrimitive().getAsBoolean()));  
-            break;
-        case DOUBLE:
-            param.setValue(new Double(value.getAsJsonPrimitive().getAsDouble()));  
-            break;  
-        case FLOAT:
-            param.setValue(new Float(value.getAsJsonPrimitive().getAsFloat()));            
-            break;
-        case BYTE:
-            param.setValue(new Byte(value.getAsJsonPrimitive().getAsByte()));
-            break;
-        case SHORT:
-            param.setValue(new Short(value.getAsJsonPrimitive().getAsShort()));
-            break;
-        case INTEGER:
-            param.setValue(new Integer(value.getAsJsonPrimitive().getAsInt()));
-            break;
-        case LONG:
-            param.setValue(new Long(value.getAsJsonPrimitive().getAsLong()));
-            break;
-        case STRING:
-            param.setValue(value.getAsString());
-            break;
-        case STRING_LIST:
-            param.setValue(getStringListFromJson(value));
-            break;
-        case LOCATION:
-            param.setValue(getLocationFromJson(value));
-            break;
-        case ENUM:
-            param.setValue(value.getAsString());
-            break;
-        case URI:
-            param.setValue(value.getAsString());            
-            break;
-        case SNODE:
-            param.setValue(getSNodeFromJson(value));
-            break;
-        case SNODE_LIST:
-            param.setValue(getSNodeListFromJson(value));
-            break;
-        case VECTOR_3D:
-            param.setValue(getVector3dFromJson(value));            
-            break;
-        case AXIS_ANGLE_4D:
-            param.setValue(getAxisAngle4dFromJson(value));            
-            break;
-        case COLOR:
-            param.setValue(getColorFromJson(value));            
-            break;
-        case USERDEFINED:
-            param.setValue(getUserDefinedFromJson((JsonObject)value,(UserDefinedParameter)param));
+            default:
+                throw new RuntimeException(fmt("getJsonValue(%s, type:%s) not implemented\n", value.getClass().getName(), param.getType()));
+            case BOOLEAN:
+                return new Boolean(value.getAsJsonPrimitive().getAsBoolean());
+            case DOUBLE:
+                return new Double(value.getAsJsonPrimitive().getAsDouble());
+            case FLOAT:
+                return new Float(value.getAsJsonPrimitive().getAsFloat());
+            case BYTE:
+                return new Byte(value.getAsJsonPrimitive().getAsByte());
+            case SHORT:
+                return new Short(value.getAsJsonPrimitive().getAsShort());
+            case INTEGER:
+                return new Integer(value.getAsJsonPrimitive().getAsInt());
+            case LONG:
+                return new Long(value.getAsJsonPrimitive().getAsLong());
+            case STRING:
+                return value.getAsString();
+            case STRING_LIST:
+                return getStringListFromJson(value);
+            case LOCATION:
+                return getLocationFromJson(value);
+            case ENUM:
+                return value.getAsString();
+            case URI:
+                return value.getAsString();
+            case SNODE:
+                return getSNodeFromJson(value);
+            case SNODE_LIST:
+                return getSNodeListFromJson(value);
+            case VECTOR_3D:
+                return getVector3dFromJson(value);
+            case AXIS_ANGLE_4D:
+                return getAxisAngle4dFromJson(value);
+            case COLOR:
+                return getColorFromJson(value);
+            case USERDEFINED:
+                return getUserDefinedFromJson((JsonObject)value,(UserDefinedParameter)param);
         }
-
     }
-    
+
     public static void getParamValuesFromJson(JsonObject obj, Parameter params[]){
 
         if(DEBUG) printf("parseJson(%s -> %s)\n", obj, params);
@@ -440,7 +429,7 @@ public class ParamJson {
     public static void getParamValueFromJson(String json, Parameter param){
 
         JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(json).getAsJsonObject();
+        JsonElement obj = parser.parse(json);
         getParamValueFromJson(obj, param);
         
     }
@@ -462,6 +451,29 @@ public class ParamJson {
         Gson gson = new GsonBuilder().create();
         return gson.toJson(getJsonValue(param.getValue(), param.getType()));  
 
+    }
+
+    /**
+     parses and get's value of parameter from json string
+     */
+    public static Object getValueFromJson(String json, Parameter param) {
+
+        if (json == null) return null;
+
+        // Handle null value setting.  JSON doesn't really make this concept clear
+        switch(param.getType()) {
+            case URI:
+            case STRING:
+                break;
+            default:
+                if (json.equals("null") || json.equals("\"null\"")) {
+                    return null;
+                }
+        }
+        
+        JsonParser parser = new JsonParser();
+        JsonElement obj = parser.parse(json);
+        return getObjectValueFromJson(obj, param);
     }
 
 }

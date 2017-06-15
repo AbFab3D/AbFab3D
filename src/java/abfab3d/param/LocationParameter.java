@@ -26,7 +26,7 @@ import static abfab3d.core.Output.printf;
  */
 public class LocationParameter extends BaseParameter implements Cloneable {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private static final Vector3d DEFAULT_POINT = null;
     private static final Vector3d DEFAULT_NORMAL = null;

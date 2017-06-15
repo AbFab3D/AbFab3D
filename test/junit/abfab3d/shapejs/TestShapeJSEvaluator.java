@@ -133,4 +133,74 @@ public class TestShapeJSEvaluator extends TestCase {
 
     }
 
+    public void testUserDefined() {
+        URI uri = new File("test/scripts/user_defined_type.js").toURI();
+        Script s = new Script(uri);
+
+        ScriptManager sm = ScriptManager.getInstance();
+        String jobID = UUID.randomUUID().toString();
+
+        ScriptResources sr = sm.prepareScript(jobID,s.getCode(),null);
+        EvaluatedScript result = sr.eval.getResult();
+
+        assertTrue("Not success", result.isSuccess());
+
+        sr = sm.executeScript(sr);
+        result = sr.eval.getResult();
+
+        assertTrue("Not success", result.isSuccess());
+
+        String[] prints = result.getPrintLogs();
+
+        printf("Prints:\n");
+        if (prints != null) {
+            for(int i=0; i < prints.length; i++) {
+                printf(prints[i]);
+            }
+        }
+        assertTrue("Must contain three prints",prints.length == 3);
+
+        for(int i=0; i < prints.length; i++) {
+            assertFalse("still in urn form",prints[i].contains("undefined"));
+        }
+
+    }
+
+    /**
+     * TODO: This is not getting the correct values yet but running out of time.
+     * createParameter needs to be debugged for handling defaultValue
+     */
+    public void testUserDefinedDefaultVal() {
+        URI uri = new File("test/scripts/user_defined_type_defaultVal.js").toURI();
+        Script s = new Script(uri);
+
+        ScriptManager sm = ScriptManager.getInstance();
+        String jobID = UUID.randomUUID().toString();
+
+        ScriptResources sr = sm.prepareScript(jobID,s.getCode(),null);
+        EvaluatedScript result = sr.eval.getResult();
+
+        assertTrue("Not success", result.isSuccess());
+
+        sr = sm.executeScript(sr);
+        result = sr.eval.getResult();
+
+        assertTrue("Not success", result.isSuccess());
+
+        String[] prints = result.getPrintLogs();
+
+        printf("Prints:\n");
+        if (prints != null) {
+            for(int i=0; i < prints.length; i++) {
+                printf(prints[i]);
+            }
+        }
+        assertTrue("Must contain three prints",prints.length == 3);
+
+        for(int i=0; i < prints.length; i++) {
+            assertFalse("still in urn form",prints[i].contains("undefined"));
+        }
+
+    }
+
 }

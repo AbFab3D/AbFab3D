@@ -47,7 +47,7 @@ import static abfab3d.core.Output.time;
  * @author Alan Hudson
  */
 public class ScriptManager {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final boolean STOP_CACHING = false;
     private static final int JOB_RETAIN_MS = 60 * 60 * 1000;
 
@@ -249,12 +249,16 @@ public class ScriptManager {
             throw new NotCachedException();
         }
 
-        // Apply all values in first pass
-        sr.eval.updateParams(params);
-
-        Map<String, Object> downloadedParams = downloadURI(sr, params);
-        //Reapply the ones changed from downloading
-        sr.eval.updateParams(downloadedParams);
+        try {
+            // Apply all values in first pass
+            sr.eval.updateParams(params);
+            Map<String, Object> downloadedParams = downloadURI(sr, params);
+            //Reapply the ones changed from downloading
+            sr.eval.updateParams(downloadedParams);
+        } catch(IllegalArgumentException iae) {
+            sr.evaluatedScript = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, iae.getMessage());
+            return sr;
+        }
 
 
         if (DEBUG) printf("ScriptManager.updateParams parse: %d ms\n", time() - t0);
@@ -364,10 +368,10 @@ public class ScriptManager {
 
             if (changedParams != null && !changedParams.containsKey(key)) continue;
 
-            if (DEBUG) printf("ScriptManager downloading param: %s\n", param.getName());
-
             try {
                 if (param.getType() == ParameterType.URI) {
+                    if (DEBUG) printf("ScriptManager downloading param: %s   mapper: %s\n", param.getName(),uriMapper);
+
                     URIParameter up = (URIParameter) param;
                     urlStr = up.getValue();
 
@@ -377,6 +381,8 @@ public class ScriptManager {
                     if (uriMapper != null) {
                         URIMapper.MapResult mr = uriMapper.mapURI(urlStr);
                         urlStr = mr.uri;
+
+                        if (DEBUG) printf("Mapped url: %s  sensitive: %b\n",urlStr,mr.sensitiveData);
                         if (mr.sensitiveData) {
                             resources.sensitiveData = true;
                         }

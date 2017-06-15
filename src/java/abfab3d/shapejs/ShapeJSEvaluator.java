@@ -11,13 +11,12 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
-import abfab3d.core.Color;
 import abfab3d.core.Location;
 import abfab3d.core.Material;
 import abfab3d.param.*;
 import abfab3d.util.Unit;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
@@ -45,7 +44,7 @@ import static abfab3d.core.Output.time;
  */
 public class ShapeJSEvaluator implements MaterialMapper {
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
     final static boolean DEBUG_SECURITY = false;
 
     /** Packages allowed to be imported.  Security mechanism */
@@ -66,22 +65,23 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
     private GlobalScope scope;
     private ErrorReporterWrapper errors;
-    private NativeObject argsMap;
     private LinkedHashMap<String, Parameter> types;
     private LinkedHashMap<String, Parameter> defs;
 
     /** Parameters as Javascript Objects */
     private LinkedHashMap<String, Scriptable> jsObjects = new LinkedHashMap<>();
 
-    private HashSet<String> defaultProvided;
     private Scene scene;
 
     /** Should we run this in a sandbox, default it true */
     private boolean sandboxed;
 
-    private static Type stringListType = new TypeToken<List<String>>() {}.getType();
-    private static Type doubleListType = new TypeToken<List<Double>>() {}.getType();
-    private static Type axisAngle4DType = new TypeToken<AxisAngle4d>() {}.getType();
+    private static Type stringListType = new TypeToken<List<String>>() {
+    }.getType();
+    private static Type doubleListType = new TypeToken<List<Double>>() {
+    }.getType();
+    private static Type axisAngle4DType = new TypeToken<AxisAngle4d>() {
+    }.getType();
 
     // Import list baked down to a string for speed
     private static String imports;
@@ -132,7 +132,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
         this.sandboxed = true;
         types = new LinkedHashMap<String, Parameter>();
         defs = new LinkedHashMap<String, Parameter>();
-        defaultProvided = new HashSet<String>();
 
         initHeader();
     }
@@ -140,7 +139,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
     public ShapeJSEvaluator(boolean sandboxed) {
         new Exception().printStackTrace();
         this.sandboxed = sandboxed;
-        defaultProvided = new HashSet<String>();
 
         initHeader();
     }
@@ -311,11 +309,11 @@ public class ShapeJSEvaluator implements MaterialMapper {
      * Clear out the resources used for a job
      */
     public void clear() {
+        if (DEBUG) printf("Clearing defs2\n");
         result = null;
         types.clear();
         defs.clear();
         scope = null;
-        argsMap = null;
         scene = null;
     }
 
@@ -326,7 +324,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
      * @param params The Parameter level object values
      * @return
      */
-    public void prepareScript(String script, Map<String,Object> params) {
+    public void prepareScript(String script, Map<String, Object> params) {
         long t0 = time();
 
         if (sandboxed && !ContextFactory.hasExplicitGlobal()) {
@@ -345,11 +343,13 @@ public class ShapeJSEvaluator implements MaterialMapper {
         Context cx = Context.enter();
         Object scene = null;
 
+        /*
         if (script != null && this.script != null) {
             // reset scope to clear state for new script
             resetParams();
             clear();
         }
+        */
         try {
             Context.ClassShutterSetter setter = cx.getClassShutterSetter();
             DebugLogger.clearLog(cx);
@@ -357,7 +357,10 @@ public class ShapeJSEvaluator implements MaterialMapper {
             if (sandboxed && setter != null) {
                 setter.setClassShutter(getShutter());
             }
-            if (scope == null) {
+
+            // Use a new scope on each script change
+            if (script != null) {
+                long t1 = time();
                 ContextFactory contextFactory = null;
                 contextFactory = new ContextFactory();
 
@@ -367,7 +370,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
                 scope = new GlobalScope();
                 scope.initShapeJS(contextFactory);
-                argsMap = new NativeObject();
             }
 
             if (script == null && this.script == null) {
@@ -376,6 +378,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
             // Only parse the script if a new version was passed in
             if (script != null) {
+                if (DEBUG) printf("Parsing new script\n");
                 this.script = addImports(script);
 
 
@@ -404,7 +407,35 @@ public class ShapeJSEvaluator implements MaterialMapper {
                     Object uiParams = scope.get("params", scope);
                     if (uiParams == null || uiParams == UniqueTag.NOT_FOUND) uiParams = scope.get("uiParams", scope);
 
-                    defs = parseDefinition(uiParams, false);
+                    LinkedHashMap<String, Parameter> newDefs = parseDefinition(uiParams, false);
+
+                    if (DEBUG) printf("Handling new param defs.  this: %s current defs: %s\n", this, defs);
+                    // Retain values
+                    HashMap<String, Parameter> toRemove = new HashMap<>(defs);
+                    for (Parameter p : newDefs.values()) {
+                        toRemove.remove(p.getName());
+
+                        if (defs.containsKey(p.getName())) {
+                            // already exists, retain value if available
+                            Parameter old = defs.get(p.getName());
+                            if (DEBUG)
+                                printf("Defs already exists: %s  keeping value: %s\n", p.getName(), old.getValue());
+                            p.setValue(old.getValue());
+                        }
+
+                        newDefs.put(p.getName(), p);
+                    }
+
+                    for (Parameter p : toRemove.values()) {
+                        if (DEBUG) printf("Clearing def: %s\n", p.getName());
+                        defs.remove(p.getName());
+                    }
+
+                    defs = newDefs;
+                    if (DEBUG) {
+                        printf("New Defs: \n");
+                        printf("%s\n", defs);
+                    }
                 } catch (ClassCastException cce) {
                     result = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, cce.getMessage(), getPrintLogs(cx), time() - t0);
                     return;
@@ -412,24 +443,13 @@ public class ShapeJSEvaluator implements MaterialMapper {
             }
 
             updateParamMap(params);
-
-            // Populate default values for any unspecified value
-            for(Parameter p : defs.values()) {
-                if (!argsMap.containsKey(p.getName())) {
-                    Object jo = convParameterToJSObject(p);
-
-                    if (jo != null) {
-                        argsMap.defineProperty(p.getName(), jo, 0);
-                    }
-                }
-            }
         } finally {
             Context.exit();
         }
 
         if (DEBUG) printf("Eval worked.  defs: %s\n", defs);
 
-        result = new EvaluatedScript(true, script,null, null, null, null, defs,(time() - t0));
+        result = new EvaluatedScript(true, script, null, null, null, null, defs, (time() - t0));
     }
 
     /**
@@ -438,7 +458,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
      * @param params The Parameter level object values
      * @return
      */
-    public void updateParams(Map<String,Object> params) {
+    public void updateParams(Map<String, Object> params) {
         long t0 = time();
 
         if (DEBUG) printf("updateScript(this: %s script, sandbox: %b)\n", this, sandboxed);
@@ -456,22 +476,11 @@ public class ShapeJSEvaluator implements MaterialMapper {
             }
 
             updateParamMap(params);
-
-            // Populate default values for any unspecified value
-            for(Parameter p : defs.values()) {
-                if (!argsMap.containsKey(p.getName())) {
-                    Object jo = convParameterToJSObject(p);
-
-                    if (jo != null) {
-                        argsMap.defineProperty(p.getName(), jo, 0);
-                    }
-                }
-            }
         } finally {
             Context.exit();
         }
 
-        result = new EvaluatedScript(true, script, null, null, null, null, defs,(time() - t0));
+        result = new EvaluatedScript(true, script, null, null, null, null, defs, (time() - t0));
     }
 
     /**
@@ -480,6 +489,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
     public void resetParams() {
         Context cx = Context.enter();
 
+        if (DEBUG) printf("*** ShapeJSEval. Resetting params ***\n");
         try {
             Context.ClassShutterSetter setter = cx.getClassShutterSetter();
             DebugLogger.clearLog(cx);
@@ -491,19 +501,12 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 throw new IllegalArgumentException("Cannot update params, call prepareScript first");
             }
 
-            argsMap = new NativeObject();
             // Reset params to their defaultValue
             for (Map.Entry<String, Parameter> entry : defs.entrySet()) {
                 String key = entry.getKey();
                 Parameter param = entry.getValue();
 
                 param.setValue(param.getDefaultValue());
-
-                Object jp = convParameterToJSObject(param);
-
-                if (jp != null) {
-                    argsMap.defineProperty(key, jp, 0);
-                }
             }
         } finally {
             Context.exit();
@@ -542,7 +545,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
             if (method == null) {
 
-                result = new EvaluatedScript(true, script, null, null, null, null, defs,(time() - t0));
+                result = new EvaluatedScript(true, script, null, null, null, null, defs, (time() - t0));
 
                 // Get all errors in a string array
                 addErrors(errors, result);
@@ -559,17 +562,10 @@ public class ShapeJSEvaluator implements MaterialMapper {
             }
             Function main = (Function) o;
 
-            // Check for changed parameters, update argsMap
-            for(Parameter p : defs.values()) {
-                if (p.hasChanged()) {
-                    Object jp = convParameterToJSObject(p);
+            // Create args map from current parameters.  Ideally we'd be able to cache these but changed to easier logic to debug for now
+            NativeObject argsMap = createArgsMap();
+            if (DEBUG) printArgsMap(argsMap);
 
-                    if (jp != null) {
-                        argsMap.defineProperty(p.getName(), jp,0);
-                    }
-                }
-            }
-            
             Object[] args = new Object[]{argsMap};
             Object result2 = null;
 
@@ -621,7 +617,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
                 String[] print_logs = prints != null ? (String[]) prints.toArray(new String[prints.size()]) : null;
 
-                result = new EvaluatedScript(true, script, scene, print_logs, null, null, defs,time() - t0);
+                result = new EvaluatedScript(true, script, scene, print_logs, null, null, defs, time() - t0);
 
                 // Get all errors in a string array
                 addErrors(errors, result);
@@ -638,6 +634,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
     /**
      * Updates the parameter map with new values
+     *
      * @param newParams The new parameter values.  use NULL to indicate parameter value removal
      */
     private void updateParamMap(Map<String, Object> newParams) {
@@ -649,27 +646,40 @@ public class ShapeJSEvaluator implements MaterialMapper {
             Parameter param = defs.get(key);
 
             if (param == null) {
-                printf("Ignoring unknown param: %s\n",key);
+                printf("Ignoring unknown param: %s\n", key);
                 continue;
             }
 
             if (entry.getValue() == null) {
                 if (DEBUG) printf("Removing arg: %s\n", entry.getKey());
                 param.setValue(param.getDefaultValue());
-                argsMap.remove(key);
             } else {
                 param.setValue(entry.getValue());
-                Object jp = convParameterToJSObject(param);
-
-                if (jp != null) {
-                    argsMap.defineProperty(key, jp,0);
-                }
             }
         }
     }
 
     /**
+     * Create Javascript objects for all defined params
+     */
+    private NativeObject createArgsMap() {
+        NativeObject argsMap = new NativeObject();
+
+        for (Parameter p : defs.values()) {
+            Object jo = convParameterToJSObject(p);
+
+            if (jo != null) {
+                if (DEBUG) printf("Adding arg: %s -> %s\n", p.getName(), jo);
+                argsMap.defineProperty(p.getName(), jo, 0);
+            }
+        }
+
+        return argsMap;
+    }
+
+    /**
      * Convert a Parameter into a Javascript Native Object
+     *
      * @param param
      * @return The object to use at the Javascript level
      */
@@ -718,6 +728,19 @@ public class ShapeJSEvaluator implements MaterialMapper {
             case DATE_TIME_LIST:
                 jsVal = param.getValue();
                 break;
+            case USERDEFINED:
+                if (param.getValue() == null) return null;
+                UserDefinedParameter udp = (UserDefinedParameter) param;
+
+                NativeObject result = new NativeObject();
+                Map<String,Parameter> props = udp.getProperties();
+                for(Map.Entry<String,Parameter> p : props.entrySet()) {
+                    result.defineProperty(p.getKey(),convParameterToJSObject(p.getValue()),0);
+                }
+                jsVal = result;
+                break;
+            case USERDEFINED_LIST:
+                throw new IllegalArgumentException("Unhandled case");
             default:
                 // For complex items wrap them in Scriptables and return
                 if (param.getValue() == null) return null;
@@ -728,7 +751,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
         return jsVal;
     }
-    
+
     private ClassShutter getShutter() {
         if (shutter == null) {
             shutter = new ClassShutter() {
@@ -847,6 +870,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
     /**
      * Create a parameter from its Javascript definition.  The defaultVal is a JSON encoded value that may allow more human typeable definitions
+     *
      * @param no
      * @return
      */
@@ -868,7 +892,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
         }
 
         Object defaultValue = no.get("defaultVal");
-        if (defaultValue != null) defaultProvided.add(name);
         if (onChange == null) onChange = "main";
 
         String btype = type;
@@ -1186,7 +1209,16 @@ public class ShapeJSEvaluator implements MaterialMapper {
                     if (types.get(type) != null) {
                         pd = ((UserDefinedParameter) types.get(type)).clone();
                         pd.setName(name);
-                        defaultProvided.add(name);
+
+                        if (defaultValue != null) {
+                            // TODO: Handle only single level of params right now
+                            NativeObject uddv = (NativeObject) defaultValue;
+                            HashMap<String,Object> result = new HashMap<>();
+                            for(Map.Entry entry : uddv.entrySet()) {
+                                result.put((String)entry.getKey(),entry.getValue());
+                            }
+                            pd.setValue(result);
+                        }
                     } else {
                         pd = new UserDefinedParameter(name, desc);
                         val = no.get("properties");
@@ -1200,8 +1232,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
                                     Parameter udp = createParameter(prop);
                                     ((UserDefinedParameter) pd).addProperty(udp.getName(), udp);
                                 }
-
-                                if (pd.getDefaultValue() != null) defaultProvided.add(name);
                             }
                         }
                     }
@@ -1237,10 +1267,9 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
         if (clear) {
             types.clear();
-            defs.clear();
-            defaultProvided.clear();
         }
 
+        if (DEBUG) printf("Parsing defs.  Params: %s\n", params);
         if (params == null || !(params instanceof NativeArray)) {
             return ret_val;
         }
@@ -1308,5 +1337,12 @@ public class ShapeJSEvaluator implements MaterialMapper {
             msg = msg.substring(0, idx - 1);
         }
         return msg;
+    }
+
+    private void printArgsMap(NativeObject argsMap) {
+        printf("Args Map:\n");
+        for (Map.Entry<Object, Object> entry : argsMap.entrySet()) {
+            printf("%s -> %s\n", entry.getKey(), entry.getValue());
+        }
     }
 }

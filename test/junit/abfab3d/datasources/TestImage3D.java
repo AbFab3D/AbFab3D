@@ -159,7 +159,6 @@ public class TestImage3D extends TestCase {
                                img, 0, new ColorMapperDistance(distanceBand));
         ImageIO.write(image, "png", new File("/tmp/00_sliceXZ_v0.png"));
         */
-        img.setVersion(1);
         img.initialize();
         image = sm.renderSlice(nux, nvz,
             new Vector3d(bounds.xmin, ys, bounds.zmin),
@@ -178,7 +177,6 @@ public class TestImage3D extends TestCase {
                                img, 0, new ColorMapperDistance(distanceBand));
         ImageIO.write(image, "png", new File("/tmp/00_sliceXY_v0.png"));
         */
-        img.setVersion(1);
         img.initialize();
         image = sm.renderSlice(nux, nvy,
             new Vector3d(bounds.xmin, bounds.ymin, zs),
@@ -211,7 +209,6 @@ public class TestImage3D extends TestCase {
         img.set("voxelSize", 0.5 * MM);
         //img.set("pixelsPerVoxel", 1.);
         img.set("maxDist", 10 * MM);
-        img.setVersion(1);
 
         Bounds bounds = new Bounds(-sizeX / 2, sizeX / 2, -sizeY / 2, sizeY / 2, -sizeZ / 2, sizeZ / 2);
         bounds.expand(margin);
