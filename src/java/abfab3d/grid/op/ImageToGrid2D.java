@@ -39,9 +39,9 @@ import static abfab3d.util.ImageUtil.getImageData_INT_ARGB;
  */
 public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer {
 
-    static final double DEFAULT_PIXEL_SIZE = PT; // 1 point 
+    static final boolean DEBUG = false;
+    static final double DEFAULT_PIXEL_SIZE = PT; // 1 point
     static final boolean CACHING_ENABLED = true;
-    static final boolean DEBUG = true;
 
     SNodeParameter mp_imageProducer = new SNodeParameter("imageProducer", "image producer");
     DoubleParameter mp_pixelSize = new DoubleParameter("pixelSize", "pixel Size", DEFAULT_PIXEL_SIZE);

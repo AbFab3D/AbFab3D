@@ -58,9 +58,9 @@ import static abfab3d.core.Output.printf;
    class to produce Grid2D from image file
  */
 public class ImageLoader extends BaseParameterizable implements ImageProducer {
-    
+
+    static final boolean DEBUG = false;
     static final boolean CACHING_ENABLED = true;
-    static final boolean DEBUG = true;
 
     URIParameter mp_uri = new URIParameter("uri", "image path");
     IntParameter mp_svgRasterizationWidth = new IntParameter("svgRasterizationWidth", "svg Rasterizattion Width", 1000);

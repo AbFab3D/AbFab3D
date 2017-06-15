@@ -32,7 +32,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class URIUtils {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
 	public static final Map<String, String> mimeTypeMapper;
 	static {

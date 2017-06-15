@@ -51,7 +51,9 @@ public class SNodeListParameter extends BaseParameter {
 
         super(name, desc);
         m_nodeFactory = nodeFactory;
-        setValue(initialValue);
+
+        ArrayList copy = new ArrayList(initialValue);
+        setValue(copy);
     }
 
     /**

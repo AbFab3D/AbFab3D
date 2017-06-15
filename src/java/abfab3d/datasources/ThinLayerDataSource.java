@@ -76,7 +76,7 @@ public class ThinLayerDataSource extends TransformableDataSource {
 
     static final double HALF = 0.5;
     static final int HI_GRID_BLOCK_ORDER = 3;
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static int debugCount = 1000;
     protected boolean m_useCombinedGrid = true;
 

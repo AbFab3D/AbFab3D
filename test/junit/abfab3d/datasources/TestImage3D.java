@@ -204,7 +204,6 @@ public class TestImage3D extends TestCase {
         img.set("voxelSize", 0.5 * MM);
         //img.set("pixelsPerVoxel", 1.);
         img.set("maxDist", 10 * MM);
-        img.setVersion(1);
 
         Bounds bounds = new Bounds(-sizeX / 2, sizeX / 2, -sizeY / 2, sizeY / 2, -sizeZ / 2, sizeZ / 2);
         bounds.expand(margin);

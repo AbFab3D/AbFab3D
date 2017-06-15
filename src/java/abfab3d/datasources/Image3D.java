@@ -350,11 +350,8 @@ public class Image3D extends TransformableDataSource {
     }
 
 
-
-    int m_version = 1;
-
-    public void setVersion(int version) {
-        m_version = version;
+    public void setUseImageProcessing(boolean val) {
+        mp_useImageProcessing.setValue(val);
     }
 
     /**

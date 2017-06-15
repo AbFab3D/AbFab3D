@@ -14,6 +14,7 @@ import abfab3d.core.Color;
 import abfab3d.param.*;
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
+import org.ietf.uri.IllegalActionException;
 
 import javax.vecmath.AxisAngle4d;
 import javax.vecmath.Vector3d;
@@ -66,7 +67,7 @@ public class Project {
 
     public void save(String file) throws IOException {
         EvaluatedScript escript = m_script.getEvaluatedScript();
-        Map<String, Parameter> scriptParams = escript.getParamMap();
+        Map<String, Parameter> scriptParams = escript.getResult().getParamMap();
         Gson gson = JSONParsing.getJSONParser();
 
         String code = escript.getCode();
@@ -251,14 +252,20 @@ public class Project {
             String paramsJson = FileUtils.readFileToString(new File(paramFilePath), "UTF-8");
             Map<String, Object> scriptParams = gson.fromJson(paramsJson, Map.class);
 
-            evalResult = evaluator.evalScript(code, null, scriptParams);
+            // TODO: Not used right now, need to think through how this might work
+            // JSON String will become a map of string:object which is not what's expected downstream
+            throw new IllegalActionException("Fix me");
+            /*
+            evaluator.prepareScript(code,scriptParams);
+            evalResult = evaluator.executeScript(null);
+            */
         } else {
-            evalResult = evaluator.evalScript(code, null, null);
+            evaluator.prepareScript(code,null);
+            evalResult = evaluator.executeScript(null);
         }
 
         URI uri = new File(file).toURI();
         Script script = new Script(uri, evalResult);
-        Map<String, Parameter> scriptParams = evalResult.getParamMap();
 
         ret_val.setScript(script);
 

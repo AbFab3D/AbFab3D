@@ -12,6 +12,7 @@ package abfab3d.shapejs;
 
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameter;
+import abfab3d.param.Parameterizable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,11 +26,15 @@ import static abfab3d.core.Output.printf;
  *
  * @author Alan Hudson
  */
-public class EvaluatedScript extends BaseParameterizable {
+public class EvaluatedScript {
     
     final boolean DEBUG = true;
 
-    private Scene m_scene;
+    /** Result of executing the scripts main */
+    private Parameterizable m_result;
+
+    /** Parameters defined in the script */
+    private Map<String, Parameter> scriptParams;
 
     /** Output from any prints in the script */
     private String[] printLogs;
@@ -56,7 +61,7 @@ public class EvaluatedScript extends BaseParameterizable {
 
     public EvaluatedScript(boolean success, String code, Scene scene, String[] printLogs, List<Map<String, String>> warningLogs,
                            List<Map<String, String>> errorLogs, long evalTime) {
-        m_scene = scene;
+        m_result = scene;
         this.code = code;
         this.printLogs = printLogs;
         this.warningLogs = warningLogs;
@@ -69,7 +74,8 @@ public class EvaluatedScript extends BaseParameterizable {
                            List<Map<String, String>> errorLogs, Map<String, Parameter> scriptParams, long evalTime) {
 
         this(success, code, scene, printLogs, warningLogs, errorLogs, evalTime);
-        setParamMap(scriptParams);
+
+        this.scriptParams = scriptParams;
     }
 
     public EvaluatedScript(List<Map<String, String>> errorLogs, long evalTime) {
@@ -115,12 +121,16 @@ public class EvaluatedScript extends BaseParameterizable {
         addErrorLog(type, msg);
     }
 
+    public Map<String, Parameter> getScriptParams() {
+        return scriptParams;
+    }
+
     public String getCode() {
         return code;
     }
 
-    public Scene getScene() {
-        return m_scene;
+    public Parameterizable getResult() {
+        return m_result;
     }
 
     public String[] getPrintLogs() {
@@ -165,11 +175,6 @@ public class EvaluatedScript extends BaseParameterizable {
         this.dataSize = dataSize;
     }
 
-
-    public void setParamMap(Map<String, Parameter> params) {
-        clearParams();
-        addParams(params);
-    }
 
     public List<Map<String, String>> getWarningLogs() {
         return warningLogs;
