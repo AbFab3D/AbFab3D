@@ -120,22 +120,38 @@ public class TestImage3D extends TestCase {
         double sizeX = 20 * MM;
         double sizeY = 20 * MM;
         double margin = 5 * MM;
-        double distanceBand = 1 * MM;
-        Image3D img = new Image3D("test/images/blackcircle_blur.png", sizeX, sizeY, sizeZ);
+        double distanceBand = 0.2 * MM;
+        double voxelSize = 0.2*MM;
+        int imagePlace = Image3D.IMAGE_PLACE_TOP;
+        int imageType = Image3D.IMAGE_TYPE_EMBOSSED;
+        double rounding = 0. * MM;
+        double baseThreshold = 0;
+        double blurWidth = 0.1 * MM;
+        int tilesX = 1;
+        int tilesY = 1;
+        double baseThickness = 0;
+        double maxDistance = 10*MM;
+        double pixelsPerVoxel = 1;
+
+        //String imagePath = "test/images/circular_gradient.svg";
+        String imagePath = "test/images/blackcircle_blur.svg";
+
+
+        Image3D img = new Image3D(imagePath, sizeX, sizeY, sizeZ);
         img.set("useGrayscale", true);
-        img.set("tilesX", 1);
-        img.set("tilesY", 1);
-        img.set("blurWidth", 0.1 * MM);
-        img.set("baseThreshold", 0.);
-        img.set("rounding", 0. * MM);
-        img.set("baseThickness", 0.);
-        //img.set("imageType", Image3D.IMAGE_TYPE_ENGRAVED);
-        img.set("imageType", Image3D.IMAGE_TYPE_EMBOSSED);
-        //img.set("imagePlace", Image3D.IMAGE_PLACE_BOTH);
-        img.set("imagePlace", Image3D.IMAGE_PLACE_TOP);
-        img.set("voxelSize", 1 * MM);
-        img.set("pixelsPerVoxel", 1.);
-        img.set("maxDist", 10 * MM);
+        img.set("tilesX", tilesX);
+        img.set("tilesY", tilesY);
+        img.set("blurWidth", blurWidth);
+        img.set("baseThreshold", baseThreshold);
+        img.set("rounding", rounding);
+        img.set("baseThickness", baseThickness);
+        img.set("imageType", imageType);
+        img.set("imagePlace", imagePlace);
+        img.set("voxelSize", voxelSize);
+        img.set("pixelsPerVoxel", pixelsPerVoxel);
+        img.set("maxDist", maxDistance);
+        img.initialize();
+
         Bounds bounds = new Bounds(-sizeX / 2, sizeX / 2, -sizeY / 2, sizeY / 2, -sizeZ / 2, sizeZ / 2);
         bounds.expand(margin);
 
@@ -144,23 +160,11 @@ public class TestImage3D extends TestCase {
         int nvy = (int) (nux * bounds.getSizeY() / bounds.getSizeX());
         int nvz = (int) (nux * bounds.getSizeZ() / bounds.getSizeX());
         double ys = (bounds.ymin + bounds.ymax) / 2; // y coord of xz slice
-        double zs = (bounds.ymin + bounds.ymax) / 2; // z coordoinate of xy slice
+        double zs = (bounds.ymin + bounds.ymax) / 2; // z coordinate of xy slice
 
         SliceMaker sm = new SliceMaker();
 
         BufferedImage image;
-        /*
-        img.setVersion(0);
-        img.initialize();
-        image = sm.renderSlice(nux, nvz, 
-                               new Vector3d(bounds.xmin, ys, bounds.zmin),
-                               new Vector3d(bounds.xmax, ys, bounds.zmin),
-                               new Vector3d(bounds.xmin, ys, bounds.zmax), 
-                               img, 0, new ColorMapperDistance(distanceBand));
-        ImageIO.write(image, "png", new File("/tmp/00_sliceXZ_v0.png"));
-        */
-        img.setVersion(1);
-        img.initialize();
         image = sm.renderSlice(nux, nvz,
             new Vector3d(bounds.xmin, ys, bounds.zmin),
             new Vector3d(bounds.xmax, ys, bounds.zmin),
@@ -168,18 +172,6 @@ public class TestImage3D extends TestCase {
             img, 0, new ColorMapperDistance(distanceBand));
         ImageIO.write(image, "png", new File("/tmp/00_sliceXZ_v1.png"));
 
-        /*
-        img.setVersion(0);
-        img.initialize();
-        image = sm.renderSlice(nux, nvy, 
-                               new Vector3d(bounds.xmin, bounds.ymin,zs),
-                               new Vector3d(bounds.xmax, bounds.ymin,zs),
-                               new Vector3d(bounds.xmin, bounds.ymax,zs), 
-                               img, 0, new ColorMapperDistance(distanceBand));
-        ImageIO.write(image, "png", new File("/tmp/00_sliceXY_v0.png"));
-        */
-        img.setVersion(1);
-        img.initialize();
         image = sm.renderSlice(nux, nvy,
             new Vector3d(bounds.xmin, bounds.ymin, zs),
             new Vector3d(bounds.xmax, bounds.ymin, zs),
@@ -187,6 +179,7 @@ public class TestImage3D extends TestCase {
             img, 0, new ColorMapperDistance(distanceBand));
         ImageIO.write(image, "png", new File("/tmp/00_sliceXY_v1.png"));
     }
+
 
     public void devGrid2DProducer() throws Exception {
 
@@ -338,7 +331,7 @@ public class TestImage3D extends TestCase {
     public static void main(String[] args) throws Exception {
         //new TestImage3D().testGrayImageDistance();
         //new TestImage3D().devTestGrayImageDistanceSlice();
-        //new TestImage3D().devTestGrayImage();
-        new TestImage3D().devGrid2DProducer();
+        new TestImage3D().devTestGrayImage();
+        //new TestImage3D().devGrid2DProducer();
     }
 }

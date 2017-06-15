@@ -58,7 +58,6 @@ public class Scene extends BaseParameterizable {
     final public static double DEFAULT_SMOOTHING_WIDTH = 0.5;
     final public static double DEFAULT_ERROR_FACTOR = 0.1;
     final public static int DEFAULT_MAX_PARTS_COUNT = Integer.MAX_VALUE;
-    final public static ArrayList<TracingParams> DEFAULT_TRACING_PARAMS;
 
     public static enum LightingRig {
         THREE_POINT, THREE_POINT_COLORED,
@@ -90,7 +89,7 @@ public class Scene extends BaseParameterizable {
     SNodeParameter mp_camera = new SNodeParameter("camera", "Camera params", new SimpleCamera());
     SNodeListParameter mp_viewpoints = new SNodeListParameter("viewpoints", "Viewpoints", new BaseSNodeFactory(new String[]{"viewpoint"}, new String[]{"abfab3d.shapejs.Viewpoint"}));
     SNodeListParameter mp_lights = new SNodeListParameter("lights", "Lights", new BaseSNodeFactory(new String[]{"light"}, new String[]{"abfab3d.shapejs.Light"}));
-    SNodeListParameter mp_tracingParams = new SNodeListParameter("tracingParams", "Tracing Params", DEFAULT_TRACING_PARAMS,new BaseSNodeFactory(new String[]{"tracingParams"}, new String[]{"abfab3d.shapejs.TracingParams"}));
+    SNodeListParameter mp_tracingParams = new SNodeListParameter("tracingParams", "Tracing Params", makeDefaultTracingParams(),new BaseSNodeFactory(new String[]{"tracingParams"}, new String[]{"abfab3d.shapejs.TracingParams"}));
 
     // TODO: Not ready to migrate this yet
     //SNodeListParameter mp_materials = new SNodeListParameter("materials", "Materials", new BaseSNodeFactory(new String[]{"material"}, new String[]{"abfab3d.core.Material"}));
@@ -115,13 +114,6 @@ public class Scene extends BaseParameterizable {
         mp_tracingParams
     };
 
-    static {
-        DEFAULT_TRACING_PARAMS = new ArrayList<>();
-        DEFAULT_TRACING_PARAMS.add(new TracingParams(TracingParams.ModeType.DRAFT,5e-3,1.0));
-        DEFAULT_TRACING_PARAMS.add(new TracingParams(TracingParams.ModeType.NORMAL,1e-3,0.95));
-        DEFAULT_TRACING_PARAMS.add(new TracingParams(TracingParams.ModeType.FINE,6e-4,0.95));
-        DEFAULT_TRACING_PARAMS.add(new TracingParams(TracingParams.ModeType.SUPER_FINE,3e-4,0.95));
-    }
     public Scene(String name){
         m_name = name;
         initParams();
@@ -162,6 +154,17 @@ public class Scene extends BaseParameterizable {
 
     private void initParams() {
         buildParams();
+    }
+    
+    
+    protected ArrayList<TracingParams> makeDefaultTracingParams(){
+
+        ArrayList<TracingParams> tp = new ArrayList<TracingParams>();
+        tp.add(new TracingParams(TracingParams.ModeType.DRAFT,5e-3,1.0));
+        tp.add(new TracingParams(TracingParams.ModeType.NORMAL,1e-3,0.95));
+        tp.add(new TracingParams(TracingParams.ModeType.FINE,6e-4,0.95));
+        tp.add(new TracingParams(TracingParams.ModeType.SUPER_FINE,3e-4,0.95));
+        return tp;
     }
 
     /**
@@ -557,6 +560,19 @@ public class Scene extends BaseParameterizable {
 
     public void setTracingParams(List<TracingParams> val) {
         mp_tracingParams.setValue(val);
+    }
+
+    /**
+       set tracing param for the scene 
+     */
+    public void setTracingParams(TracingParams tparam[]) {
+        
+        mp_tracingParams.clear();
+
+        for (int i = 0; i < tparam.length; i++) {
+            mp_tracingParams.add(tparam[i]);
+        }
+        
     }
 
     public List<TracingParams> getTracingParams() {
