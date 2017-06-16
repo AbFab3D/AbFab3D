@@ -292,8 +292,6 @@ public class ScriptManager {
         String methodToCall = "main";
         if (method != null) methodToCall = method;
 
-        sr.evaluatedScript = sr.eval.executeScript(methodToCall);
-
         if (DEBUG) printf("ScriptManager Execute script.");
         sr.evaluatedScript = sr.eval.executeScript(methodToCall);
         if (DEBUG) printf("ScriptManager eval.executeScript() done time: %d ms\n", time() - t0);
