@@ -40,7 +40,9 @@ public class EnumEditor extends BaseEditor implements ActionListener {
      @Override
      */
 	public void actionPerformed(ActionEvent e) {
-        m_param.setValue((String) component.getSelectedItem());
+	    ValueWrapper wrapper = (ValueWrapper) component.getSelectedItem();
+
+        m_param.setValue(wrapper.value);
         informParamChangedListeners();
 	}
 
@@ -52,9 +54,21 @@ public class EnumEditor extends BaseEditor implements ActionListener {
     	if (component != null) return component;
     	
         String[] vals = m_eparam.getValues();
-        component = new JComboBox(vals);
-        component.setSelectedItem(m_eparam.getValue());
+        String[] labels = m_eparam.getLabels();
 
+        ValueWrapper[] wrappers = new ValueWrapper[vals.length];
+        ValueWrapper selected = null;
+        for(int i=0; i < vals.length; i++) {
+            String label = vals[i];
+            if (labels != null) {
+                label = labels[i];
+            }
+            wrappers[i] = new ValueWrapper(vals[i],label);
+            if (m_eparam.getValue().equals(vals[i])) selected = wrappers[i];
+        }
+
+        component = new JComboBox(wrappers);
+        component.setSelectedItem(selected);
         component.addActionListener(this);
         
         return component;
@@ -65,9 +79,33 @@ public class EnumEditor extends BaseEditor implements ActionListener {
        @Override
      */
     public void updateUI(){
-        
-        component.setSelectedItem(m_eparam.getValue());
+
+        component.setSelectedItem(new ValueWrapper(m_eparam.getValue(),m_eparam.getLabel()));
         
     }
 
+    static class ValueWrapper {
+        private String value;
+        private String label;
+
+        public ValueWrapper(String value, String label) {
+            this.value = value;
+            this.label = label;
+        }
+
+        public String toString() {
+            return label;
+        }
+
+        public boolean equals(Object o) {
+            if(!(o instanceof ValueWrapper))
+                return false;
+            else
+                return ((ValueWrapper)o).value.equals(value);
+        }
+
+        public int hashCode() {
+            return value.hashCode();
+        }
+    }
 }

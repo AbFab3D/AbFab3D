@@ -28,19 +28,22 @@ public class SingleColorMaterial extends BaseRenderableMaterial {
     }
 
     public SingleColorMaterial(String name) {
-        this(name, new Color(0.97,0.97,0.97));
+        this(name, SINGLE_COLOR,new Color(0.97,0.97,0.97));
+    }
+    public SingleColorMaterial(String name,String label) {
+        this(name, label,new Color(0.97,0.97,0.97));
     }
 
     public SingleColorMaterial(double red, double green, double blue) {
-        this(SINGLE_COLOR, new Color(red, green, blue));
+        this(SINGLE_COLOR, SINGLE_COLOR,new Color(red, green, blue));
     }
 
     public SingleColorMaterial(Color diffuse) {
-        this(SINGLE_COLOR, diffuse);
+        this(SINGLE_COLOR, SINGLE_COLOR,diffuse);
     }
 
-    public SingleColorMaterial(String name, Color diffuse) {
-        super(name);
+    public SingleColorMaterial(String name, String label, Color diffuse) {
+        super(name,label);
         m_shader = new PhongShader(0.1, diffuse, new Color(0, 0, 0), new Color(1, 1, 1), 0);
         mp_renderingParams.setValue(m_shader);
     }

@@ -31,13 +31,19 @@ import abfab3d.param.StringParameter;
 public class FullColorMaterial extends BasePrintableMaterial implements MaterialShader {
     private PhongParams sparams = new PhongParams();
     private static Material instance = null;
+    static final String FULL_COLOR = "FullColor";
+
 
     public FullColorMaterial() {
-        this("FullColor");
+        this(FULL_COLOR);
     }
 
     public FullColorMaterial(String name) {
-        super(name);
+        this(name,FULL_COLOR);
+    }
+
+    public FullColorMaterial(String name, String label) {
+        super(name,label);
 
 //        sparams.setDiffuseColor(new Color(241f/255,241f/255,234f/255)); // #F1F1EA
         sparams.setDiffuseColor(new Color(0.97,0.97,0.97)); // #F1F1EA

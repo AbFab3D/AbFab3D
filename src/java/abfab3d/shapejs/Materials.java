@@ -31,6 +31,7 @@ public class Materials {
     static final boolean DEBUG = false;
     private static LinkedHashMap<String, Material> mats = new LinkedHashMap<>();
     private static String[] allMaterialNames;
+    private static String[] allMaterialLabels;
 
     public static void add(String name, Material mat) {
         if (mats.containsKey(name)) {
@@ -56,12 +57,9 @@ public class Materials {
      */
     public static String[] getAllNames() {
         if (allMaterialNames == null) {
-//            allMaterialNames = new String[mats.size() + 3];
             allMaterialNames = new String[mats.size() + 1];
 
             allMaterialNames[0] = "None";
-//            allMaterialNames[1] = "SingleColor";
-//            allMaterialNames[2] = "FullColor";
 
             int idx = 1;
             for(String st : mats.keySet()) {
@@ -70,8 +68,25 @@ public class Materials {
         }
 
         return allMaterialNames;
+    }
 
-//        return new String[] {"None","White","WSF","SS", "FCS", "CFCS"};
+    /**
+     * Get the names of all the materials.
+     * @return
+     */
+    public static String[] getAllLabels() {
+        if (allMaterialLabels == null) {
+            allMaterialLabels = new String[mats.size() + 1];
+
+            allMaterialLabels[0] = "None";
+
+            int idx = 1;
+            for(Material st : mats.values()) {
+                allMaterialLabels[idx++] = st.getLabel();
+            }
+        }
+
+        return allMaterialLabels;
     }
 
     /**

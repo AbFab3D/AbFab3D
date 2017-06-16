@@ -1031,7 +1031,22 @@ public class ShapeJSEvaluator implements MaterialMapper {
                         throw new IllegalArgumentException("Error parsing definition.  Enumeration has no valid values: " + name);
                     }
 
-                    pd = new EnumParameter(name, desc, values, (String) defaultValue);
+                    Object lvalues = no.get("labels");
+                    printf("Got labels in content:" + lvalues);
+                    String[] labels = null;
+                    if (lvalues instanceof NativeArray) {
+                        NativeArray sna = (NativeArray) lvalues;
+                        int slen = sna.size();
+                        labels = new String[slen];
+                        for (int j = 0; j < sna.size(); j++) {
+                            String st = ((String) sna.get(j));
+                            labels[j] = st;
+                        }
+                    } else if (lvalues instanceof String[]) {
+                        labels = (String[]) lvalues;
+                    }
+
+                    pd = new EnumParameter(name, desc, values, labels,(String) defaultValue);
 
                     // TODO: need to add values for validation
                     break;

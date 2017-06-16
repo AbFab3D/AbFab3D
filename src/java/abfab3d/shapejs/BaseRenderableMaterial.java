@@ -33,6 +33,7 @@ public abstract class BaseRenderableMaterial extends BaseParameterizable impleme
     protected SNodeParameter mp_renderingParams = new SNodeParameter("renderingParams");
     protected SNodeParameter mp_source = new SNodeParameter("source");
     protected StringParameter m_name = new StringParameter("name","Unnamed Material");
+    protected StringParameter m_label = new StringParameter("label","Unlabeled Material");
     protected EnumParameter m_matType = new EnumParameter("materialType", MaterialType.getStringValues(),MaterialType.SINGLE_MATERIAL.toString());
 
     private Parameter m_aparam[] = new Parameter[]{
@@ -44,8 +45,17 @@ public abstract class BaseRenderableMaterial extends BaseParameterizable impleme
         addParams(m_aparam);
     }
 
+    public BaseRenderableMaterial(String name, String label) {
+        m_name.setValue(name);
+        m_label.setValue(label);
+        addParams(m_aparam);
+    }
+
     public String getName() {
         return m_name.getValue();
+    }
+    public String getLabel() {
+        return m_label.getValue();
     }
 
     public void setName(String val) {
