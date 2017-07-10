@@ -47,9 +47,10 @@ import static abfab3d.core.Output.time;
  * @author Alan Hudson
  */
 public class ScriptManager {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final boolean STOP_CACHING = false;
-    private static final int JOB_RETAIN_MS = 60 * 60 * 1000;
+    private static final int DEFAULT_CACHE_TIMEOUT_MS = 60 * 60 * 1000;
+    private static int sm_cacheTimeout = DEFAULT_CACHE_TIMEOUT_MS; // time-out for cache items
 
     // File type that contains base64 data to be saved to disk as mime-type specified in the data
     private static final String BASE64_FILE_EXTENSION = ".base64";
@@ -88,7 +89,7 @@ public class ScriptManager {
     private ScriptManager() {
         cache = CacheBuilder.newBuilder()
             .softValues()
-            .expireAfterAccess(JOB_RETAIN_MS, TimeUnit.MILLISECONDS)
+            .expireAfterAccess(sm_cacheTimeout, TimeUnit.MILLISECONDS)
             .removalListener(new RemovalListener<String, ScriptResources>() {
                 @Override
                 public void onRemoval(RemovalNotification<String, ScriptResources> removal) {
@@ -108,6 +109,18 @@ public class ScriptManager {
                 }
             );
 
+        if(DEBUG)printf("ScriptManager() creating cache, timeout:%d ms\n", sm_cacheTimeout);
+
+    }
+
+
+    /**
+       sets cache timeout in milliseconds
+     */
+    public static void setCacheTimeout(int timeoutMS){
+        
+        sm_cacheTimeout = timeoutMS;
+        if(DEBUG)printf("ScriptManager.setCacheTimeout(%d ms)\n",timeoutMS);
     }
 
     public static ScriptManager getInstance() {

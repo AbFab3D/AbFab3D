@@ -341,7 +341,7 @@ public class Bounds implements Cloneable {
     /**
        conversion of world cordinates to grid coordinates 
      */
-    public void toGridCoord(Vector3d pnt){
+    public final void toGridCoord(Vector3d pnt){
 
         pnt.x = nx*(pnt.x - xmin)/(xmax - xmin);
         pnt.y = ny*(pnt.y - ymin)/(ymax - ymin);
@@ -352,13 +352,15 @@ public class Bounds implements Cloneable {
     /**
        conversion of grid coordinates to world coordinates 
      */
-    public void toWorldCoord(Vector3d pnt){
+    public final void toWorldCoord(Vector3d pnt){
 
         pnt.x = pnt.x*(xmax-xmin)/nx + xmin;
         pnt.y = pnt.y*(ymax-ymin)/ny + ymin;
         pnt.z = pnt.z*(zmax-zmin)/nz + zmin;
         
     }
+
+
 
     /**
        expand bounds by given margins 
