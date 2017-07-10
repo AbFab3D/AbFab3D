@@ -13,6 +13,8 @@ package abfab3d.param;
 
 // External Imports
 
+import java.util.Arrays;
+
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 
@@ -25,6 +27,7 @@ import static abfab3d.core.Output.printf;
 public class EnumParameter extends BaseParameter {
 
     String m_values[] = new String[]{"value"};
+    String m_labels[] = new String[]{"label"};
     int m_index = 0;
 
 
@@ -33,9 +36,37 @@ public class EnumParameter extends BaseParameter {
     }
 
     public EnumParameter(String name, String desc, String values[], String initialValue) {
+        this(name,desc,values,null,initialValue);
+    }
+
+    public EnumParameter(String name, String label, String desc, String values[], String labels[], String initialValue) {
+        super(name, desc);
+        setLabel(label);
+
+        m_values = values.clone();
+        if (labels != null) {
+            m_labels = labels.clone();
+        } else {
+            m_labels = values.clone();
+        }
+
+        if (initialValue == null) {
+            // An enum must have a value, pick the first one
+            initialValue = m_values[0];
+        }
+        defaultValue = initialValue;
+        setValue(initialValue);
+    }
+
+    public EnumParameter(String name, String desc, String values[], String labels[], String initialValue) {
         super(name, desc);
         m_values = values.clone();
-
+        if (labels != null) {
+            m_labels = labels.clone();
+            printf("Labels: %s\n", Arrays.toString(labels));
+        } else {
+            m_labels = m_values.clone();
+        }
 
         if (initialValue == null) {
             // An enum must have a value, pick the first one
@@ -46,17 +77,7 @@ public class EnumParameter extends BaseParameter {
     }
 
     public EnumParameter(String name, String label, String desc, String values[], String initialValue) {
-        super(name, desc);
-        setLabel(label);
-
-        m_values = values.clone();
-
-        if (initialValue == null) {
-            // An enum must have a value, pick the first one
-            initialValue = m_values[0];
-        }
-        defaultValue = initialValue;
-        setValue(initialValue);
+        this(name,label,desc,values,null,initialValue);
     }
 
     public EnumParameter(EnumParameter def, String initialValue) {
@@ -84,12 +105,22 @@ public class EnumParameter extends BaseParameter {
         return value.toString();
     }
 
+    public String getLabel() {
+        if (label != null) return label;
+
+        return getValue();
+    }
+    
     public Object getDefaultValue(Class hint) {
         return getValue();
     }
 
     public String[] getValues() {
         return m_values;
+    }
+
+    public String[] getLabels() {
+        return m_labels;
     }
 
     public void setSelectedIndex(int index) {

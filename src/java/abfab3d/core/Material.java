@@ -12,6 +12,7 @@ public interface Material {
      */
     public MaterialShader getShader();
     public String getName();
+    public String getLabel();
 
     /**
      * Does this material contain color information
