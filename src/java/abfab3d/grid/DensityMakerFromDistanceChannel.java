@@ -25,7 +25,7 @@ import static abfab3d.core.Output.printf;
 
 public class DensityMakerFromDistanceChannel implements DensityMaker {
     
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     GridDataChannel m_distanceChannel;
     double m_surfaceValue;

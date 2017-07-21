@@ -12,6 +12,7 @@
 
 package abfab3d.core;
 
+import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 
 import static abfab3d.core.Output.fmt;
@@ -390,6 +391,16 @@ public class Bounds implements Cloneable {
         zmax += tz;
     }
 
+    public boolean isPointInside(Point3d p) {
+        if (p.x >= xmin && p.x <= xmax &&
+            p.y >= ymin && p.y <= ymax &&
+            p.z >= zmin && p.z <= zmax) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
        round bounds using current voxel size 
      */
@@ -434,6 +445,10 @@ public class Bounds implements Cloneable {
 
     public String toString(){
         return fmt("%12.7e %12.7e %12.7e %12.7e %12.7e %12.7e; %12.7e",xmin, xmax, ymin, ymax, zmin, zmax, m_voxelSize);
+    }
+
+    public String toString(double unit) {
+        return fmt("%8.4f,%8.4f %8.4f,%8.4f %8.4f,%8.4f; %8.4f",xmin/unit, xmax/unit, ymin/unit, ymax/unit, zmin/unit, zmax/unit, m_voxelSize/unit);
     }
 
     public Bounds clone() {

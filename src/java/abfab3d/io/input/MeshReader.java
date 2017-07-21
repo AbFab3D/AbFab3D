@@ -30,7 +30,7 @@ import java.io.InputStream;
  * @author Alan Hudson
  */
 public class MeshReader extends BaseMeshReader implements TriangleProducer, Transformer {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private String m_path;
     private InputStream m_is;

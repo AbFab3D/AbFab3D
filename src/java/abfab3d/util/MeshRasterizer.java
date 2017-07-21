@@ -43,7 +43,7 @@ import static abfab3d.core.Output.printf;
 public class MeshRasterizer implements TriangleCollector {
 
     int exceptionCount = 100;
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     // shift to break possible exact symmetry 
     static final double EPSILON_SHIFT = 1.2345e-10;
 
