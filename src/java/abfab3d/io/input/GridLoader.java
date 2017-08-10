@@ -49,7 +49,7 @@ import static abfab3d.core.MathUtil.getMaxValue;
  */
 public class GridLoader {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static final boolean DEBUG_TIMING = false;
     
     protected double m_preferredVoxelSize = 0.2*MM;

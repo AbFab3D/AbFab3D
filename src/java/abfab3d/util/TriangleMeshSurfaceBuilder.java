@@ -35,7 +35,7 @@ import static abfab3d.core.MathUtil.clamp;
  */
 public class TriangleMeshSurfaceBuilder implements TriangleCollector {
 
-    static final boolean DEBUG = true;    
+    static final boolean DEBUG = false;
     static final double TOL = 1.e-2;
     static final double HALF = 0.5; // half voxel offset to the center of voxel
 
@@ -83,7 +83,6 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
        if
      */
     public void setSortPoints(boolean value) {
-        printf("setSortPoints(%s)\n", value);
         m_sortPoints = value;
     }
 
@@ -122,7 +121,6 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
        
      */
     private void getPointsInGridUnits(double pntx[],double pnty[],double pntz[]){
-        printf("getPointsInGridUnits()\n");
         if(m_sortPoints){
             // do point sorting in the inreased Y-coordinate wih grid precision 
             getPointsInGridUnitsSorted(pntx, pnty, pntz, m_points, m_ny);
@@ -184,7 +182,7 @@ public class TriangleMeshSurfaceBuilder implements TriangleCollector {
             coordy[cindex] = p.y;
             coordz[cindex] = p.z;            
         }        
-        printf("points sorting time: %d ms\n", time() - t0);
+        //printf("points sorting time: %d ms\n", time() - t0);
     }
 
     /**

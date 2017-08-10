@@ -56,7 +56,7 @@ import static abfab3d.core.MathUtil.step10;
 public class DistanceRasterizer2 implements TriangleCollector {
 
     static final boolean DEBUG = false;
-    static final boolean DEBUG_TIMING = true;
+    static final boolean DEBUG_TIMING = false;
 
 
     // this is used purely for precision of distance calculations on distance grid    

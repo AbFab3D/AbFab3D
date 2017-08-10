@@ -168,7 +168,7 @@ public class DistanceRasterizer implements TriangleCollector {
         double pnty[] = new double[pcount];
         double pntz[] = new double[pcount];
         m_shellBuilder.getPointsInGridUnits(pntx, pnty, pntz);
-        printf("getPointsInGridUnits.  time: %d ms\n", (time() - t0));
+
         t0 = time();
 
         //if(true) return indexGrid;
@@ -176,10 +176,10 @@ public class DistanceRasterizer implements TriangleCollector {
         // distribute indices on the whole indexGrid        
         if(m_threadCount <= 1) {
             ClosestPointIndexer.PI3_sorted(pntx, pnty, pntz, m_indexGrid);
-            printf("ClosestPointIndexer.PI3_sorted time: %d ms\n", (time() - t0));
+            //printf("ClosestPointIndexer.PI3_sorted time: %d ms\n", (time() - t0));
         } else {
             ClosestPointIndexerMT.PI3_MT(pntx, pnty, pntz, m_indexGrid, m_threadCount);
-            printf("ClosestPointIndexerMT.PI3_MT time: %d ms\n", (time() - t0));
+            //printf("ClosestPointIndexerMT.PI3_MT time: %d ms\n", (time() - t0));
         }
 
         t0 = time();
@@ -190,7 +190,7 @@ public class DistanceRasterizer implements TriangleCollector {
         t0 = time();
         if(m_threadCount <= 1) {
             ClosestPointIndexer.makeDistanceGrid(m_indexGrid, pntx, pnty, pntz, interiorGrid, -m_maxInDistance, m_maxOutDistance, distanceGrid);
-            printf("ClosestPointIndexer.makeDistanceGrid() time: %d ms\n", (time() - t0));
+            //printf("ClosestPointIndexer.makeDistanceGrid() time: %d ms\n", (time() - t0));
         } else {
             ClosestPointIndexerMT.makeDistanceGrid_MT(m_indexGrid, pntx, pnty, pntz, interiorGrid, -m_maxInDistance, m_maxOutDistance, m_threadCount,distanceGrid);
             printf("ClosestPointIndexerMT.makeDistanceGrid_MT() time: %d ms\n", (time() - t0));
