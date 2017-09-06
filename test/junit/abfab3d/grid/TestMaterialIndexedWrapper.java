@@ -203,7 +203,6 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
 
         // Time trials show this method is 30X faster.  Error out
         // if its ever < 10X faster
-
         System.out.println("Wrapper: " + time1);
         System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X\n");
         assertTrue("Wrapper method too slow", time1 * 10 < time2);
@@ -492,7 +491,7 @@ System.out.println("Material Count Speed");
         System.out.println("Wrapper: " + time1);
         System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X\n");
 
-        assertTrue("Wrapper method too slow", time1 * 50 < time2);
+        assertTrue("Wrapper method too slow", (time2/time1) > 20);
 
     }
 
