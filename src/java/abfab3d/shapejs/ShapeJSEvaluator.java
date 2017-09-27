@@ -874,7 +874,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                         sv = json;
                     }
                     
-                    // json of String that starts with # returns a null value, so set to original String
+                    // json decode of String that starts with # returns a null value, so set to original String
                     if (sv == null) {
                     	sv = json;
                     }
