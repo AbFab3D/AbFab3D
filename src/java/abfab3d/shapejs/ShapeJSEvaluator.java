@@ -873,6 +873,12 @@ public class ShapeJSEvaluator implements MaterialMapper {
                     } catch (JsonSyntaxException jse) {
                         sv = json;
                     }
+                    
+                    // json of String that starts with # returns a null value, so set to original String
+                    if (sv == null) {
+                    	sv = json;
+                    }
+                    
                     StringParameter sp = (StringParameter) param;
                     sp.setValue(sv);
                     wrapped = new ParameterJSWrapper(scope, sp);
