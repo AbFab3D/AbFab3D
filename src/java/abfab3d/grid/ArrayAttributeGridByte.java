@@ -228,4 +228,15 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
         }
     }
 
+    /**
+     * Fast clear method
+     */
+    public void clear() {
+        int len = data.length;
+        if (len > 0)
+            data[0] = 0;
+        for (int i = 1; i < len; i += i) {
+            System.arraycopy( data, 0, data, i, ((len - i) < i) ? (len - i) : i);
+        }
+    }
 }
