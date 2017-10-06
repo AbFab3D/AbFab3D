@@ -34,7 +34,7 @@ import static abfab3d.core.Units.*;
  * @author Alan Hudson
  */
 public class Smooth extends TransformableDataSource {
-    public static final int PATTERN_1 = 1,PATTERN_4 = 4, PATTERN_6 = 6, PATTERN_7 = 7;
+    public static final int PATTERN_1 = 1,PATTERN_2 = 2,PATTERN_3 = 3,PATTERN_4 = 4, PATTERN_5 = 5, PATTERN_6 = 6, PATTERN_7 = 7;
     private static final double SQRT_12 = Math.sqrt(12);
 
     private DataSource dataSource = null;
@@ -51,7 +51,9 @@ public class Smooth extends TransformableDataSource {
 
     /**
      * Smoothing of the given datasource.
-     * @param source  object to which the complement is generated
+     * @param source  object to smooth 
+     * @param width woith pof smoothing
+     * @param pattern 
      */
     public Smooth(DataSource source, double width, int pattern) {
         super.addParams(m_aparam);
@@ -81,10 +83,18 @@ public class Smooth extends TransformableDataSource {
      * Sets the sampling pattern
      */
     public void setPattern(int pattern) {
-        if (pattern != PATTERN_1 && pattern != PATTERN_4 && pattern != PATTERN_6 && pattern != PATTERN_7) {
-            throw new IllegalArgumentException("Invalid pattern value: " + pattern);
+        switch(pattern){
+        default: throw new IllegalArgumentException("Invalid pattern value: " + pattern);
+        case PATTERN_1:
+        case PATTERN_2:
+        case PATTERN_3:
+        case PATTERN_4:
+        case PATTERN_5:
+        case PATTERN_6:
+        case PATTERN_7:
+            mp_pattern.setValue(pattern);
+            break;
         }
-        mp_pattern.setValue(pattern);
     }
 
     /**
@@ -123,16 +133,47 @@ public class Smooth extends TransformableDataSource {
 
         switch(mp_pattern.getValue()) {
             case PATTERN_1:
-                neigh = new Vector3d[] {
+                {
+                    neigh = new Vector3d[] {
                         new Vector3d(0,0,0)
-                };
+                    };
+                }
                 break;
+        case PATTERN_2:
+            {
+                
+                a = mp_smoothWidth.getValue() / 2;
+                neigh = new Vector3d[] {
+                    new Vector3d(-a,0,0),
+                    new Vector3d(a,0,0)                    
+                };
+            }
+            break;
+        case PATTERN_3:
+            {
+                
+                a = mp_smoothWidth.getValue() / 2;
+                neigh = new Vector3d[] {
+                    new Vector3d(0,0,0),
+                    new Vector3d(-a,0,0),
+                    new Vector3d(a,0,0)                    
+                };
+            }
+            break;
             case PATTERN_4:
                 a = mp_smoothWidth.getValue() / SQRT_12;
 
                 neigh = new Vector3d[] {
                     new Vector3d(a,a,a),new Vector3d(-a,-a,a), new Vector3d(a,-a,-a), new Vector3d(-a,a,-a)
                 };
+                break;
+            case PATTERN_5:
+                {
+                    a = mp_smoothWidth.getValue() / SQRT_12;                    
+                    neigh = new Vector3d[] {
+                        new Vector3d(a,a,a),new Vector3d(-a,-a,a), new Vector3d(a,-a,-a), new Vector3d(-a,a,-a), new Vector3d(0,0,0),
+                    };
+                }
                 break;
             case PATTERN_6:
                 a = mp_smoothWidth.getValue() / 2;
