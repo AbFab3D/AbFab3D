@@ -293,7 +293,7 @@ public class GridMaker implements Operation, AttributeOperation {
         //m_dataChannelsCount = m_dataSource.getChannelsCount();
         m_dataChannelsCount = MAX_DATA_CHANNELS_COUNT;
 
-        printf("GridMaker m_dataChannelsCount: %d\n",m_dataChannelsCount);
+        //printf("GridMaker m_dataChannelsCount: %d\n",m_dataChannelsCount);
         if(DEBUG) printf("GridMaker data initialization %d ms\n", (time() - t0));
 
         if (m_threadCount == 0) {
