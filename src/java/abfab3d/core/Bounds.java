@@ -404,7 +404,228 @@ public class Bounds implements Cloneable {
     }
 
     /**
-       round bounds using current voxel size 
+     * Test whether two bounds objects intersect.  Includes objects completely inside
+     * @param box
+     * @return
+     */
+    public boolean intersects(Bounds box) {
+        return box.xmin <= xmax && box.ymin <= ymax &&
+                box.zmin <= zmax && box.xmax >= xmin &&
+                box.ymax >= ymin && box.zmax >= zmin;
+    }
+
+    /**
+     * Test whether a bounds is inside another
+     *
+     * TODO: I suspect there is a more optimized way todo this using separating axis theorem
+     * @param box
+     * @return
+     */
+    public boolean isBoundsInsideAllPoints(Bounds box, Vector3d center) {
+        Point3d pos = new Point3d();  // TODO: Garbage
+
+        pos.set(center.x + box.xmin,center.y + box.ymin,center.z + box.zmin);
+        if (!isPointInside(pos)) return false;
+
+        pos.set(center.x + box.xmin,center.y + box.ymin,center.z + box.zmax);
+        if (!isPointInside(pos)) return false;
+
+        pos.set(center.x + box.xmin,center.y + box.ymax,center.z + box.zmin);
+        if (!isPointInside(pos)) return false;
+
+        pos.set(center.x + box.xmin,center.y + box.ymax,center.z + box.zmax);
+        if (!isPointInside(pos)) return false;
+
+        pos.set(center.x + box.xmax,center.y + box.ymin,center.z + box.zmin);
+        if (!isPointInside(pos)) return false;
+
+        pos.set(center.x + box.xmax,center.y + box.ymin,center.z + box.zmax);
+        if (!isPointInside(pos)) return false;
+
+        pos.set(center.x + box.xmax,center.y + box.ymax,center.z + box.zmin);
+        if (!isPointInside(pos)) return false;
+
+        pos.set(center.x + box.xmax,center.y + box.ymax,center.z + box.zmax);
+        if (!isPointInside(pos)) return false;
+
+
+        return true;
+    }
+
+    public boolean isBoundsInside(Bounds box, Vector3d pos) {
+        if (!((pos.x + box.xmin) >= xmin && (pos.x + box.xmin) <= xmax &&
+                (pos.y + box.ymin) >= ymin && (pos.y + box.ymin) <= ymax &&
+                (pos.z + box.zmin) >= zmin && (pos.z + box.zmin) <= zmax)) {
+            return false;
+        }
+
+        if (!((pos.x + box.xmax) >= xmin && (pos.x + box.xmax) <= xmax &&
+                (pos.y + box.ymax) >= ymin && (pos.y + box.ymax) <= ymax &&
+                (pos.z + box.zmax) >= zmin && (pos.z + box.zmax) <= zmax)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check for the given ray intersecting this bounds. The line is
+     * described as a starting point and a vector direction.
+     *
+     * @param pos The start location of the ray
+     * @param dir The direction vector of the ray
+     * @param coord The intersection coordinate
+     * @return true if the ray intersects this bounds
+     */
+    public boolean checkIntersectionRay(double[] pos, double[] dir, double[] coord)
+    {
+        // This is based on the Graphics Gems code by Andrew Woo.
+        // http://www1.acm.org/pubs/tog/GraphicsGems/gems/RayBox.c
+        // Since the original code always used fixed-length loops, I've
+        // unrolled the loops here and used local variables instead of
+        // arrays.
+
+        boolean inside = true;
+        boolean quadrant_0, quadrant_1, quadrant_2;
+        double max_t_x, max_t_y, max_t_z;
+        double c_plane_x = 0;
+        double c_plane_y = 0;
+        double c_plane_z = 0;
+
+        // Find candidate planes; Unrolled loop
+        if(pos[0] < xmin)
+        {
+            quadrant_0 = false;
+            c_plane_x = xmin;
+            inside = false;
+        }
+        else if(pos[0] > xmax)
+        {
+            quadrant_0 = false;
+            c_plane_x = xmax;
+            inside = false;
+        }
+        else
+        {
+            quadrant_0 = true;
+        }
+
+        if(pos[1] < ymin)
+        {
+            quadrant_1 = false;
+            c_plane_y = ymin;
+            inside = false;
+        }
+        else if(pos[1] > ymax)
+        {
+            quadrant_1 = false;
+            c_plane_y = ymax;
+            inside = false;
+        }
+        else
+        {
+            quadrant_1 = true;
+        }
+
+        if(pos[2] < zmin)
+        {
+            quadrant_2 = false;
+            c_plane_z = zmin;
+            inside = false;
+        }
+        else if(pos[2] > zmax)
+        {
+            quadrant_2 = false;
+            c_plane_z = zmax;
+            inside = false;
+        }
+        else
+        {
+            quadrant_2 = true;
+        }
+
+        // Ray origin inside bounding box - exit now.
+        if(inside) {
+            coord[0] = pos[0];
+            coord[1] = pos[1];
+            coord[2] = pos[2];
+            return true;
+        }
+
+        // Calculate T distances to candidate planes
+        if(!quadrant_0 && dir[0] != 0)
+            max_t_x = (c_plane_x - pos[0]) / dir[0];
+        else
+            max_t_x = -1;
+
+        if(!quadrant_1 && dir[1] != 0)
+            max_t_y = (c_plane_y - pos[1]) / dir[1];
+        else
+            max_t_y = -1;
+
+        if(!quadrant_2 && dir[2] != 0)
+            max_t_z = (c_plane_z - pos[2]) / dir[2];
+        else
+            max_t_z = -1;
+
+        // Get largest of the max_t's for final choice of intersection
+        double max_t = max_t_x;
+        int plane = 0;
+
+        if(max_t < max_t_y)
+        {
+            plane = 1;
+            max_t = max_t_y;
+        }
+
+        if(max_t < max_t_z)
+        {
+            plane = 2;
+            max_t = max_t_z;
+        }
+
+        // Check final candidate actually inside box
+        boolean intersect = true;
+
+        if(max_t < 0)
+            intersect = false;
+        else
+        {
+            if(plane != 0)
+            {
+                coord[0] = (pos[0] + max_t * dir[0]);
+
+                if(coord[0] < xmin || coord[0] > xmax)
+                    intersect = false;
+            } else {
+                coord[0] = c_plane_x;
+            }
+
+            if(plane != 1 && intersect)
+            {
+                coord[1] = (pos[1] + max_t * dir[1]);
+
+                if(coord[1] < ymin || coord[1] > ymax)
+                    intersect = false;
+            } else {
+                coord[1] = c_plane_y;
+            }
+
+            if(plane != 2 && intersect)
+            {
+                coord[2] = (pos[2] + max_t * dir[2]);
+
+                if(coord[2] < zmin || coord[2] > zmax)
+                    intersect = false;
+            } else {
+                coord[2] = c_plane_z;
+            }
+        }
+
+        return intersect;              /* ray hits box */
+    }
+    /**
+       round bounds using current voxel size
      */
     public void roundBounds(){
 
