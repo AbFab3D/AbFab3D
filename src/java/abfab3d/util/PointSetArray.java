@@ -29,13 +29,18 @@ import static abfab3d.core.Units.MM;
  */
 public class PointSetArray implements TriangleProducer, PointSet  {
     
+    public static final int SHAPE_OCTAHEDRON = 0; 
+    public static final int SHAPE_SPHERE = 1; 
+
+    int m_shapeType = SHAPE_OCTAHEDRON;
+    int m_subdivisionLevel = 1;
     
     // points are represented via 3 coordinates 
     double coord[] = null;
 
     int m_size=0; // points count 
     int m_arrayCapacity = 0;
-
+    
     // size of geometrical shape to represent each point 
     double pointSize = 0.05*MM;
     
@@ -94,6 +99,26 @@ public class PointSetArray implements TriangleProducer, PointSet  {
         pointSize = size;
     }
 
+    /**
+       set type of shape to represent exported points 
+       possible values are 
+       SHAPE_OCTAHEDRON (default) 
+       SHAPE_SPHERE
+       
+     */
+    public void setShapeType(int type){
+
+        m_shapeType = type;
+
+    }
+
+    /**
+       set subdivision level used to spheres 
+     */
+    public void setSubdivisionLevel(int level){
+        m_subdivisionLevel = level;
+    }
+
     
     public final void addPoint(double x, double y, double z){
         if(m_size >= m_arrayCapacity)
@@ -118,6 +143,16 @@ public class PointSetArray implements TriangleProducer, PointSet  {
     }
 
     public boolean getTriangles(TriangleCollector collector){
+        switch(m_shapeType){
+        default: 
+        case SHAPE_OCTAHEDRON: 
+            return getTrianglesOcta(collector);
+        case SHAPE_SPHERE: 
+            return getTrianglesSphere(collector);
+        }
+    }
+
+    public boolean getTrianglesOcta(TriangleCollector collector){
         
         int count = m_size;
         Octa shape = new Octa(pointSize/2);
@@ -129,6 +164,24 @@ public class PointSetArray implements TriangleProducer, PointSet  {
                 y = coord[start+1],
                 z = coord[start+2];
             shape.makeShape(collector, x,y,z);
+        }
+        return true;
+        
+    }
+
+    public boolean getTrianglesSphere(TriangleCollector collector){
+        
+        int count = m_size;
+        
+        for(int i = 0; i < count; i++){
+
+            int start  = i*3;
+            double 
+                x = coord[start],
+                y = coord[start+1],
+                z = coord[start+2];
+            TriangulatedSphere shape = new TriangulatedSphere(pointSize/2, new Vector3d(x,y,z), m_subdivisionLevel);
+            shape.getTriangles(collector);
         }
         return true;
         
