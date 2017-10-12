@@ -172,7 +172,7 @@ public class TestGridLoader extends TestCase {
         assertTrue("((diff1 < 0.042) != true)\n", (diff.diff1/voxelSize < 0.042));
         assertTrue("((diff2 < 0.057) != true)\n", (diff.diff2/voxelSize < 0.057));
         
-        if(true){
+        if(false){
             GridDataChannel dataChannel = grid.getDataDesc().getChannel(0);
             ColorMapper colorMapper = new ColorMapperDistance(0xFF00FF00,0xFFDDFFDD, 0xFF0000FF,0xFFDDDDFF, 2*MM);
             int iz = grid.getDepth()/2;

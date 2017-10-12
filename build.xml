@@ -439,7 +439,7 @@
 
 <!-- Normal test without any code coverage -->
   <target name="test" depends="compileTest">
-      <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+      <junit printsummary="yes" haltonerror="no" haltonfailure="no" fork="yes" showoutput="true">
       <jvmarg line="${jvmrunargs}"/>
       <formatter type="plain" usefile="false"/>
       <batchtest fork="yes" >

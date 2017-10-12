@@ -47,6 +47,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         return new TestSuite(TestDownsampleAlpha.class);
     }
 
+    static final int MAX_CORES = 4; // max cores to test 
     /**
      * Simple average of all maxes
      */
@@ -580,9 +581,8 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         }
 
         int TIMES = 1;
-
         int cores = Runtime.getRuntime().availableProcessors();
-        cores = Math.min(cores,8); // I expect after 8 for it to level off
+        cores = Math.min(cores,MAX_CORES); // I expect after 8 for it to level off
         float expected_speedup = 0.5f * cores;
 
         long t0 = System.currentTimeMillis();
@@ -636,7 +636,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         int TIMES = 1;
 
         int cores = Runtime.getRuntime().availableProcessors();
-        cores = Math.min(cores,8); // I expect after 8 for it to level off
+        cores = Math.min(cores,MAX_CORES); // I expect after 8 for it to level off
         float expected_speedup = 0.5f * cores;
         long t0 = System.currentTimeMillis();
         DownsampleAlpha op2 = new DownsampleAlpha(coeff,factor,maxAttributeValue);
@@ -689,7 +689,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         int TIMES = 1;
 
         int cores = Runtime.getRuntime().availableProcessors();
-        cores = Math.min(cores,4); // I expect after 8 for it to level off
+        cores = Math.min(cores,MAX_CORES); // I expect after 8 for it to level off
         float expected_speedup = 0.5f * cores;
 
         long t0 = System.currentTimeMillis();
