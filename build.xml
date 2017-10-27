@@ -871,6 +871,7 @@
 
 
     <target name="clean" description="Deletes all the generated artifacts.">
+        <delete dir="${jar.dir}" />
         <delete dir="${javadocs.dir}" />
         <delete dir="${classes.dir}" />
 	<delete dir="${emma.out.dir}"/>  
