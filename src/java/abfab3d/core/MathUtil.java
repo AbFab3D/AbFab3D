@@ -878,6 +878,38 @@ public class MathUtil {
     }
 
     /**
+       solves system of 2 linear equations 
+       M*X = C <br>
+       m00*x[0]+ m01*x[1] = c[0]<br>
+       m10*x[0]+ m11*x[1] = c[1]<br>
+
+       @param m00 
+       @param m01 
+       @param m10 
+       @param m11
+       @param c0  
+       @param c1 
+       @param x  solutiuon vector  
+       @return true if solution was found, false if there in no solution 
+       
+     */
+    public static boolean solveLinear2(double m00, double m01, double m10, double m11, double c0, double c1, double x[]){
+
+        double det = m00*m11-m10*m01;
+        if(Math.abs(det) < EPS) return false;
+        double det1 = 1./det;
+        // inverse matrix 
+        //
+        //   |  m11  -m01 | 
+        //   | -m10   m00 |
+        //
+        x[0] =  det1*(m11 * c0 - m01*c1);
+        x[1] =  det1*(-m10 * c0 + m00*c1);
+        return true;
+    }
+
+
+    /**
        calculate determinant of 3x3 matix represented as 1D array 
      */
     static double determinant3(double m[]){
@@ -893,7 +925,9 @@ public class MathUtil {
        solves system of 3 linear equation with 3 variables
        M X = C
        stores result in X 
-       @param M - matrix stored as linear array 
+       @param m - matrix stored as linear array 
+       @param c - right hand vector
+       @param c - solutiun vector
        
        m00*x0  + m01*x1 + m02*x2 = c0
        m10*x0  + m11*x1 + m12*x2 = c1

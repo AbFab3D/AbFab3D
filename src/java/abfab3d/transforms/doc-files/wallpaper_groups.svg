@@ -13,7 +13,7 @@
    height="1052.3622047"
    id="svg4847"
    version="1.1"
-   inkscape:version="0.48.0 r9654"
+   inkscape:version="0.91 r13725"
    sodipodi:docname="wallpaper_groups.svg">
   <defs
      id="defs4849" />
@@ -25,10 +25,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.70710678"
-     inkscape:cx="356.03865"
+     inkscape:cx="114.91524"
      inkscape:cy="551.17611"
      inkscape:document-units="px"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1350"
      inkscape:window-height="1129"
@@ -964,17 +964,7 @@
          x="618.39038"
          y="64.329376"
          style="font-size:14px">4*2</tspan></text>
-    <flowRoot
-       xml:space="preserve"
-       id="flowRoot4901"
-       style="font-size:8px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial;-inkscape-font-specification:Sans Bold"><flowRegion
-         id="flowRegion4903"><rect
-           id="rect4905"
-           width="634.28571"
-           height="48.57143"
-           x="37.142857"
-           y="65.219322" /></flowRegion><flowPara
-         id="flowPara4907" /></flowRoot>    <text
+    <text
        sodipodi:linespacing="125%"
        id="text4909"
        y="250.98099"
@@ -1010,17 +1000,7 @@
          x="598.54376"
          id="tspan4919"
          sodipodi:role="line">3*3</tspan></text>
-    <flowRoot
-       xml:space="preserve"
-       id="flowRoot4921"
-       style="font-size:8px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial;-inkscape-font-specification:Sans Bold"><flowRegion
-         id="flowRegion4923"><rect
-           id="rect4925"
-           width="668.72101"
-           height="76.771591"
-           x="42.426407"
-           y="228.07771" /></flowRegion><flowPara
-         id="flowPara4927" /></flowRoot>    <text
+    <text
        xml:space="preserve"
        style="font-size:14px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial;-inkscape-font-specification:Sans Bold"
        x="92.25972"
@@ -1068,17 +1048,7 @@
          x="346.66995"
          y="571.25763"
          style="font-size:14px">2222</tspan></text>
-    <flowRoot
-       xml:space="preserve"
-       id="flowRoot4949"
-       style="font-size:8px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial;-inkscape-font-specification:Sans Bold"><flowRegion
-         id="flowRegion4951"><rect
-           id="rect4953"
-           width="210.11172"
-           height="119.198"
-           x="325.26913"
-           y="609.91534" /></flowRegion><flowPara
-         id="flowPara4955" /></flowRoot>    <text
+    <text
        sodipodi:linespacing="125%"
        id="text4957"
        y="568.21606"

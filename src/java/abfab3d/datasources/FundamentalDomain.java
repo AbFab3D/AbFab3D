@@ -34,12 +34,38 @@ public class FundamentalDomain {
         return null;
     }
 
+
     public static DataSource getDataSource(ReflectionGroup.SPlane splanes[]){
-        abfab3d.datasources.Intersection inter = new Intersection();
+        Intersection inter = new Intersection();
         for(int i = 0; i < splanes.length; i++){
             inter.add(getDataSource(splanes[i]));
         }
         return inter;
+    }
+
+
+    /**
+       @return DataSource representation of the interior of of the fundamental domain 
+       @param splanes sides of fundamental domain 
+     */
+    public static DataSource getInterior(ReflectionGroup.SPlane splanes[]){
+        return getDataSource(splanes);
+    }
+
+    /**
+       @return DataSource representation of the sides of fundamental domain 
+       @param splanes sides of fundamental domain 
+       @param thickness physical thickness of the splanes 
+     */
+    public static DataSource getSplanes(ReflectionGroup.SPlane splanes[], double thickness){
+        Union un = new Union();
+        for(int i = 0; i < splanes.length; i++){            
+            un.add(new Abs(getDataSource(splanes[i])));
+        }
+        if(thickness == 0.)
+            return un;
+        else 
+            return new Sub(un, new Constant(thickness/2.));
     }
 
     public static double getCosAngle(ReflectionGroup.SPlane sp1, ReflectionGroup.SPlane sp2){
