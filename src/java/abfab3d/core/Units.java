@@ -40,7 +40,7 @@ public class Units{
      * @param outUnit
      * @return The value in outUnit units
      */
-    public double convertToUnit(double val, UnitName inUnit, UnitName outUnit) {
+    public static double convertToUnit(double val, UnitName inUnit, UnitName outUnit) {
         double mval;
 
         switch(inUnit) {
