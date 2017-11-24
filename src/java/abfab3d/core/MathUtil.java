@@ -894,9 +894,30 @@ public class MathUtil {
        
      */
     public static boolean solveLinear2(double m00, double m01, double m10, double m11, double c0, double c1, double x[]){
+        return solveLinear2(m00, m01, m10, m11, c0, c1, EPS, x);
+    }
+
+    /**
+       solves system of 2 linear equations 
+       M*X = C <br>
+       m00*x[0]+ m01*x[1] = c[0]<br>
+       m10*x[0]+ m11*x[1] = c[1]<br>
+
+       @param m00 
+       @param m01 
+       @param m10 
+       @param m11
+       @param c0  
+       @param c1 
+       @param epsilon - minimal determinant to consider system non-degenerate 
+       @param x  solutiuon vector  
+       @return true if solution was found, false if there in no solution 
+       
+     */
+    public static boolean solveLinear2(double m00, double m01, double m10, double m11, double c0, double c1, double epsilon, double x[]){
 
         double det = m00*m11-m10*m01;
-        if(Math.abs(det) < EPS) return false;
+        if(Math.abs(det) < epsilon) return false;
         double det1 = 1./det;
         // inverse matrix 
         //

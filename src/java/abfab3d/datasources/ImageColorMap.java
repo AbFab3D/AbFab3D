@@ -27,6 +27,7 @@ import abfab3d.param.BooleanParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.SNodeParameter;
+import abfab3d.param.EnumParameter;
 
 import abfab3d.grid.op.ImageToGrid2D;
 import abfab3d.grid.op.ImageLoader;
@@ -64,6 +65,8 @@ public class ImageColorMap extends TransformableDataSource {
 
     final static boolean DEBUG = false;
 
+    final static public String sm_projectionNames[] = new String[]{"plain", "spherical", "cylindrical"};
+    
     private boolean m_repeatX = false;
     private boolean m_repeatY = false;
     private double
@@ -83,6 +86,7 @@ public class ImageColorMap extends TransformableDataSource {
     BooleanParameter mp_repeatX = new BooleanParameter("repeatX", "repeat image along X", false);
     BooleanParameter mp_repeatY = new BooleanParameter("repeatY", "repeat image along Y", false);
     BooleanParameter mp_repeatZ = new BooleanParameter("repeatZ", "repeat image along Z", false);
+    EnumParameter mp_projection = new EnumParameter("projection", "type of projection to use", sm_projectionNames, sm_projectionNames[0]);
 
     Parameter m_aparams[] = new Parameter[]{
             mp_imageSource,
@@ -91,6 +95,7 @@ public class ImageColorMap extends TransformableDataSource {
             mp_repeatX,
             mp_repeatY,
             mp_repeatZ,
+            mp_projection,
     };
 
     /** Params which require changes in the underlying image */
