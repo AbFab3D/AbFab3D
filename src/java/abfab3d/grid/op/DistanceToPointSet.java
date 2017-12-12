@@ -75,7 +75,8 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
 
     int m_sliceHeight = 0; // to be initialized 
 
-    InsideTester m_insideTester;
+    // tester to check if point is inside of solid 
+    InsideTester m_insideTester = null;
     PointSet m_points;
 
     private double m_voxelSize;
@@ -146,8 +147,9 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     }
 
     /**
-       sets object to be used for inside/outside detection
+       set object to be used for inside/outside detection
        it is needed if we want to calculate signed distance function
+       by default this tester in null and no inside values are calculated 
      */
     public void setInsideTester(InsideTester tester){
         m_insideTester = tester;

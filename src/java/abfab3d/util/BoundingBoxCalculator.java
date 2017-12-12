@@ -135,6 +135,21 @@ public class BoundingBoxCalculator implements TriangleCollector, AttributedTrian
         return triCount;
     }
 
+    public static Bounds getBounds(PointSet ps){
+
+        int n = ps.size();
+        Vector3d p = new Vector3d();
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        
+        for(int i = 0; i < n; i++){
+            ps.getPoint(i, p);
+            bb.addVect(p);
+        }
+
+        return bb.getBounds();
+    }
+
+
     public static Bounds getBounds(TriangleProducer tProducer){
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         tProducer.getTriangles(bb);

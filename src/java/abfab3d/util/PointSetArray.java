@@ -205,6 +205,15 @@ public class PointSetArray implements TriangleProducer, PointSet  {
         point.z = coord[start+2];
 
     }
+
+    public void setPoint(int index, Tuple3d point){
+
+        int start = index*3;
+        coord[start] = point.x;
+        coord[start+1] = point.y;
+        coord[start+2] = point.z;
+
+    }
     
     private void reallocArray(){
 

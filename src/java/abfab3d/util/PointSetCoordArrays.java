@@ -69,5 +69,13 @@ public class PointSetCoordArrays implements PointSet  {
         point.z = coordz[index];
 
     }
+
+    public void setPoint(int index, Tuple3d point){
+
+        coordx[index] = point.x;
+        coordy[index] = point.y;
+        coordz[index] = point.z;
+
+    }
     
 }

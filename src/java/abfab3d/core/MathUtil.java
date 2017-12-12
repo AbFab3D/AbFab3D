@@ -878,6 +878,26 @@ public class MathUtil {
     }
 
     /**
+       make plane coefficients normalized 
+     */
+    public static void normalizePlane(double plane[]){
+
+        double s0 = plane[0]*plane[0];
+        double s1 = plane[1]*plane[1];
+        double s2 = plane[2]*plane[2];
+        double s3 = plane[3]*plane[3];
+        
+        double s = sqrt(s0 + s1 + s2 + s3);
+
+        plane[0] /= s;
+        plane[1] /= s;
+        plane[2] /= s;
+        plane[3] /= s;
+
+    }
+    
+
+    /**
        solves system of 2 linear equations 
        M*X = C <br>
        m00*x[0]+ m01*x[1] = c[0]<br>
@@ -1137,7 +1157,7 @@ public class MathUtil {
        @param coord - coordinates of points stored in flat array x0,y0,z0,x1,y,1,z1,...
        @param m - working array of length 9 
        @param c - working array of length 3 
-       @param - coefficients of of equation of plane: px * x + py * y + pz * z + 1 = 0;
+       @param plane - coefficients of of equation of plane: p[0] * x + p[1] * y + p[2] * z + p[3] = 0;
 
        we minimize the sum of distances of point to the plane 
        sum_i( px * xi + py * yi + pz * zi + 1)^2 = minimum 
@@ -1239,25 +1259,6 @@ public class MathUtil {
     }
 
 
-    /**
-       make plane coefficients normaliuzed 
-     */
-    public static void normalizePlane(double plane[]){
-
-        double s0 = plane[0]*plane[0];
-        double s1 = plane[1]*plane[1];
-        double s2 = plane[2]*plane[2];
-        double s3 = plane[3]*plane[3];
-        
-        double s = sqrt(s0 + s1 + s2 + s3);
-
-        plane[0] /= s;
-        plane[1] /= s;
-        plane[2] /= s;
-        plane[3] /= s;
-
-    }
-    
     /**
        makes signed int from short stored as 2 low bytes in long
     */
@@ -1550,14 +1551,49 @@ public class MathUtil {
     }
 
     /**
-       @return axis and angle or rotation which rotates basis vectors standard orthogonal basis (1,0,0),(0,1,0),(0,0,1) into orthonormal basis (v1, v2, v3)
+       @return axis and angle of rotation which rotates basis vectors standard orthogonal basis (1,0,0),(0,1,0),(0,0,1) into orthonormal basis (v1, v2, v3)
      */
     public static AxisAngle4d getAxisAngle(Vector3d v1, Vector3d v2, Vector3d v3){
-
+        // matrix which transfors the basis 
         Matrix3d m = new Matrix3d(v1.x,v2.x, v3.x,v1.y,v2.y,v3.y,v1.z,v2.z,v3.z);
         return getAxisAngle(m);
         
     }
+
+    /**
+       @return axis and rotation which rotate vectror v1 into vector v2 
+     */
+    public static AxisAngle4d getAxisAngle(Vector3d _v1, Vector3d _v2){
+        // protect originals
+        Vector3d v1 = new Vector3d(_v1);
+        Vector3d v2 = new Vector3d(_v2);
+        v1.normalize();
+        v2.normalize();
+        Vector3d normal = new Vector3d();
+        normal.cross(v1, v2);
+        double sina = normal.length();
+        double cosa = v1.dot(v2);
+        if(abs(sina) < EPS){ // vectors are parallel 
+            if(cosa > 0. ){ // no rotation                 
+                return new AxisAngle4d(0,0,1, 0);
+            } else {
+                // half turn, 180 degree rotation around any axis orthogonal to v2
+                // arbitrary vector 
+                Vector3d ax = new Vector3d(0.1234, 0.5678, 0.9876);
+                v2.scale(ax.dot(v2));
+                ax.sub(v2); // vector orthogonal to v2;
+                ax.normalize();
+                // TODO 
+                return new AxisAngle4d(ax.x, ax.y, ax.z, Math.PI);
+            }
+        } else {
+            normal.normalize();
+            double angle = Math.atan2(sina, cosa);
+            return new AxisAngle4d(normal.x,normal.y,normal.z,angle);
+        }
+        
+    }
+
 
     /**
      * Round up a numerator to be divisible by denominator.  
