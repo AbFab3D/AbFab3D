@@ -142,6 +142,19 @@ public class PointSetArray implements TriangleProducer, PointSet  {
         }
     }
 
+    /**
+       @param pnts set of points to add 
+     */
+    public final void addPoints(PointSet pnts){
+
+        Vector3d p = new Vector3d();
+
+        for(int k = 0; k < pnts.size(); k++){
+            pnts.getPoint(k, p);
+            addPoint(p.x,p.y,p.z);
+        }
+    }
+
     public boolean getTriangles(TriangleCollector collector){
         switch(m_shapeType){
         default: 
