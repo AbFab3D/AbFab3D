@@ -18,6 +18,7 @@ import abfab3d.core.TriangleCollector;
 import abfab3d.core.TriangleProducer;
 
 import javax.vecmath.Tuple3d;
+import javax.vecmath.Tuple3f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 import java.util.Vector;
@@ -205,9 +206,15 @@ public class PointSetArrayFloat implements TriangleProducer, PointSet  {
         point.x = coord[start];
         point.y = coord[start+1];
         point.z = coord[start+2];
-
     }
-    
+
+    public void getPoint(int index, Tuple3f point){
+        int start = index*3;
+        point.x = coord[start];
+        point.y = coord[start+1];
+        point.z = coord[start+2];
+    }
+
     private void reallocArray(){
 
         int ncapacity = 2*m_arrayCapacity;
