@@ -525,10 +525,10 @@ public class GridSaver {
         writeTexturedX3D(coord,coordIndex,texCoord,texCoordIndex,writer,texFileName);
     }
 
-        /**
-           writes textured triangles into a X3D file.
-           texture file is already saved
-         */
+    /**
+       writes textured triangles into a X3D file.
+       texture file is already saved
+    */
     public void writeTexturedX3D(double coord[], int coordIndex[], double texCoord[], int texCoordIndex[],
                                  BinaryContentHandler writer,String texFileName) throws IOException {
         

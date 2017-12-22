@@ -171,7 +171,11 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
         // Be explicit about io.input to stop reading of disk contents
         classImports.add("abfab3d.io.input.AttributedMesh");
+        classImports.add("abfab3d.io.input.ModelLoader");
+        classImports.add("abfab3d.io.input.MeshBuilder");
+
         classImports.add("abfab3d.util.MeshRasterizer");
+        classImports.add("abfab3d.util.Polygon");
 
         classImports.add("abfab3d.shapejs.Scene");
         classImports.add("abfab3d.shapejs.Light");
@@ -182,7 +186,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
         classImports.add("abfab3d.shapejs.FullColorMaterial");
         classImports.add("abfab3d.shapejs.TracingParams");
 
-        classImports.add("abfab3d.io.input.ModelLoader");
         classImports.add("abfab3d.grid.op.ImageLoader");
 
         classImports.add("abfab3d.core.MathUtil");

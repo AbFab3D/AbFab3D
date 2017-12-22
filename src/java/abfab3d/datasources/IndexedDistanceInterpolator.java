@@ -30,7 +30,7 @@ import static abfab3d.core.Output.printf;
 /**
    intepolator of distances from index grid and array of coordinates
    the data are supplied as array of point coordinates (and optional other values) 
-   each grid voxel contains index of closes point in that array 
+   each grid voxel contains index of closest point in that array 
    values in between voxel centers are linearly interpolated 
    
    @author Vladimir Bulatov

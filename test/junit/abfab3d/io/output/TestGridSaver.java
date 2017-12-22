@@ -171,7 +171,7 @@ public class TestGridSaver extends TestCase {
     }
     
     /**
-       tesing meking mesh with texture 
+       tesing making mesh with texture 
      */
     void devTestTexturedMesh() throws IOException{
 

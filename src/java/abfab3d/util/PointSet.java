@@ -29,6 +29,11 @@ public interface PointSet {
     public void getPoint(int index, Tuple3d point);
 
     /**
+       set value of given point to given value
+     */
+    public void setPoint(int index, Tuple3d point);
+
+    /**
      * Add a point to the set.
      *
      * @param x

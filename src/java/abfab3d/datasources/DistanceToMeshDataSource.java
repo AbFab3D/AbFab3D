@@ -64,11 +64,11 @@ import static abfab3d.core.Output.time;
    represent distance to triangle mesh as data source 
    during initialization it does 
    1) rasterizes the mesh into set of points on its surface on the grid
-   2) generates interior/exterio grid using z-buffer voxelization 
-   3) initialies thin layer of voxel around surface to index closest point on surface 
-   4) sweeps thin layer to the whole grid of closes point indixes
+   2) generates interior/exterior grid using z-buffer voxelization 
+   3) initialises thin layer of voxel around surface to index closest point on surface 
+   4) sweeps thin layer to the whole grid of closest point indices
 
-   during calculation it find the closest voxel to the given point and uses 
+   during calculation it finds the closest voxel to the given point and uses 
    that voxel closest point index to calculate the actual euclidean distance  
 
    
@@ -136,6 +136,9 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     // interpolator used to calculate distances 
     IndexedDistanceInterpolator m_distCalc;
     
+    /**
+       constructor with plain mesh producer 
+     */
     public DistanceToMeshDataSource(Object meshProducer){
 
         super.addParams(m_aparams);
@@ -144,6 +147,9 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
     }
 
+    /**
+       constructor with colored mesh producer 
+     */
     public DistanceToMeshDataSource(Object meshProducer, DataSource colorizer){
 
         super.addParams(m_aparams);
@@ -230,7 +236,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     */
     protected int fullInitialize(){
         
-        if(DEBUG)printf("DistanceToMeshDataSo.initialize() - full calculation\n"); 
+        if(DEBUG)printf("DistanceToMeshDataSource.initialize() - full calculation\n"); 
 
         
         long t0 = time();

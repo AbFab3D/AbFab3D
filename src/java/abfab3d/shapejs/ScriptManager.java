@@ -74,6 +74,7 @@ public class ScriptManager {
         aMap.put("urn:shapeways:stockImage:allwhite", IMAGES_DIR + "/allwhite.jpg");
         aMap.put("urn:shapeways:stockImage:gradient", IMAGES_DIR + "/gradient.jpg");
         aMap.put("urn:shapeways:stockImage:envmap_rays", IMAGES_DIR + "/envmap_rays.png");
+        aMap.put("urn:shapeways:stockImage:wt_colormap", IMAGES_DIR + "/colormap_08.png");
         aMap.put("urn:shapeways:stockModel:smallbox", MODELS_DIR + "/box_10mm.x3db");
         aMap.put("urn:shapeways:stockModel:box", MODELS_DIR + "/box_20mm.x3db");
         aMap.put("urn:shapeways:stockModel:smallsphere", MODELS_DIR + "/sphere_10mm.x3db");

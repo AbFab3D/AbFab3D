@@ -99,6 +99,12 @@ public class PointCloudDynamic implements TriangleProducer, PointSet  {
         point.y = p.y;
         point.z = p.z;
     }
+
+    public void setPoint(int index, Tuple3d point){
+
+        Vector3d p = points.get(index);
+        p.set(point);
+    }
     
     static class Octa {
         
