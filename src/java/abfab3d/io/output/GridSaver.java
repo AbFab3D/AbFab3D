@@ -975,19 +975,20 @@ public class GridSaver {
 
         for (int i = 0; i < shells.length; i++) {
             AreaCalculator ac = new AreaCalculator();
+
             shellFinder.getShell(mesh, shells[i].startFace, ac);
-            mesh.getTriangles(ac);
+
             double volume = ac.getVolume();
-            if(DEBUG)printf("  shell %d (%e cm^3)", i, (volume / CM3));
+            if(DEBUG)printf("   shell %3d faces: %6d (%e cm^3)", i, shells[i].faceCount,(volume / CM3));
             if (volume >= minVolume) {
-                if(DEBUG)printf("Keeping shell\n");
+                if(DEBUG)printf(" Keeping shell\n");
                 saved_shells.add(new ShellData(shells[i], volume));
                 if (cnt < maxShellsCount) {
                     face_count += shells[i].faceCount;
                 }
                 cnt++;
             } else {
-                if(DEBUG)printf("Removing shell\n ");
+                if(DEBUG)printf(" Removing shell\n");
                 regions_removed++;
             }
         }
@@ -1112,16 +1113,17 @@ public class GridSaver {
                 
                 AreaCalculator ac = new AreaCalculator();
                 ShellFinder sf = new ShellFinder();
-                //            shellFinder.getShell(mesh, shells[i].startFace, ac);
                 sf.getShell(mesh, shell.startFace, ac);
-                mesh.getTriangles(ac);
+
                 double volume = ac.getVolume();
-                
-                //System.out.println("   vol: " + (volume / CM3));
+                if(DEBUG)printf("  shell sf: %d faces: %d (%e cm^3)", shell.startFace, shell.faceCount,(volume / CM3));
+
                 if (volume >= minVolume) {
-                    if(DEBUG)printf("Keeping shell: %e cm3 ", volume / CM3);
+                    if(DEBUG)printf(" Keeping shell: %e cm3 \n", volume / CM3);
                     saved.add(new ShellData(shell, volume));
                 } else {
+                    if(DEBUG)printf(" Removing shell\n ");
+
                     removed++;
                 }
             }
