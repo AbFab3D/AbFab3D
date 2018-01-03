@@ -296,6 +296,7 @@ public class ShapeJSGlobal {
         globals.put("MM", Units.MM);
         globals.put("MM3", Units.MM3);
         globals.put("CM", Units.CM);
+        globals.put("CM3", Units.CM3);
         globals.put("IN", Units.IN);
         globals.put("FT", Units.FT);
         globals.put("PI", Math.PI);
