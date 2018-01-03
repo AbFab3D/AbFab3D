@@ -243,12 +243,32 @@ public class ParamJson {
     }
 
     public static AxisAngle4d getAxisAngle4dFromJson(JsonElement value){
-        JsonArray array = value.getAsJsonArray();
-        double x = array.get(0).getAsDouble();
-        double y = array.get(1).getAsDouble();
-        double z = array.get(2).getAsDouble();
-        double a = array.get(3).getAsDouble();
-        return new AxisAngle4d(x,y,z,a);
+    	JsonElement x = null;
+    	JsonElement y = null;
+    	JsonElement z = null;
+    	JsonElement a = null;
+    	
+    	if (value.isJsonArray()) {
+	        JsonArray array = value.getAsJsonArray();
+	        if (array.size() >= 4) {
+		        x = array.get(0);
+		        y = array.get(1);
+		        z = array.get(2);
+		        a = array.get(3);
+	        }
+    	} else if (value.isJsonObject()) {
+    		JsonObject obj = value.getAsJsonObject();
+	        x = obj.get("x");
+	        y = obj.get("y");
+	        z = obj.get("z");
+	        a = obj.get("angle");
+    	}
+    	
+        if (x == null || y == null || z == null || a == null) {
+        	throw new RuntimeException(fmt("Invalid AXIS_ANGLE_4D value: %s\n", value.toString()));
+        }
+        
+        return new AxisAngle4d(x.getAsDouble(),y.getAsDouble(),z.getAsDouble(),a.getAsDouble());
     }
 
     public static ArrayList getStringListFromJson(JsonElement value){
