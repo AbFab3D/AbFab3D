@@ -397,6 +397,37 @@ public class TestMathUtil extends TestCase {
         }
     }
 
+    public void testMap() {
+        double EPS = 1e-6;
+        double val = MathUtil.map(5,0,10,0,1);
+        double expected = 0.5;
+
+        assertEquals("val wrong",expected,val,EPS);
+
+        val = MathUtil.map(0,0,10,0,1);
+        expected = 0;
+        assertEquals("val wrong",expected,val,EPS);
+
+        val = MathUtil.map(10,0,10,0,1);
+        expected = 1;
+        assertEquals("val wrong",expected,val,EPS);
+
+        val = MathUtil.map(15,0,10,0,1);
+        expected = 1.5;
+        assertEquals("val wrong",expected,val,EPS);
+    }
+
+    public void testClamp() {
+        double EPS = 1e-6;
+        double val = MathUtil.clamp(5,0,1);
+        double expected = 1.0;
+        assertEquals("val wrong",expected,val,EPS);
+
+        val = MathUtil.clamp(0,1,10);
+        expected = 1.0;
+        assertEquals("val wrong",expected,val,EPS);
+
+    }
 
     public static void main(String arg[]){
 

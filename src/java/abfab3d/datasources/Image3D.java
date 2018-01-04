@@ -248,7 +248,7 @@ public class Image3D extends TransformableDataSource {
     public Image3D(Grid2D grid, double sx, double sy, double sz) {
         // use memory hash as label  
         this((Grid2DProducer) (new Grid2DSourceWrapper(grid.toString(), grid)), sx, sy, sz);
-        mp_useImageProcessing.setValue(false);
+        //mp_useImageProcessing.setValue(false);   // Breaks backwards comp
     }
 
     /**
@@ -262,7 +262,7 @@ public class Image3D extends TransformableDataSource {
     public Image3D(Grid2D grid, double sx, double sy, double sz,double vs) {
         // use memory hash as label
         this((Grid2DProducer) (new Grid2DSourceWrapper(grid.toString(), grid)), sx, sy, sz);
-        mp_useImageProcessing.setValue(false);
+        //mp_useImageProcessing.setValue(false);  // Breaks backwards compat
         setVoxelSize(vs);
     }
 
