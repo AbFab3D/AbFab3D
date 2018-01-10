@@ -148,6 +148,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         */
 
         printf("Model Loader: %s\n", uri);
+/*
         // TODO: How to deal with not wanting to cache user uploaded files(put in temp dir) versus local usage
         if (uri.startsWith("http")) {
 
@@ -176,6 +177,8 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         } else {
             path = uri;
         }
+*/
+        path = uri;
 
         if (path == null) throw new IllegalArgumentException("Cannot resolve source: " + uri);
 
