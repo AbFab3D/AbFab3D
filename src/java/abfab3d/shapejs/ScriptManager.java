@@ -145,7 +145,7 @@ public class ScriptManager {
      *
      * @param jobID
      * @param script
-     * @param params
+     * @param params -  Must be Java native objects expected for the parameter type
      * @return
      * @throws NotCachedException
      */
@@ -233,7 +233,7 @@ public class ScriptManager {
      *
      * @param jobID
      * @param script
-     * @param params
+     * @param params -  Must be Java native objects expected for the parameter type
      * @return
      * @throws NotCachedException
      */
@@ -245,7 +245,7 @@ public class ScriptManager {
      * Updates parameter values for a script.  Evaluates the javascript and downloads any parameters
      *
      * @param jobID
-     * @param params
+     * @param params - Must be Java native objects expected for the parameter type
      * @return
      * @throws NotCachedException
      */
