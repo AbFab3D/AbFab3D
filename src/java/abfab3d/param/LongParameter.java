@@ -88,8 +88,12 @@ public class LongParameter extends NumberParameter {
     
     @Override
     public void setValue(Object val) {
-        if(val instanceof Double)
+        if(val instanceof Double) {
             val = new Long((long)Math.round(((Double)val).doubleValue()));
+        } else if(val instanceof String){
+            val = new Long((long)Math.round(Double.parseDouble((String)val)));            
+        }
+        
         validate(val);
 
         this.value = val;

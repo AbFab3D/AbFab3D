@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.AxisAngle4d;
@@ -495,5 +496,110 @@ public class ParamJson {
         JsonElement obj = parser.parse(json);
         return getObjectValueFromJson(obj, param);
     }
+    
+    /**
+     * Get parameter value from map and type.
+     * 
+     * @param map The value map
+     * @param param The parameter definition
+     * @return A parameter specific value
+     */
+    public static Object getValueFromMap(Map<String, Object> map, Parameter param) {
+    	if (map == null || map.size() == 0) return null;
+    	
+        switch(param.getType()) {
+            case LOCATION:
+            	return getLocationFromMap(map);
+            case AXIS_ANGLE_4D:
+            	return getAxisAngle4DFromMap(map);
+            case VECTOR_3D:
+            	return getVector3DFromMap(map);
+            default:
+            	return null;
+        }
+    }
+    
+    /**
+     * Take a map of points and normals and return a Location.
+     * 
+     * @param value Map of points and normals
+     * @return
+     */
+    public static Location getLocationFromMap(Map<String, Object> value){
+    	Object pntObj = value.get("point");
+    	Object norObj = value.get("normal");
+    	
+    	if (pntObj == null || norObj == null) return null;
+    	
+    	Vector3d point = null;
+    	Vector3d normal = null;
+    	
+    	if (pntObj instanceof List) {
+        	List<Double> pntList = (List) pntObj;
+        	List<Double> norList = (List) norObj;
+            
+            if (pntList.size() >= 3) {
+                point = new Vector3d(pntList.get(0), pntList.get(1), pntList.get(2));
+            }
+            if (norList.size() >= 3) {
+                normal = new Vector3d(norList.get(0), norList.get(1), norList.get(2));
+            }
+    	} else if (pntObj instanceof Double[]) {
+        	Double[] pntArr = (Double[]) pntObj;
+        	Double[] norArr = (Double[]) norObj;
+            
+            if (pntArr.length >= 3) {
+                point = new Vector3d(pntArr[0], pntArr[1], pntArr[2]);
+            }
+            if (norArr.length >= 3) {
+                normal = new Vector3d(norArr[0], norArr[1], norArr[2]);
+            }
+    	}
 
+        return new  Location(point,normal);
+    }
+
+    /**
+     * Take a map containing values for x, y, z, and angle, and convert it to an AxisAngle4d.
+     * @param value The map containing values for x, y, z, and angle
+     * @return An AxisAngle4d
+     */
+    public static AxisAngle4d getAxisAngle4DFromMap(Map<String, Object> value){
+    	Object xObj = value.get("x");
+    	Object yObj = value.get("y");
+    	Object zObj = value.get("z");
+    	Object aObj = value.get("angle");
+    	
+    	if (xObj == null || yObj == null || zObj == null || aObj == null) {
+    		throw new RuntimeException(fmt("Invalid AXIS_ANGLE_4D value: %s\n", value.toString()));
+    	}
+    	
+    	Double x = (Double) xObj;
+    	Double y = (Double) yObj;
+    	Double z = (Double) yObj;
+    	Double angle = (Double) aObj;
+    	
+    	return new AxisAngle4d(x,y,z,angle);
+    }
+    
+    /**
+     * Take a map containing values for x, y, z and convert it to an Vector3d.
+     * @param value The map containing values for x, y, z
+     * @return A Vector3d
+     */
+    public static Vector3d getVector3DFromMap(Map<String, Object> value){
+    	Object xObj = value.get("x");
+    	Object yObj = value.get("y");
+    	Object zObj = value.get("z");
+    	
+    	if (xObj == null || yObj == null || zObj == null) {
+    		throw new RuntimeException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
+    	}
+    	
+    	Double x = (Double) xObj;
+    	Double y = (Double) yObj;
+    	Double z = (Double) yObj;
+    	
+    	return new Vector3d(x,y,z);
+    }
 }
