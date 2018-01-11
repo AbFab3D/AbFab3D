@@ -1764,4 +1764,18 @@ public class MathUtil {
         return Float.floatToIntBits((float)v);
     }
 
+    /**
+     * Map one range of numbers to another range.
+     *
+     * @param x
+     * @param inMin
+     * @param inMax
+     * @param outMin
+     * @param outMax
+     * @return
+     */
+    public static double map(double x, double inMin, double inMax, double outMin, double outMax) {
+        double ret_val = (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+        return  ret_val;
+    }
 }
