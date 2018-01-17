@@ -122,14 +122,16 @@ public class TestImage3D extends TestCase {
         double margin = 5 * MM;
         double distanceBand = 0.2 * MM;
         double voxelSize = 0.2*MM;
-        int imagePlace = Image3D.IMAGE_PLACE_TOP;
+        //int imagePlace = Image3D.IMAGE_PLACE_TOP;
+        //int imagePlace = Image3D.IMAGE_PLACE_BOTTOM;
+        int imagePlace = Image3D.IMAGE_PLACE_BOTH;
         int imageType = Image3D.IMAGE_TYPE_EMBOSSED;
         double rounding = 0. * MM;
-        double baseThreshold = 0;
+        double baseThreshold = 0.3;
         double blurWidth = 0.1 * MM;
         int tilesX = 1;
         int tilesY = 1;
-        double baseThickness = 0;
+        double baseThickness = 0.2;
         double maxDistance = 10*MM;
         double pixelsPerVoxel = 1;
 
