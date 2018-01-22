@@ -98,6 +98,16 @@ public class SNodeListParameter extends BaseParameter {
     }
 
     /**
+       @return count of items 
+     */
+    public int size(){
+
+        List list = (List) value;
+        return list.size();
+
+    }
+
+    /**
        remove item with given index
      */
     public void remove(int index){

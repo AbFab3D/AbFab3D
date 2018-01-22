@@ -13,11 +13,12 @@
 package abfab3d.transforms;
 
 import javax.vecmath.Vector3d;
+import java.util.ArrayList;
 
 import abfab3d.util.ReflectionGroup;
 import abfab3d.util.SymmetryGenerator;
 
-import abfab3d.param.ObjectParameter;
+import abfab3d.param.SNodeListParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.Parameter;
@@ -179,19 +180,39 @@ public class ReflectionSymmetries {
 
     public static class General extends BaseParameterizable implements SymmetryGenerator {
         
-        private ReflectionGroup.SPlane defaultSplanes[] = new ReflectionGroup.SPlane[]{new ReflectionGroup.Plane(new Vector3d(1,0,0),0)};
-        ObjectParameter  mp_splanes = new ObjectParameter("splanes","array of splanes",defaultSplanes);
+
+        SNodeListParameter  mp_splanes = new SNodeListParameter("splanes","array of splanes");
+
         Parameter m_params [] = new Parameter[]{
             mp_splanes, 
         };
 
-        public General(ReflectionGroup.SPlane[] fundamentalDomain){
+        public General(ReflectionGroup.SPlane[] splanes){
+            
             super.addParams(m_params);
-            mp_splanes.setValue(fundamentalDomain);
+            setSPlanes(splanes);
+
+        }
+
+        public void setSPlanes(ReflectionGroup.SPlane[] splanes){
+            ArrayList arr = new ArrayList();
+            for(int i = 0; i < splanes.length; i++){
+                arr.add(new SPlaneTransform(splanes[i]));
+            }
+
+            mp_splanes.setValue(arr);
         }
 
         public ReflectionGroup.SPlane[] getFundamentalDomain(){
-            return (ReflectionGroup.SPlane[])mp_splanes.getValue();
+            
+            ReflectionGroup.SPlane[] splanes = new ReflectionGroup.SPlane[ mp_splanes.size()];
+
+            for(int i = 0; i < splanes.length; i++){                
+                SPlaneTransform st = (SPlaneTransform)mp_splanes.get(i);
+                splanes[i] = st.getSPlane();                
+            }
+            return splanes;
+
         }
     } // class General 
 

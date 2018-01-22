@@ -37,7 +37,7 @@ public class PlaneReflection  extends BaseTransform implements VecTransform, Ini
     private double m_nx, m_ny, m_nz, m_dist;    
 
     Vector3dParameter  mp_normal = new Vector3dParameter("normal","plane's external normal",new Vector3d(1,0,0));
-    DoubleParameter  mp_dist = new DoubleParameter("dist","dsitance to plane from origin",0);
+    DoubleParameter  mp_dist = new DoubleParameter("dist","distance to plane from origin",0);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_dist,
