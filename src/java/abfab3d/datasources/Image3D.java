@@ -23,6 +23,7 @@ import abfab3d.core.Output;
 import abfab3d.core.ResultCodes;
 import abfab3d.core.Vec;
 import abfab3d.grid.Grid2DShort;
+import abfab3d.grid.Grid2DSourceWrapper;
 import abfab3d.grid.Operation2D;
 import abfab3d.grid.op.Copy;
 import abfab3d.grid.op.DistanceTransform2DOp;

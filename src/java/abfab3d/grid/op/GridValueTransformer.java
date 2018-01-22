@@ -21,7 +21,6 @@ import abfab3d.core.AttributePacker;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.SNodeParameter;
 import abfab3d.param.Parameter;
-import abfab3d.param.BaseParameterizable;
 import abfab3d.grid.Operation2D;
 
 

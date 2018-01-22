@@ -15,17 +15,13 @@ package abfab3d.grid.op;
 import java.util.Arrays;
 
 import abfab3d.core.Bounds;
-import abfab3d.core.Vec;
 import abfab3d.core.Grid2D;
-import abfab3d.core.GridDataDesc;
-import abfab3d.core.AttributePacker;
 import abfab3d.core.GridDataChannel;
 import abfab3d.core.MathUtil;
 
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
-import abfab3d.param.BaseParameterizable;
 import abfab3d.grid.Operation2D;
 
 

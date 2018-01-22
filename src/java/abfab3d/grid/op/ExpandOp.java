@@ -14,7 +14,6 @@ package abfab3d.grid.op;
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.Grid;
 import abfab3d.core.Grid2D;
-import abfab3d.datasources.Grid2DSourceWrapper;
 import abfab3d.grid.*;
 import abfab3d.param.*;
 import abfab3d.util.ImageGray16;
