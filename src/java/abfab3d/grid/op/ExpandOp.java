@@ -14,6 +14,7 @@ package abfab3d.grid.op;
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.Grid;
 import abfab3d.core.Grid2D;
+import abfab3d.datasources.Grid2DSourceWrapper;
 import abfab3d.grid.*;
 import abfab3d.param.*;
 import abfab3d.util.ImageGray16;
@@ -33,7 +34,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class ExpandOp extends BaseParameterizable implements Operation, Operation2D, AttributeOperation {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     LongParameter mp_attribute = new LongParameter("threshold", "Threshold for inside when using attribute grids", 0);
     IntegerListParameter mp_distances = new IntegerListParameter("distances","How far to expand in each direction", null,0,Integer.MAX_VALUE);
@@ -90,6 +91,8 @@ public class ExpandOp extends BaseParameterizable implements Operation, Operatio
 
         String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), src, m_aparam);
         Object co = ParamCache.getInstance().get(vhash);
+        if (DEBUG) printf("ExpandOp vhash: %s cached: %b\n",vhash,co!=null);
+
         if (co != null) return ((Grid2D)co);
 
         int wdelta = distances[0] + distances[2];
@@ -132,7 +135,11 @@ public class ExpandOp extends BaseParameterizable implements Operation, Operatio
             }
         }
 
-        return dest;
+        Grid2DSourceWrapper wrapper = new Grid2DSourceWrapper(vhash,dest);
+
+        ParamCache.getInstance().put(vhash,wrapper);
+
+        return wrapper;
     }
 
     /**

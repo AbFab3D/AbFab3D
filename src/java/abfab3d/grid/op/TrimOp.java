@@ -20,8 +20,11 @@ import abfab3d.core.Grid;
 import abfab3d.core.Grid2D;
 import abfab3d.core.GridDataChannel;
 import abfab3d.core.VoxelData;
+import abfab3d.datasources.Grid2DSourceWrapper;
 import abfab3d.grid.*;
 import abfab3d.param.*;
+
+import static abfab3d.core.Output.printf;
 
 /**
  * Trim a grid to its smallest size based on where INSIDE voxels are.
@@ -29,7 +32,7 @@ import abfab3d.param.*;
  * @author Alan Hudson
  */
 public class TrimOp extends BaseParameterizable implements Operation, AttributeOperation, Operation2D {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     DoubleParameter mp_threshold = new DoubleParameter("threshold", "Threshold for inside when using attribute grids", 240f/255);
 
@@ -335,6 +338,7 @@ public class TrimOp extends BaseParameterizable implements Operation, AttributeO
         String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), src, m_aparam);
 
         Object co = ParamCache.getInstance().get(vhash);
+        if (DEBUG) printf("TrimOp vhash: %s cached: %b\n",vhash,co!=null);
         if (co != null) return ((Grid2D)co);
 
         int width = src.getWidth();
@@ -399,7 +403,10 @@ public class TrimOp extends BaseParameterizable implements Operation, AttributeO
 
         if (x0 == 0 && xn == width && y0 == 0 && yn == height) {
             // no margin so return original
-            return src;
+            Grid2DSourceWrapper wrapper = new Grid2DSourceWrapper(vhash,src);
+
+            ParamCache.getInstance().put(vhash,wrapper);
+            return wrapper;
         }
 
         Grid2D dest = src.createEmpty(xn - x0 + 1, yn - y0 + 1, src.getVoxelSize());
@@ -414,7 +421,9 @@ public class TrimOp extends BaseParameterizable implements Operation, AttributeO
             }
         }
 
-        return dest;
+        Grid2DSourceWrapper wrapper = new Grid2DSourceWrapper(vhash,dest);
+        ParamCache.getInstance().put(vhash,wrapper);
+        return wrapper;
 
     }
 }

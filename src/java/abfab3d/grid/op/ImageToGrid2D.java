@@ -17,6 +17,7 @@ import abfab3d.core.Grid2D;
 import abfab3d.core.Grid2DProducer;
 import abfab3d.core.GridDataDesc;
 import abfab3d.core.ImageProducer;
+import abfab3d.datasources.Grid2DSourceWrapper;
 import abfab3d.grid.Grid2DInt;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.param.BaseParameterizable;
@@ -117,7 +118,9 @@ public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer
             m_grid = (Grid2D) co;
             if (DEBUG) printf("ImageToGrid2D: got cached image %s -> %s\n", label, m_grid);
         }
-        return m_grid;
+
+        Grid2DSourceWrapper wrapper = new Grid2DSourceWrapper(label,m_grid);  // TODO: not so sure this is the right label
+        return wrapper;
 
     }
 

@@ -229,6 +229,18 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
     }
 
     /**
+     * Directly copy the data array in.  You assume all responsilibity for correctness
+     * @param fromGrid
+     */
+    public void copyData(byte[] fromGrid) {
+        if (data.length != fromGrid.length) {
+            throw new IllegalArgumentException("Invalid array size");
+        }
+
+        System.arraycopy(fromGrid,0,data,0,data.length);
+    }
+
+    /**
      * Fast clear method
      */
     public void clear() {
