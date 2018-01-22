@@ -148,6 +148,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         */
 
         printf("Model Loader: %s\n", uri);
+/*
         // TODO: How to deal with not wanting to cache user uploaded files(put in temp dir) versus local usage
         if (uri.startsWith("http")) {
 
@@ -176,6 +177,8 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         } else {
             path = uri;
         }
+*/
+        path = uri;
 
         if (path == null) throw new IllegalArgumentException("Cannot resolve source: " + uri);
 
@@ -403,7 +406,17 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
                 String mhash = baseVhash + MATERIAL_TYPE_NAME;
                 String cchash = baseVhash + CHANNEL_COUNT_NAME;
 
-                LabeledBuffer<double[]> boundsBuffer = new LabeledBuffer<double[]>(bhash, grid.getGridBounds().getArray());
+                double[] barr = new double[6+1];
+                Bounds gbounds = grid.getGridBounds();
+                barr[0] = gbounds.xmin;
+                barr[1] = gbounds.xmax;
+                barr[2] = gbounds.ymin;
+                barr[3] = gbounds.ymax;
+                barr[4] = gbounds.zmin;
+                barr[5] = gbounds.zmax;
+                barr[6] = gbounds.getVoxelSize();
+
+                LabeledBuffer<double[]> boundsBuffer = new LabeledBuffer<double[]>(bhash, barr);
                 CPUCache.getInstance().put(boundsBuffer);
                 LabeledBuffer<byte[]> materialTypeBuffer = new LabeledBuffer<byte[]>(mhash, m_materialType.toString().getBytes());
                 CPUCache.getInstance().put(materialTypeBuffer);
@@ -461,9 +474,19 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             Bounds ret_val = grid.getGridBounds();
             return ret_val;
         } else {
-            Bounds bnds = new Bounds(boundsBuffer.getBuffer(),mp_voxelSize.getValue());
-            if (DEBUG) printf("***Got getGridBounds via cache: %s\n", bnds);
-            return bnds;
+            double[] barr = boundsBuffer.getBuffer();
+
+            if (barr.length == 7) {
+                Bounds bnds = new Bounds(barr[0], barr[1], barr[2], barr[3], barr[4], barr[5], barr[6]);
+                return bnds;
+            } else {
+                // We have an old incorrect cached version, reload
+
+                printf("Found old cached version, reloading model\n");
+                AttributeGrid grid = getGrid();
+                Bounds ret_val = grid.getGridBounds();
+                return ret_val;
+            }
         }
     }
 

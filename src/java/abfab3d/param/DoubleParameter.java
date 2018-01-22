@@ -124,6 +124,9 @@ public class DoubleParameter extends NumberParameter {
         if(DEBUG) printf("DoubleParameter(%s).setValue(%s:%s)\n",getName(),val.getClass().getName(), val);
         if (val instanceof Double) {
             super.setValue(val);
+        } else if (val instanceof String) {
+            Double dval = Double.valueOf((String)val);
+            super.setValue(dval);
         } else {
             Double dval;
             dval = ((Number)(val)).doubleValue();

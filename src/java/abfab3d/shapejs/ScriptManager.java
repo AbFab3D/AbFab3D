@@ -145,7 +145,7 @@ public class ScriptManager {
      *
      * @param jobID
      * @param script
-     * @param params
+     * @param params -  Must be Java native objects expected for the parameter type
      * @return
      * @throws NotCachedException
      */
@@ -178,10 +178,12 @@ public class ScriptManager {
                 if (!sr.evaluatedScript.isSuccess()) {
                     return sr;
                 }
+
                 // Apply all values in first pass
                 sr.eval.updateParams(params);
 
                 Map<String, Object> downloadedParams = downloadURI(sr, null);
+
                 //Reapply the ones changed from downloading
                 sr.eval.updateParams(downloadedParams);
             } else {
@@ -195,10 +197,12 @@ public class ScriptManager {
                         return sr;
                     }
                 }
+
                 // Apply all values in first pass
                 sr.eval.updateParams(params);
 
                 Map<String, Object> downloadedParams = downloadURI(sr, changedParams);
+
                 //Reapply the ones changed from downloading
                 sr.eval.updateParams(downloadedParams);
             }
@@ -233,7 +237,7 @@ public class ScriptManager {
      *
      * @param jobID
      * @param script
-     * @param params
+     * @param params -  Must be Java native objects expected for the parameter type
      * @return
      * @throws NotCachedException
      */
@@ -245,7 +249,7 @@ public class ScriptManager {
      * Updates parameter values for a script.  Evaluates the javascript and downloads any parameters
      *
      * @param jobID
-     * @param params
+     * @param params - Must be Java native objects expected for the parameter type
      * @return
      * @throws NotCachedException
      */
@@ -412,7 +416,7 @@ public class ScriptManager {
                     String localPath = null;
                     boolean cache = false;
                     // TODO: We should really be parsing the URI into components instead of using starts and ends with
-//                	System.out.println("*** uri, " + key + " : " + urlStr);
+//                    printf("*** uri, %s : %s\n", key, urlStr);
                     if (urlStr.startsWith("http://") || urlStr.startsWith("https://")) {
                         if (urlStr.contains("www.shapeways.com/models/get-base")) {
                             URL yourl = new URL(urlStr);
