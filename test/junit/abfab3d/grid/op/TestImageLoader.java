@@ -1,9 +1,5 @@
 package abfab3d.grid.op;
 
-import abfab3d.core.GridDataChannel;
-import abfab3d.core.Grid2D;
-import abfab3d.grid.Grid2DShort;
-import abfab3d.grid.Operation2D;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -13,7 +9,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 import static abfab3d.core.Output.printf;
-import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.time;
 
 /**

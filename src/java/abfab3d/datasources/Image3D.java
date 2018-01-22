@@ -23,6 +23,7 @@ import abfab3d.core.Output;
 import abfab3d.core.ResultCodes;
 import abfab3d.core.Vec;
 import abfab3d.grid.Grid2DShort;
+import abfab3d.grid.Grid2DSourceWrapper;
 import abfab3d.grid.Operation2D;
 import abfab3d.grid.op.Copy;
 import abfab3d.grid.op.DistanceTransform2DOp;
@@ -339,6 +340,18 @@ public class Image3D extends TransformableDataSource {
      * @param sx       width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param sy       height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param sz       depth of the box.
+     */
+    public Image3D(Grid2DSourceWrapper producer, double sx, double sy, double sz, double vs) {
+        this((Grid2DProducer) producer, sx, sy, sz,vs);  // TODO: Alan added
+    }
+
+    /**
+     * Image3D with given image path and size
+     *
+     * @param producer image producer
+     * @param sx       width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy       height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz       depth of the box.
      * @param vs       voxel size used for image voxelization
      */
     public Image3D(Grid2DProducer producer, double sx, double sy, double sz, double vs) {
@@ -527,7 +540,9 @@ public class Image3D extends TransformableDataSource {
     public void setImage(Object val) {
 
         if (val instanceof String) {
-            val = new ImageToGrid2D(new ImageLoader((String)val));
+            val = new ImageToGrid2D(new ImageLoader((String) val));
+        } else if (val instanceof Grid2DSourceWrapper) {
+              // fine
         } else if (val instanceof Grid2D) {
             Grid2D grid2d = (Grid2D) val;
             val = new Grid2DSourceWrapper(grid2d.toString(),grid2d);
@@ -742,11 +757,14 @@ public class Image3D extends TransformableDataSource {
         String label = getParamString(getClass().getSimpleName(), m_imageParams);
 
         Object co = null;
-        if (CACHING_ENABLED) co = ParamCache.getInstance().get(label);
+        if (CACHING_ENABLED) {
+            if (DEBUG) printf("\nChecking cache.  label: %s  hash: %d\n",label,label.hashCode());
+            co = ParamCache.getInstance().get(label);
+        }
         if (co == null) {
             m_dataGrid = prepareImage();
             if (CACHING_ENABLED) ParamCache.getInstance().put(label, m_dataGrid);
-            if (DEBUG) printf("Image3D: caching image: %s -> %s\n", label, m_dataGrid);
+            if (DEBUG) printf("Image3D: caching image: %s hc: %d -> %s\n", label, label.hashCode(),m_dataGrid);
         } else {
             m_dataGrid = (Grid2D) co;
             if (DEBUG) printf("Image3D: got cached image %s -> %s\n", label, m_dataGrid);

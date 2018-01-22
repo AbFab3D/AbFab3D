@@ -20,11 +20,9 @@ import abfab3d.core.Grid2DProducer;
 import abfab3d.core.ImageProducer;
 
 
-import abfab3d.param.BaseParameterizable;
 import abfab3d.param.ParamCache;
 import abfab3d.param.Parameter;
 import abfab3d.param.BooleanParameter;
-import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.SNodeParameter;
 import abfab3d.param.EnumParameter;
@@ -32,13 +30,7 @@ import abfab3d.param.EnumParameter;
 import abfab3d.grid.op.ImageToGrid2D;
 import abfab3d.grid.op.ImageLoader;
 
-import abfab3d.util.ImageColor;
-
-import javax.imageio.ImageIO;
 import javax.vecmath.Vector3d;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;

@@ -24,6 +24,8 @@ import static abfab3d.core.Output.fmt;
  * @author Alan Hudson
  */
 public abstract class BaseParameter implements Parameter {
+    private static final boolean DEBUG_PARAM_STRING = false;
+
     /** The name of the parameter. */
     protected String name;
 
@@ -237,21 +239,30 @@ public abstract class BaseParameter implements Parameter {
      */
     public void getParamString(StringBuilder sb) {
 
+        if (DEBUG_PARAM_STRING) {
+            printf("GPS.  name: %s  class: %s ",name,value!=null?value.getClass():"null");
+        }
+
         if (value == null) {
 
             sb.append("null");
 
+            if (DEBUG_PARAM_STRING) printf("val1: %s","null");
+
         } else if (value instanceof String) {
 
             sb.append((String) value);
+            if (DEBUG_PARAM_STRING) printf("val2: %s",(String)value);
 
         } else if(value instanceof Parameterizable) {
 
             Parameterizable par = (Parameterizable)value;
-            
+            if (DEBUG_PARAM_STRING) printf("val3: %s",par.getParamString());
+
             sb.append(par.getParamString());
 
         } else {
+            if (DEBUG_PARAM_STRING) printf("val4: %s",value.toString());
             sb.append(value.toString());
         }
     }
@@ -267,6 +278,7 @@ public abstract class BaseParameter implements Parameter {
             Parameterizable par = (Parameterizable)value;            
             return par.getParamString();
         }
+
         return value.toString();
     }
 

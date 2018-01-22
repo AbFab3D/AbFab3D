@@ -12,7 +12,6 @@
 package abfab3d.shapejs;
 
 import abfab3d.datasources.DataSourceGrid;
-import abfab3d.datasources.ImageWrapper;
 
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.Grid;
@@ -42,8 +41,6 @@ import abfab3d.io.output.SVXWriter;
 
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
-import abfab3d.param.BaseParameterizable;
-import abfab3d.param.ParamCache;
 
 import abfab3d.core.Units;
 import abfab3d.util.BoundingBoxCalculator;
@@ -75,9 +72,7 @@ import org.web3d.vrml.export.X3DXMLRetainedExporter;
 import org.web3d.vrml.lang.UnsupportedSpecVersionException;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
-import javax.imageio.ImageIO;
 import java.awt.Font;
-import java.awt.image.BufferedImage;
 
 import java.io.OutputStream;
 import java.io.File;

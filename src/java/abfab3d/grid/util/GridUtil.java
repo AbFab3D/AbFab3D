@@ -24,11 +24,11 @@ import java.awt.image.DataBufferInt;
 
 
 // Internal Imports
+import abfab3d.core.Grid2D;
 import abfab3d.util.ColorMapper;
 
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.GridDataChannel;
-import abfab3d.core.Grid2D;
 
 
 import static abfab3d.core.MathUtil.lerp2;
