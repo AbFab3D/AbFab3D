@@ -356,14 +356,21 @@ public class ImageMap extends TransformableDataSource {
     }
 
     /**
-     * Get a label for the OpenCL buffer, account for all params which change the buffer value
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
      * @return
      */
-/*
-    public String getBufferLabel() {
-        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_imageParams);
+    public void getDataLabel(StringBuilder sb) {
+        getParamString(getClass().getSimpleName(), m_imageParams,sb);
     }
-*/
+
+    /**
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
+     * @return
+     */
+    public String getDataLabel() {
+        return getParamString(getClass().getSimpleName(), m_imageParams);
+    }
+
     /**
      * @noRefGuide
      */
@@ -432,7 +439,7 @@ public class ImageMap extends TransformableDataSource {
 
         long t0 = System.currentTimeMillis();
 
-        String label = getParamString(getClass().getSimpleName(), m_imageParams);
+        String label = getDataLabel();
 
         Object co = null;
         if(CACHING_ENABLED)co = ParamCache.getInstance().get(label);

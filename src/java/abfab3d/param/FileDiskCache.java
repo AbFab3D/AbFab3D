@@ -366,8 +366,10 @@ public class FileDiskCache {
         if (ext != null) elen = ext.length() + 1;
 
         int len = ret_val.length() + crcSt.length() + 1 + elen;
-        if (len > MAX_FILENAME_LENGTH) {
+
+        if (len > MAX_FILENAME_LENGTH){
             int start = len - MAX_FILENAME_LENGTH;
+
             ret_val = ret_val.substring(0,ret_val.length() - start);
         }
         sb.append(ret_val);

@@ -160,7 +160,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
         getParamString(getClass().getSimpleName(),m_paramArray,sb);
     }
 
-    public void getParamString(String name,Parameter[] params,StringBuilder sb) {
+    public static void getParamString(String name,Parameter[] params,StringBuilder sb) {
         sb.append("{");
         sb.append(name);
         sb.append(":{");
@@ -177,194 +177,22 @@ public class BaseParameterizable implements Parameterizable, SNode {
         sb.append("}}");
     }
 
-    public String getParamString(String name,Parameter[] params) {
+    public static String getParamString(String name,Parameter[] params) {
         StringBuilder sb = new StringBuilder();
         getParamString(name,params,sb);
 
         return sb.toString();
     }
 
-/*
-    public String getParamString(Parameterizable pnode){
-        return getParamString(pnode.getClass().getSimpleName(),pnode);
-    }
-*/
-/*
-    public String getParamString(Parameter[] aparam){
-        return getParamString(getClass().getSimpleName(),aparam);
-    }
-*/
-    /**
-     * saves array of parameters into a string in json format
-     * @noRefGuide
-     */
-/*
-    public static String getParamString(String name,Parameter aparam[]){
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append(name);
-        sb.append(":{");
-        for(int i = 0; i < aparam.length; i++){
-            Parameter p = aparam[i];
-            sb.append(p.getName());
-            sb.append(":");
-            p.getParamString(sb);
-            if(i < aparam.length-1)
-                sb.append(",");
-            else 
-                sb.append("");
-        }
-        sb.append("}}");
-        return sb.toString();
-    }
- */
-    /**
-     * saves array of parameters into a string
-     *
-     * @param add Additional string to add
-     * @noRefGuide
-     */
-    public static String getParamString(String name,Parameter aparam[], String add){
-        return getParamString(name,aparam,add,null);
+    public void getDataLabel(StringBuilder sb){
+        getParamString(getClass().getSimpleName(),m_paramArray,sb);
     }
 
-    /**
-     * saves array of parameters into a string
-     *
-     * @param add1 Additional string to add
-     * @param add2 Additional string to add
-     * @noRefGuide
-     */
-    public static String getParamString(String name,Parameter aparam[], String add1, String add2){
-        StringBuilder sb = new StringBuilder();
-        sb.append(name);
-        sb.append("{");
-        for(int i = 0; i < aparam.length; i++){
-            Parameter p = aparam[i];
-            sb.append(p.getName());
-            sb.append(":\"");
-            p.getParamString(sb);
-            sb.append("\",");
-        }
-
-        if (add1 != null) {
-            sb.append(add1);
-        }
-        if (add2 != null) {
-            sb.append(add2);
-        }
-        sb.append("}");
-        return sb.toString();
+    public String getDataLabel() {
+        return getParamString(getClass().getSimpleName(),m_paramArray);
     }
 
-    /**
-     * saves array of parameters into a string
-     * @noRefGuide
-     */
 
-    public static String getParamString(String name,Set<String> ignore,Parameterizable pnode){
-        StringBuilder sb = new StringBuilder();
-        sb.append(name);
-        sb.append("{");
-
-        Map<String,Parameter> map = pnode.getParamMap();
-        for(Parameter p : map.values()){
-            if (ignore.contains(p.getName())) continue;
-            sb.append(p.getName());
-            sb.append(":\"");
-            p.getParamString(sb);
-            sb.append("\",");
-        }
-        sb.append("}");
-
-        return sb.toString();
-    }
-
-    /**
-     * saves array of parameters into a string
-     * @noRefGuide
-     */
-/*
-    public static String getParamString(String name,Parameterizable pnode){
-        return getParamString(name, pnode.getParams());
-    }
-*/
-    /**
-     * Saves array of parameters into a string 
-     * @noRefGuide
-     */
-
-    public static String getParamString(String name, Object src,Parameter aparam[]){
-        StringBuilder sb = new StringBuilder();
-        sb.append(name);
-        sb.append("{");
-
-        String source = null;
-        if (src instanceof SourceWrapper) {
-            source = ((SourceWrapper) src).getParamString();
-        } else if (src instanceof Parameterizable) {
-                source = ((Parameterizable)src).getParamString();
-        } else {
-            source = src.toString();
-        }
-
-        sb.append("\"source\":\"");
-        sb.append(source);
-        sb.append(":{");
-        for(int i = 0; i < aparam.length; i++){
-            Parameter p = aparam[i];
-            sb.append(p.getName());
-            sb.append(":");
-            p.getParamString(sb);
-            sb.append(",");
-        }
-        sb.append("}}");
-        return sb.toString();
-    }
-
-    /**
-     * Saves array of parameters into a string
-     * @noRefGuide
-     */
-/*
-    public static String getParamString(String name, Map<String,Parameter> params){
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append(name);
-        sb.append(":{");
-        for(Parameter p : params.values()) {
-            sb.append(p.getName());
-            sb.append(":");
-            p.getParamString(sb);
-            sb.append(",");
-        }
-        sb.append("}}");
-        return sb.toString();
-    }
-*/
-    /**
-     * Get the parameters as a string
-     * @noRefGuide
-     * @param name
-     * @param params
-     * @return
-     */
-/*
-    public static String getParamObjString(String name,Map<String,Object> params) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append(name);
-        sb.append(":{");
-        for(Map.Entry<String,Object> p : params.entrySet()) {
-            sb.append(p.getKey());
-            sb.append(":");
-            sb.append(p.getValue());
-            sb.append(",");
-        }
-        sb.append("}}");
-        return sb.toString();
-    }
- */
     public final static void initialize(Object obj){
         if(obj instanceof Initializable){
             ((Initializable)obj).initialize();

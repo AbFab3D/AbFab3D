@@ -24,7 +24,7 @@ import static abfab3d.core.MathUtil.clamp;
  */
 public class GridDataChannel implements LongConverter { // , ValueMaker {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     int debugCount = 10000;
     // standard channel types
     public static final String UNKNOWN = "UNKNOWN";

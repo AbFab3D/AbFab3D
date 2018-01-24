@@ -92,6 +92,10 @@ public class Background extends BaseParameterizable implements Initializable {
             mp_mode
     };
 
+    private Parameter[] m_imageParams = new Parameter[]{
+            mp_imageSource
+    };
+
     public Background() {
         initParams();
     }
@@ -264,14 +268,20 @@ public class Background extends BaseParameterizable implements Initializable {
             }
         }
     }
-    
+
     /**
-     * Get a label for the OpenCL buffer, account for all params which change the buffer value
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
      * @return
      */
-/*
-    public String getBufferLabel() {
-        return BaseParameterizable.getParamString(getClass().getSimpleName(), new Parameter[] {mp_imageSource});
+    public void getDataLabel(StringBuilder sb) {
+        getParamString(getClass().getSimpleName(), m_imageParams,sb);
     }
-*/
+
+    /**
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
+     * @return
+     */
+    public String getDataLabel() {
+        return getParamString(getClass().getSimpleName(), m_imageParams);
+    }
 }

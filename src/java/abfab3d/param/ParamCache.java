@@ -112,11 +112,12 @@ public class ParamCache {
         cache.put(key, o);
     }
 
+/*  // Alan: removed this method as its getParamString usage was weird, so far haven't found anything using it, recode if you do
     public Object get(String name, Object src, Parameter[] params) {
         String vhash = BaseParameterizable.getParamString(name,src, params);
         return ParamCache.getInstance().get(vhash);
     }
-
+*/
     public CacheStats getStats() {
         return cache.stats();
     }
