@@ -279,7 +279,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     /**
      @return loaded mesh for this model
      */
-    public AttributedTriangleProducer getMesh() {
+    public AttributedMesh getMesh() {
         String vhash = getValueHash();
         ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(vhash);
         AttributedMesh mesh = null;
@@ -297,7 +297,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         if (m_transform instanceof Initializable) ((Initializable) m_transform).initialize();
         reader.setTransform(m_transform);
         reader.initialize();
-        mesh = new AttributedMesh();
+        mesh = new AttributedMeshArray();
         reader.getAttTriangles(mesh);
 
         mesh.setDataDimension(reader.getDataDimension());
@@ -306,13 +306,13 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             mesh.setAttributeCalculator(reader.getAttributeCalculator());
         }
 
-        AttributedTriangleProducer ret = new AttributedMeshSourceWrapper(vhash,mesh);
+        mesh = new AttributedMeshSourceWrapper(vhash,mesh);
 
         if (mp_useCaching.getValue()) {
             if (DEBUG) printf("Caching at: %s\n",vhash);
-            ParamCache.getInstance().put(vhash, new ModelCacheEntry(null, ret, reader, m_materialType));
+            ParamCache.getInstance().put(vhash, new ModelCacheEntry(null, mesh, reader, m_materialType));
         }
-        return ret;
+        return mesh;
     }
 
     /**
@@ -320,7 +320,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
      */
     public AttributeGrid getGrid() {
         long t0 = System.currentTimeMillis();
-        AttributedTriangleProducer mesh = null;
+        AttributedMesh mesh = null;
 
         AttributeGrid grid = null;
         try {
@@ -623,11 +623,11 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
      */
     static class ModelCacheEntry {
         AttributeGrid grid;
-        AttributedTriangleProducer mesh;
+        AttributedMesh mesh;
         MaterialType materialType;
         AttributedMeshReader reader;
 
-        public ModelCacheEntry(AttributeGrid grid, AttributedTriangleProducer mesh, AttributedMeshReader reader, MaterialType materialType) {
+        public ModelCacheEntry(AttributeGrid grid, AttributedMesh mesh, AttributedMeshReader reader, MaterialType materialType) {
             this.grid = grid;
             this.mesh = mesh;
             this.materialType = materialType;

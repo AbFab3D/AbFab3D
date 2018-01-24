@@ -23,7 +23,7 @@ import javax.vecmath.Vector3d;
  *
  * @author Alan Hudson
  */
-public class AttributedMeshSourceWrapper implements SourceWrapper, AttributedTriangleProducer, TriangleProducer, AttributedTriangleCollector, TriangleCollector {
+public class AttributedMeshSourceWrapper implements SourceWrapper, AttributedMesh {
     private String source;
     private AttributedMesh mesh;
 
