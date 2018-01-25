@@ -23,6 +23,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -196,6 +197,17 @@ public class ScriptManager {
                     if (!sr.evaluatedScript.isSuccess()) {
                         return sr;
                     }
+                } else {
+                	// If evaluatedScript is currently false, it means parsing failed previously
+                	// Re-evaluate the script before continuing
+                	// TODO: Better way to do this?
+                	if (!sr.evaluatedScript.isSuccess()) {
+	                    sr.eval.prepareScript(sr.script, params);
+	                    sr.evaluatedScript = sr.eval.getResult();
+	                    if (!sr.evaluatedScript.isSuccess()) {
+	                        return sr;
+	                    }
+                	}
                 }
 
                 // Apply all values in first pass
