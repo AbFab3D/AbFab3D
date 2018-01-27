@@ -209,9 +209,19 @@ public class ParamJson {
     public static Vector3d getVector3dFromJson(JsonElement value){
         JsonArray array = value.getAsJsonArray();
         if(array.size() >= 3) {
-            double x = array.get(0).getAsDouble();
-            double y = array.get(1).getAsDouble();
-            double z = array.get(2).getAsDouble();
+            Double x = null;
+            Double y = null;
+            Double z = null;
+            
+            try {
+                x = array.get(0).getAsDouble();
+                y = array.get(1).getAsDouble();
+                z = array.get(2).getAsDouble();
+            } catch (Exception e) {
+            	e.printStackTrace();
+            	throw new RuntimeException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
+            }
+            
             return new Vector3d(x,y,z);
         } else {
             return null;
@@ -269,7 +279,22 @@ public class ParamJson {
         	throw new RuntimeException(fmt("Invalid AXIS_ANGLE_4D value: %s\n", value.toString()));
         }
         
-        return new AxisAngle4d(x.getAsDouble(),y.getAsDouble(),z.getAsDouble(),a.getAsDouble());
+        Double xval = null;
+        Double yval = null;
+        Double zval = null;
+        Double aval = null;
+        
+        try {
+            xval = x.getAsDouble();
+            yval = y.getAsDouble();
+            zval = z.getAsDouble();
+            aval = a.getAsDouble();
+        } catch (Exception e) {
+        	e.printStackTrace();
+        	throw new RuntimeException(fmt("Invalid AXIS_ANGLE_4D value: %s\n", value.toString()));
+        }
+        
+        return new AxisAngle4d(xval,yval,zval,aval);
     }
 
     public static ArrayList getStringListFromJson(JsonElement value){
