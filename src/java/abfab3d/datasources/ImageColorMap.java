@@ -72,7 +72,6 @@ public class ImageColorMap extends TransformableDataSource {
 
     // public parameters 
     SNodeParameter mp_imageSource = new SNodeParameter("image", "image source", null);
-    //ObjectParameter mp_imageSource = new ObjectParameter("image", "image source", null);
     Vector3dParameter mp_center = new Vector3dParameter("center", "center of the image box", new Vector3d(0., 0., 0.));
     Vector3dParameter mp_size = new Vector3dParameter("size", "size of the image box", new Vector3d(0.1, 0.1, 0.1));
     BooleanParameter mp_repeatX = new BooleanParameter("repeatX", "repeat image along X", false);
@@ -91,7 +90,7 @@ public class ImageColorMap extends TransformableDataSource {
     };
 
     /** Params which require changes in the underlying image */
-    private Parameter[] imageParams = new Parameter[] {
+    private Parameter[] m_imageParams = new Parameter[] {
             mp_imageSource
     };
 
@@ -238,14 +237,21 @@ public class ImageColorMap extends TransformableDataSource {
     }
 
     /**
-     * Get a label for the OpenCL buffer, account for all params which change the buffer value
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
      * @return
      */
-/*
-    public String getBufferLabel() {
-        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparams);
+    public void getDataLabel(StringBuilder sb) {
+        getParamString(getClass().getSimpleName(), m_imageParams,sb);
     }
-*/
+
+    /**
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
+     * @return
+     */
+    public String getDataLabel() {
+        return getParamString(getClass().getSimpleName(), m_imageParams);
+    }
+
     /**
      * @noRefGuide
      */
@@ -253,7 +259,7 @@ public class ImageColorMap extends TransformableDataSource {
         super.initialize();
 
 
-        String label = getParamString(getClass().getSimpleName(), imageParams);
+        String label = getDataLabel();
 
         Object co = ParamCache.getInstance().get(label);
         if (co == null) {

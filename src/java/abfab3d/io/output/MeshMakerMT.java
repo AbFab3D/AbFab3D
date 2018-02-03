@@ -868,6 +868,7 @@ public class MeshMakerMT {
 
                             //throw new IllegalArgumentException("Has children but no mesh?\n");
                             buildAndDecimate(block);
+                            continue;
                         }
                         joinAndDecimate(block);
                     } else

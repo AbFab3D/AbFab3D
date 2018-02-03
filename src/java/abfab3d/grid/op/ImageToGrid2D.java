@@ -83,6 +83,8 @@ public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer
         // Added for backwards compatibility
         addParams(m_params);
         mp_imageProducer.setValue(new ImageWrapper(imageProducer));
+
+        // TODO: This will lose caching, but there is no way around that dealing with a raw BufferedImage
     }
 
     public int getWidth() {
@@ -104,24 +106,28 @@ public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer
 
         Object co = null;
         String label = null;
+
+        label = getDataLabel();
+
         if (CACHING_ENABLED) {
-            label = getParamString(getClass().getSimpleName(), m_params);
             co = ParamCache.getInstance().get(label);
+            if (DEBUG) printf("ImageToGrid2D.  label: %s  cached: %b\n",label,co!=null);
         }
         if (co == null) {
             m_grid = prepareGrid();
+            Grid2DSourceWrapper wrapper = new Grid2DSourceWrapper(label,m_grid);  // TODO: not so sure this is the right label
             if (CACHING_ENABLED) {
-                ParamCache.getInstance().put(label, m_grid);
+                ParamCache.getInstance().put(label, wrapper);
                 if (DEBUG) printf("ImageToGrid2D: caching image: %s -> %s\n", label, m_grid);
             }
+
+            return wrapper;
         } else {
             m_grid = (Grid2D) co;
             if (DEBUG) printf("ImageToGrid2D: got cached image %s -> %s\n", label, m_grid);
+
+            return m_grid;
         }
-
-        Grid2DSourceWrapper wrapper = new Grid2DSourceWrapper(label,m_grid);  // TODO: not so sure this is the right label
-        return wrapper;
-
     }
 
     /**

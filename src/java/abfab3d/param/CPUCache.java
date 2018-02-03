@@ -22,10 +22,9 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class CPUCache {
-    private static final boolean CACHE_ENABLED = true;
-
-    private static final boolean USE_DISK_CACHE = true;
     private static final boolean DEBUG = false;
+    private static final boolean CACHE_ENABLED = true;
+    private static final boolean USE_DISK_CACHE = true;
     private static final boolean DEBUG_MISSES = false;
     private static final int JOB_RETAIN_MS = 60 * 60 * 1000;
 
@@ -85,7 +84,7 @@ public class CPUCache {
             if (DEBUG) printf("CPUCache checking DiskCache: %s\n",di);
 
             if (di != null) {
-                put(di,true);
+                put(di,true,false);
 
                 if (DEBUG) printf("CPUCache read from disk success\n");
                 return di;
@@ -99,10 +98,14 @@ public class CPUCache {
     }
 
     public void put(LabeledBuffer buffer) {
-        put(buffer,false);
+        put(buffer,false, false);
     }
 
-    private void put(LabeledBuffer buffer, boolean justLoaded) {
+    public void put(LabeledBuffer buffer, boolean diskCache) {
+        put(buffer,false, diskCache);
+    }
+
+    private void put(LabeledBuffer buffer, boolean justLoaded, boolean diskCache) {
         if (!CACHE_ENABLED) return;
 
         if (DEBUG) {
@@ -110,7 +113,7 @@ public class CPUCache {
         }
         cache.put(buffer.getLabel(), buffer);
 
-        if (USE_DISK_CACHE && !justLoaded) {
+        if (USE_DISK_CACHE && !justLoaded && diskCache) {
             BufferDiskCache.getInstance().put(buffer);
         }
     }

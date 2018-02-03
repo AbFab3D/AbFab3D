@@ -31,12 +31,13 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class TrimOp extends BaseParameterizable implements Operation, AttributeOperation, Operation2D {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
+    SNodeParameter mp_source = new SNodeParameter("source", "image source");
     DoubleParameter mp_threshold = new DoubleParameter("threshold", "Threshold for inside when using attribute grids", 240f/255);
 
     Parameter m_aparam[] = new Parameter[]{
-            mp_threshold
+            mp_source,mp_threshold
     };
 
     public TrimOp() {
@@ -332,9 +333,11 @@ public class TrimOp extends BaseParameterizable implements Operation, AttributeO
      * @return The new grid
      */
     public Grid2D execute(Grid2D src) {
+        mp_source.setValue(src);
+
         double threshold = mp_threshold.getValue();
 
-        String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), src, m_aparam);
+        String vhash = getDataLabel();
 
         Object co = ParamCache.getInstance().get(vhash);
         if (DEBUG) printf("TrimOp vhash: %s cached: %b\n",vhash,co!=null);

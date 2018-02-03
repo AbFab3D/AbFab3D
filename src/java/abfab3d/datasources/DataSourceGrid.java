@@ -129,6 +129,24 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         }
     }
 
+    /**
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
+     * @return
+     */
+    public void getDataLabel(StringBuilder sb) {
+        // ignore transform
+        getParamString(getClass().getSimpleName(), m_aparam,sb);
+    }
+
+    /**
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
+     * @return
+     */
+    public String getDataLabel() {
+        // ignore transform
+        return getParamString(getClass().getSimpleName(), m_aparam);
+    }
+
     public DataSourceGrid(GridProducer prod) {
         super.addParams(m_aparam);
 

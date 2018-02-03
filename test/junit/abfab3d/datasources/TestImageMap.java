@@ -57,7 +57,7 @@ public class TestImageMap extends TestCase {
         double size = 10*MM;
         ImageMap map = new ImageMap(text,size,size,size);
 
-        String vhash = map.getParamString();
+        String vhash = map.getDataLabel();
         if(DEBUG)printf("vhash: %s\n",vhash);
 
         assertFalse("has memory reference",vhash.contains("@"));

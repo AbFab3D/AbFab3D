@@ -256,11 +256,12 @@ public abstract class BaseParameter implements Parameter {
 
         } else if(value instanceof Parameterizable) {
 
-            Parameterizable par = (Parameterizable)value;
-            if (DEBUG_PARAM_STRING) printf("val3: %s",par.getParamString());
+            Parameterizable par = (Parameterizable) value;
+            if (DEBUG_PARAM_STRING) printf("val3: %s", par.getParamString());
 
-            sb.append(par.getParamString());
-
+            par.getParamString(sb);
+        } else if (value instanceof SourceWrapper) {
+            ((SourceWrapper)value).getParamString(sb);
         } else {
             if (DEBUG_PARAM_STRING) printf("val4: %s",value.toString());
             sb.append(value.toString());
@@ -277,6 +278,10 @@ public abstract class BaseParameter implements Parameter {
         if(value instanceof Parameterizable) {            
             Parameterizable par = (Parameterizable)value;            
             return par.getParamString();
+        }
+        if (value instanceof SourceWrapper) {
+            SourceWrapper sw = (SourceWrapper) value;
+            return sw.getParamString();
         }
 
         return value.toString();
@@ -299,25 +304,4 @@ public abstract class BaseParameter implements Parameter {
         }
         m_editors.add(editor);
     }
-
-    /**
-       @return String representation of this Parametetr to be used for serialization 
-     */
-    /*
-    public String getStringValue(){
-        //throw new RuntimeException(fmt("%s.getStringValue() not implemented", this.getClass().getName()));
-        return value.toString();
-    }
-    */
-    /**
-       set value of this parameter as string 
-       @param str string it is expected to be in some parsable form
-     */
-    /*
-    public void setStringValue(String str){
-        // do nothing
-        //throw new RuntimeException(fmt("%s.setStringValue() not implemented", this.getClass().getName()));
-    }
-    */
-
 }

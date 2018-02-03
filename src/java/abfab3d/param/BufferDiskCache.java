@@ -32,6 +32,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 
 /**
@@ -55,7 +56,10 @@ import static abfab3d.core.Output.printf;
 public class BufferDiskCache implements Runnable {
     // TODO: do not check in figure out a better way to deal with large dirs
     private static final boolean CACHE_ENABLED = true;
-    
+    private static final boolean MEMORY_HASH_FATAL = false;
+
+    private static final int MAX_FILENAME = 64;
+
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_TIMING = false;
     private static long DEFAULT_SIZE = (long) (4 * 1e9);
@@ -150,7 +154,11 @@ public class BufferDiskCache implements Runnable {
         if (!CACHE_ENABLED) return;
 
         if (buff.getLabel().contains("@")) {
-            printf("Not disk caching buffer incorrect buffer: %s\n",buff.getLabel());
+            String msg = fmt("Not disk caching buffer incorrect buffer: %s\n",buff.getLabel());
+            if (MEMORY_HASH_FATAL) throw new IllegalArgumentException(msg);
+
+            printf("%s\n",msg);
+
             return;
         }
 
@@ -179,7 +187,11 @@ public class BufferDiskCache implements Runnable {
         if (!CACHE_ENABLED) return;
 
         if (buff.getLabel().contains("@")) {
-            printf("Not disk caching buffer incorrect buffer: %s\n",buff.getLabel());
+            String msg = fmt("Not disk caching buffer incorrect buffer: %s\n",buff.getLabel());
+            if (MEMORY_HASH_FATAL) throw new IllegalArgumentException(msg);
+
+            printf("%s\n",msg);
+
             return;
         }
 
