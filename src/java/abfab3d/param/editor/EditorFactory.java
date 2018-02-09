@@ -45,7 +45,8 @@ public class EditorFactory implements EditorCreator {
         	case STRING:
         		return new FormattedTextEditor(param);
             case INTEGER:
-                return new IntEditor((IntParameter)param);
+                //return new IntEditor((IntParameter)param);
+                return new IntEditorScroll((IntParameter)param);
             case DOUBLE:
                 //return new DoubleEditor((DoubleParameter)param);
                 return new DoubleEditorScroll((DoubleParameter)param);

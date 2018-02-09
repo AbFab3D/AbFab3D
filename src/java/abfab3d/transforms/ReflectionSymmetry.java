@@ -153,12 +153,13 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
      */
     public int initialize(){
         
-        //ReflectionGroup.SPlane[] splanes = (ReflectionGroup.SPlane[])mp_splanes.getValue();
-
         SymmetryGenerator gen = (SymmetryGenerator)mp_generator.getValue();
         ReflectionGroup.SPlane[] splanes = gen.getFundamentalDomain();
+        ReflectionGroup.SPlane[] activeSplanes = splanes;        
+        /*
+          // TODO need to remove liitation on generators number 
         int count = 0;
-        for(int i = 0; i < splanes.length; i++){
+        for(int i = 0; i < splanes.length; i++){            
             if(m_gens[i].getValue()) 
                 count++;
         }
@@ -170,7 +171,7 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
                 count++;
             }
         }        
-
+        */
         m_group = new ReflectionGroup(activeSplanes);
                 
         m_group.setRiemannSphereRadius(mp_riemannSphereRadius.getValue());
@@ -270,7 +271,7 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
             return (DataSource)createParameterizable("abfab3d.datasources.Sphere", 
                                          new Object[]{
                                              "center",sphere.getCenter(),
-                                             "dist",sphere.getRadius()}
+                                             "radius",sphere.getRadius()}
                                          );            
         } else {
             
