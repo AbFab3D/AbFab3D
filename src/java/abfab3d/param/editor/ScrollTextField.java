@@ -27,7 +27,7 @@ public class ScrollTextField extends JTextField {
 
     private int m_caretPosition = 0;
     private double m_currentIncrement = 0.0001;
-    private String m_currentFormat = "%17.15f";
+    private String m_currentFormat = "%19.17f";
     double value_down;
     double m_value = Double.MIN_VALUE; // initially undefined 
     int y_down, y_old;
@@ -108,7 +108,7 @@ public class ScrollTextField extends JTextField {
         public void mouseMoved(MouseEvent e){
             //if(DEBUG)printf("mouse moved: %d %d\n", e.getX(), e.getY());            
         }
-        public void mouseDragged(MouseEvent e){
+        public void _mouseDragged(MouseEvent e){
             
             int y = e.getY();
             if(!mouseDraggedFlag){
@@ -389,8 +389,8 @@ public class ScrollTextField extends JTextField {
         public void mouseReleased(MouseEvent e) {
             
             if(mouseDraggedFlag){
-                // clear selection in text field 
-                select(0,0);
+                // clear selection in the text field 
+                //select(0,0);
             }
             //System.out.println(e);
         }    
