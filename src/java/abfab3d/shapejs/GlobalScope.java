@@ -12,7 +12,16 @@
 package abfab3d.shapejs;
 
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.commonjs.module.Require;
+import org.mozilla.javascript.commonjs.module.RequireBuilder;
+import org.mozilla.javascript.commonjs.module.provider.SoftCachingModuleScriptProvider;
+import org.mozilla.javascript.commonjs.module.provider.UrlModuleSourceProvider;
 
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static abfab3d.core.Output.printf;
@@ -73,6 +82,12 @@ public class GlobalScope extends ImporterTopLevel
                     ScriptableObject.DONTENUM);
         }
 
+        // TODO: Not sure about this
+        ArrayList<String> modules = new ArrayList<>();
+        URI uri = new File(System.getProperty("user.dir") + "/scripts/project").toURI();  // TODO: Not sure how to get this
+
+        modules.add(uri.toASCIIString());
+        installRequire(cx,modules,true);  // TODO: Review sandbox rules and follow
         initialized = true;
     }
 
@@ -80,6 +95,37 @@ public class GlobalScope extends ImporterTopLevel
         return globals;
     }
 
+    public Require installRequire(Context cx, List<String> modulePath,
+                                  boolean sandboxed) {
+        RequireBuilder rb = new RequireBuilder();
+        rb.setSandboxed(sandboxed);
+        List<URI> uris = new ArrayList<URI>();
+        if (modulePath != null) {
+            for (String path : modulePath) {
+                try {
+                    URI uri = new URI(path);
+                    if (!uri.isAbsolute()) {
+                        // call resolve("") to canonify the path
+                        uri = new File(path).toURI().resolve("");
+                    }
+                    if (!uri.toString().endsWith("/")) {
+                        // make sure URI always terminates with slash to
+                        // avoid loading from unintended locations
+                        uri = new URI(uri + "/");
+                    }
+                    uris.add(uri);
+                } catch (URISyntaxException usx) {
+                    throw new RuntimeException(usx);
+                }
+            }
+        }
+        rb.setModuleScriptProvider(
+                new SoftCachingModuleScriptProvider(
+                        new UrlModuleSourceProvider(uris, null)));
+        Require require = rb.createRequire(cx, this);
+        require.install(this);
+        return require;
+    }
 }
 
 

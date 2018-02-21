@@ -19,6 +19,8 @@ import abfab3d.core.Grid;
 import abfab3d.core.VoxelData;
 import abfab3d.core.Bounds;
 
+import static abfab3d.core.Output.fmt;
+
 /**
  * A grid backed by arrays.
  *
@@ -234,7 +236,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      */
     public void copyData(byte[] fromGrid) {
         if (data.length != fromGrid.length) {
-            throw new IllegalArgumentException("Invalid array size");
+            throw new IllegalArgumentException(fmt("Invalid array size.  Expected: %d  got: %d",data.length,fromGrid.length));
         }
 
         System.arraycopy(fromGrid,0,data,0,data.length);
