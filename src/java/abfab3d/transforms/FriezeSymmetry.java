@@ -91,13 +91,13 @@ public class FriezeSymmetry extends BaseTransform implements Initializable {
      @param symmetryType the symetry type<br/>
      Possible values are
      <ul>
-     <li>FriezeSymetry.FRIEZE_II</li>
-     <li>FriezeSymetry.FRIEZE_IX</li>
-     <li>FriezeSymetry.FRIEZE_IS</li>
-     <li>FriezeSymetry.FRIEZE_SII</li>
-     <li>FriezeSymetry.FRIEZE_22I</li>
-     <li>FriezeSymetry.FRIEZE_2SI</li>
-     <li>FriezeSymetry.FRIEZE_S22I</li>
+     <li>FriezeSymmetry.FRIEZE_II</li>
+     <li>FriezeSymmetry.FRIEZE_IX</li>
+     <li>FriezeSymmetry.FRIEZE_IS</li>
+     <li>FriezeSymmetry.FRIEZE_SII</li>
+     <li>FriezeSymmetry.FRIEZE_22I</li>
+     <li>FriezeSymmetry.FRIEZE_2SI</li>
+     <li>FriezeSymmetry.FRIEZE_S22I</li>
      </ul>
      @param domainWidth width of the fundamental domain
      */

@@ -137,7 +137,7 @@ public class NumberScroller extends  JPanel {
             }
         }
     }
- 
+    
     static private GridBagConstraints gbc = new GridBagConstraints();
     /**
        responsible for updating param value using button arrows 
@@ -146,7 +146,7 @@ public class NumberScroller extends  JPanel {
         
         double sign;
         int repeatDelay = 100; // milliseconds
-        int firstDelay = 300;
+        int firstDelay = 500;
         Thread repeater;
         int mouseDownY = 0;
         boolean isReallyDragging;
@@ -158,88 +158,54 @@ public class NumberScroller extends  JPanel {
             this.sign = sign;
             
         }
-        
-        
-        void doIncrement(){
-            
-            double increment = m_textField.getIncrement();
-            double v = m_value + sign * increment;
-            double res = round(v, increment);
-            if(DEBUG)printf("v: %10.8f inc: %10.8f, res:%10.8f\n",v,increment, res);
-            m_textField.setValue(res);            
-            informListeners();
-            
+                
+        void doIncrement(){           
+            m_textField.doIncrement(sign);            
         }
         
-        public void mouseClicked( MouseEvent e ){          
+        public void mouseClicked( MouseEvent e ){ 
+            
         }
         
         public void mouseEntered( MouseEvent e ) {          
         }
-        
+
+        public void mouseMoved( MouseEvent e ) {          
+        }
+        public void mouseDragged( MouseEvent e ) {          
+        }        
         public void mouseExited( MouseEvent e ) {          
         }      
         
         public void mousePressed( MouseEvent e ) {
-            
-            //updateParameter();
-            
+                        
             mouseDownY = e.getY();
             isReallyDragging = false;
             
             doStop = false;
             repeater = new Thread(this);
             repeater.start();
-            
-            doStop = true;
-            
+                        
         }
         
         public void mouseReleased( MouseEvent e ) {      
-            
-            if(repeater.isAlive())
-                doStop = true;
-            
+            doStop = true;                        
         }    
-        
-        public void mouseDragged( MouseEvent e ) {
-            
-            int y = e.getY();
-            if( !isReallyDragging ){
-                if( Math.abs(y - mouseDownY) < dragCutoff){
-                    return;
-                } 
-                isReallyDragging = true;
-                startDragValue = m_value;
-                //TODO 
-                startDragIncrement = 0.0001; //parameter.getIncrement();
-                if(repeater.isAlive())
-                    doStop = true;
-                return;
-            }
-            
-            // do sliding mode  
-            double value = clamp(round(startDragValue + (mouseDownY-y) * startDragIncrement, startDragIncrement),m_minRange, m_maxRange);
-
-            //m_dparam.setValue(value);
-            m_textField.setValue(value); 
-            informListeners();      
-          
-      }
-      
-      public void mouseMoved( MouseEvent e ) {          
-      }
+              
         
         boolean doStop = false;
         
         public void run(){
             try {	
+                printf("repeater run()\n");
                 doIncrement();
                 Thread.sleep(firstDelay);
+                printf("repeater fistDelay: %s\n", doStop);
                 if(doStop)
                     return;
-                
+                printf("autorepeat start\n");                
                 while(true){
+                    printf("autorepeat\n");                
                     doIncrement();
                     Thread.sleep(repeatDelay);
                     if(doStop)
@@ -249,8 +215,8 @@ public class NumberScroller extends  JPanel {
             }
         }
     } // class ButtonMouseListener
-        
-            
+    
+    
     class MyFocusListener extends FocusAdapter {
         
         public void focusLost(FocusEvent e){
@@ -260,16 +226,12 @@ public class NumberScroller extends  JPanel {
         }
     }
     
-
-  final static double minIncrement = 0.0000001;
   
-  // return rounded value with precision of increment
+    // return rounded value with precision of increment
     
     public static double round(double value, double increment){
         
         increment = Math.abs(increment);
-        if(increment < minIncrement)
-            increment = minIncrement;	
         
         if( increment == 1){
             

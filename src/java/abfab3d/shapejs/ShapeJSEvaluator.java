@@ -177,6 +177,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
         // Be explicit about io.input to stop reading of disk contents
         classImports.add("abfab3d.io.input.AttributedMesh");
+        classImports.add("abfab3d.io.input.AttributedMeshSourceWrapper");
         classImports.add("abfab3d.io.input.ModelLoader");
         classImports.add("abfab3d.io.input.MeshBuilder");
 

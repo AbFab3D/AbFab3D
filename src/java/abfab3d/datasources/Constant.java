@@ -116,7 +116,7 @@ public class Constant extends TransformableDataSource {//BaseParameterizable imp
      * @noRefGuide
      */
     public int initialize() {
-
+        super.initialize();
         m_value0 = mp_value0.getValue();
         m_value1 = mp_value1.getValue();
         m_value2 = mp_value2.getValue();

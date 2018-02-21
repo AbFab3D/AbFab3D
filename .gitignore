@@ -19,3 +19,4 @@ refguide
 /bin/
 tmp/
 
+*.bak
