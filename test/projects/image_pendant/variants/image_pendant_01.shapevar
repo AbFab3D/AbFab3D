@@ -1,0 +1,18 @@
+{
+  "scriptPath": "../scripts/image_pendant.js",
+  "scriptParams": {
+    "image": "../resources/colormap_01.png",
+    "size": 30.0,
+    "depth": 10.0,
+    "place": "TOP",
+    "blur": 0.2,
+    "threshold": 0.21,
+    "rounding": 0.11,
+    "base": 0.1,
+    "bailStyle": "Torus",
+    "bailSize": 5.0,
+    "bailThickness": 1.0,
+    "voxelSize": 0.1,
+    "material": "SingleColor"
+  }
+}

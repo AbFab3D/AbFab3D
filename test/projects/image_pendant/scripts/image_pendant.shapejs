@@ -1,0 +1,343 @@
+var uiParams = [
+    {
+        name: "image",
+        desc: "Image",
+        type: "uri"
+    },
+    {
+        name: "size",
+        desc: "Size(mm)",
+        type: "double",
+        rangeMin: 5,
+        rangeMax: 100,
+        step: 0.1,
+        defaultVal: 30
+    },
+    {
+        name: "depth",
+        desc: "Depth(mm)",
+        type: "double",
+        rangeMin: 0.7,
+        rangeMax: 10,
+        step: 0.1,
+        defaultVal: 2
+    },
+    {
+        name: "place",
+        desc: "Place",
+        type: "enum",
+        values: ["TOP","BOTTOM","BOTH"],
+        defaultVal: "BOTH"
+    },
+    {
+        name: "blur",
+        desc: "Blur(mm)",
+        type: "double",
+        rangeMin: 0.0,
+        rangeMax: 1,
+        step: 0.05,
+        defaultVal: 0.1
+    },
+    {
+        name: "threshold",
+        desc: "Threshold",
+        type: "double",
+        rangeMin: 0.01,
+        rangeMax: 1,
+        step: 0.1,
+        defaultVal: 0.21
+    },
+    {
+        name: "rounding",
+        desc: "Rounding",
+        type: "double",
+        rangeMin: 0.0,
+        rangeMax: 1,
+        step: 0.1,
+        defaultVal: 0.11
+    }
+    ,
+    {
+        name: "base",
+        desc: "Base Thickness(%)",
+        type: "double",
+        rangeMin: 0.0,
+        rangeMax: 1,
+        step: 0.1,
+        defaultVal: 0
+    }
+    ,
+    {
+        name: "bailPos",
+        desc: "Bail Pos",
+        type: "location"
+    },
+    {
+        name: "bailStyle",
+        desc: "Bail Style",
+        type: "enum",
+        values: ["Torus","TorusRot","None"],
+        defaultVal: "Torus"
+    },
+    {
+        name: "bailSize",
+        desc: "Bail Size Diameter(mm)",
+        type: "double",
+        rangeMin: 5,
+        rangeMax: 20,
+        step: 0.1,
+        defaultVal: 5
+    },
+    {
+        name: "bailThickness",
+        desc: "Bail Diameter(mm)",
+        type: "double",
+        rangeMin: 1,
+        rangeMax: 3,
+        step: 0.1,
+        defaultVal: 1
+    },
+    {
+        name: "voxelSize",
+        desc: "Voxel Size",
+        type: "double",
+        rangeMin: 0.05,
+        rangeMax: 1,
+        step: 0.05,
+        defaultVal: 0.05
+    },
+    {
+        name: "material",
+        desc: "Material",
+        type: "enum",
+        values: Materials.getAllNames(),
+        defaultVal: "SingleColor"
+    }
+];
+
+var scene;
+var imgBox;
+var image;
+var bounds;
+var union;
+var imgGroup;
+var bailGroup;
+var bail;
+var bailTransform;
+var bailCut;
+var shape;
+
+var imageW;
+var imageH;
+
+function imageParamsChanged(args) {
+    if (imgBox === undefined) return;
+
+    imgBox.setBlurWidth(args.blur*MM);
+    imgBox.setBaseThreshold(args.threshold);
+    imgBox.setRounding(args.rounding * MM);
+    imgBox.setBaseThickness(args.base);
+}
+
+function bailChanged(args) {
+    if (args.image === undefined) return;
+
+    // Make sure to remove the bail if bailPos is undefined
+    if (args.bailPos === undefined) {
+        bailGroup.clear();
+        return;
+    }
+
+    var bailSize = args.bailSize / 2 * MM - args.bailThickness*MM;
+    var tp0 = args.bailPos.point;
+    var x = tp0.x;
+    var y = tp0.y + bailSize + args.bailThickness*MM / 2;
+    var z = 0;
+
+    bailGroup.clear();
+
+    if (args.bailStyle == "TorusRot") {
+        bail = new Torus(args.bailSize / 2 * MM - args.voxelSize * MM, args.bailThickness * MM / 2);
+        bailGroup.add(bail);
+        bailTransform = new CompositeTransform();
+        bailTransform.add(new Rotation(0,1,0,Math.PI/2));
+        bailTransform.add(new Translation(x,y,z));
+        bailGroup.setTransform(bailTransform);
+    } else if (args.bailStyle == "Torus") {
+        bail = new Torus(args.bailSize / 2 * MM - args.voxelSize * MM, args.bailThickness * MM / 2);
+//        bailCut = new Plane(new Vector3d(0,1,0),new Vector3d(x,y-args.bailSize / 4 * MM,z));
+        bailCut = new Plane(new Vector3d(0,1,0),new Vector3d(0,0,0));
+
+        // Use a 3/4 Torus
+        var subtract = new Subtraction(bail,bailCut);
+        bailGroup.add(subtract);
+        bailTransform = new CompositeTransform();
+        bailTransform.add(new Translation(x,y-args.bailSize/2*MM,z));
+        bailGroup.setTransform(bailTransform);
+    } else if (args.bailStyle == "None") {
+    }
+
+    updateBounds(args);
+}
+
+function imageChanged(args) {
+    var path = args.image;
+    if (path === undefined) return;
+
+    var vs = args.voxelSize * MM;
+    image = loadImage(path);
+
+    //var grid = image;
+
+    var grid = image.getGrid();
+
+    var trimOp = new TrimOp();
+    grid = trimOp.execute(grid);
+
+    var expandOp = new ExpandOp(5,5,5,5);  // TODO: how to calc real value
+    grid = expandOp.execute(grid);
+
+    imageW = grid.getWidth();
+    imageH = grid.getHeight();
+
+    var bx = args.size * MM;
+    var by = args.size * MM;
+    var bz = args.depth * MM;
+
+    if(imageH <= imageW){
+        by = bx * imageH/imageW;
+    } else {
+        bx = by * imageW/imageH;
+    }
+
+    if (imgBox === undefined) {
+        imgBox = new Image3D(grid, bx, by, bz, 0.2*vs);
+        imgBox.setUseGrayscale(true);
+        imgBox.setBaseThickness(0);
+        imgBox.setBlurWidth(args.blur*MM);
+        imgBox.setBaseThreshold(args.threshold);
+        imgBox.setRounding(args.rounding * MM);
+        imgBox.setBaseThickness(args.base);
+        imgBox.set("distanceFactor", 0.5);
+        imgGroup.clear();
+        imgGroup.add(imgBox);
+        placeChanged(args);
+
+    } else if (imgBox !== null) {
+        imgBox.setImage(grid);
+        sizeChanged(args);
+    }
+
+    updateBounds(args);
+}
+
+function sizeChanged(args) {
+    if (image === undefined) return;
+
+
+    var bx = args.size * MM;
+    var by = args.size * MM;
+    var bz = args.depth * MM;
+
+    if(imageH <= imageW){
+        by = bx * imageH/imageW;
+    } else {
+        bx = by * imageW/imageH;
+    }
+
+    imgBox.setSize(bx,by,bz);
+
+    updateBounds(args);
+}
+
+function updateBounds(args) {
+    if (args.image === undefined) return;
+
+    var w = image.getWidth();
+    var h = image.getHeight();
+
+    var bx = args.size * MM;
+    var by = args.size * MM;
+    var bz = args.depth * MM;
+
+    if(h <= w){
+        by = bx * h/w;
+    } else {
+        bx = by * w/h;
+    }
+
+    var sw = (bx + 2*args.voxelSize*MM) / 2;
+    var bh = (2 * args.bailSize/2 + 2*args.bailThickness) * MM;
+    var sh = (by + 2*args.voxelSize*MM) / 2;
+    var sd = (bz + 2*args.voxelSize*MM) / 2;
+    var xbuf = args.bailThickness * MM;
+
+    bounds = new Bounds(-sw-xbuf,sw+xbuf,-sh-bh,sh+bh,-sd-bh,sd+bh);
+    scene.setBounds(bounds);
+}
+
+function placeChanged(args) {
+    if (image === undefined) return;
+
+    if (args.place == "TOP") {
+        imgBox.setImagePlace(Image3D.IMAGE_PLACE_TOP);
+    } else if (args.place == "BOTTOM") {
+        imgBox.setImagePlace(Image3D.IMAGE_PLACE_BOTTOM);
+    } else if (args.place == "BOTH") {
+        imgBox.setImagePlace(Image3D.IMAGE_PLACE_BOTH);
+    } else print("Invalid place");
+}
+
+function voxelChanged(args) {
+    if (image === undefined) return;
+
+    scene.setVoxelSize(args.voxelSize * MM);
+}
+
+function main(args) {
+    // Create these only on initial setup
+    if (typeof union === 'undefined' || union === null) {
+      union = new Union();
+      bailGroup = new Union();
+      imgGroup = new Union();
+      union.add(imgGroup);
+      union.add(bailGroup);
+
+      bounds = new Bounds(-5*MM,5*MM,-5*MM,5*MM,-5*MM,5*MM);
+      shape = new Shape(union, Materials.get(args.material));
+      scene = new Scene(shape,bounds,args.voxelSize * MM);
+      scene.setMaxPartsCount(1);
+      scene.setLightingRig(Scene.LightingRig.THREE_POINT);
+
+      // Set background color of scene
+      var bg = new Background();
+      bg.setSkyColor(new Color(237/255,239/255,240/255));  // #edeff0
+      bg.setMode(Background.Mode.SINGLE_COLOR);
+      scene.setBackground(bg);
+    }
+
+    imageChanged(args);
+    imageParamsChanged(args);
+    voxelChanged(args);
+    bailChanged(args);
+    placeChanged(args);
+
+    shape.setMaterial(Materials.get(args.material));
+
+    // Clean up rendering
+    var tp = scene.get("tracingParams");
+    tp.clear();
+    var skip = 1.0;
+    if (args.blur < 0.01) {
+        // Especially bad rendering case
+        skip = 0.05;
+    } else {
+        skip = MathUtil.map(MathUtil.clamp(args.depth*MM,0.7*MM,10*MM),0.7*MM,10*MM,0.3,0.05);
+    }
+
+    tp.add(new TracingParams(TracingParams.ModeType.NORMAL, 1e-3, skip));
+
+    scene.setTracingParams(tp);
+
+    return scene;
+}

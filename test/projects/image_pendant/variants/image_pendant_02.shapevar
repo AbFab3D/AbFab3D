@@ -1,0 +1,18 @@
+{
+  "scriptPath": "../scripts/image_pendant.js",
+  "scriptParams": {
+    "image": "../resources/circle_black.svg",
+    "size": 30.0,
+    "depth": 5.0,
+    "place": "TOP",
+    "blur": 0.5,
+    "threshold": 0.21,
+    "rounding": 0.11,
+    "base": 0.1,
+    "bailStyle": "Torus",
+    "bailSize": 5.0,
+    "bailThickness": 1.0,
+    "voxelSize": 0.06,
+    "material": "None"
+  }
+}

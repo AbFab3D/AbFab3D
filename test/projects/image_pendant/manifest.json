@@ -1,0 +1,8 @@
+{
+  "name" : "Image Pendant",
+  "author" : "Vladimir Bulatov",
+  "license" : "BSD-3-Clause",
+  "scripts" : ["scripts/image_pendant.shapejs"],
+  "variants" : ["variants/image_pendant_01.shapevar","variants/image_pendant_02.shapevar"],
+  "resources" : ["resources/circle_black.svg","resources/colormap_01.png"]
+}
