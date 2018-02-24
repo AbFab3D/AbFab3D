@@ -10,63 +10,126 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
-import abfab3d.core.Color;
-import abfab3d.param.*;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.io.FileUtils;
-import org.ietf.uri.IllegalActionException;
+import org.apache.commons.io.FilenameUtils;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Vector3d;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URI;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 /**
- * A ShapeJS project contains its main script, resources and any parameter overrides.
- * <p/>
- * The serialization format is a zip container
- * main.js - The main script file
- * params.json - The script params
- * scene.json - The scene params
- * resources/* - All other resources
+ * A self-contained ShapeJS Container
  *
  * @author Alan Hudson
  */
 public class Project {
     private static final boolean DEBUG = false;
 
-    private List<String> m_resources;
-    private Script m_script;
+    public static final String EXT_PROJECT = ".shapeprj";
+    public static final String EXT_VARIANT = ".shapevar";
+    public static final String EXT_SCRIPT = ".shapejs";
+    public static final String EXT_MANIFEST = ".json";
+
+    private ArrayList<ProjectItem> scripts = new ArrayList<>();
+    private ArrayList<ProjectItem> resources = new ArrayList<>();
+    private ArrayList<ProjectItem> variants = new ArrayList<>();
+    private LinkedHashMap<String, String> dependencies = new LinkedHashMap<>();
+    private String name;
+    private String author;
+    private String license;  // Follow NPM Rules(https://spdx.org/licenses/ using (A OR B) for multiple
+    private String thumbnail;
 
     public Project() {
     }
 
-    public Project(Script script) {
-        m_script = script;
+    public List<ProjectItem> getScripts() {
+        return scripts;
     }
 
-    public void setScript(Script script) {
-        m_script = script;
+    public void setScripts(List<ProjectItem> scripts) {
+        this.scripts = new ArrayList(scripts);
     }
 
-    public Script getScript() {
-        return m_script;
+    public List<ProjectItem> getResources() {
+        return resources;
     }
 
+    public void setResources(List<ProjectItem> resources) {
+        this.resources = new ArrayList(resources);
+    }
+
+    public List<ProjectItem> getVariants() {
+        return variants;
+    }
+
+    public void setVariants(List<ProjectItem> variants) {
+        this.variants = new ArrayList(variants);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public String getLicense() {
+        return license;
+    }
+
+    public void setLicense(String license) {
+        this.license = license;
+    }
+
+    public void addDependency(String name, String version) {
+        dependencies.put(name, version);
+    }
+
+    public void removeDependency(String name, String version) {
+        dependencies.put(name, version);
+    }
+
+    public Map<String, String> getDependencies() {
+        return new HashMap<>(dependencies);
+    }
+
+    public void setThumbnail(String path) {
+        thumbnail = path;
+    }
+
+    public String getThumbnail() {
+        return thumbnail;
+    }
+
+    /**
+     * Save this project to disk.
+     * @param file
+     * @throws IOException
+     */
     public void save(String file) throws IOException {
-        EvaluatedScript escript = m_script.getEvaluatedScript();
+        File f = new File(file);
+    }
+
+
+    public void saveOld(String file) throws IOException {
+        /*
+        EvaluatedScript escript = script.getEvaluatedScript();
         Map<String, Parameter> scriptParams = escript.getResult().getParamMap();
         Gson gson = JSONParsing.getJSONParser();
 
@@ -208,6 +271,8 @@ public class Project {
             zos.closeEntry();
             zos.close();
         }
+
+        */
     }
 
     /**
@@ -216,7 +281,8 @@ public class Project {
      * @param file
      * @throws IOException
      */
-    public static Project load(String file) throws IOException {
+    public static Project loadOld(String file) throws IOException {
+        /*
         Path workingDirName = Files.createTempDirectory("loadScript");
         String resultDirPath = workingDirName.toAbsolutePath().toString();
 
@@ -255,10 +321,10 @@ public class Project {
             // TODO: Not used right now, need to think through how this might work
             // JSON String will become a map of string:object which is not what's expected downstream
             throw new IllegalActionException("Fix me");
-            /*
-            evaluator.prepareScript(code,scriptParams);
-            evalResult = evaluator.executeScript(null);
-            */
+
+            //evaluator.prepareScript(code,scriptParams);
+            //evalResult = evaluator.executeScript(null);
+
         } else {
             evaluator.prepareScript(code,null);
             evalResult = evaluator.executeScript(null);
@@ -270,9 +336,135 @@ public class Project {
         ret_val.setScript(script);
 
         return ret_val;
+        */
+
+        return null;
     }
 
-    private static void extractZip(String zipFile, String outputFolder, Map<String, String> sceneFiles, List<String> resources) {
+    /**
+     * Load a project.
+     *
+     * @param file - Either a .shapejsprj file or the unzipped manifest.json
+     * @return
+     * @throws IOException
+     */
+    public static Project load(String file) throws IOException {
+        Path workingDirName = Files.createTempDirectory("loadProject");
+        String resultDirPath = workingDirName.toAbsolutePath().toString();
+
+        String manifest = null;
+        if (file.endsWith(EXT_PROJECT)) {  // This a zipped container
+            extractZip(file,resultDirPath);
+
+            File dir = workingDirName.toFile();
+            String[] fname = dir.list(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    if (name.equals("manifest" + EXT_MANIFEST)) return true;
+                    else return false;
+                }
+            });
+
+            if (fname.length < 1) {
+                throw new IllegalArgumentException("Project missing manifest" + EXT_MANIFEST);
+            }
+
+            manifest = fname[0];
+            Project ret = createProject(resultDirPath,manifest);
+
+            // Who is responsible for cleaning up the project afterwards?
+            return ret;
+        } else if (file.endsWith(EXT_MANIFEST)) {  // Assume its already unzipped
+            String wd = new File(FilenameUtils.getFullPath(file)).getCanonicalPath();
+            manifest = FilenameUtils.getName(file);
+
+            Project ret = createProject(wd,manifest);
+            return ret;
+        } else {
+            throw new IllegalArgumentException("Unknown file type: " + FilenameUtils.getExtension(file));
+        }
+    }
+
+    /**
+     * Create a project from a directory
+     *
+     * @param dir      The directory of the unzipped project
+     * @param manifest The project manifest
+     * @return
+     */
+    private static Project createProject(String dir, String manifest) {
+        try {
+            Gson gson = new GsonBuilder().create();
+
+            String mst = FileUtils.readFileToString(new File(dir + File.separator + manifest), Charset.defaultCharset());
+            Map<String, Object> props = gson.fromJson(mst, Map.class);
+
+            Project ret = new Project();
+
+            ret.setName((String) props.get("name"));
+            ret.setAuthor((String) props.get("author"));
+            ret.setLicense((String) props.get("license"));
+
+            ArrayList<ProjectItem> scripts = new ArrayList<>();
+            ArrayList<ProjectItem> variants = new ArrayList<>();
+            ArrayList<ProjectItem> resources = new ArrayList<>();
+            String cdir = new File(dir).getCanonicalPath();
+
+            List<String> uscripts = (List<String>) props.get("scripts");
+            processItem(uscripts,cdir,scripts);
+            ret.setScripts(scripts);
+
+            List<String> uvariants = (List<String>) props.get("variants");
+            processItem(uvariants,cdir,variants);
+            ret.setVariants(variants);
+
+            List<String> uresources = (List<String>) props.get("resources");
+            processItem(uresources,cdir,resources);
+            ret.setResources(resources);
+
+            return ret;
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+            return null;
+        }
+    }
+
+    private static void processItem(List<String> uscripts,String cdir,ArrayList<ProjectItem> scripts) throws IOException {
+        if (uscripts != null) {
+
+            for (String script : uscripts) {
+                String cscript = sanitizeUserFilename(cdir + File.separator + script,cdir);
+
+                String thumbnail = null;
+
+                // check for thumbnail
+                File tf = new File(cscript + ".png");
+                if (tf.exists()) {
+                    thumbnail = tf.getAbsolutePath();
+                }
+
+                ProjectItem pi = new ProjectItem(cscript,thumbnail);
+                scripts.add(pi);
+            }
+        }
+    }
+    /**
+     * Insure the user provided filename is safe
+     * @param filename
+     * @return
+     */
+    private static String sanitizeUserFilename(String filename, String dir) throws IOException {
+        String cfile = new File(filename).getCanonicalPath();
+
+        if (!cfile.startsWith(dir)) {
+            System.out.printf("Dir: %s  cfile: %s\n",cfile,dir);
+            throw new IllegalArgumentException("Project contains invalid path reference: " + cfile);
+        }
+
+        return cfile;
+    }
+
+    private static void extractZipOld(String zipFile, String outputFolder, Map<String, String> sceneFiles, List<String> resources) {
         byte[] buffer = new byte[1024];
 
         try {
@@ -320,5 +512,57 @@ public class Project {
         }
     }
 
+    private static void extractZip(String zipFile, String extractFolder) {
+        try {
+            int BUFFER = 2048;
+            File file = new File(zipFile);
+
+            ZipFile zip = new ZipFile(file);
+            String newPath = extractFolder;
+
+            new File(newPath).mkdir();
+            Enumeration zipFileEntries = zip.entries();
+
+            // Process each entry
+            while (zipFileEntries.hasMoreElements()) {
+                // grab a zip file entry
+                ZipEntry entry = (ZipEntry) zipFileEntries.nextElement();
+                String currentEntry = entry.getName();
+
+                File destFile = new File(newPath, currentEntry);
+                //destFile = new File(newPath, destFile.getName());
+                File destinationParent = destFile.getParentFile();
+
+                // create the parent directory structure if needed
+                destinationParent.mkdirs();
+
+                if (!entry.isDirectory()) {
+                    BufferedInputStream is = new BufferedInputStream(zip
+                            .getInputStream(entry));
+                    int currentByte;
+                    // establish buffer for writing file
+                    byte data[] = new byte[BUFFER];
+
+                    // write the current file to disk
+                    FileOutputStream fos = new FileOutputStream(destFile);
+                    BufferedOutputStream dest = new BufferedOutputStream(fos,
+                            BUFFER);
+
+                    // read and write until last byte is encountered
+                    while ((currentByte = is.read(data, 0, BUFFER)) != -1) {
+                        dest.write(data, 0, currentByte);
+                    }
+                    dest.flush();
+                    dest.close();
+                    is.close();
+                }
+
+
+            }
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+    }
 
 }
