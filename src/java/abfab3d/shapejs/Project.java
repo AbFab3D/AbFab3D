@@ -37,6 +37,7 @@ public class Project {
     public static final String EXT_SCRIPT = ".shapejs";
     public static final String EXT_MANIFEST = ".json";
 
+    private String parentDir;
     private ArrayList<ProjectItem> scripts = new ArrayList<>();
     private ArrayList<ProjectItem> resources = new ArrayList<>();
     private ArrayList<ProjectItem> variants = new ArrayList<>();
@@ -115,6 +116,14 @@ public class Project {
 
     public String getThumbnail() {
         return thumbnail;
+    }
+
+    public String getParentDir() {
+        return parentDir;
+    }
+
+    public void setParentDir(String parentDir) {
+        this.parentDir = parentDir;
     }
 
     /**
@@ -422,6 +431,7 @@ public class Project {
             processItem(uresources,cdir,resources);
             ret.setResources(resources);
 
+            ret.setParentDir(dir);
             return ret;
         } catch(IOException ioe) {
             ioe.printStackTrace();
