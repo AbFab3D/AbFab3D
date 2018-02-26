@@ -14,12 +14,14 @@ package abfab3d.transforms;
 
 import javax.vecmath.Vector3d;
 
+import abfab3d.core.DataSource;
 import abfab3d.core.ResultCodes;
 import abfab3d.param.SNodeParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.BooleanParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.Parameter;
+import abfab3d.param.Parameterizable;
 
 import abfab3d.core.Vec;
 import abfab3d.core.Initializable;
@@ -151,12 +153,13 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
      */
     public int initialize(){
         
-        //ReflectionGroup.SPlane[] splanes = (ReflectionGroup.SPlane[])mp_splanes.getValue();
-
         SymmetryGenerator gen = (SymmetryGenerator)mp_generator.getValue();
         ReflectionGroup.SPlane[] splanes = gen.getFundamentalDomain();
+        ReflectionGroup.SPlane[] activeSplanes = splanes;        
+        /*
+          // TODO need to remove liitation on generators number 
         int count = 0;
-        for(int i = 0; i < splanes.length; i++){
+        for(int i = 0; i < splanes.length; i++){            
             if(m_gens[i].getValue()) 
                 count++;
         }
@@ -168,7 +171,7 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
                 count++;
             }
         }        
-
+        */
         m_group = new ReflectionGroup(activeSplanes);
                 
         m_group.setRiemannSphereRadius(mp_riemannSphereRadius.getValue());
@@ -253,28 +256,59 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
     public static ReflectionGroup.SPlane getSphere(Vector3d center, double radius){
         return new ReflectionGroup.Sphere(center, radius);
     }
-/*
+
     public static DataSource getDataSource(ReflectionGroup.SPlane splane){
         if(splane instanceof ReflectionGroup.Plane){
-
             ReflectionGroup.Plane plane = (ReflectionGroup.Plane)splane;
-            
-            return new abfab3d.datasources.Plane(plane.getNormal(), plane.getDistance());
-            
+            return (DataSource)createParameterizable("abfab3d.datasources.Plane", 
+                                                 new Object[]{
+                                                     "normal",plane.getNormal(),
+                                                     "dist",plane.getDistance()}
+                                                 );
         } else if(splane instanceof ReflectionGroup.Sphere ){
+
             ReflectionGroup.Sphere sphere = (ReflectionGroup.Sphere)splane;
-            return new abfab3d.datasources.Sphere(sphere.getCenter(), sphere.getRadius());            
+            return (DataSource)createParameterizable("abfab3d.datasources.Sphere", 
+                                         new Object[]{
+                                             "center",sphere.getCenter(),
+                                             "radius",sphere.getRadius()}
+                                         );            
+        } else {
+            
+            return null;
         }
-        return null;
     }
 
-    public static DataSource getDataSource(ReflectionGroup.SPlane splanes[]){
+    public static Parameterizable createParameterizable(String className, Object[] params){
+
+        Object inst = null;
+        try {
+            Class cl = Class.forName(className);
+            inst = cl.newInstance();
+        } catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
+
+        if(!(inst instanceof Parameterizable))
+            return null;
+        Parameterizable prm = (Parameterizable)inst;
+        
+        for(int i = 0; i < params.length/2; i++){
+            prm.set((String)params[2*i], params[2*i+1]);
+        }
+        return prm;
+    }
+
+    /*
+    public static DataSource getIntersection(ReflectionGroup.SPlane splanes[]){
+
         abfab3d.datasources.Intersection inter = new abfab3d.datasources.Intersection();
         for(int i = 0; i < splanes.length; i++){
             inter.add(getDataSource(splanes[i]));
         }
         return inter;
     }
-*/
+    */
 } // class ReflectionSymmetry 
 

@@ -862,9 +862,16 @@ public class MeshMakerMT {
                     break;
                 
                 try {
-                    if(block.hasChildren())
+                    if(block.hasChildren()) {
+                        if (mesh == null) {
+                            printf("Has children but no mesh?  Building block instead of join\n");
+
+                            //throw new IllegalArgumentException("Has children but no mesh?\n");
+                            buildAndDecimate(block);
+                            continue;
+                        }
                         joinAndDecimate(block);
-                    else 
+                    } else
                         buildAndDecimate(block);
 
                 } catch (Exception e) {
@@ -1049,7 +1056,7 @@ public class MeshMakerMT {
             // will do decimation 
             vertices = its.getVertices(vertices);
             faces = its.getFaces(faces);
-            
+
             mesh.clear();
             mesh.setFaces(vertices, vertexCount, faces, faceCount);
             

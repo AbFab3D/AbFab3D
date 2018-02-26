@@ -92,6 +92,34 @@ public class DevTestEditors extends JFrame implements ParamChangedListener {
         seditor.setLocation(p.x + dim.width, p.y);
         
     }
+
+    void testSimple(){
+
+        String groupP = "groupP";
+        String groupQ = "groupQ";
+        String groupPQ = "groupPQ";
+
+        Parameter p0 = new IntParameter("p0", 15);p0.setGroup(groupP);
+        Parameter p1 = new DoubleParameter("p1", 0.123456789);p1.setGroup(groupP);
+        Parameter param[] = new Parameter[]{ p0, p1};
+        
+        Vector<ParamPanel.ParamGroup> groups = ParamPanel.makeGroups(param);
+        printf("groups: %d\n", groups.size());
+        for(int i = 0; i < groups.size(); i++){
+            ParamPanel.ParamGroup group = groups.get(i);
+            printf("grop[%d] = %s count: %d\n",i, group.name, group.param.size());
+            for(int k = 0; k < group.param.size(); k++){
+                printf("  par[%d] = %s\n",k, group.param.get(k).getName());
+            }
+        }
+        ParamPanel seditor = new ParamPanel("groups", param);
+        seditor.addParamChangedListener(this);
+        seditor.setVisible(true);
+        Point p = getLocation();
+        Dimension dim = getSize();
+        seditor.setLocation(p.x + dim.width, p.y);
+        
+    }
     
     @Override
         public void paramChanged(Parameter param) {
@@ -110,7 +138,8 @@ public class DevTestEditors extends JFrame implements ParamChangedListener {
                
         DevTestEditors tester = new DevTestEditors();
         //tester.testUnion();
-        tester.testGroups();
+        tester.testSimple();
+        //tester.testGroups();
 
     }
 }

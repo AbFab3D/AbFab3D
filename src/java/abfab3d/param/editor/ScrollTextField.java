@@ -23,12 +23,13 @@ import static abfab3d.core.Output.printf;
 public class ScrollTextField extends JTextField {
 
     static final boolean DEBUG = false;
-
-    private double m_currentIncrement = 0.0001;
     static final int MIN_DIGITS = 6;
-    private String m_currentFormat = "%8.6f";
+
+    private int m_caretPosition = 0;
+    private double m_currentIncrement = 0.0001;
+    private String m_currentFormat = "%19.17f";
     double value_down;
-    double m_value;
+    double m_value = Double.MIN_VALUE; // initially undefined 
     int y_down, y_old;
     private int compHeight = 0;
     private boolean mouseDraggedFlag = false;
@@ -40,6 +41,8 @@ public class ScrollTextField extends JTextField {
 
     double m_minValue = -Double.MAX_VALUE;
     double m_maxValue = Double.MAX_VALUE;
+
+    boolean m_hasFocus = false;
     
     private boolean processUpDownArrowKeys = true;
     
@@ -61,6 +64,10 @@ public class ScrollTextField extends JTextField {
 
         this.doInteger = doInteger; 
         
+        if(doInteger) {
+            m_currentFormat = "%d";
+            m_currentIncrement = 1;
+        }
         setValue(value);
         
     }
@@ -79,6 +86,11 @@ public class ScrollTextField extends JTextField {
         m_maxValue = value;
     }
     
+    public void doIncrement(double sign) {
+        
+        updateValue(m_value + sign*m_currentIncrement);
+    }
+
     protected void initListeners(){
         
         this.addMouseMotionListener(new MyMouseMotionListener());    
@@ -87,13 +99,16 @@ public class ScrollTextField extends JTextField {
         this.addMouseWheelListener(new MyMouseWheelListener());
         
         if(processUpDownArrowKeys){
-            this.addKeyListener(new ArrowsListener());
+            this.addKeyListener(new MyKeyListener());
         }
     }
     
     class MyMouseMotionListener extends MouseMotionAdapter {
 
-        public void mouseDragged(MouseEvent e){
+        public void mouseMoved(MouseEvent e){
+            //if(DEBUG)printf("mouse moved: %d %d\n", e.getX(), e.getY());            
+        }
+        public void _mouseDragged(MouseEvent e){
             
             int y = e.getY();
             if(!mouseDraggedFlag){
@@ -104,15 +119,13 @@ public class ScrollTextField extends JTextField {
                     mouseDraggedFlag = true;
                 }		
             }
-            //if(Math.abs(y-y_old) < dragSensitivity){
-            //    return;
-            //}
+
             double value = value_down;
                         
             value = value_down - ((y-y_down)/dragSensitivity)*m_currentIncrement;
             
             double scale = 1/m_currentIncrement;
-            value = (int)(value*scale)/(scale);    
+            //value = (int)(value*scale)/(scale);    
             
             if(doInteger) {
                 
@@ -123,7 +136,6 @@ public class ScrollTextField extends JTextField {
             }
             
             updateValue(value);
-            
             y_old = y;
         } 
     }
@@ -131,11 +143,16 @@ public class ScrollTextField extends JTextField {
     class MyMouseWheelListener implements MouseWheelListener {
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
+
+            if(!m_hasFocus) return;
+            if(DEBUG)printf("mouseWheelMoved(%d, %d)\n", e.getX(), e.getY());
+            String text = extractNumber();
+            //int caretPosition = calculateCaretPosition(e.getX(), text);
+            //makeIncrementStep(caretPosition, text);
+            
             int y = e.getWheelRotation();
             double oldVal = m_value;
-            double value = oldVal + ((y))*m_currentIncrement;
-            double scale = 1/m_currentIncrement;
-            value = (int)(value*scale)/(scale);
+            double value = oldVal - y*m_currentIncrement;
 
             if(doInteger) {
 
@@ -156,16 +173,16 @@ public class ScrollTextField extends JTextField {
      */
     public void setValue(double value){
 
+        if(m_value == value) 
+            return;
         //if(DEBUG) new Exception().printStackTrace();
-        if(DEBUG) printf("%s.setValue(%10.8f)\n", this.getClass().getSimpleName(), value);
+        if(DEBUG) printf("%s.setValue(%20.18f)\n", this.getClass().getSimpleName(), value);
         
         m_value = value;
-        String text = fmt(m_currentFormat,m_value);
+        String text = getString(value);
         setText(text);
         if(DEBUG) printf("   text: %s\n", text);
         
-        //int cp = getCaretPosition();
-
     }
 
     
@@ -187,21 +204,53 @@ public class ScrollTextField extends JTextField {
         
         if (newVal != m_value) {
             m_value = newVal;
-            //setText(fmt(m_currentFormat,m_value));
             informListeners();
         }
     }
 
+    /**
+       set value from parameter
+     */
     private void updateValue(double value){
-        value = Math.max(m_minValue, value);
-        value = Math.min(m_maxValue, value);
+        
+        value = clamp(value, m_minValue, m_maxValue);
         if(doInteger)
             value = Math.round(value);
+
         if(m_value != value){
             m_value = value;
-            setText(fmt(m_currentFormat,value));            
+            setText(getString(value));            
+            setCaretPosition(m_caretPosition);
             informListeners();
         }        
+    }
+
+    private String getString(double value){
+        if(doInteger)
+            return fmt("%d",(int)value);
+        else
+            return removeZeroes(fmt(m_currentFormat, value));
+        
+    }
+
+    /**
+       removes zeros at the end of string
+     */
+    static String removeZeroes(String text){
+        int len = text.length();
+        int cnt = 0;
+        for(int i = len-1; i > 0; i--){
+            if(text.charAt(i) != '0')
+                break;
+            cnt++;
+        }
+        if(cnt > 0){
+            return text.substring(0, len-cnt);
+        } else {
+            return text;
+        }
+
+
     }
     
     private String appendix = "";  // text at the end of number, should be appended 
@@ -300,11 +349,11 @@ public class ScrollTextField extends JTextField {
         }
         
         m_currentIncrement = delta;
-        int digits = (int)Math.max(0.,-Math.floor(Math.log10(m_currentIncrement))) + 1;
+        int digits = (int)Math.max(0.,-Math.floor(Math.log10(m_currentIncrement)));
         digits = Math.max(MIN_DIGITS,digits);
         //printf("digits: %d\n", digits);
         // format change creates problems
-        m_currentFormat = "%" + (digits+2) + "." + digits+"f";
+        //m_currentFormat = "%" + (digits+2) + "." + digits+"f";
         
     }
 
@@ -329,58 +378,79 @@ public class ScrollTextField extends JTextField {
             y_old = y_down = e.getY();
             // this is to prevent too much sensitivity to dragging 
             mouseDraggedFlag = false;
-            int x_down = e.getX();
-            FontMetrics fm = Toolkit.getDefaultToolkit().getFontMetrics(getFont());
+            
             String text = extractNumber();
-            int caret_position = 0;
-            int x = 0;
-            int length = text.length();
-            
-            for(int i = 0; i < length; i++){
-                x += fm.charWidth(text.charAt(i));
-                if(x > x_down){
-                    break;
-                }
-                caret_position++;
-            }
-            
-            makeIncrementStep(caret_position, text);
+            m_caretPosition = calculateCaretPosition(e.getX(), text);
+            makeIncrementStep(m_caretPosition,text);
             
         }
         
+
         public void mouseReleased(MouseEvent e) {
             
             if(mouseDraggedFlag){
-                // clear selection in text field 
-                select(0,0);
+                // clear selection in the text field 
+                //select(0,0);
             }
             //System.out.println(e);
         }    
     }
+
+    int calculateCaretPosition(int mouseX, String text){
+
+        int x_down = mouseX;
+        FontMetrics fm = Toolkit.getDefaultToolkit().getFontMetrics(getFont());
+        int caret_position = 0;
+        int x = 0;
+        int length = text.length();
+        
+        for(int i = 0; i < length; i++){
+            x += fm.charWidth(text.charAt(i));
+            if(x > x_down){
+                break;
+            }
+            caret_position++;
+        }
+        return caret_position;
+    }
+        
     
-    
-    String oldValue = "";
-    
+    //
+    // 
+    //
     class AFocusListener implements FocusListener{
         
+        String oldValue = "";
+
         public void focusGained(FocusEvent e) {
             oldValue = getText();
+            m_hasFocus = true;
         }    
         
         public void focusLost(FocusEvent e) {
+            m_hasFocus = false;
             // potentially editing was changed 
             String newValue = getText();
             if(!oldValue.equals(newValue))
                 informListeners();
         }    
-    }
+    } // class AFocusListener
     
-    class ArrowsListener extends KeyAdapter {
+
+
+    //
+    //
+    //
+    class MyKeyListener extends KeyAdapter {
         
-        public void	keyReleased(KeyEvent e){
+        //public void	keyPressed(KeyEvent e){
+        //    if(DEBUG)printf("keyPressed: %s\n",e);
+        //}
+
+        public void	keyPressed(KeyEvent e){
             
             int sign = 0;
-            if(DEBUG)printf("keyReleased: %s\n",e);
+            //if(DEBUG)printf("keyReleased: %s\n",e);
             
             switch(e.getKeyCode()){
             default: 
@@ -397,9 +467,7 @@ public class ScrollTextField extends JTextField {
             if(sign != 0) {
                 
                 // arrows was pressed 
-                int cp = getCaretPosition();
                 double value = Double.parseDouble(extractNumber()); 
-                makeIncrementStep(cp, extractNumber());
                 
                 value += sign*m_currentIncrement;
                 
@@ -414,9 +482,23 @@ public class ScrollTextField extends JTextField {
                     
                     updateValue(value);
                 }
-                
-                setCaretPosition(cp);
             }               
-        }        
+        }
+
+
+        public void	keyReleased(KeyEvent e){
+            
+            int sign = 0;            
+            switch(e.getKeyCode()){
+            case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_RIGHT:
+            case KeyEvent.VK_HOME:
+            case KeyEvent.VK_END:
+                m_caretPosition = getCaretPosition();
+                // update current increment 
+                makeIncrementStep(m_caretPosition, extractNumber());                
+                break;
+            }
+        }
     }    
 }

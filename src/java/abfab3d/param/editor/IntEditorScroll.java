@@ -18,17 +18,17 @@ import java.awt.Component;
 
 import javax.swing.JButton;
 
-import abfab3d.param.DoubleParameter;
+import abfab3d.param.IntParameter;
 
 import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.core.Output.printf;
 
 
-public class DoubleEditorScroll extends BaseEditor { 
+public class IntEditorScroll extends BaseEditor { 
   
     static final boolean DEBUG = false;
 
-    DoubleParameter m_dparam;
+    IntParameter m_dparam;
 
     Vector valueListeners=null;
     ScrollTextField m_textField;
@@ -47,16 +47,16 @@ public class DoubleEditorScroll extends BaseEditor {
     
     static final int DEFAULT_LENGTH = 10;
     
-    public DoubleEditorScroll(DoubleParameter parameter){
+    public IntEditorScroll(IntParameter parameter){
         this(parameter, DEFAULT_LENGTH);
     }
 
-    public DoubleEditorScroll(DoubleParameter parameter, int length){
+    public IntEditorScroll(IntParameter parameter, int length){
         
         super(parameter);
         m_dparam = parameter;
         
-        m_scroller = new NumberScroller(m_dparam.getValue(),m_dparam.getMinRange(),m_dparam.getMaxRange(),  0.);
+        m_scroller = new NumberScroller(m_dparam.getValue(),m_dparam.getMinRange(),m_dparam.getMaxRange(),  0., true);
         m_scroller.addChangedListener(new NumberChangedListener());
         updateUI();
         
@@ -67,7 +67,7 @@ public class DoubleEditorScroll extends BaseEditor {
     }
     
     
-    public void setParam(DoubleParameter parameter){
+    public void setParam(IntParameter parameter){
         
         m_dparam = parameter;
         updateUI();
@@ -79,7 +79,7 @@ public class DoubleEditorScroll extends BaseEditor {
 
         //TODO update range 
         m_scroller.setValue(m_dparam.getValue().doubleValue()); 
-        if(DEBUG)printf("DoubleEditorScroll.updateUI() %20.18f\n",m_dparam.getValue().doubleValue());
+        if(DEBUG)printf("IntEditorScroll.updateUI() %20.18f\n",m_dparam.getValue().doubleValue());
 
     }
     

@@ -10,13 +10,7 @@
  ****************************************************************************/
 package abfab3d.io.input;
 
-import abfab3d.core.AttributeGrid;
-import abfab3d.core.Bounds;
-import abfab3d.core.GridProducer;
-import abfab3d.core.Initializable;
-import abfab3d.core.LabeledBuffer;
-import abfab3d.core.MaterialType;
-import abfab3d.core.VecTransform;
+import abfab3d.core.*;
 
 import abfab3d.datasources.AttributeGridSourceWrapper;
 import abfab3d.datasources.DistanceToMeshDataSource;
@@ -303,7 +297,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         if (m_transform instanceof Initializable) ((Initializable) m_transform).initialize();
         reader.setTransform(m_transform);
         reader.initialize();
-        mesh = new AttributedMesh();
+        mesh = new AttributedMeshArray();
         reader.getAttTriangles(mesh);
 
         mesh.setDataDimension(reader.getDataDimension());
@@ -312,8 +306,11 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             mesh.setAttributeCalculator(reader.getAttributeCalculator());
         }
 
+        mesh = new AttributedMeshSourceWrapper(vhash,mesh);
+
         if (mp_useCaching.getValue()) {
-            ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(null, mesh, reader, m_materialType));
+            if (DEBUG) printf("Caching at: %s\n",vhash);
+            ParamCache.getInstance().put(vhash, new ModelCacheEntry(null, mesh, reader, m_materialType));
         }
         return mesh;
     }
@@ -384,7 +381,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
                 // plain mesh loading
                 dim = 3;
                 if (mesh != null) {
-                    grid = loader.loadDistanceGrid(mesh);
+                    grid = loader.loadDistanceGrid((TriangleProducer)mesh);
                 } else {
                     if (m_transform != null) {
                         grid = loader.loadDistanceGrid(m_path, m_transform);
@@ -399,7 +396,6 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             grid = new AttributeGridSourceWrapper(baseVhash,grid);
             if (mp_useCaching.getValue()) {
 
-                printf("Caching file: %s\n",baseVhash);
                 ParamCache.getInstance().put(getValueHash(), new ModelCacheEntry(grid, mesh, reader, m_materialType));
 
                 String bhash = baseVhash + BOUNDS_NAME;
@@ -417,11 +413,11 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
                 barr[6] = gbounds.getVoxelSize();
 
                 LabeledBuffer<double[]> boundsBuffer = new LabeledBuffer<double[]>(bhash, barr);
-                CPUCache.getInstance().put(boundsBuffer);
+                CPUCache.getInstance().put(boundsBuffer,true);
                 LabeledBuffer<byte[]> materialTypeBuffer = new LabeledBuffer<byte[]>(mhash, m_materialType.toString().getBytes());
-                CPUCache.getInstance().put(materialTypeBuffer);
+                CPUCache.getInstance().put(materialTypeBuffer,true);
                 LabeledBuffer<byte[]> channelCountBuffer = new LabeledBuffer<byte[]>(cchash, new byte[] {(byte)grid.getDataDesc().size()});
-                CPUCache.getInstance().put(channelCountBuffer);
+                CPUCache.getInstance().put(channelCountBuffer,true);
             }
 
         } catch (Exception e) {
@@ -453,8 +449,14 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
     public DistanceToMeshDataSource getDistanceToMeshDataSource() {
 
         if (mp_attributeLoading.getValue()) {
-            AttributedMesh mesh = getMesh();
-            return new DistanceToMeshDataSource(mesh, mesh.getAttributeCalculator());
+            AttributedTriangleProducer mesh = getMesh();
+            DataSource ac = null;
+            if (mesh instanceof AttributedMeshSourceWrapper) {
+                ac = ((AttributedMeshSourceWrapper)mesh).getAttributeCalculator();
+            } else {
+                ac = ((AttributedMesh) mesh).getAttributeCalculator();
+            }
+            return new DistanceToMeshDataSource(mesh, ac);
         } else {
             return new DistanceToMeshDataSource(getMesh());
         }
@@ -541,7 +543,12 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             }
         }
 
-        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparam, m_transform == null ? "trans=null" : "trans=" + trans);
+        StringBuilder sb = new StringBuilder();
+        getParamString(sb);
+        sb.append(",");
+        sb.append(m_transform == null ? "trans=null" : "trans=" + trans);
+
+        return sb.toString();
     }
 
 

@@ -215,7 +215,6 @@ public class DistanceToPointsDataSource extends TransformableDataSource {
 
         if(producer instanceof PointSet)
             return initPlainPoints((PointSet)producer);            
-        
         throw new RuntimeException(fmt("don't know how to handle points %s",producer));
     }
 

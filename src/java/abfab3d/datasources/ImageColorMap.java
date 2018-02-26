@@ -20,11 +20,9 @@ import abfab3d.core.Grid2DProducer;
 import abfab3d.core.ImageProducer;
 
 
-import abfab3d.param.BaseParameterizable;
 import abfab3d.param.ParamCache;
 import abfab3d.param.Parameter;
 import abfab3d.param.BooleanParameter;
-import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.SNodeParameter;
 import abfab3d.param.EnumParameter;
@@ -32,13 +30,7 @@ import abfab3d.param.EnumParameter;
 import abfab3d.grid.op.ImageToGrid2D;
 import abfab3d.grid.op.ImageLoader;
 
-import abfab3d.util.ImageColor;
-
-import javax.imageio.ImageIO;
 import javax.vecmath.Vector3d;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
@@ -80,7 +72,6 @@ public class ImageColorMap extends TransformableDataSource {
 
     // public parameters 
     SNodeParameter mp_imageSource = new SNodeParameter("image", "image source", null);
-    //ObjectParameter mp_imageSource = new ObjectParameter("image", "image source", null);
     Vector3dParameter mp_center = new Vector3dParameter("center", "center of the image box", new Vector3d(0., 0., 0.));
     Vector3dParameter mp_size = new Vector3dParameter("size", "size of the image box", new Vector3d(0.1, 0.1, 0.1));
     BooleanParameter mp_repeatX = new BooleanParameter("repeatX", "repeat image along X", false);
@@ -99,7 +90,7 @@ public class ImageColorMap extends TransformableDataSource {
     };
 
     /** Params which require changes in the underlying image */
-    private Parameter[] imageParams = new Parameter[] {
+    private Parameter[] m_imageParams = new Parameter[] {
             mp_imageSource
     };
 
@@ -246,14 +237,21 @@ public class ImageColorMap extends TransformableDataSource {
     }
 
     /**
-     * Get a label for the OpenCL buffer, account for all params which change the buffer value
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
      * @return
      */
-/*
-    public String getBufferLabel() {
-        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_aparams);
+    public void getDataLabel(StringBuilder sb) {
+        getParamString(getClass().getSimpleName(), m_imageParams,sb);
     }
-*/
+
+    /**
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
+     * @return
+     */
+    public String getDataLabel() {
+        return getParamString(getClass().getSimpleName(), m_imageParams);
+    }
+
     /**
      * @noRefGuide
      */
@@ -261,7 +259,7 @@ public class ImageColorMap extends TransformableDataSource {
         super.initialize();
 
 
-        String label = getParamString(getClass().getSimpleName(), imageParams);
+        String label = getDataLabel();
 
         Object co = ParamCache.getInstance().get(label);
         if (co == null) {

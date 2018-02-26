@@ -12,9 +12,7 @@
 
 package abfab3d.datasources;
 
-import abfab3d.core.Grid2DProducer;
 import abfab3d.core.Grid2D;
-import abfab3d.grid.Grid2DShort;
 import abfab3d.param.SourceWrapper;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.URIParameter;
@@ -24,7 +22,6 @@ import abfab3d.param.DoubleParameter;
 
 import java.awt.image.BufferedImage;
 
-import static abfab3d.core.Units.MM;
 import static abfab3d.core.Units.PT;
 
 public class ImageWrapper extends BaseParameterizable implements SourceWrapper {

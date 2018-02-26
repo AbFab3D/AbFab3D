@@ -15,11 +15,7 @@ package abfab3d.datasources;
 
 import javax.vecmath.Vector3d;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-
-import java.io.File;
-import java.io.IOException;
 
 import java.util.Vector;
 
@@ -27,14 +23,13 @@ import java.util.Vector;
 import abfab3d.core.Bounds;
 import abfab3d.core.ResultCodes;
 import abfab3d.core.Grid2D;
-import abfab3d.grid.Grid2DShort;
 import abfab3d.core.GridDataChannel;
 import abfab3d.core.Grid2DProducer;
 import abfab3d.core.ImageProducer;
 
+import abfab3d.grid.Grid2DSourceWrapper;
 import abfab3d.grid.Operation2D;
 
-import abfab3d.param.BaseParameterizable;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.SNodeParameter;
 import abfab3d.param.Vector3dParameter;
@@ -47,10 +42,7 @@ import abfab3d.grid.op.ImageToGrid2D;
 import abfab3d.grid.op.GaussianBlur;
 import abfab3d.grid.op.Copy;
 
-import abfab3d.util.ColorMapperDistance;
-
 import abfab3d.core.Vec;
-import abfab3d.util.ImageGray16;
 
 
 import static java.lang.Math.floor;
@@ -63,7 +55,6 @@ import static abfab3d.core.MathUtil.step10;
 import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
-import static abfab3d.core.Output.time;
 
 
 /**
@@ -365,14 +356,21 @@ public class ImageMap extends TransformableDataSource {
     }
 
     /**
-     * Get a label for the OpenCL buffer, account for all params which change the buffer value
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
      * @return
      */
-/*
-    public String getBufferLabel() {
-        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_imageParams);
+    public void getDataLabel(StringBuilder sb) {
+        getParamString(getClass().getSimpleName(), m_imageParams,sb);
     }
-*/
+
+    /**
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
+     * @return
+     */
+    public String getDataLabel() {
+        return getParamString(getClass().getSimpleName(), m_imageParams);
+    }
+
     /**
      * @noRefGuide
      */
@@ -441,7 +439,7 @@ public class ImageMap extends TransformableDataSource {
 
         long t0 = System.currentTimeMillis();
 
-        String label = getParamString(getClass().getSimpleName(), m_imageParams);
+        String label = getDataLabel();
 
         Object co = null;
         if(CACHING_ENABLED)co = ParamCache.getInstance().get(label);

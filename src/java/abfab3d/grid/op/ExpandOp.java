@@ -14,7 +14,6 @@ package abfab3d.grid.op;
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.Grid;
 import abfab3d.core.Grid2D;
-import abfab3d.datasources.Grid2DSourceWrapper;
 import abfab3d.grid.*;
 import abfab3d.param.*;
 import abfab3d.util.ImageGray16;
@@ -34,33 +33,49 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class ExpandOp extends BaseParameterizable implements Operation, Operation2D, AttributeOperation {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
+    SNodeParameter mp_source = new SNodeParameter("source", "image source");
     LongParameter mp_attribute = new LongParameter("threshold", "Threshold for inside when using attribute grids", 0);
     IntegerListParameter mp_distances = new IntegerListParameter("distances","How far to expand in each direction", null,0,Integer.MAX_VALUE);
 
     Parameter m_aparam[] = new Parameter[]{
-            mp_attribute, mp_distances
+            mp_source,mp_attribute, mp_distances
     };
 
     public ExpandOp(int[] distances) {
+        initParams();
+
         setDistances(distances);
         setAttribute(ImageGray16.MAX_USHORT_S);
     }
 
     public ExpandOp(int[] distances, long att) {
+        initParams();
+
         setDistances(distances);
         setAttribute(att);
     }
 
     public ExpandOp(int l, int t, int r, int b) {
+        initParams();
+
         setDistances(new int[] {l,t,r,b});
         setAttribute(ImageGray16.MAX_USHORT_S);
     }
 
     public ExpandOp(int l, int t, int r, int b, long att) {
+        initParams();
+
         setDistances(new int[] {l,t,r,b});
         setAttribute(att);
+    }
+
+    /**
+     * @noRefGuide
+     */
+    protected void initParams(){
+        super.addParams(m_aparam);
     }
 
     public void setAttribute(long val) {
@@ -72,13 +87,6 @@ public class ExpandOp extends BaseParameterizable implements Operation, Operatio
     }
 
     /**
-     * @noRefGuide
-     */
-    protected void initParams(){
-        super.addParams(m_aparam);
-    }
-
-    /**
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
      *
@@ -86,10 +94,11 @@ public class ExpandOp extends BaseParameterizable implements Operation, Operatio
      * @return The new grid
      */
     public Grid2D execute(Grid2D src) {
+        mp_source.setValue(src);
         long attribute = mp_attribute.getValue();
         int[] distances = mp_distances.getValue((int[])null);
 
-        String vhash = BaseParameterizable.getParamString(getClass().getSimpleName(), src, m_aparam);
+        String vhash = getDataLabel();
         Object co = ParamCache.getInstance().get(vhash);
         if (DEBUG) printf("ExpandOp vhash: %s cached: %b\n",vhash,co!=null);
 

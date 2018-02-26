@@ -12,9 +12,7 @@
 
 package abfab3d.io.input;
 
-import abfab3d.core.AttributeGrid;
-import abfab3d.core.GridDataDesc;
-import abfab3d.core.Bounds;
+import abfab3d.core.*;
 
 import javax.vecmath.Vector3d;
 
@@ -181,7 +179,7 @@ public class TestModelLoader extends TestCase {
 
         ModelLoader loader = new ModelLoader(filePath);
         loader.setAttributeLoading(false);
-        AttributedMesh mesh = loader.getMesh();
+        AttributedTriangleProducer mesh = loader.getMesh();
 
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         mesh.getAttTriangles(bb);
@@ -217,7 +215,7 @@ public class TestModelLoader extends TestCase {
 
         ModelLoader loader = new ModelLoader(filePath);
         loader.setAttributeLoading(true);
-        AttributedMesh mesh = loader.getMesh();
+        AttributedTriangleProducer mesh = loader.getMesh();
 
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         mesh.getAttTriangles(bb);
@@ -254,7 +252,7 @@ public class TestModelLoader extends TestCase {
 
         ModelLoader loader = new ModelLoader(filePath);
         loader.setAttributeLoading(true);
-        AttributedMesh mesh = loader.getMesh();
+        AttributedTriangleProducer mesh = loader.getMesh();
 
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         mesh.getAttTriangles(bb);
@@ -318,7 +316,7 @@ public class TestModelLoader extends TestCase {
         ModelLoader loader = new ModelLoader(filePath);
         loader.setAttributeLoading(true);
         loader.setVoxelSize(voxelSize);
-        AttributedMesh mesh = loader.getMesh();
+        AttributedTriangleProducer mesh = loader.getMesh();
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         mesh.getAttTriangles(bb);
 
@@ -338,8 +336,14 @@ public class TestModelLoader extends TestCase {
         AttributeGrid grid = loader.getGrid();
         GridDataDesc gdd = grid.getDataDesc();
 
+        DataSource ac = null;
+        if (mesh instanceof AttributedMesh) {
+            ac = ((AttributedMesh)mesh).getAttributeCalculator();
+        } else {
+            ac = ((AttributedMeshSourceWrapper)mesh).getAttributeCalculator();
+        }
         assertEquals("Channels should be 1", 1, gdd.size());
-        assertTrue("attributeCalculator should be null",mesh.getAttributeCalculator() == null);
+        assertTrue("attributeCalculator should be null",ac == null);
 
         int bits = gdd.getAttributePacker().getBitCount();
         assertEquals("Bits should be 8", 8, bits);

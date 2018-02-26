@@ -23,6 +23,7 @@ import abfab3d.core.Output;
 import abfab3d.core.ResultCodes;
 import abfab3d.core.Vec;
 import abfab3d.grid.Grid2DShort;
+import abfab3d.grid.Grid2DSourceWrapper;
 import abfab3d.grid.Operation2D;
 import abfab3d.grid.op.Copy;
 import abfab3d.grid.op.DistanceTransform2DOp;
@@ -682,16 +683,20 @@ public class Image3D extends TransformableDataSource {
     }
 
     /**
-     * Get a label for the OpenCL buffer, account for all params which change the buffer value
-     *
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
      * @return
-     * @noRefGuide
      */
-/*
-    public String getBufferLabel() {
-        return BaseParameterizable.getParamString(getClass().getSimpleName(), m_imageParams);
+    public void getDataLabel(StringBuilder sb) {
+        getParamString(getClass().getSimpleName(), m_imageParams,sb);
     }
-*/
+
+    /**
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
+     * @return
+     */
+    public String getDataLabel() {
+        return getParamString(getClass().getSimpleName(), m_imageParams);
+    }
 
     /**
      * @noRefGuide
@@ -753,7 +758,7 @@ public class Image3D extends TransformableDataSource {
                 break;
         }
 
-        String label = getParamString(getClass().getSimpleName(), m_imageParams);
+        String label = getDataLabel();
 
         Object co = null;
         if (CACHING_ENABLED) {

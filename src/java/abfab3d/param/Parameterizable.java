@@ -34,7 +34,7 @@ public interface Parameterizable {
     /**
      return string representation of this parametrizable
      */
-    public void getParamString(String name,Parameter[] params,StringBuilder sb);
+//    public void getParamString(String name,Parameter[] params,StringBuilder sb);
 
     /**
      * Returns the underlying parameter list, this is a live list.
@@ -60,5 +60,16 @@ public interface Parameterizable {
      */
     public void set(String param, Object value);
 
+    /**
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
+     * @return
+     */
+    public void getDataLabel(StringBuilder sb);
+
+    /**
+     * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
+     * @return
+     */
+    public String getDataLabel();
 
 }

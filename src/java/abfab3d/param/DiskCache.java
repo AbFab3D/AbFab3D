@@ -37,6 +37,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class DiskCache {
+    private static final int MAX_FILENAME = 64;
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_TIMING = false;
 
@@ -271,12 +272,13 @@ public class DiskCache {
         label = label.replaceAll("[:\\\\/*\"?|<>'.;]", "_");
         //label = label.substring(0,2) + File.separator + label.substring(2);
 
-        int len = Math.min(label.length(), 64);
+        int len = Math.min(label.length(), MAX_FILENAME);
         sb.append(label.substring(0, len));
 
         sb.append("_");
         sb.append(sha);
 
+        printf("Disk cache name len: %d is: %s\n",len,sb);
         return sb.toString();
     }
 

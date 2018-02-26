@@ -1,14 +1,12 @@
-package abfab3d.datasources;
+package abfab3d.grid;
 
 import javax.vecmath.Tuple3d;
 
-import abfab3d.core.GridDataDesc;
 import abfab3d.core.Grid2D;
+import abfab3d.core.GridDataDesc;
 import abfab3d.param.*;
 import abfab3d.core.Bounds;
 import abfab3d.core.Grid2DProducer;
-
-import java.util.Map;
 
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
@@ -19,7 +17,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class Grid2DSourceWrapper extends BaseParameterizable implements Grid2D, SourceWrapper, Grid2DProducer, Parameterizable {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private Grid2D grid;
     private String source;
 
@@ -35,9 +33,11 @@ public class Grid2DSourceWrapper extends BaseParameterizable implements Grid2D, 
         this.grid = grid;
         this.source = source;
 
+        /*
         if (source.indexOf("@") != -1) {
             throw new IllegalArgumentException(fmt("Source contains memory address: %s\n",source));
         }
+        */
     }
 
     /*

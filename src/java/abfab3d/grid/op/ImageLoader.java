@@ -111,7 +111,7 @@ public class ImageLoader extends BaseParameterizable implements ImageProducer {
         Object co = null;
         String label = null;
         if(CACHING_ENABLED){
-            label = getParamString(getClass().getSimpleName(), m_params);
+            label = getDataLabel();
             co = ParamCache.getInstance().get(label);
         }
         if (co == null) {
@@ -129,6 +129,7 @@ public class ImageLoader extends BaseParameterizable implements ImageProducer {
 
     protected BufferedImage loadImage(String path){
 
+        long stime = System.currentTimeMillis();
         if (DEBUG) printf("%s.loadImage(%s)\n",this, path);
         if (!new File(path).exists()) {
             throw new IllegalArgumentException(fmt("image %s does not exist", path));
@@ -142,7 +143,8 @@ public class ImageLoader extends BaseParameterizable implements ImageProducer {
             if(path.endsWith(".svg") || path.endsWith(".SVG")){
                 return readImageSVG(path, mp_svgRasterizationWidth.getValue(), mp_backgroundColor.getValue());
             }
-            BufferedImage image = ImageIO.read(new File(path)); 
+            BufferedImage image = ImageIO.read(new File(path));
+            if (DEBUG) printf("Loaded image in: %d ms\n",(System.currentTimeMillis() - stime));
             return image;
         } catch (Exception e){
             e.printStackTrace();
@@ -150,7 +152,8 @@ public class ImageLoader extends BaseParameterizable implements ImageProducer {
             //printf(fmt("exception %s reading image file: %s \n", e.getMessage(),path));
         }        
         //return makeDefaultImage(10,10);
-        
+
+
     }
 
     BufferedImage makeDefaultImage(int width, int height){

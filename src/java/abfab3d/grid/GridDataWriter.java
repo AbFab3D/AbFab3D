@@ -19,8 +19,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
 
-import abfab3d.core.Grid2D;
 import abfab3d.core.AttributeGrid;
+import abfab3d.core.Grid2D;
 import abfab3d.core.GridDataChannel;
 import abfab3d.param.Parameter;
 import abfab3d.param.BaseParameterizable;
