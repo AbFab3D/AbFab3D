@@ -19,10 +19,13 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
+
+import static abfab3d.core.Output.printf;
 
 /**
  * A self-contained ShapeJS Container
@@ -36,11 +39,14 @@ public class Project {
     public static final String EXT_VARIANT = ".shapevar";
     public static final String EXT_SCRIPT = ".shapejs";
     public static final String EXT_MANIFEST = ".json";
+    public static final String NAME_PROP = "name";
+    public static final String AUTHOR_PROP = "author";
+    public static final String LICENSE_PROP = "license";
 
     private String parentDir;
     private ArrayList<ProjectItem> scripts = new ArrayList<>();
     private ArrayList<ProjectItem> resources = new ArrayList<>();
-    private ArrayList<ProjectItem> variants = new ArrayList<>();
+    private ArrayList<VariantItem> variants = new ArrayList<>();
     private LinkedHashMap<String, String> dependencies = new LinkedHashMap<>();
     private String name;
     private String author;
@@ -58,6 +64,14 @@ public class Project {
         this.scripts = new ArrayList(scripts);
     }
 
+    public void addScript(ProjectItem script) {
+        this.scripts.add(script);
+    }
+
+    public void removeScript(ProjectItem script) {
+        this.scripts.remove(script);
+    }
+
     public List<ProjectItem> getResources() {
         return resources;
     }
@@ -66,12 +80,28 @@ public class Project {
         this.resources = new ArrayList(resources);
     }
 
-    public List<ProjectItem> getVariants() {
+    public void addResource(ProjectItem resource) {
+        this.resources.add(resource);
+    }
+
+    public void removeResource(ProjectItem resource) {
+        this.resources.remove(resource);
+    }
+
+    public List<VariantItem> getVariants() {
         return variants;
     }
 
-    public void setVariants(List<ProjectItem> variants) {
+    public void setVariants(List<VariantItem> variants) {
         this.variants = new ArrayList(variants);
+    }
+
+    public void addVariant(VariantItem variant) {
+        this.variants.add(variant);
+    }
+
+    public void removeVariant(VariantItem variant) {
+        this.variants.remove(variant);
     }
 
     public String getName() {
@@ -127,12 +157,57 @@ public class Project {
     }
 
     /**
-     * Save this project to disk.
-     * @param file
+     * Save this project to a directory
+     *
+     * @param dir
      * @throws IOException
      */
-    public void save(String file) throws IOException {
-        File f = new File(file);
+    public void save(String dir) throws IOException {
+        File f = new File(dir);
+
+        f.mkdirs();
+
+        LinkedHashMap<String,Object> manifest = new LinkedHashMap<>();
+        ArrayList<String> scriptList = new ArrayList<>();
+        for(ProjectItem script : scripts) {
+            String fname = FilenameUtils.separatorsToUnix(script.getPath());
+            scriptList.add(fname);
+        }
+
+        ArrayList<String> variantList = new ArrayList<>();
+        for(ProjectItem variant : variants) {
+            String fname = FilenameUtils.separatorsToUnix(variant.getPath());
+            variantList.add(fname);
+        }
+
+        ArrayList<String> resourceList = new ArrayList<>();
+        for(ProjectItem resource : resources) {
+            String fname = FilenameUtils.separatorsToUnix(resource.getPath());
+            resourceList.add(fname);
+        }
+
+        manifest.put(NAME_PROP,name);
+        manifest.put(AUTHOR_PROP,author);
+        manifest.put(LICENSE_PROP,license);
+        manifest.put("scripts",scriptList);
+        manifest.put("variants",variantList);
+        manifest.put("resources",resourceList);
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String manifestSt = gson.toJson(manifest);
+        File manifestFile = new File(f.getAbsolutePath() + File.separator + "manifest" + EXT_MANIFEST);
+        FileUtils.writeStringToFile(manifestFile,manifestSt);
+
+        // TODO: Write out real stuff
+
+        File scriptsDir = new File(f.getAbsolutePath() + File.separator + "scripts");
+        scriptsDir.mkdirs();
+
+        File variantsDir = new File(f.getAbsolutePath() + File.separator + "variants");
+        variantsDir.mkdirs();
+
+        File resourcesDir = new File(f.getAbsolutePath() + File.separator + "resources");
+        resourcesDir.mkdirs();
     }
 
 
@@ -410,12 +485,12 @@ public class Project {
 
             Project ret = new Project();
 
-            ret.setName((String) props.get("name"));
-            ret.setAuthor((String) props.get("author"));
-            ret.setLicense((String) props.get("license"));
+            ret.setName((String) props.get(NAME_PROP));
+            ret.setAuthor((String) props.get(AUTHOR_PROP));
+            ret.setLicense((String) props.get(LICENSE_PROP));
 
             ArrayList<ProjectItem> scripts = new ArrayList<>();
-            ArrayList<ProjectItem> variants = new ArrayList<>();
+            ArrayList<VariantItem> variants = new ArrayList<>();
             ArrayList<ProjectItem> resources = new ArrayList<>();
             String cdir = new File(dir).getCanonicalPath();
 
@@ -424,7 +499,7 @@ public class Project {
             ret.setScripts(scripts);
 
             List<String> uvariants = (List<String>) props.get("variants");
-            processItem(uvariants,cdir,variants);
+            processVariant(uvariants,cdir,variants);
             ret.setVariants(variants);
 
             List<String> uresources = (List<String>) props.get("resources");
@@ -453,11 +528,65 @@ public class Project {
                     thumbnail = tf.getAbsolutePath();
                 }
 
-                ProjectItem pi = new ProjectItem(cscript,thumbnail);
+                String relativeScript = makeRelative(cdir,cscript);
+                String relativeThumb = null;
+                if (thumbnail != null) makeRelative(cdir,thumbnail);
+
+                ProjectItem pi = new ProjectItem(relativeScript,relativeThumb);
                 scripts.add(pi);
             }
         }
     }
+
+    private static void processVariant(List<String> uvariants,String cdir,ArrayList<VariantItem> variants) throws IOException {
+        if (uvariants != null) {
+
+            for (String script : uvariants) {
+                String cscript = sanitizeUserFilename(cdir + File.separator + script,cdir);
+
+                String thumbnail = null;
+
+                // check for thumbnail
+                String tf = script + ".png";
+                thumbnail = sanitizeUserFilename(cdir + File.separator + tf,cdir);
+                if (!(new File(thumbnail).exists())) {
+                    thumbnail = null;
+                }
+
+                String relativeScript = makeRelative(cdir,cscript);
+                String relativeThumb = null;
+                if (thumbnail != null) relativeThumb = makeRelative(cdir,thumbnail);
+
+                VariantItem pi = new VariantItem(cdir,relativeScript,relativeThumb);
+                variants.add(pi);
+            }
+        }
+    }
+
+    /**
+     * Make a path relative to another
+     * @param basedir
+     * @param other
+     * @return
+     */
+    public static String makeRelative(String basedir, String other) {
+        try {
+            File fbase = new File(basedir);
+            Path base = Paths.get(fbase.getCanonicalPath());
+
+            File fother = new File(other);
+
+            Path relative = Paths.get(fother.getCanonicalPath());
+
+            relative = base.relativize(relative);
+
+            return relative.toString();
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+            return null;
+        }
+    }
+
     /**
      * Insure the user provided filename is safe
      * @param filename
@@ -471,7 +600,7 @@ public class Project {
             throw new IllegalArgumentException("Project contains invalid path reference: " + cfile);
         }
 
-        return cfile;
+        return filename;
     }
 
     private static void extractZipOld(String zipFile, String outputFolder, Map<String, String> sceneFiles, List<String> resources) {

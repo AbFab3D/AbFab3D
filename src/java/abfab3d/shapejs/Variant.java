@@ -27,6 +27,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -41,7 +42,7 @@ import static abfab3d.core.Output.printf;
  */
 public class Variant  {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     public static final String EXT_PNG = ".png";
     public static final String EXT_SHAPE_JS = ".shapejs";
@@ -69,7 +70,7 @@ public class Variant  {
     /**
      * read design from specified path
      */
-    public int read(String path) throws Exception {
+    public int read(String path) throws IOException, NotCachedException {
 
         if (path.toLowerCase().endsWith(EXT_JS) || path.toLowerCase().endsWith(EXT_SHAPE_JS)) {
             return readScript(path);
@@ -88,12 +89,13 @@ public class Variant  {
      *
      * @return Result.SUCCESS
      */
-    public int readDesign(String path) throws Exception {
+    public int readDesign(String path) throws IOException, NotCachedException {
 
         if (DEBUG) printf("ShapeJSDesingn.readDesign(%s)\n", path);
         clearMessages();
         File file = new File(path);
         String design = FileUtils.readFileToString(file);
+
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(design).getAsJsonObject();
         String spath = obj.get(SCRIPT_PATH).getAsString();
@@ -147,7 +149,7 @@ public class Variant  {
     /**
      * read new script file
      */
-    public int readScript(String path) throws Exception {
+    public int readScript(String path) throws IOException {
 
         clearMessages();
         File fpath = new File(path);
@@ -422,6 +424,14 @@ public class Variant  {
 
     public EvaluatedScript getEvaluatedScript() {
         return m_evaluatedScript;
+    }
+
+    /**
+     * Not sure about this method yet, but most things requires Scene not a Parameterizable
+     * @return
+     */
+    public Scene getScene() {
+        return (Scene) m_scene;
     }
 
     public java.util.List<Parameterizable> getSource() {

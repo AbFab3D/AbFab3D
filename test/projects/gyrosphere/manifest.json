@@ -1,0 +1,15 @@
+{
+  "name": "Gyrosphere",
+  "author": "Alan Hudson",
+  "license": "BSD-3-Clause",
+  "scripts": [
+    "scripts/gyrosphere.shapejs"
+  ],
+  "variants": [
+    "variants/gyroid1.shapevar",
+    "variants/gyroid2.shapevar",
+    "variants/gyroid3.shapevar",
+    "variants/gyroid4.shapevar"
+  ],
+  "resources": []
+}

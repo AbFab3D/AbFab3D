@@ -7,8 +7,11 @@ import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
 import java.util.StringTokenizer;
 
+import static abfab3d.core.Output.printf;
+
 
 public class WindowUtils extends Object{
+    private static final boolean DEBUG = false;
     
     static public Frame getMainWindow(Component c) {
         while (c.getParent() != null && !(c instanceof Frame))
@@ -34,7 +37,10 @@ public class WindowUtils extends Object{
         cons.insets.top = top;
         cons.insets.left = left;
         cons.insets.bottom = bottom;
-        cons.insets.right = right;            
+        cons.insets.right = right;
+
+        if (DEBUG) printf("Constrain: gridx: %d w: %d fill: %d weightx: %4.2f top: %d left: %d bottom: %d right: %d\n",cons.gridx,cons.gridwidth,cons.fill,cons.weightx,
+                cons.insets.top,cons.insets.left,cons.insets.bottom,cons.insets.right);
         ((GridBagLayout)container.getLayout()).setConstraints(component, cons);
         container.add(component);
     }

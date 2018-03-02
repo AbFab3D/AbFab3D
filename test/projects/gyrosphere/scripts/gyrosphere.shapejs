@@ -1,0 +1,169 @@
+var uiParams = [
+  {
+    name: "period",
+    desc: "Period(mm)",
+    type: "double",
+    "rangeMin": 1,
+    "rangeMax": 50,
+    "step": 1,
+    defaultVal: 18
+  },
+  {
+    name: "thickness",
+    desc: "Thickness (mm)",
+    type: "double",
+    "rangeMin": 0.1,
+    "rangeMax": 5,
+    "step": 0.5,
+    defaultVal: 2
+  },
+  {
+    name: "rounding",
+    desc: "rounding (mm)",
+    type: "double",
+    "rangeMin": 0,
+    "rangeMax": 10,
+    "step": 0.5,
+    defaultVal: 2
+  },
+  {
+    name: "level",
+    desc: "gyroid level",
+    type: "double",
+    "rangeMin": -1.5,
+    "rangeMax": 1.5,
+    "step": 0.1,
+    defaultVal: 0
+  },
+  {
+    name: "centerX",
+    desc: "gyroid center X",
+    type: "double",
+    "rangeMin": -1,
+    "rangeMax": 1,
+    "step": 0.125,
+    defaultVal: 0
+  },
+  {
+    name: "centerY",
+    desc: "gyroid center Y",
+    type: "double",
+    "rangeMin": -1,
+    "rangeMax": 1,
+    "step": 0.125,
+    defaultVal: 0
+  },
+  {
+    name: "centerZ",
+    desc: "gyroid center Z",
+    type: "double",
+    "rangeMin": -1,
+    "rangeMax": 1,
+    "step": 0.125,
+    defaultVal: 0
+  },
+  {
+    name: "radius",
+    desc: "sphere radius (mm)",
+    type: "double",
+    "rangeMin": 1,
+    "rangeMax": 100,
+    "step": 0.5,
+    defaultVal: 25
+  },
+  {
+    name: "boxSizeX",
+    desc: "box size (mm)",
+    type: "double",
+    "rangeMin": 1,
+    "rangeMax": 100,
+    "step": 0.5,
+    defaultVal: 50
+  },
+  {
+    name: "boxSizeY",
+    desc: "box size (mm)",
+    type: "double",
+    "rangeMin": 1,
+    "rangeMax": 100,
+    "step": 0.5,
+    defaultVal: 50
+  },
+  {
+    name: "boxSizeZ",
+    desc: "box size (mm)",
+    type: "double",
+    "rangeMin": 1,
+    "rangeMax": 100,
+    "step": 0.5,
+    defaultVal: 50
+  },
+  {
+    name: "shapeType",
+    desc: "type of shape",
+    type: "enum",
+    values: ["sphere", "box"],
+    defaultVal: "sphere"
+  },
+  {
+    name: "sceneSize",
+    desc: "scene size (mm)",
+    type: "double",
+    "rangeMin": 5,
+    "rangeMax": 200,
+    "step": 0.5,
+    defaultVal: 51
+  },
+  {
+    name: "voxelSize",
+    desc: "voxel size(mm)",
+    type: "double",
+    "rangeMin": 0.1,
+    "rangeMax": 1,
+    "step": 0.1,
+    defaultVal: 0.1
+  },
+  {name: "surfacePrecision", type: "double", defaultVal: 1.e-3},
+  {name: "stepFactor", type: "double", defaultVal: 0.9},
+
+];
+
+function main(args) {
+  var ds = new Sphere();
+  var ds = new Sphere();
+  
+  var radius = args.radius * MM;
+  var sphere = new Sphere(radius);
+  var bx = args.boxSizeX * MM;
+  var by = args.boxSizeY * MM;
+  var bz = args.boxSizeZ * MM;
+
+  var box = new Box(bx, by, bz);
+
+  var period = args.period * MM;
+  var gyroid = new VolumePatterns.Gyroid(period, args.thickness * MM);
+  gyroid.set("level", args.level);
+  var cx = args.centerX * period;
+  var cy = args.centerY * period;
+  var cz = args.centerZ * period;
+  gyroid.set("center", new Vector3d(cx, cy, cz));
+  var intersect = new Intersection();
+  intersect.setBlend(args.rounding * MM);
+  if (args.shapeType == "sphere")
+    intersect.add(sphere);
+  else
+    intersect.add(box);
+  intersect.add(gyroid);
+
+  var s = args.sceneSize * MM / 2;
+  var scene = new Scene(intersect, new Bounds(-s, s, -s, s, -s, s), args.voxelSize * MM);
+  scene.setLightingRig(Scene.LightingRig.THREE_POINT_COLORED);
+
+  var tp = scene.get("tracingParams");
+  tp.clear();
+  tp.add(new TracingParams(TracingParams.ModeType.NORMAL, args.surfacePrecision, args.stepFactor));
+  scene.setTracingParams(tp)
+
+
+  return scene;
+}

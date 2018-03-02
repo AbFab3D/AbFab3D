@@ -32,7 +32,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  * @author Vladimir Bulatov
  */
-public class ParamPanel extends JFrame {
+public class ParamPanel extends JPanel {
 
     static final int SPACE = 2;
 
@@ -42,14 +42,16 @@ public class ParamPanel extends JFrame {
     
     private ArrayList<Editor> editors;
     private boolean closeAllowed;
+    private JScrollPane scrollPane;
+    private JTabbedPane tabbedPane;
+    private JPanel parametersPanel;
+
 
     public ParamPanel(Parameterizable node) {
         this(node.getClass().getSimpleName(), node);
     }
 
     public ParamPanel(String title, Parameterizable node) {
-
-        super(node.getClass().getSimpleName());
 
         m_node = new ArrayList<>();
         m_node.add(node);
@@ -60,39 +62,54 @@ public class ParamPanel extends JFrame {
 
     public ParamPanel(String name, Parameter params[]) {
 
-        super(name);
         buildUI(params);
-
     }
+
+    public void setParams(Parameterizable node) {
+        m_node = new ArrayList<>();
+        m_node.add(node);
+
+        buildUI(node.getParams());
+    }
+
 
     protected void buildUI( Parameter params[]){
         
         editors = new ArrayList<Editor>();
-        getContentPane().setLayout(new GridBagLayout());
+        setLayout(new GridBagLayout());
         
         createFactory();
 
         Vector<ParamGroup> groups = makeGroups(params);
+
         if(groups.size() == 1) {
-            Component parametersPanel = makeParamPanel(params);
-            JScrollPane scrollPane = new JScrollPane(parametersPanel);
-            WindowUtils.constrain(getContentPane(), scrollPane, 0,0,1,1,
+            if (scrollPane == null) {
+                parametersPanel = makeParamPanel(params);
+                scrollPane = new JScrollPane(parametersPanel);
+            } else {
+                makeParamPanel(params,parametersPanel);
+            }
+            WindowUtils.constrain(this, scrollPane, 0,0,1,1,
                                   GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
             
         } else {
-            JTabbedPane tabbedPane = new JTabbedPane();
+            if (tabbedPane == null) {
+                tabbedPane = new JTabbedPane();
+            } else {
+                tabbedPane.removeAll();
+            }
+
             for(int k = 0; k < groups.size(); k++){
                 ParamGroup group = groups.get(k);
                 String gname = group.name;
                 Parameter gpar[] = group.getParamArray(k);
                 Component panel = makeParamPanel(gpar);
-                JScrollPane scrollPane = new JScrollPane(panel);
+                scrollPane = new JScrollPane(panel);
                 tabbedPane.addTab(gname, scrollPane);                
             }            
-            WindowUtils.constrain(getContentPane(),tabbedPane, 0,0,1,1,
+            WindowUtils.constrain(this,tabbedPane, 0,0,1,1,
                                   GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
         }
-        this.pack();
 
         WindowManager wm = WindowManager.getInstance();
         wm.addPanel(this);
@@ -100,20 +117,16 @@ public class ParamPanel extends JFrame {
 
     public ParamPanel(java.util.List<Parameterizable> nodes) {
 
-        super(nodes.getClass().getSimpleName());
-
         editors = new ArrayList<Editor>();
-        getContentPane().setLayout(new GridBagLayout());
+        setLayout(new GridBagLayout());
         m_node = nodes;
         createFactory();
 
         Component parametersPanel = makeParamPanel(m_node);
-        JScrollPane scrollPane = new JScrollPane(parametersPanel);
+        scrollPane = new JScrollPane(parametersPanel);
 
-        WindowUtils.constrain(getContentPane(), scrollPane, 0,0,1,1,
+        WindowUtils.constrain(this, scrollPane, 0,0,1,1,
                               GridBagConstraints.BOTH, GridBagConstraints.NORTH, 1.,1.,2,2,2,2);
-
-        this.pack();
 
         WindowManager wm = WindowManager.getInstance();
         wm.addPanel(this);
@@ -188,7 +201,7 @@ public class ParamPanel extends JFrame {
                 
     }
 
-    protected Component makeParamPanel(Parameter param[]){
+    protected JPanel makeParamPanel(Parameter param[]){
 
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
@@ -208,6 +221,27 @@ public class ParamPanel extends JFrame {
         }
         return panel;
                 
+    }
+
+    protected void makeParamPanel(Parameter param[],JPanel panel) {
+
+        panel.removeAll();
+        panel.setLayout(new GridBagLayout());
+
+        printf("***Adding params to panel: %d\n",param.length);
+        for(int i=0; i < param.length; i++) {
+
+            double hWeight = (i < param.length - 1) ? (0.) : (1.);
+
+            WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, i, 1, 1,
+                    GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 0., hWeight, SPACE, SPACE, SPACE, 0);
+
+            Editor editor = sm_factory.createEditor(param[i]);
+            editor.addParamChangedListeners(m_plisteners);
+            editors.add(editor);
+            WindowUtils.constrain(panel, editor.getComponent(), 1, i, 1, 1,
+                    GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH, 1., hWeight, SPACE, SPACE, SPACE, 0);
+        }
     }
 
     public static Component makePanel(Parameter param[], ParamChangedListener listener){

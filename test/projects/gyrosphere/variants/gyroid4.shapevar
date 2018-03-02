@@ -1,0 +1,21 @@
+{
+  "scriptPath": "../scripts/gyrosphere.shapejs",
+  "scriptParams": {
+    "period": 10.0,
+    "thickness": 1.0,
+    "rounding": 1.0,
+    "level": 0.0,
+    "centerX": 0.0,
+    "centerY": 0.0,
+    "centerZ": 0.0,
+    "radius": 25.0,
+    "boxSizeX": 50.0,
+    "boxSizeY": 50.0,
+    "boxSizeZ": 50.0,
+    "shapeType": "sphere",
+    "sceneSize": 51.0,
+    "voxelSize": 0.1,
+    "surfacePrecision": 0.001,
+    "stepFactor": 0.9
+  }
+}

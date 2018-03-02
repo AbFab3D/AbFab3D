@@ -332,6 +332,27 @@ public class ShapeJSGlobal {
     public static Object print(Context cx, Scriptable thisObj,
                                Object[] args, Function funObj) {
 
+        printf("Print called.  args: %d\n",args.length);
+
+        if (args.length > 1) {
+
+            Object[] varargs = new Object[args.length-1];
+            for(int i=0; i < varargs.length; i++) {
+                varargs[i] = args[i+1];
+            }
+
+            String st = null;
+            try {
+                st = String.format(Context.toString(args[0]), varargs);
+            } catch(Exception e) {
+                st = fmt("Error in printf: \"%s\"  msg: %s ",Context.toString(args[0]),e.getMessage());
+            }
+
+            printf("%s\n",st);
+            DebugLogger.log(cx, st);
+            return Context.getUndefinedValue();
+        }
+
         //PrintStream out = getInstance(funObj).getOut();
         StringBuilder bldr = new StringBuilder();
         for (int i = 0; i < args.length; i++) {

@@ -1,5 +1,5 @@
 {
-  "scriptPath": "../scripts/image_pendant.js",
+  "scriptPath": "../scripts/image_pendant.shapejs",
   "scriptParams": {
     "image": "../resources/circle_black.svg",
     "size": 30.0,

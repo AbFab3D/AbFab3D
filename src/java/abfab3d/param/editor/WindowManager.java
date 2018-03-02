@@ -13,12 +13,12 @@ import java.util.ArrayList;
  */
 public class WindowManager implements WindowListener {
     private static int lastY;
-    private ArrayList<ParamPanel> panels;
+    private ArrayList<Component> panels;
     private static WindowManager manager;
     private Image icon;
 
     private WindowManager() {
-        panels = new ArrayList<ParamPanel>();
+        panels = new ArrayList<Component>();
 
         icon = new ImageIcon("classes/images/shapejs_icon_32.png").getImage();
 
@@ -32,24 +32,51 @@ public class WindowManager implements WindowListener {
         return manager;
     }
 
-    public void addPanel(ParamPanel p) {
-        if (panels.size() == 0) {
-            p.setCloseAllowed(false);
+    public void addPanel(Component p) {
+        ParamPanel panel = null;
+        ParamFrame frame = null;
+
+        if (p instanceof ParamFrame) {
+            panel = ((ParamFrame)p).getPanel();
+            frame = ((ParamFrame)p);
+        } else if (p instanceof ParamPanel) {
+            panel = (ParamPanel) p;
         } else {
-            p.setCloseAllowed(true);
+            throw new IllegalArgumentException("Invalid type, not a ParamPanel or ParamFrame");
+        }
+
+        if (panels.size() == 0) {
+            panel.setCloseAllowed(false);
+        } else {
+            panel.setCloseAllowed(true);
         }
         panels.add(p);
 
         lastY += p.getHeight();
-        p.addWindowListener(this);
-        p.setIconImage(icon);
 
+        if (frame != null) {
+            frame.addWindowListener(this);
+            frame.setIconImage(icon);
+        }
     }
 
     public void closeAll() {
-        for(ParamPanel p : panels) {
-            p.setCloseAllowed(true);
-            ((Frame)p).dispatchEvent(new WindowEvent(p, WindowEvent.WINDOW_CLOSING));
+        for(Component p : panels) {
+
+            ParamPanel panel = null;
+            ParamFrame frame = null;
+
+            if (p instanceof ParamFrame) {
+                panel = ((ParamFrame)p).getPanel();
+                frame = ((ParamFrame)p);
+            } else if (p instanceof ParamPanel) {
+                panel = (ParamPanel) p;
+            }
+
+            panel.setCloseAllowed(true);
+            if (frame != null) {
+                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+            }
         }
 
         panels.clear();
@@ -69,19 +96,10 @@ public class WindowManager implements WindowListener {
 
     @Override
     public void windowClosing(WindowEvent e) {
-        ParamPanel panel = (ParamPanel) e.getWindow();
+        ParamFrame panel = (ParamFrame) e.getWindow();
 
-        if (panel.isCloseAllowed()) {
+        if (panel.getPanel().isCloseAllowed()) {
             e.getWindow().dispose();
-
-            /*
-            lastY = 0;
-            for(ParamPanel p : panels) {
-                if (p.getHeight() > lastY) {
-                    lastY =
-                }
-            }
-            */
         }
     }
 
