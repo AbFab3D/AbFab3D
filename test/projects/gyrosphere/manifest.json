@@ -3,7 +3,8 @@
   "author": "Alan Hudson",
   "license": "BSD-3-Clause",
   "scripts": [
-    "scripts/gyrosphere.shapejs"
+    "scripts/gyrosphere.shapejs",
+    "scripts/geom.shapejs"
   ],
   "variants": [
     "variants/gyroid1.shapevar",

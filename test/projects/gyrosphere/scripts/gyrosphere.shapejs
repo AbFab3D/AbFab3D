@@ -1,3 +1,5 @@
+var geomlib = require('scripts/geom.shapejs');
+
 var uiParams = [
   {
     name: "period",
@@ -125,15 +127,14 @@ var uiParams = [
   },
   {name: "surfacePrecision", type: "double", defaultVal: 1.e-3},
   {name: "stepFactor", type: "double", defaultVal: 0.9},
+  {name: "test", type: "double", defaultVal: 0.9, group:"tab2"},
 
 ];
 
 function main(args) {
-  var ds = new Sphere();
-  var ds = new Sphere();
-  
+	/*
   var radius = args.radius * MM;
-  var sphere = new Sphere(radius);
+  var sphere = new Sphere(radius/2);
   var bx = args.boxSizeX * MM;
   var by = args.boxSizeY * MM;
   var bz = args.boxSizeZ * MM;
@@ -154,6 +155,10 @@ function main(args) {
   else
     intersect.add(box);
   intersect.add(gyroid);
+*/
+  var intersect = geomlib.createGyrosphere(args.radius*MM,args.period*MM,args.thickness*MM,args.rounding*MM);
+
+  //var intersect = new geomlib.MySphere(10*MM);
 
   var s = args.sceneSize * MM / 2;
   var scene = new Scene(intersect, new Bounds(-s, s, -s, s, -s, s), args.voxelSize * MM);

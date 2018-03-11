@@ -76,6 +76,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
     private LinkedHashMap<String, Scriptable> jsObjects = new LinkedHashMap<>();
 
     private Scene scene;
+    private String basedir; // The base directory of the loaded script
 
     /** Should we run this in a sandbox, default it true */
     private boolean sandboxed;
@@ -110,6 +111,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
     private static final HashSet<String> restrictedPackages;
     private static MaterialMapper matMapper;
     private static LinkedHashMap<String, Material> materials = new LinkedHashMap<String, Material>();
+
 
     static {
 
@@ -379,9 +381,12 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 contextFactory.setErrorReporter(errors);
 
                 GlobalScope gs = new GlobalScope();
-                gs.initShapeJS(contextFactory);
+                gs.initShapeJS(contextFactory,basedir);
 
-                URI uri = new File(System.getProperty("user.dir") + "/scripts/project").toURI();  // TODO: Not sure how to get this
+                URI uri = null;
+                if (basedir != null) {
+                    uri = new File(basedir).toURI();
+                }
 
                 printf("Creating new module scope.  dir: %s\n",uri);
                 scope = new ModuleScope(gs, uri, null);
@@ -404,6 +409,11 @@ public class ShapeJSEvaluator implements MaterialMapper {
                     printf("evaluateString() failed: %s\n", e.getMessage());
                     if (false) e.printStackTrace(System.out);
                     if (DEBUG) printf("Script failed: %s\nScript:\n%s", e.getMessage(), this.script);
+                    String msg = e.getMessage();
+                    if (msg == null) {
+                        printf("Null error message.  Orig execption: \n");
+                        e.printStackTrace();
+                    }
                     result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, addErrorLine(e.getMessage(), this.script, headerLines), getPrintLogs(cx), time() - t0);
                     return;
                 }
@@ -854,6 +864,14 @@ public class ShapeJSEvaluator implements MaterialMapper {
         return result;
     }
 
+
+    public void setBaseDir(String dir) {
+        this.basedir = dir;
+    }
+
+    public String getBaseDir() {
+        return basedir;
+    }
 
     private String[] getPrintLogs(Context cx) {
         List<String> prints = DebugLogger.getLog(cx);

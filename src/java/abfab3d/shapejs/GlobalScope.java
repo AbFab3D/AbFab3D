@@ -45,25 +45,25 @@ public class GlobalScope extends ImporterTopLevel
 
     public GlobalScope(Context cx)
     {
-        initShapeJS(cx);
+        initShapeJS(cx,null);
     }
 
     public boolean isInitialized() {
         return initialized;
     }
 
-    public void initShapeJS(ContextFactory factory)
+    public void initShapeJS(ContextFactory factory, final String basedir)
     {
         factory.call(new ContextAction() {
             public Object run(Context cx)
             {
-                initShapeJS(cx);
+                initShapeJS(cx,basedir);
                 return null;
             }
         });
     }
 
-    public void initShapeJS(Context cx) {
+    public void initShapeJS(Context cx, String basedir) {
         // Define some global functions particular to the shell. Note
         // that these functions are not part of ECMA.
         initStandardObjects(cx, sealedStdLib);
@@ -82,12 +82,19 @@ public class GlobalScope extends ImporterTopLevel
                     ScriptableObject.DONTENUM);
         }
 
-        // TODO: Not sure about this
-        ArrayList<String> modules = new ArrayList<>();
-        URI uri = new File(System.getProperty("user.dir") + "/scripts/project").toURI();  // TODO: Not sure how to get this
+        if (basedir != null) {
+            // TODO: This needs to be the parentDir of the loaded project
+            ArrayList<String> modules = new ArrayList<>();
+            //URI uri = new File(System.getProperty("user.dir") + "/scripts/project").toURI();
 
-        modules.add(uri.toASCIIString());
-        installRequire(cx,modules,true);  // TODO: Review sandbox rules and follow
+            printf("base dir is: %s\n", basedir);
+            URI uri = new File(basedir).toURI();
+
+            modules.add(uri.toASCIIString());
+            installRequire(cx, modules, true);  // TODO: Review sandbox rules and follow
+        } else {
+            printf("No basedir for global scope\n");
+        }
         initialized = true;
     }
 

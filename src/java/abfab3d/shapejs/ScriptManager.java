@@ -150,7 +150,7 @@ public class ScriptManager {
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params) {
+    public ScriptResources prepareScript(String jobID, String basedir,String script, Map<String, Object> params) {
         ScriptResources sr = null;
 
         long t0 = time();
@@ -173,6 +173,7 @@ public class ScriptManager {
                 sr = new ScriptResources();
                 sr.jobID = jobID;
                 sr.eval = new ShapeJSEvaluator();
+                sr.eval.setBaseDir(basedir);
                 sr.eval.prepareScript(script, params);
                 sr.evaluatedScript = sr.eval.getResult();
                 sr.script = script;
@@ -253,8 +254,8 @@ public class ScriptManager {
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources prepareScript(String jobID, Script script, Map<String, Object> params) {
-        return prepareScript(jobID, script.getCode(), params);
+    public ScriptResources prepareScript(String jobID, String basedir,Script script, Map<String, Object> params) {
+        return prepareScript(jobID, basedir,script.getCode(), params);
     }
 
     /**

@@ -70,15 +70,15 @@ public class Variant  {
     /**
      * read design from specified path
      */
-    public int read(String path) throws IOException, NotCachedException {
+    public int read(String basedir,String path) throws IOException, NotCachedException {
 
         if (path.toLowerCase().endsWith(EXT_JS) || path.toLowerCase().endsWith(EXT_SHAPE_JS)) {
             return readScript(path);
         } else if (path.toLowerCase().endsWith(EXT_JSON)) {
-            return readDesign(path);
+            return readDesign(basedir,path);
         } else if (path.toLowerCase().endsWith(EXT_JSON_PNG)) {
             // thumbnail?
-            return readDesign(path.substring(0, path.toLowerCase().lastIndexOf(EXT_PNG)));
+            return readDesign(basedir,path.substring(0, path.toLowerCase().lastIndexOf(EXT_PNG)));
         } else {
             throw new RuntimeException(fmt("unknown file type:%s", path));
         }
@@ -89,12 +89,14 @@ public class Variant  {
      *
      * @return Result.SUCCESS
      */
-    public int readDesign(String path) throws IOException, NotCachedException {
+    public int readDesign(String basedir,String path) throws IOException, NotCachedException {
 
         if (DEBUG) printf("ShapeJSDesingn.readDesign(%s)\n", path);
         clearMessages();
         File file = new File(path);
         String design = FileUtils.readFileToString(file);
+
+        printf("Path: %s  basedir: %s\n",path,basedir);
 
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(design).getAsJsonObject();
@@ -121,7 +123,7 @@ public class Variant  {
 
         String script = FileUtils.readFileToString(new File(aspath));
         ScriptResources sr;
-        sr = m_sm.prepareScript(m_jobID, script, paramMap);
+        sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap);
         if (DEBUG) printParamsMap("after first prepareScript", paramMap);
         Map<String, Parameter> scriptParams = sr.getParams();
         ParamJson.getParamValuesFromJson(oparams, scriptParams);
@@ -157,7 +159,8 @@ public class Variant  {
 
         m_jobID = UUID.randomUUID().toString();
 
-        ScriptResources sr = m_sm.prepareScript(m_jobID, script, null);
+        String basedir = FilenameUtils.getPath(path);
+        ScriptResources sr = m_sm.prepareScript(m_jobID, basedir,script, null);
 
         if (!sr.evaluatedScript.isSuccess()) {
             if (DEBUG) printf("failed to prepareScript()\n");
@@ -170,7 +173,7 @@ public class Variant  {
         Map<String, Object> uriParams = resolveURIParams(fpath, params);
         printf("uriParams: %s\n", uriParams);
         if (uriParams.size() > 0) {
-            sr = m_sm.prepareScript(m_jobID, (String) null, uriParams);
+            sr = m_sm.prepareScript(m_jobID, null,(String) null, uriParams);
         }
         m_sm.executeScript(sr);
 
@@ -208,7 +211,7 @@ public class Variant  {
             Map<String, Parameter> oldParams = sr.getParams();
             Map<String, Object> oldValues = convParamsToObjects(oldParams);
 
-            sr = m_sm.prepareScript(m_jobID, script, null);
+            sr = m_sm.prepareScript(m_jobID, null,script, null);
 
             // reapply old values.  Removed values will be ignored
             m_sm.updateParams(m_jobID, oldValues);
