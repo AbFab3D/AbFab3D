@@ -19,11 +19,14 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.commonjs.module.ModuleScope;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
 import javax.vecmath.AxisAngle4d;
 import javax.vecmath.Vector3d;
+import java.io.File;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -63,7 +66,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
     /** How many header lines did we add? */
     private static int headerLines;
 
-    private GlobalScope scope;
+    //private GlobalScope scope;
+    private TopLevel scope;
     private ErrorReporterWrapper errors;
     private LinkedHashMap<String, Parameter> types;
     private LinkedHashMap<String, Parameter> defs;
@@ -139,6 +143,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
     public ShapeJSEvaluator(boolean sandboxed) {
         new Exception().printStackTrace();
         this.sandboxed = sandboxed;
+        types = new LinkedHashMap<String, Parameter>();
+        defs = new LinkedHashMap<String, Parameter>();
 
         initHeader();
     }
@@ -313,7 +319,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
      * Clear out the resources used for a job
      */
     public void clear() {
-        if (DEBUG) printf("Clearing defs2\n");
+        if (DEBUG) printf("Clearing defs\n");
         result = null;
         types.clear();
         defs.clear();
@@ -372,8 +378,13 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 errors = new ErrorReporterWrapper(errorReporter);
                 contextFactory.setErrorReporter(errors);
 
-                scope = new GlobalScope();
-                scope.initShapeJS(contextFactory);
+                GlobalScope gs = new GlobalScope();
+                gs.initShapeJS(contextFactory);
+
+                URI uri = new File(System.getProperty("user.dir") + "/scripts/project").toURI();  // TODO: Not sure how to get this
+
+                printf("Creating new module scope.  dir: %s\n",uri);
+                scope = new ModuleScope(gs, uri, null);
             }
 
             if (script == null && this.script == null) {

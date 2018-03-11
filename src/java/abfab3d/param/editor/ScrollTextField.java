@@ -162,7 +162,7 @@ public class ScrollTextField extends JTextField {
                     value = bottom;
             }
 
-            printf("rot: %d  old_val: %f  new_val: %f  inc: %f\n",y,oldVal,value,m_currentIncrement);
+            //printf("rot: %d  old_val: %f  new_val: %f  inc: %f\n",y,oldVal,value,m_currentIncrement);
 
             updateValue(value);
             y_old = y;
