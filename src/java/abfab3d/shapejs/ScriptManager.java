@@ -141,6 +141,10 @@ public class ScriptManager {
         matMapper = mm;
     }
 
+    public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params) {
+        return prepareScript(jobID,null,script,params);
+    }
+
     /**
      * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
      *
