@@ -88,6 +88,16 @@ public class Project {
         this.resources.remove(resource);
     }
 
+    public void remove(ProjectItem pi) {
+        if (pi instanceof VariantItem) {
+            variants.remove(pi);
+        }
+
+        scripts.remove(pi);
+        resources.remove(pi);
+    }
+
+
     public List<VariantItem> getVariants() {
         return variants;
     }
