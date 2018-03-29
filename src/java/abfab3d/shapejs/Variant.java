@@ -65,6 +65,10 @@ public class Variant  {
     EvaluatedScript m_evaluatedScript;
 
     String m_errorMessages[] = new String[0];
+    
+    private String script;
+    
+    private Map<String,Object> variantParams;
 
 
     /**
@@ -121,13 +125,18 @@ public class Variant  {
         // empty param map
         LinkedHashMap<String, Object> paramMap = new LinkedHashMap<>();
 
-        String script = FileUtils.readFileToString(new File(aspath));
+        script = FileUtils.readFileToString(new File(aspath));
         ScriptResources sr;
         sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap);
+        
+        if (!sr.evaluatedScript.isSuccess()) {
+            printScriptError(sr);
+            throw new RuntimeException(fmt("failed to prepare script", aspath));
+        }
+        
         if (DEBUG) printParamsMap("after first prepareScript", paramMap);
         Map<String, Parameter> scriptParams = sr.getParams();
         ParamJson.getParamValuesFromJson(oparams, scriptParams);
-
         Map<String, Object> uriParams = resolveURIParams(file, sr.getParams());
         //
 
@@ -155,7 +164,7 @@ public class Variant  {
 
         clearMessages();
         File fpath = new File(path);
-        String script = FileUtils.readFileToString(fpath);
+        script = FileUtils.readFileToString(fpath);
 
         m_jobID = UUID.randomUUID().toString();
 
@@ -198,7 +207,7 @@ public class Variant  {
 
         clearMessages();
         if (DEBUG) printf("ShapeJSDesign.reloadScript(%s)\n", m_scriptPath);
-        String script = null;
+        script = null;
         try {
             script = FileUtils.readFileToString(new File(m_scriptPath));
         } catch (Exception e) {
@@ -382,6 +391,45 @@ public class Variant  {
         return ResultCodes.RESULT_ERROR;
 
     }
+    
+    /**
+     * should be called to update scene when multiple parameters are changed
+     */
+    public int onScriptParamChanged(Map<String, Parameter> newParams) {
+        try {
+            Map<String, Object> params = convParamsToObjects(newParams);
+
+            ScriptResources sr = null;
+            sr = m_sm.updateParams(m_jobID, params);
+            m_sm.executeScript(sr);
+
+            if (sr.evaluatedScript.isSuccess()) {
+                m_evaluatedScript = sr.evaluatedScript;
+                m_scene = m_evaluatedScript.getResult();
+
+            } else {
+                java.util.List<Map<String, String>> error = sr.evaluatedScript.getErrorLogs();
+                for (Map<String, String> entry : error) {
+                    printf("%s\n", entry);
+                }
+            }
+            return ResultCodes.RESULT_OK;
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+        
+        return ResultCodes.RESULT_ERROR;
+    }
+    
+    public void setVariantParams(Map<String, Object> vParams) {
+    	this.variantParams = vParams;
+    }
+    
+    public Map<String, Object> getVariantParams() {
+    	return this.variantParams;
+    }
 
     /**
      * convert array of params into LinkedHashMap
@@ -415,6 +463,10 @@ public class Variant  {
 
     public String getScriptPath() {
         return m_scriptPath;
+    }
+    
+    public String getScript() {
+    	return script;
     }
 
     public String getScriptName() {
@@ -474,10 +526,18 @@ public class Variant  {
     public static String resolvePath(File f1, File f2) {
 
         if (f2.isAbsolute())
-            return f2.getAbsolutePath();
+        	try {
+        		return f2.getCanonicalPath();
+        	} catch (Exception e) {
+        		return f2.getAbsolutePath();
+        	}
         if (f2.exists()) {
             // relative to current working folder
-            return f2.getAbsolutePath();
+        	try {
+        		return f2.getCanonicalPath();
+        	} catch (Exception e) {
+        		return f2.getAbsolutePath();
+        	}
         }
         Path p1 = f1.getAbsoluteFile().getParentFile().toPath();
         Path p2 = f2.toPath();
@@ -506,7 +566,6 @@ public class Variant  {
 
                 if (parPath != null) {
                     String newPath = resolvePath(parentFile, new File(parPath));
-
                     if (!newPath.equals(parPath)) {
                         ret_val.put(par.getName(), newPath);
                     }

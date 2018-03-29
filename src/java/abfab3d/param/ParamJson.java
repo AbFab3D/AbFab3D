@@ -207,25 +207,56 @@ public class ParamJson {
 
 
     public static Vector3d getVector3dFromJson(JsonElement value){
-        JsonArray array = value.getAsJsonArray();
-        if(array.size() >= 3) {
-            Double x = null;
-            Double y = null;
-            Double z = null;
-            
-            try {
-                x = array.get(0).getAsDouble();
-                y = array.get(1).getAsDouble();
-                z = array.get(2).getAsDouble();
-            } catch (Exception e) {
-            	e.printStackTrace();
-            	throw new RuntimeException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
+    	Vector3d ret_val = null;
+    	
+    	// Handle both incoming value as array or map
+    	if (value.isJsonArray()) {
+            JsonArray array = value.getAsJsonArray();
+            if(array.size() >= 3) {
+                Double x = null;
+                Double y = null;
+                Double z = null;
+                
+                try {
+                    x = array.get(0).getAsDouble();
+                    y = array.get(1).getAsDouble();
+                    z = array.get(2).getAsDouble();
+                } catch (Exception e) {
+                	e.printStackTrace();
+                	throw new RuntimeException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
+                }
+                
+                ret_val = new Vector3d(x,y,z);
             }
-            
-            return new Vector3d(x,y,z);
-        } else {
-            return null;
-        }
+    	} else if (value.isJsonObject()) {
+        	JsonElement x = null;
+        	JsonElement y = null;
+        	JsonElement z = null;
+    		JsonObject obj = value.getAsJsonObject();
+	        x = obj.get("x");
+	        y = obj.get("y");
+	        z = obj.get("z");
+	        
+	        if (x == null || y == null || z == null) {
+	        	throw new RuntimeException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
+	        }
+	        
+	        Double xval = null;
+	        Double yval = null;
+	        Double zval = null;
+	        
+	        try {
+	            xval = x.getAsDouble();
+	            yval = y.getAsDouble();
+	            zval = z.getAsDouble();
+	            ret_val = new Vector3d(xval,yval,zval);
+	        } catch (Exception e) {
+	        	e.printStackTrace();
+	        	throw new RuntimeException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
+	        }
+    	}
+    	
+    	return ret_val;
     }
 
     public static Color getColorFromJson(JsonElement value){
@@ -560,6 +591,7 @@ public class ParamJson {
     	Vector3d normal = null;
     	
     	if (pntObj instanceof List) {
+    		// point and normal as list
         	List<Double> pntList = (List) pntObj;
         	List<Double> norList = (List) norObj;
             
@@ -570,6 +602,7 @@ public class ParamJson {
                 normal = new Vector3d(norList.get(0), norList.get(1), norList.get(2));
             }
     	} else if (pntObj instanceof Double[]) {
+    		// Point and normal as array
         	Double[] pntArr = (Double[]) pntObj;
         	Double[] norArr = (Double[]) norObj;
             
@@ -579,6 +612,18 @@ public class ParamJson {
             if (norArr.length >= 3) {
                 normal = new Vector3d(norArr[0], norArr[1], norArr[2]);
             }
+    	} else if (pntObj instanceof Map) {
+    		// Point and normal as map (Vector3d)
+    		Map<String, Double> pntMap = (Map<String, Double>) pntObj;
+    		Map<String, Double> norMap = (Map<String, Double>) norObj;
+    		
+    		if (pntMap.get("x") == null || pntMap.get("y") == null || pntMap.get("z") == null ||
+    			norMap.get("x") == null || norMap.get("y") == null || norMap.get("z") == null) {
+    			throw new RuntimeException(fmt("Invalid Location value: %s\n", value.toString()));
+    		}
+    		
+    		point = new Vector3d(pntMap.get("x"), pntMap.get("y"), pntMap.get("z"));
+    		normal = new Vector3d(norMap.get("x"), norMap.get("y"), norMap.get("z"));
     	}
 
         return new  Location(point,normal);

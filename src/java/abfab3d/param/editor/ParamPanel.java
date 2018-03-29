@@ -288,6 +288,10 @@ public class ParamPanel extends JPanel {
     public void setCloseAllowed(boolean val) {
         closeAllowed = val;
     }
+    
+    public ArrayList<Editor> getEditors() {
+    	return editors;
+    }
 
     static final String NOGROUP = "none";
 
