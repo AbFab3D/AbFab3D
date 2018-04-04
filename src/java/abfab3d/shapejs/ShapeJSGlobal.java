@@ -57,6 +57,7 @@ import com.google.common.cache.RemovalNotification;
 
 import com.google.gson.Gson;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Function;
@@ -74,10 +75,7 @@ import org.web3d.vrml.sav.BinaryContentHandler;
 
 import java.awt.Font;
 
-import java.io.OutputStream;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -1101,13 +1099,19 @@ public class ShapeJSGlobal {
             // Bit of security thought here, font's should not be too large unless they contain some malware payload
             throw Context.reportRuntimeError(fmt("Font file too large"));
         }
+
+        FileInputStream fis = null;
         try {
+            fis = new FileInputStream(f);  // use a stream so it gets closed, File doesn't
+
             int type = Font.TRUETYPE_FONT;
             if (filename.indexOf(".ttf") == -1) type = Font.TYPE1_FONT;
-            font = Font.createFont(type, f);
+            font = Font.createFont(type, fis);
         } catch (Exception e) {
             reason = e.getMessage();
             e.printStackTrace();
+        } finally {
+            IOUtils.closeQuietly(fis);
         }
         if (font == null) {
             throw Context.reportRuntimeError(fmt("failed to load font file: %s.  Reason: %s\n", filename, reason));
