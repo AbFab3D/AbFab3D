@@ -87,7 +87,6 @@ public class GlobalScope extends ImporterTopLevel
             ArrayList<String> modules = new ArrayList<>();
             //URI uri = new File(System.getProperty("user.dir") + "/scripts/project").toURI();
 
-            printf("base dir is: %s\n", basedir);
             URI uri = new File(basedir).toURI();
 
             modules.add(uri.toASCIIString());

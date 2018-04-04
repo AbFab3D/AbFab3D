@@ -528,6 +528,8 @@ public class Project {
         if (uscripts != null) {
 
             for (String script : uscripts) {
+                if (script == null) continue;
+
                 String cscript = sanitizeUserFilename(cdir + File.separator + script,cdir);
 
                 String thumbnail = null;
@@ -552,6 +554,8 @@ public class Project {
         if (uvariants != null) {
 
             for (String script : uvariants) {
+                if (script == null) continue;
+
                 String cscript = sanitizeUserFilename(cdir + File.separator + script,cdir);
 
                 String thumbnail = null;

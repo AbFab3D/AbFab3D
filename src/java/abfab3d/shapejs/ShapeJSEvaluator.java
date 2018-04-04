@@ -1065,7 +1065,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
                     }
 
                     Object lvalues = no.get("labels");
-                    printf("Got labels in content:" + lvalues);
                     String[] labels = null;
                     if (lvalues instanceof NativeArray) {
                         NativeArray sna = (NativeArray) lvalues;
