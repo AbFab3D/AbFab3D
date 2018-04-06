@@ -18,6 +18,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import static abfab3d.core.Output.printf;
+
 /**
  * Edits Enum Parameter
  *
@@ -25,6 +27,7 @@ import java.awt.event.ActionListener;
  */
 public class EnumEditor extends BaseEditor implements ActionListener {
 
+    final static boolean DEBUG = false;
     static final int EDITOR_SIZE = 10;
 
     private EnumParameter m_eparam;
@@ -43,7 +46,9 @@ public class EnumEditor extends BaseEditor implements ActionListener {
 	    ValueWrapper wrapper = (ValueWrapper) component.getSelectedItem();
 
         m_param.setValue(wrapper.value);
+        if(DEBUG)printf("EnumEditor.informParamChangedListeners()\n");
         informParamChangedListeners();
+        
 	}
 
     /**
@@ -51,6 +56,7 @@ public class EnumEditor extends BaseEditor implements ActionListener {
      @Override
      */
     public Component getComponent() {
+
     	if (component != null) return component;
     	
         String[] vals = m_eparam.getValues();
@@ -64,7 +70,8 @@ public class EnumEditor extends BaseEditor implements ActionListener {
                 label = labels[i];
             }
             wrappers[i] = new ValueWrapper(vals[i],label);
-            if (m_eparam.getValue().equals(vals[i])) selected = wrappers[i];
+            if (m_eparam.getValue().equals(vals[i])) 
+                selected = wrappers[i];
         }
 
         component = new JComboBox(wrappers);
@@ -79,8 +86,17 @@ public class EnumEditor extends BaseEditor implements ActionListener {
        @Override
      */
     public void updateUI(){
-
-        component.setSelectedItem(new ValueWrapper(m_eparam.getValue(),m_eparam.getLabel()));
+        
+        if(DEBUG){
+            printf("EnumEditor.updateUI()\n");
+            //Thread.currentThread().dumpStack();
+        }
+	    ValueWrapper selected = (ValueWrapper) component.getSelectedItem();
+        String paramValue = m_eparam.getValue();
+        if(!selected.value.equals(paramValue)){
+            // need to updatw UI
+            component.setSelectedItem(new ValueWrapper(m_eparam.getValue(),m_eparam.getLabel()));
+        }
         
     }
 

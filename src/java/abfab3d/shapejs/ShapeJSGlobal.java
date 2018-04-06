@@ -20,6 +20,7 @@ import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.op.ImageLoader;
+import abfab3d.grid.op.FontLoader;
 
 import abfab3d.grid.op.ImageToGrid2D;
 import abfab3d.io.input.AttributedMeshReader;
@@ -1100,24 +1101,22 @@ public class ShapeJSGlobal {
             throw Context.reportRuntimeError(fmt("Font file too large"));
         }
 
-        FileInputStream fis = null;
-        try {
-            fis = new FileInputStream(f);  // use a stream so it gets closed, File doesn't
+        FontLoader fontLoader = null;
 
-            int type = Font.TRUETYPE_FONT;
-            if (filename.indexOf(".ttf") == -1) type = Font.TYPE1_FONT;
-            font = Font.createFont(type, fis);
+        try {
+            fontLoader = new FontLoader(filename);
+            font = fontLoader.getFont();
+            
         } catch (Exception e) {
             reason = e.getMessage();
             e.printStackTrace();
-        } finally {
-            IOUtils.closeQuietly(fis);
         }
+
         if (font == null) {
             throw Context.reportRuntimeError(fmt("failed to load font file: %s.  Reason: %s\n", filename, reason));
         }
 
-        return font;
+        return fontLoader;
     }
 
     /**
