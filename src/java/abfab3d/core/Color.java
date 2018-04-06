@@ -188,6 +188,17 @@ public class Color implements Cloneable {
         return fmt("#%02X%02X%02X",ri,gi,bi);
     }
 
+    /**
+       @return java.awt.Color for this color
+     */
+    public java.awt.Color toAWT() {
+
+        return new java.awt.Color((int) Math.round(255 * r),
+                                  (int) Math.round(255 * g),
+                                  (int) Math.round(255 * b),
+                                  (int) Math.round(255 * a));
+    }
+
     public static String toString(Color c) {
         return "(" + c.r + ", " + c.g + ", " + c.b + ")";
         //return fmt("(%5.3f,%5.3f,%5.3f)",c.getr(),c.getg(),c.getb());

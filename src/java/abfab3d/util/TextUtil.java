@@ -16,9 +16,12 @@ import java.awt.image.BufferedImage;
 import java.awt.geom.Point2D;
 import java.awt.font.GlyphVector;
 import java.awt.font.TextLayout;
+import java.awt.font.TextAttribute;
+import java.awt.BasicStroke;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.util.HashSet;
+import java.util.Hashtable;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
@@ -33,7 +36,7 @@ public class TextUtil {
     static final boolean DEBUG = false;
 
     static public final int ALIGN_LEFT = 0, ALIGN_RIGHT = 1, ALIGN_CENTER = 2, ALIGN_TOP=3, ALIGN_BOTTOM=4;
-    static public final int FIT_VERTICAL = 0, FIT_HORIZONTAL=1, FIT_BOTH=2;
+    static public final int FIT_VERTICAL = 0, FIT_HORIZONTAL=1, FIT_BOTH=2, FIT_NONE=3;
 
     /** Cache of available fonts to speed testing */
     static HashSet<String> fontCache = null;
@@ -173,6 +176,106 @@ public class TextUtil {
     }
 
 
+    public static BufferedImage createTextImageOutline(int imageWidth, int imageHeight, 
+                                                       String text, Font font,  
+                                                       double spacing, Insets2 insets, boolean preserveAspect, int fitStyle, int halignment, int valignment,
+                                                       double outlineWidth, boolean kerning) {
+        
+        
+        if(DEBUG)printf("createText(%d, %d, %s) \n", imageWidth, imageHeight, text);
+        if(kerning){
+            Hashtable<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
+            map.put(TextAttribute.KERNING, TextAttribute.KERNING_ON);
+            font = font.deriveFont(map);
+        }
+        double fsize = font.getSize();
+        int renderWidth = (int)(imageWidth - (insets.left + insets.right));
+        int renderHeight = (int)(imageHeight - (insets.top + insets.bottom));
+
+        if (renderWidth < 0) {
+            throw new IllegalArgumentException("TextUtil: renderWidth < 0");
+        }
+
+        if (renderHeight < 0) {
+            throw new IllegalArgumentException("TextUtils: renderHeight < 0");
+        }
+
+        //BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_BYTE_GRAY);
+        BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = (Graphics2D)image.getGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+
+        char ctext[] = text.toCharArray();
+        GlyphVector gv = font.layoutGlyphVector(g.getFontRenderContext(), ctext, 0, ctext.length, 0);
+        double space = spacing*gv.getGlyphPosition(ctext.length).getX()/ctext.length;        
+        for(int i = 0; i < ctext.length; i++){
+            Point2D pnt = gv.getGlyphPosition(i);
+            Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();
+            gv.setGlyphPosition(i, new Point2D.Double(pnt.getX() + space*i, pnt.getY())); 
+        }
+
+        Rectangle2D textRect = gv.getVisualBounds(); 
+        if(DEBUG)printf("textRect: [x:%5.1f y:%5.1f w:%5.1f h:%5.1f]\n ", textRect.getX(),textRect.getY(),textRect.getWidth(), textRect.getHeight());
+        
+        g.setColor(Color.WHITE);        
+        g.fillRect(0,0,imageWidth, imageHeight);
+
+
+        g.setColor(Color.LIGHT_GRAY);        
+        Rectangle2D labelRect = new Rectangle2D.Double(insets.left,insets.top, renderWidth, renderHeight);
+        AffineTransform at;
+        
+        at = getRectTransformAligned(textRect, labelRect, preserveAspect, fitStyle, halignment, valignment);
+        double scaleX = at.getScaleX();
+        // printf("transform.scaleX: %f", scaleX);
+        g.setTransform(at);
+        
+        outlineWidth /= scaleX;
+        if(false){
+            g.setColor(Color.LIGHT_GRAY);        
+            g.fill(textRect);
+            g.setColor(Color.RED);        
+            g.draw(textRect);
+        }
+
+        g.setColor(Color.BLACK);
+        BasicStroke stroke = new BasicStroke((float)outlineWidth, BasicStroke.CAP_ROUND,  	BasicStroke.JOIN_ROUND);
+        g.setStroke(stroke);
+        Shape textOutline = gv.getOutline();
+        g.draw(textOutline);
+
+        return image;
+    }
+
+
+    public static void renderText(Graphics2D g,  Font font, String text, double x, double y, double spacing,double outlineWidth) {
+                
+        if(DEBUG)printf("renderText(%d, %d, %s) \n", x,y, text);
+
+        char ctext[] = text.toCharArray();
+        GlyphVector gv = font.layoutGlyphVector(g.getFontRenderContext(), ctext, 0, ctext.length, 0);
+        double space = spacing*gv.getGlyphPosition(ctext.length).getX()/ctext.length;        
+        for(int i = 0; i < ctext.length; i++){
+            Point2D pnt = gv.getGlyphPosition(i);
+            Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();
+            gv.setGlyphPosition(i, new Point2D.Double(pnt.getX() + space*i, pnt.getY())); 
+        }
+
+        Rectangle2D textRect = gv.getVisualBounds(); 
+        if(true)printf("textRect: [x:%5.1f y:%5.1f w:%5.1f h:%5.1f]\n ", textRect.getX(),textRect.getY(),textRect.getWidth(), textRect.getHeight());
+                
+        g.setColor(Color.BLACK);
+        BasicStroke stroke = new BasicStroke((float)outlineWidth, BasicStroke.CAP_ROUND,  	BasicStroke.JOIN_ROUND);
+        g.setStroke(stroke);
+        Shape textOutline = gv.getOutline();
+        AffineTransform trans = new AffineTransform();
+        trans.translate(x,y);
+        g.setTransform(trans);
+        g.draw(textOutline);
+
+    }
+
+
     /**
      *  returns transformation, which transforms rectIn into rectOut
      *  optionally it preserves aspect ratio 
@@ -234,6 +337,8 @@ public class TextUtil {
         if(preserveAspect) {
             // uniform scale to be used, we scale to fit one dimension only 
             switch(fitStyle){
+            case FIT_NONE:
+                return at;
             default:
             case FIT_BOTH:
                 if(sx >= sy){

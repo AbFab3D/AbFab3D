@@ -15,7 +15,10 @@ package abfab3d.datasources;
 // External Imports
 
 
+import java.awt.Shape;
 import java.awt.image.BufferedImage;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import javax.imageio.ImageIO;
 
 
@@ -29,10 +32,17 @@ import junit.framework.TestSuite;
 
 // Internal Imports
 
+import abfab3d.core.Bounds;
+import abfab3d.core.Color;
 
+import abfab3d.grid.op.FontLoader;
+
+import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 
 import static abfab3d.core.Units.MM;
+import static abfab3d.core.Units.PT;
 
 /**
  * Tests the functionality of Text2D
@@ -81,7 +91,7 @@ public class TestText2D extends TestCase {
 
     }
 
-    public void testTextAlign() throws Exception {
+    public void devTestTextAlign() throws Exception {
 
         printf("testAlignment()\n");
         //String text = "yShg";
@@ -115,12 +125,110 @@ public class TestText2D extends TestCase {
         t.set("vertAlign", "bottom");
         img = t.getImage();
         ImageIO.write(img, "png", new File("/tmp/text_right_bottom.png"));
-
     }
-   
+ 
+    public void devTestTextFit() throws Exception {
+
+        String fontName = "Pinyon Script LatinOnly";
+        //String fontPath = "test/images/PinyonScript-Regular.ttf";
+        //String fontPath = "test/images/berkshireswash-regular.ttf";
+
+        //String fontName = "Times New Roman";
+        double voxelSize = 0.02*MM;
+        double fontSize = 10*MM;
+        //String text = "1121131415";
+        //String text = "Berkshire Swash";
+        String text = "Carrie";
+        //norsuvwx";
+        //String text = "bdhiklt";
+        //String text = "gpqz";
+        //String text = "jfJS";
+
+        Text2D t = new Text2D(text, fontName, voxelSize);
+        //Text2D t = new Text2D(text, new FontLoader(fontPath), voxelSize);
+
+        t.set("fit", "none");
+        t.set("vertAlign", "center");
+        t.set("fontSize", fontSize/PT);
+        t.set("fillColor", new Color(0,0,0,0.3));
+        t.set("outlineColor", new Color(0.2,0.2,0.2));
+        t.set("outline", new Boolean(true));
+        t.set("outlineWidth", 0.6*MM);
+        t.set("kerning", true);
+        t.setSpacing(0.03);
+        printf("first call to t.getImage()\n");
+        long t0 = time();
+        BufferedImage img = t.getImage();
+        printf("first call t.getImage() %d ms\n", (time()-t0));
+        ImageIO.write(img, "png", new File("/tmp/testTextFit.png")); 
+        Bounds imageBounds = t.getImageBounds();
+        printf("imageBounds (%s)mm\n", imageBounds.toString(MM));
+        /*
+        for(int i = 0; i < 3; i++){
+            t0 = time();
+            Bounds imageBounds = t.getImageBounds();
+            printf("imageBounds (%s)mm timing %d ms\n", imageBounds.toString(MM),(time()-t0));
+        }
+        printf("setText()\n");
+        t.setText("AaceWJ");
+ 
+       
+        for(int i = 0; i < 26; i++){
+            t.setText(fmt("N%c",('a'+i)));
+            t0 = time();
+            Bounds imageBounds = t.getImageBounds();
+            printf("imageBounds (%s)mm timing %d ms\n", imageBounds.toString(MM),(time()-t0));
+            BufferedImage img2 = t.getImage();
+            ImageIO.write(img2, "png", new File(fmt("/tmp/testText_%02d.png", i))); 
+        }
+        */
+    }
+ 
+    public void devTestGlyphPosition() throws Exception {
+
+        String fontName = "Pinyon Script LatinOnly";
+        //String fontPath = "test/images/PinyonScript-Regular.ttf";
+        //String fontPath = "test/images/berkshireswash-regular.ttf";
+
+        //String fontName = "Times New Roman";
+        double voxelSize = 0.02*MM;
+        double fontSize = 10*MM;
+        String text = "Carrie";
+
+        Text2D t = new Text2D(text, fontName, voxelSize);
+        //Text2D t = new Text2D(text, new FontLoader(fontPath), voxelSize);
+
+        t.set("fit", "none");
+        t.set("vertAlign", "center");
+        t.set("fontSize", fontSize/PT);
+        t.set("fillColor", new Color(0,0,0,0.3));
+        t.set("outlineColor", new Color(0.2,0.2,0.2));
+        t.set("outline", new Boolean(true));
+        t.set("outlineWidth", 0.6*MM);
+        t.set("kerning", true);
+        t.setSpacing(0.5);
+
+        BufferedImage img = t.getImage();
+        ImageIO.write(img, "png", new File("/tmp/testTextFit.png")); 
+        Bounds imageBounds = t.getImageBounds();
+        Bounds textBounds = t.getTextBounds();
+        printf("text (%s)\n", text);
+        printf("imageBounds:[%s]mm\n", imageBounds.toString(MM));
+        printf(" textBounds:[%s]mm\n", textBounds.toString(MM));
+        for(int i = 0; i < text.length(); i++){
+            Point2D pnt = t.getGlyphPosition(i);
+            Bounds gb = t.getGlyphBounds(i);
+            printf("%c pos:[%5.1f,%5.1f]mm bounds:[%s]mm\n",text.charAt(i),pnt.getX()/MM,pnt.getY()/MM, gb.toString(MM));
+             
+        }        
+   }
+ 
+ 
     public static void main(String[] args) throws Exception {
         //new TestText2D().testBitmapSize();
         //new TestText2D().testTextWidth();
-        new TestText2D().testTextAlign();
+        //new TestText2D().devTestTextAlign();
+        //new TestText2D().devTestTextFit();               
+        new TestText2D().devTestGlyphPosition();               
     }
 }

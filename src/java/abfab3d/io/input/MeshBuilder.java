@@ -34,7 +34,7 @@ import static abfab3d.core.Output.printf;
  */
 public class MeshBuilder extends BaseMeshReader implements TriangleProducer, TriangleCollector, Transformer {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private VecTransform m_transform;
     private TriangleProducer m_producer;
@@ -81,7 +81,7 @@ public class MeshBuilder extends BaseMeshReader implements TriangleProducer, Tri
             m_pnts.getPoint(3*i, v0);
             m_pnts.getPoint(3*i+1,v1);
             m_pnts.getPoint(3*i+2,v2);
-            if(DEBUG) printf("  tri:(%7.5f, %7.5f,%7.5f)(%7.5f, %7.5f,%7.5f)(%7.5f, %7.5f,%7.5f)\n", 
+            if(false) printf("  tri:(%7.5f, %7.5f,%7.5f)(%7.5f, %7.5f,%7.5f)(%7.5f, %7.5f,%7.5f)\n", 
                              v0.x,v0.y,v0.z,v1.x,v1.y,v1.z,v2.x,v2.y,v2.z);            
             if(m_transform != null) {
                 transform(v0);
