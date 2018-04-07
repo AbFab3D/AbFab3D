@@ -2,7 +2,7 @@
 
 <project basedir="." default="build" name="AbFab3D">
     <import file="build_common.xml" />
-  
+
     <description>AbFab3D Project</description>
 
     <property name="version" value="1.0.0" />
@@ -21,67 +21,67 @@
     <property name="javadocs.dir" value="${basedir}/docs/javadoc"/>
     <property name="refguide.dir" value="${basedir}/docs/refguide"/>
     <property name="xj3d.dir" value="..\..\..\xj3d\code\trunk" />
-    <property name="av3d.dir" value="..\..\..\j3d.org\aviatrix3d-2\aviatrix3d" />    
+    <property name="av3d.dir" value="..\..\..\j3d.org\aviatrix3d-2\aviatrix3d" />
 
     <property name="entrypoint" value="abfab3d.Creator" />
     <property name="runarg0" value="-Xmx16000M"/>
 <!--    <property name="runarg0" value="-Xmx7000M"/> -->
 <!--     <property name="runarg0" value="-Xmx1200M -Xprof"/> -->
-<!--    
+<!--
     <property name="runarg1" value="-Dsun.java2d.noddraw=true"/>
     <property name="runarg2" value="-Djava.library.path=&quot;./natives/${os.name}/${os.arch}&quot;" />
 -->
     <property name="jvmrunargs" value="${runarg0}"/>
-    
-    <property name="test.coverage.dir" value="${basedir}/tmp/coverage" /> 
+
+    <property name="test.coverage.dir" value="${basedir}/tmp/coverage" />
 
 <!-- Emma code coverage properties -->
-    <property name="emma.dir" value="${basedir}/lib/support/emma" />  
-    <property name="emma.out.dir" value="${basedir}/emma" /> 
-    <property name="emma.coverage.dir" location="${emma.out.dir}/coverage" />  
-    <property name="emma.instr.dir" location="${emma.out.dir}/instrumented" /> 
+    <property name="emma.dir" value="${basedir}/lib/support/emma" />
+    <property name="emma.out.dir" value="${basedir}/emma" />
+    <property name="emma.coverage.dir" location="${emma.out.dir}/coverage" />
+    <property name="emma.instr.dir" location="${emma.out.dir}/instrumented" />
 
     <property name="env.JAPEX_HOME" value="lib/support/japex" />
     <path id="run.classpath" >
       <pathelement location="${classes.dir}" />
     </path>
-    
+
     <!-- path element used by EMMA taskdef below: -->
     <path id="emma.lib" >
         <pathelement location="${emma.dir}/emma.jar" />
         <pathelement location="${emma.dir}/emma_ant.jar" />
     </path>
-  
+
     <!-- this loads <emma> and <emmajava> custom tasks: -->
     <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
 <!-- End Emma code coverage properties -->
 
 <!-- Cobertura code coverage properties -->
-    <property name="cobertura.dir" value="${basedir}/lib/support/cobertura" />  
-    <property name="cobertura.out.dir" value="${basedir}/cobertura" /> 
+    <property name="cobertura.dir" value="${basedir}/lib/support/cobertura" />
+    <property name="cobertura.out.dir" value="${basedir}/cobertura" />
     <property name="cobertura.reports.dir" value="${cobertura.out.dir}/reports" />
     <property name="cobertura.reports.xml.dir" value="${cobertura.reports.dir}/junit-xml" />
     <property name="cobertura.reports.html.dir" value="${cobertura.reports.dir}/junit-html" />
-    <property name="cobertura.instrumented.dir" value="${cobertura.out.dir}/instrumented" />  
+    <property name="cobertura.instrumented.dir" value="${cobertura.out.dir}/instrumented" />
     <property name="cobertura.coverage.xml.dir" value="${cobertura.out.dir}/coverage/xml" />
     <property name="cobertura.coverage.summaryxml.dir" value="${cobertura.out.dir}/coverage/summaryxml" />
     <property name="cobertura.coverage.html.dir" value="${cobertura.out.dir}/coverage/html" />
-    
+
     <path id="cobertura.classpath">
 	<fileset dir="${cobertura.dir}">
 		<include name="cobertura.jar" />
 		<include name="lib/**/*.jar" />
 	</fileset>
     </path>
-    
+
     <taskdef classpathref="cobertura.classpath" resource="tasks.properties"/>
 <!-- End Cobertura code coverage properties -->
 
 <!-- jacoco code coverage properties -->
-    <property name="jacoco.dir" value="${basedir}/lib/support/jacoco" />  
-    <property name="jacoco.out.dir" value="${test.coverage.dir}/jacoco" /> 
+    <property name="jacoco.dir" value="${basedir}/lib/support/jacoco" />
+    <property name="jacoco.out.dir" value="${test.coverage.dir}/jacoco" />
     <property name="jacoco.reports.dir" value="${jacoco.out.dir}/jacoco" />
-    
+
     <path id="jacoco.classpath">
 	<fileset dir="${jacoco.dir}">
 		<include name="jacocoant.jar" />
@@ -90,17 +90,17 @@
     </path>
 <!-- End jacoco code coverage properties -->
 
-    <target name="build" 
-        description="Complete clean, setup, compilation, run" 
+    <target name="build"
+        description="Complete clean, setup, compilation, run"
         depends="clean,init,compile,compileApps,jar" />
 
     <!-- Create destination directories -->
     <target name="init" description="Create destination directories">
         <mkdir dir="${classes.dir}"/>
         <mkdir dir="${javadocs.dir}"/>
-	<mkdir dir="${test.classes.dir}" />        
+	<mkdir dir="${test.classes.dir}" />
     </target>
-  
+
     <target name="compile" depends="init" description="Compile all Java source files">
         <compilejava package="abfab3d/core"
                      jars=""
@@ -110,7 +110,7 @@
                 />
         <compilejava package="abfab3d/param"
                      jars=""
-                />        
+                />
         <compilejava package="abfab3d/symmetry"
                      jars=""
                 />
@@ -131,16 +131,16 @@
                 />
         <compilejava package="abfab3d/transforms"
             jars="jafama.jar vecmath.jar"
-        />  
+        />
         <compilejava package="abfab3d/intersect"
                      jars=""
-                            />                                                                                             
+                            />
         <compilejava package="abfab3d/distance"
                      jars=""
-                            />                                                                                             
+                            />
         <compilejava package="abfab3d/path"
             jars=""
-        />  
+        />
         <compilejava package="abfab3d/grid"
             jars=""
         />
@@ -162,7 +162,7 @@
         <compilejava package="abfab3d/geom"
             jars=""
         />
-        
+
         <compilejava package="abfab3d/io/input"
             jars="guava-18.0.jar commons-codec-1.7.jar commons-compress-1.9.jar vecmath.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar commons-io-2.4.jar"
         />
@@ -218,26 +218,26 @@
        <echo message="Compiling Volume Sculptor" />
        <ant dir="apps/volumesculptor" inheritAll="false" />
     </target>
-  
+
     <target name="run" depends="compile" description="Run the application">
         <echo message="jvmargs: ${jvmrunargs}" />
         <java classname="${entrypoint}" fork="true">
             <jvmarg line="${jvmrunargs}"/>
             <classpath>
                 <pathelement path="${classes.dir}" />
-                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />   
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />
 <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
             </classpath>
-        </java>  
+        </java>
     </target>
 
     <target name="javadoc" description="Generates javadoc" depends="compile">
         <echo message="Generating javadoc..." />
-        <javadoc sourcepath="${src.dir}/java" 
-            destdir="${javadocs.dir}" 
+        <javadoc sourcepath="${src.dir}/java"
+            destdir="${javadocs.dir}"
             packagenames="*"
             version="true"
-            author="yes">        
+            author="yes">
         </javadoc>
     </target>
     <target name="makeRef" description="Generates VolumeSculptor Reference Guide" depends="compile">
@@ -360,7 +360,7 @@
     </target>
 
     <target name="jar" depends="compile">
-        <createjar name="abfab3d_core" 
+        <createjar name="abfab3d_core"
             version="${version}"
             manifest="abfab3d_core.mf"
             includes="
@@ -391,7 +391,7 @@
                 abfab3d/geomutil/*
                 "
         />
-        <createjar name="abfab3d_upload" 
+        <createjar name="abfab3d_upload"
             version="${version}"
             manifest="abfab3d_upload.mf"
             includes="abfab3d/io/soap/*
@@ -404,7 +404,7 @@
                 abfab3d/geomutil/*
                 "
         />
-        <createjar name="abfab3d_creator" 
+        <createjar name="abfab3d_creator"
             version="${version}"
             manifest="abfab3d_creator.mf"
             includes="abfab3d/creator/*
@@ -414,7 +414,7 @@
                 abfab3d/creator/shapeways/*
                 "
         />
-        <createjar name="abfab3d_creator_server" 
+        <createjar name="abfab3d_creator_server"
             version="${version}"
             manifest="abfab3d_creator.mf"
             includes="abfab3d/creator/*
@@ -460,7 +460,7 @@
             <exclude name="**/TestShellFinder.java" />
         </fileset>
      </batchtest>
-      
+
       <classpath>
          <pathelement path="${classes.dir}" />
          <pathelement path="${test.classes.dir}" />
@@ -472,15 +472,15 @@
 
 <!-- Begin Emma code coverage tasks -->
 <!-- Call:  ant emma runEmma -->
-  <target name="emma">  
-    <property name="emma.enabled" value="true"/>  
-    <mkdir dir="${emma.coverage.dir}" />  
+  <target name="emma">
+    <property name="emma.enabled" value="true"/>
+    <mkdir dir="${emma.coverage.dir}" />
     <!-- EMMA instr class output directory (it is important to create
          this property only when EMMA is enabled:
     -->
-    <property name="out.emma.instr.dir" value="${emma.instr.dir}" />  
+    <property name="out.emma.instr.dir" value="${emma.instr.dir}" />
     <mkdir dir="${out.emma.instr.dir}" />
-    
+
     <!-- this property, if overriden via -Demma.filter=<list of filter specs>
 	 on ANT's command line, will set the coverage filter; by default,
          all classes found in 'run.classpath' pathref will be instrumented:
@@ -488,31 +488,31 @@
     <property name="emma.filter" value="" />
   </target>
 
-  <target name="runEmma" depends="compileTest">  
+  <target name="runEmma" depends="compileTest">
     <emma enabled="${emma.enabled}" >
       <instr instrpathref="run.classpath"
-             destdir="${out.emma.instr.dir}"	       
+             destdir="${out.emma.instr.dir}"
              metadatafile="${emma.coverage.dir}/metadata.emma"
              merge="true"
       >
         <!-- always exclude every class with a "Test" in the name -->
         <filter excludes="*Test*" />
-        
+
         <!-- note that coverage filters can be set through nested <filter>
              elements as well: many of EMMA setting are 'mergeable' in the
              sense that they can be specified multiple times and the result
              is a union of all such values. Here we are not merging several
              filters together but merely demonstrating that it is possible:
-        --> 
+        -->
         <filter value="${emma.filter}" />
       </instr>
     </emma>
-    
+
     <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
       <jvmarg line="${jvmrunargs}"/>
-      
+
       <formatter type="plain" usefile="false"/>
-      
+
       <batchtest fork="yes" >
         <fileset dir="${test.dir}">
 <!--          <include name="**/*Test.java"/> -->
@@ -532,7 +532,7 @@
             <exclude name="**/TestShellFinder.java" />
         </fileset>
      </batchtest>
-      
+
       <classpath>
          <!-- instrumented classes must be first in the classpath: -->
          <pathelement location="${out.emma.instr.dir}" />
@@ -542,9 +542,9 @@
          <fileset dir="${lib.dir}" includes="**/*.jar" />
 
          <!-- the forked JVM must have jact.jar in the classpath: -->
-         <path refid="emma.lib" />         
+         <path refid="emma.lib" />
       </classpath>
-      
+
       <!-- to be certain, tell EMMA runtime where to dump the runtime
            coverage data (otherwise the filename is relative to the JVM's
            current directory and it is easy to get confused about what
@@ -552,7 +552,7 @@
       -->
       <jvmarg value="-Demma.coverage.out.file=${emma.coverage.dir}/coverage.emma" />
       <jvmarg value="-Demma.coverage.out.merge=true" />
-    </junit>    
+    </junit>
 
     <!-- if enabled, generate coverage report(s): -->
     <emma enabled="${emma.enabled}" >
@@ -590,7 +590,7 @@
 
 <!-- Begin Cobertura code coverage tasks -->
 <!-- Call:  ant runCobertura -->
-  <target name="-cobertura">  
+  <target name="-cobertura">
     <mkdir dir="${cobertura.instrumented.dir}" />
     <mkdir dir="${cobertura.reports.xml.dir}" />
     <mkdir dir="${cobertura.reports.html.dir}" />
@@ -598,7 +598,7 @@
     <mkdir dir="${cobertura.coverage.summaryxml.dir}" />
     <mkdir dir="${cobertura.coverage.html.dir}" />
   </target>
-    
+
   <target name="-coberturaInstr">
     <!-- Remove the coverage data file and any old instrumentation. -->
     <delete file="cobertura.ser"/>
@@ -627,14 +627,14 @@
       </fileset>
     </cobertura-instrument>
   </target>
-	
+
   <target name="runCobertura" depends="compileTest">
     <antcall target="-cobertura" />
     <antcall target="-coberturaInstr" />
-  
+
     <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
       <jvmarg line="${jvmrunargs}"/>
-    
+
       <formatter type="plain" usefile="false"/>
       <batchtest fork="yes" todir="${cobertura.reports.xml.dir}" >
         <fileset dir="${test.dir}">
@@ -642,7 +642,7 @@
           <include name="**/Test*Suite.java"/>
         </fileset>
      </batchtest>
-      
+
       <classpath>
          <pathelement path="${cobertura.instrumented.dir}" />
          <pathelement path="${classes.dir}" />
@@ -651,14 +651,14 @@
       </classpath>
       <classpath refid="cobertura.classpath" />
     </junit>
-    
+
     <junitreport todir="${cobertura.reports.xml.dir}">
 	<fileset dir="${cobertura.reports.xml.dir}">
 		<include name="TEST-*.xml" />
 	</fileset>
 	<report format="frames" todir="${cobertura.reports.html.dir}" />
     </junitreport>
-    
+
     <antcall target="-coverage" />
   </target>
 
@@ -677,7 +677,7 @@
 		</fileset>
 	</cobertura-report>
   </target>
-  
+
   <target name="-xmlCoverage">
 	<!--
 		Generate an XML file containing the coverage data using
@@ -698,17 +698,17 @@
 <!-- Begin Jacoco code coverage tasks -->
     <target name="jacoco" depends="compileTest">
         <mkdir dir="${jacoco.reports.dir}" />
-    
+
         <!-- Import the JaCoCo Ant Task -->
         <taskdef uri="org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
             <classpath>
                 <path refid="jacoco.classpath"/>
             </classpath>
         </taskdef>
-    
+
         <!-- Run your unit tests, adding the JaCoCo agent -->
         <jacoco:coverage destfile="${test.coverage.dir}/jacoco.exec" xmlns:jacoco="org.jacoco.ant">
-          <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+          <junit printsummary="yes" haltonerror="no" haltonfailure="no" fork="yes" showoutput="true">
             <jvmarg line="${jvmrunargs}"/>
 
 			<classpath>
@@ -717,7 +717,7 @@
 				<fileset dir="${lib.dir}" includes="**/*.jar" excludes="support/japex/*.jar"/>
 			</classpath>
 			<classpath refid="jacoco.classpath" />
-			  
+
             <formatter type="xml" />
             <batchtest todir="${jacoco.reports.dir}">
 				<fileset dir="${test.dir}">
@@ -739,7 +739,7 @@
             </batchtest>
           </junit>
         </jacoco:coverage>
-        
+
 		<jacoco:report xmlns:jacoco="org.jacoco.ant">
 			<executiondata>
 				<file file="${test.coverage.dir}/jacoco.exec" />
@@ -804,11 +804,11 @@
           <include name="**/${test}.java"/>
         </fileset>
      </batchtest>
-      
+
       <classpath>
          <pathelement path="${classes.dir}" />
          <pathelement path="${test.classes.dir}" />
-         <fileset dir="${lib.dir}" includes="**/*.jar" />   
+         <fileset dir="${lib.dir}" includes="**/*.jar" />
       </classpath>
     </junit>
   </target>
@@ -837,7 +837,7 @@
           </classpath>
         </java>
     </target>
-    
+
     <!-- Begin Japex Tasks -->
     <target name="runJapex" depends="compile,compileJapex">
         <java dir="." fork="true" classname="com.sun.japex.Japex">
@@ -874,57 +874,57 @@
         <delete dir="${jar.dir}" />
         <delete dir="${javadocs.dir}" />
         <delete dir="${classes.dir}" />
-	<delete dir="${emma.out.dir}"/>  
-    	<delete dir="${cobertura.out.dir}"/>  
+	<delete dir="${emma.out.dir}"/>
+    	<delete dir="${cobertura.out.dir}"/>
     </target>
-    
+
     <target name="updateXj3D">
       <copy todir="${lib.dir}" includeEmptyDirs="false">
          <fileset dir="${xj3d.dir}/jars" excludes="org.* xj3d-all*.jar xj3d-imm*.jar xj3d-int*.jar">
             <depth max="0" />
          </fileset>
-      </copy>          
+      </copy>
     </target>
-    
+
   <target name="stageSource" >
     <tstamp>
-        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />    
+        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />
     </tstamp>
-    
+
       <tar destfile="release/abfab3d_source_${version}_${DATE}.tar.gz"  compression="gzip" basedir="${basedir}" includes="**" excludes="release/** **/*.war **/wttest/*"/>
   </target>
 
   <target name="stageApps" >
     <tstamp>
-        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />    
+        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />
     </tstamp>
-    
+
       <tar destfile="release/abfab3d_source_${version}_${DATE}.tar.gz"  compression="gzip" basedir="${basedir}" includes="**" excludes="release/**"/>
   </target>
-    
+
   <target name="stageLib">
     <tstamp>
-        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />    
+        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />
     </tstamp>
-    
-    <mkdir dir="${release.dir}/bin"/>  
-    
+
+    <mkdir dir="${release.dir}/bin"/>
+
     <copy todir="${release.dir}/bin">
         <fileset dir="${jar.dir}" includes="**.jar" />
-        <fileset dir="${lib.dir}" includes="**.jar" />       
-    </copy>  
+        <fileset dir="${lib.dir}" includes="**.jar" />
+    </copy>
     <tar destfile="release/abfab3d_lib_${version}_${DATE}.tar.gz"  compression="gzip" basedir="${release.dir}/bin" includes="**" />
   </target>
-    
+
   <target name="release" depends="build">
     <tstamp>
-        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />    
+        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />
     </tstamp>
-  
-    <delete dir="${release.dir}" failonerror="false" />
-    <mkdir dir="${release.dir}"/>  
 
-    <ant target="stageLib" />    
+    <delete dir="${release.dir}" failonerror="false" />
+    <mkdir dir="${release.dir}"/>
+
+    <ant target="stageLib" />
     <ant target="stageSource" />
   </target>
 

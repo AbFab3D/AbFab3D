@@ -156,6 +156,15 @@ public class Variant  {
 
     }
 
+    /**
+     * read design file (in JSON format) with an assigned job ID
+     *
+     * @return Result.SUCCESS
+     */
+    public int readDesign(String basedir,String path, String jobID) throws IOException, NotCachedException {
+    	m_jobID = jobID;
+    	return readDesign(basedir, path);
+    }
 
     /**
      * read new script file
@@ -165,8 +174,6 @@ public class Variant  {
         clearMessages();
         File fpath = new File(path);
         script = FileUtils.readFileToString(fpath);
-
-        m_jobID = UUID.randomUUID().toString();
 
         String basedir = FilenameUtils.getPath(path);
         ScriptResources sr = m_sm.prepareScript(m_jobID, basedir,script, null);
@@ -199,7 +206,14 @@ public class Variant  {
         return ResultCodes.RESULT_OK;
     }
 
-
+    /**
+     * read new script file
+     */
+    public int readScript(String path, String jobID) throws IOException {
+    	m_jobID = jobID;
+    	return readScript(path);
+    }
+    
     /**
      * reload script file which was changed
      */
@@ -375,14 +389,15 @@ public class Variant  {
             if (sr.evaluatedScript.isSuccess()) {
                 m_evaluatedScript = sr.evaluatedScript;
                 m_scene = m_evaluatedScript.getResult();
-
+                return ResultCodes.RESULT_OK;
             } else {
                 java.util.List<Map<String, String>> error = sr.evaluatedScript.getErrorLogs();
                 for (Map<String, String> entry : error) {
                     printf("%s\n", entry);
                 }
+                printScriptError(sr);
+                return ResultCodes.RESULT_ERROR;
             }
-            return ResultCodes.RESULT_OK;
 
         } catch (Exception e) {
 
@@ -406,14 +421,14 @@ public class Variant  {
             if (sr.evaluatedScript.isSuccess()) {
                 m_evaluatedScript = sr.evaluatedScript;
                 m_scene = m_evaluatedScript.getResult();
-
+                return ResultCodes.RESULT_OK;
             } else {
                 java.util.List<Map<String, String>> error = sr.evaluatedScript.getErrorLogs();
                 for (Map<String, String> entry : error) {
                     printf("%s\n", entry);
                 }
+                return ResultCodes.RESULT_ERROR;
             }
-            return ResultCodes.RESULT_OK;
 
         } catch (Exception e) {
 

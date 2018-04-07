@@ -223,7 +223,7 @@ public class ParamJson {
                     z = array.get(2).getAsDouble();
                 } catch (Exception e) {
                 	e.printStackTrace();
-                	throw new RuntimeException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
+                	throw new IllegalArgumentException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
                 }
                 
                 ret_val = new Vector3d(x,y,z);
@@ -238,7 +238,7 @@ public class ParamJson {
 	        z = obj.get("z");
 	        
 	        if (x == null || y == null || z == null) {
-	        	throw new RuntimeException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
+	        	throw new IllegalArgumentException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
 	        }
 	        
 	        Double xval = null;
@@ -252,7 +252,7 @@ public class ParamJson {
 	            ret_val = new Vector3d(xval,yval,zval);
 	        } catch (Exception e) {
 	        	e.printStackTrace();
-	        	throw new RuntimeException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
+	        	throw new IllegalArgumentException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
 	        }
     	}
     	
@@ -307,7 +307,7 @@ public class ParamJson {
     	}
     	
         if (x == null || y == null || z == null || a == null) {
-        	throw new RuntimeException(fmt("Invalid AXIS_ANGLE_4D value: %s\n", value.toString()));
+        	throw new IllegalArgumentException(fmt("Invalid AXIS_ANGLE_4D value: %s\n", value.toString()));
         }
         
         Double xval = null;
@@ -322,7 +322,7 @@ public class ParamJson {
             aval = a.getAsDouble();
         } catch (Exception e) {
         	e.printStackTrace();
-        	throw new RuntimeException(fmt("Invalid AXIS_ANGLE_4D value: %s\n", value.toString()));
+        	throw new IllegalArgumentException(fmt("Invalid AXIS_ANGLE_4D value: %s\n", value.toString()));
         }
         
         return new AxisAngle4d(xval,yval,zval,aval);
@@ -619,7 +619,7 @@ public class ParamJson {
     		
     		if (pntMap.get("x") == null || pntMap.get("y") == null || pntMap.get("z") == null ||
     			norMap.get("x") == null || norMap.get("y") == null || norMap.get("z") == null) {
-    			throw new RuntimeException(fmt("Invalid Location value: %s\n", value.toString()));
+    			throw new IllegalArgumentException(fmt("Invalid Location value: %s\n", value.toString()));
     		}
     		
     		point = new Vector3d(pntMap.get("x"), pntMap.get("y"), pntMap.get("z"));
@@ -641,7 +641,7 @@ public class ParamJson {
     	Object aObj = value.get("angle");
     	
     	if (xObj == null || yObj == null || zObj == null || aObj == null) {
-    		throw new RuntimeException(fmt("Invalid AXIS_ANGLE_4D value: %s\n", value.toString()));
+    		throw new IllegalArgumentException(fmt("Invalid AXIS_ANGLE_4D value: %s\n", value.toString()));
     	}
     	
     	Double x = (Double) xObj;
@@ -663,7 +663,7 @@ public class ParamJson {
     	Object zObj = value.get("z");
     	
     	if (xObj == null || yObj == null || zObj == null) {
-    		throw new RuntimeException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
+    		throw new IllegalArgumentException(fmt("Invalid VECTOR_3D value: %s\n", value.toString()));
     	}
     	
     	Double x = (Double) xObj;
