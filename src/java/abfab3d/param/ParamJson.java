@@ -260,11 +260,42 @@ public class ParamJson {
     }
 
     public static Color getColorFromJson(JsonElement value){
-        JsonArray array = value.getAsJsonArray();
-        double x = array.get(0).getAsDouble();
-        double y = array.get(1).getAsDouble();
-        double z = array.get(2).getAsDouble();
-        return new Color(x,y,z);
+    	JsonElement r = null;
+    	JsonElement g = null;
+    	JsonElement b = null;
+    	
+    	if (value.isJsonArray()) {
+    		JsonArray array = value.getAsJsonArray();
+	        if (array.size() >= 3) {
+		        r = array.get(0);
+		        g = array.get(1);
+		        b = array.get(2);
+	        }
+    	} else if (value.isJsonObject()) {
+    		JsonObject obj = value.getAsJsonObject();
+	        r = obj.get("r");
+	        g = obj.get("g");
+	        b = obj.get("b");
+    	}
+    	
+        if (r == null || g == null || b == null) {
+        	throw new IllegalArgumentException(fmt("Invalid Color value: %s\n", value.toString()));
+        }
+        
+        Double rval = null;
+        Double gval = null;
+        Double bval = null;
+        
+        try {
+        	rval = r.getAsDouble();
+        	gval = g.getAsDouble();
+        	bval = b.getAsDouble();
+        } catch (Exception e) {
+        	e.printStackTrace();
+        	throw new IllegalArgumentException(fmt("Invalid Color value: %s\n", value.toString()));
+        }
+
+        return new Color(rval,gval,bval);
     }
 
     public static Location getLocationFromJson(JsonElement value){
