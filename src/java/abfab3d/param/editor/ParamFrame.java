@@ -30,20 +30,25 @@ public class ParamFrame extends JFrame {
 
         super(node.getClass().getSimpleName());
 
-        panel = new ParamPanel(title,node);
+        initUI(title, node.getParams());
 
+    }
+
+    void initUI(String title, Parameter params[]){
+
+        panel = new ParamPanel(title,params);
+        
         add(panel);
         pack();
+
+        WindowManager.getInstance().addPanel(this);
+        
     }
 
     public ParamFrame(String name, Parameter params[]) {
 
         super(name);
-
-        panel = new ParamPanel(name,params);
-        add(panel);
-
-        pack();
+        initUI(name, params);
     }
 
     public ParamPanel getPanel() {
