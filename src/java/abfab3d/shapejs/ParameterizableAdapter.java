@@ -16,7 +16,7 @@ import abfab3d.param.Parameter;
 import java.util.Map;
 
 /**
- * A ShapeJS script that has been evaluated
+ * 
  *
  * @author Alan Hudson
  */

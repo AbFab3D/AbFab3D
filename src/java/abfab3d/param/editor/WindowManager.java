@@ -6,12 +6,18 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
 
+import static abfab3d.core.Output.printf;
+
+
 /**
  * Manage editor windows
  *
  * @author Alan Hudson
  */
 public class WindowManager implements WindowListener {
+
+    static final boolean DEBUG = true;
+
     private static int lastY;
     private ArrayList<Component> panels;
     private static WindowManager manager;
@@ -33,16 +39,19 @@ public class WindowManager implements WindowListener {
     }
 
     public void addPanel(Component p) {
+        
+        if(DEBUG)printf("WindwoManager.addPanel(%s)\n", p);
+            
         ParamPanel panel = null;
         ParamFrame frame = null;
-
+        
         if (p instanceof ParamFrame) {
             panel = ((ParamFrame)p).getPanel();
             frame = ((ParamFrame)p);
         } else if (p instanceof ParamPanel) {
             panel = (ParamPanel) p;
         } else {
-            throw new IllegalArgumentException("Invalid type, not a ParamPanel or ParamFrame");
+            throw new IllegalArgumentException("WindowManager  Invalid type, not a ParamPanel or ParamFrame");
         }
 
         if (panels.size() == 0) {
@@ -50,7 +59,13 @@ public class WindowManager implements WindowListener {
         } else {
             panel.setCloseAllowed(true);
         }
-        panels.add(p);
+        if(frame != null){
+            if(DEBUG)printf("WindowManager adding frame(%s)\n", frame);
+            panels.add(frame);
+        } else {            
+            if(DEBUG)printf("WindoManager adding panel(%s)\n", panel);
+            panels.add(panel);
+        }
 
         lastY += p.getHeight();
 
@@ -61,20 +76,26 @@ public class WindowManager implements WindowListener {
     }
 
     public void closeAll() {
+        if(DEBUG) printf("WindowManager.closeAll()\n");
+            
         for(Component p : panels) {
 
             ParamPanel panel = null;
             ParamFrame frame = null;
 
+            if(DEBUG) printf("WindowManager  component (%s)\n", p);
             if (p instanceof ParamFrame) {
-                panel = ((ParamFrame)p).getPanel();
-                frame = ((ParamFrame)p);
+                
+                frame = (ParamFrame)p;
+                panel = frame.getPanel();
             } else if (p instanceof ParamPanel) {
                 panel = (ParamPanel) p;
             }
 
+            if(DEBUG) printf("WindowManager  frame(%s) panel(%s)\n", frame, panel);
             panel.setCloseAllowed(true);
             if (frame != null) {
+                if(DEBUG) printf("WindowManager  closing frame (%s)\n", frame);
                 frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
             }
         }
