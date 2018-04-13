@@ -141,7 +141,10 @@ public class Variant  {
         //
 
         // this needed for params conversion
-        sr = m_sm.updateParams(m_jobID, uriParams);
+        
+        // Don't reprocess uri parameters with relative path
+        boolean skipRelativePath = true;  
+        sr = m_sm.updateParams(m_jobID, uriParams, skipRelativePath);
         sr = m_sm.executeScript(sr);
 
         if (!sr.evaluatedScript.isSuccess()) {

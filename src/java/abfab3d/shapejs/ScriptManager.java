@@ -175,6 +175,7 @@ public class ScriptManager {
         try {
             if (sr == null) {
                 sr = new ScriptResources();
+                sr.baseDir = basedir;
                 sr.jobID = jobID;
                 sr.eval = new ShapeJSEvaluator();
                 sr.eval.setBaseDir(basedir);
@@ -271,6 +272,17 @@ public class ScriptManager {
      * @throws NotCachedException
      */
     public ScriptResources updateParams(String jobID, Map<String, Object> params) throws NotCachedException {
+    	return updateParams(jobID, params, false);
+    }
+    /**
+     * Updates parameter values for a script.  Evaluates the javascript and downloads any parameters
+     *
+     * @param jobID
+     * @param params - Must be Java native objects expected for the parameter type
+     * @return
+     * @throws NotCachedException
+     */
+    public ScriptResources updateParams(String jobID, Map<String, Object> params, boolean skipRelativePath) throws NotCachedException {
         ScriptResources sr = null;
 
         long t0 = time();
@@ -287,7 +299,7 @@ public class ScriptManager {
         try {
             // Apply all values in first pass
             sr.eval.updateParams(params);
-            Map<String, Object> downloadedParams = downloadURI(sr, params);
+            Map<String, Object> downloadedParams = downloadURI(sr, params, skipRelativePath);
             //Reapply the ones changed from downloading
             sr.eval.updateParams(downloadedParams);
         } catch(IllegalArgumentException iae) {
@@ -379,7 +391,6 @@ public class ScriptManager {
         cache.invalidateAll();
     }
 
-
     /**
      * Download any uri parameters containing a fully qualified url.  Updates sensitiveData flags if urls are sensitive
      *
@@ -388,6 +399,17 @@ public class ScriptManager {
      * @return The resolved parameters, feed these through updateParams
      */
     private Map<String, Object> downloadURI(ScriptResources resources, Map<String, Object> changedParams) {
+    	return downloadURI(resources, changedParams, false);
+    }
+    
+    /**
+     * Download any uri parameters containing a fully qualified url.  Updates sensitiveData flags if urls are sensitive
+     *
+     * @param resources
+     * @param changedParams The changed params or null for all
+     * @return The resolved parameters, feed these through updateParams
+     */
+    private Map<String, Object> downloadURI(ScriptResources resources, Map<String, Object> changedParams, boolean skipRelativePath) {
         Map<String, Object> ret_val = new HashMap<>();
 
         Map<String, Parameter> evalParams = resources.getParams();
@@ -514,6 +536,41 @@ public class ScriptManager {
 
                         ret_val.put(key, localPath);
                         cache = true;
+                    } else {
+                    	// Url is a relate file path. Must have a baseDir
+                    	if (resources.baseDir == null) {
+                            printf("downloadURI: No baseDir specified, skipping param: %s, val: %s\n", key, urlStr);
+                    	} else {
+                    		// Two possible scenarios here:
+                    		// 1. The url val is already an absolute path -> skip this part
+                    		// 2. The url val is a relative path -> convert to absolute path
+                    		
+                    		File f = new File(urlStr);
+                    		
+                        	if (!skipRelativePath && !f.isAbsolute()) {
+                        		File baseDir = new File(resources.baseDir);
+                            	f = new File(resources.baseDir + File.separator + urlStr);
+                            	
+                            	// Relative url file must be in the baseDir
+                            	boolean isChild = URIUtils.isInSubDirectory(baseDir, f);
+                            	
+                            	if (!isChild) {
+                            		printf("Uri file is not in base directory.\n  baseDir: %s\n  file: %s\n",
+                            				baseDir.getAbsolutePath(), f.getAbsolutePath());
+                            		throw new IllegalArgumentException("Invalid uri file: " + urlStr);
+                            	}
+
+                            	// Relative url file does not exist
+                            	if (!f.exists()) {
+                            		printf("Uri file does not exist: %s\n", f.getAbsolutePath());
+                            		throw new IllegalArgumentException("Uri file does not exist: " + urlStr);
+                            	}
+
+                            	localPath = f.getAbsolutePath();
+                                ret_val.put(key, localPath);
+                                cache = true;
+                        	}
+                    	}
                     }
 
                     // Do not cache data URI

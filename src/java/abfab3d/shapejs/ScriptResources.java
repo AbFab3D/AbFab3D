@@ -30,6 +30,7 @@ public class ScriptResources {
     public ShapeJSEvaluator eval;
     public boolean sensitiveData = false;
     public boolean sensitiveScript = false;
+    public String baseDir;
 
 
     public ScriptResources() {
@@ -44,4 +45,7 @@ public class ScriptResources {
         return eval.getParams();
     }
 
+    public void setBaseDir(String baseDir) {
+    	this.baseDir = baseDir;
+    }
 }
