@@ -64,6 +64,20 @@ public class VariantItem extends ProjectItem {
         }
     }
 
+    public void save(String file) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+        try {
+            HashMap<String, Object> obj = new HashMap<>();
+            obj.put("mainScript", mainScript);
+            obj.put("params", params);
+            String st = gson.toJson(obj);
+            FileUtils.writeStringToFile(new File(file), st);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
     public String getMainScript() {
         return mainScript;
     }

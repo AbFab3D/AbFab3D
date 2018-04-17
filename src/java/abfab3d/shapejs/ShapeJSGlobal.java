@@ -331,8 +331,6 @@ public class ShapeJSGlobal {
     public static Object print(Context cx, Scriptable thisObj,
                                Object[] args, Function funObj) {
 
-        printf("Print called.  args: %d\n",args.length);
-
         if (args.length > 1) {
 
             Object[] varargs = new Object[args.length-1];
