@@ -327,11 +327,18 @@ public class Project {
 
                 // Assume any items in the resources dir need to be copied
                 // Otherwise the manifest file must contain a valid list of resources...
-                String rpath = getParentDir() +
-                        File.separator + "resources";
-                String drpath = tmpdSt +
-                        File.separator + "resources";
-                FileUtils.copyDirectory(new File(rpath), new File(drpath));
+                File rpath = new File(getParentDir() +
+                        File.separator + "resources");
+                File drpath = new File(tmpdSt +
+                        File.separator + "resources");
+                if (rpath.exists()) FileUtils.copyDirectory(rpath, drpath);
+
+                // TODO: Signature line needs this, remove once fixed
+                File fpath = new File(getParentDir() +
+                        File.separator + "fonts");
+                File frpath = new File(tmpdSt +
+                        File.separator + "fonts");
+                if (fpath.exists()) FileUtils.copyDirectory(fpath, frpath);
 
                 VariantItem nvi = new VariantItem(vi.getPath(),null);
 
