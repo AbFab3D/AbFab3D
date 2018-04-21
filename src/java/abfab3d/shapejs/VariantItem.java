@@ -55,10 +55,24 @@ public class VariantItem extends ProjectItem {
             String mst = FileUtils.readFileToString(new File(pdir + File.separator + path), Charset.defaultCharset());
             Map<String, Object> props = gson.fromJson(mst, Map.class);
             mainScript = (String) props.get("scriptPath");
-            params = (Map<String,Object>) props.get("scriptParams");
+            params = (Map<String,Object>) props.get("scriptParams");  // TODO: This loses datatyping
 
             String abspath = pdir + File.separator + FilenameUtils.getPath(path) + File.separator + mainScript;
             mainScript = Project.makeRelative(pdir,abspath);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    public void save(String file) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+        try {
+            HashMap<String, Object> obj = new HashMap<>();
+            obj.put("scriptPath", mainScript);
+            obj.put("scriptParams", params);
+            String st = gson.toJson(obj);
+            FileUtils.writeStringToFile(new File(file), st);
         } catch(IOException ioe) {
             ioe.printStackTrace();
         }

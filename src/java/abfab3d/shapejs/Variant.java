@@ -100,10 +100,10 @@ public class Variant  {
         File file = new File(path);
         String design = FileUtils.readFileToString(file);
 
-        printf("Path: %s  basedir: %s\n",path,basedir);
-
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(design).getAsJsonObject();
+        Object spathObj = obj.get(SCRIPT_PATH);
+        if (spathObj == null) throw new IllegalArgumentException("Variant missing scriptPath: " + path);
         String spath = obj.get(SCRIPT_PATH).getAsString();
         JsonObject oparams = obj.get(SCRIPT_PARAMS).getAsJsonObject();
         if (DEBUG) printf("script path: %s\n", spath);
@@ -141,7 +141,10 @@ public class Variant  {
         //
 
         // this needed for params conversion
-        sr = m_sm.updateParams(m_jobID, uriParams);
+        
+        // Don't reprocess uri parameters with relative path
+        boolean skipRelativePath = true;  
+        sr = m_sm.updateParams(m_jobID, uriParams, skipRelativePath);
         sr = m_sm.executeScript(sr);
 
         if (!sr.evaluatedScript.isSuccess()) {
@@ -155,6 +158,81 @@ public class Variant  {
         return ResultCodes.RESULT_OK;
 
     }
+
+    /**
+     * read design file (in JSON format)
+     *
+     * @return Result.SUCCESS
+     */
+    /*
+    public int readDesign(String basedir,String path, Map<String,Object> params) throws IOException, NotCachedException {
+
+        if (DEBUG) printf("ShapeJSDesingn.readDesign(%s)\n", path);
+        clearMessages();
+        File file = new File(path);
+        String design = FileUtils.readFileToString(file);
+
+        JsonParser parser = new JsonParser();
+        JsonObject obj = parser.parse(design).getAsJsonObject();
+        Object spathObj = obj.get(SCRIPT_PATH);
+        if (spathObj == null) throw new IllegalArgumentException("Variant missing scriptPath: " + path);
+        String spath = obj.get(SCRIPT_PATH).getAsString();
+        JsonObject oparams = obj.get(SCRIPT_PARAMS).getAsJsonObject();
+        if (DEBUG) printf("script path: %s\n", spath);
+        if (DEBUG) printf("params: %s\n", oparams);
+        if (spath == null) {
+            m_scriptPath = null;
+            throw new RuntimeException("scriptPath is undefined");
+        }
+        if (oparams == null) {
+            throw new RuntimeException("script params undefined");
+        }
+
+        String aspath = resolvePath(file, new File(spath));
+
+        // load fresh script, to reset params default values
+
+        if (DEBUG) printf("reading new script:%s\n", aspath);
+
+        // empty param map
+        LinkedHashMap<String, Object> paramMap = new LinkedHashMap<>();
+
+        script = FileUtils.readFileToString(new File(aspath));
+        ScriptResources sr;
+        sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap);
+
+        if (!sr.evaluatedScript.isSuccess()) {
+            printScriptError(sr);
+            throw new RuntimeException(fmt("failed to prepare script", aspath));
+        }
+
+        if (DEBUG) printParamsMap("after first prepareScript", paramMap);
+        Map<String, Parameter> scriptParams = sr.getParams();
+        ParamJson.getParamValuesFromJson(oparams, scriptParams);
+        Map<String, Object> uriParams = resolveURIParams(file, sr.getParams());
+        //
+
+        // this needed for params conversion
+
+        // Don't reprocess uri parameters with relative path
+        boolean skipRelativePath = true;
+        sr = m_sm.updateParams(m_jobID, uriParams, skipRelativePath);
+        sr = m_sm.executeScript(sr);
+
+        if (!sr.evaluatedScript.isSuccess()) {
+            printScriptError(sr);
+            throw new RuntimeException(fmt("failed to execute script", aspath));
+        }
+
+        ParamJson.getParamValueFromJson(params,scriptParams);
+        m_designPath = path;
+        m_scriptPath = aspath;
+        m_evaluatedScript = sr.evaluatedScript;
+        m_scene = m_evaluatedScript.getResult();
+        return ResultCodes.RESULT_OK;
+
+    }
+*/
 
     /**
      * read design file (in JSON format) with an assigned job ID
@@ -292,7 +370,9 @@ public class Variant  {
                 if (par.getType() == ParameterType.URI && val != null) {
                     val = getRelativePath(file, new File((String) val));
                 }
-                paramMap.put(name, ParamJson.getJsonValue(val, par.getType()));
+
+                Object jobj = ParamJson.getJsonValue(val, par.getType());
+                paramMap.put(name, jobj);
             }
 
             Map<String, Object> map = new LinkedHashMap<String, Object>();

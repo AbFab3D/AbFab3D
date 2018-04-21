@@ -22,6 +22,9 @@ import java.awt.Shape;
 import java.awt.Font;
 import java.awt.Graphics2D;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Hashtable;
 
 import java.awt.font.TextAttribute;
@@ -53,6 +56,8 @@ import abfab3d.grid.op.SystemFontLoader;
 
 import abfab3d.util.TextUtil;
 import abfab3d.util.Insets2;
+
+import javax.imageio.ImageIO;
 
 import static java.lang.Math.abs;
 
@@ -180,7 +185,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     /**
      * Constructor
      @param text the string to convert into 3D text
-     @param font font to be used for 3D text
+     @param fontProducer font to be used for 3D text
      @param voxelSize size of voxel used for text rasterizetion
      */
     public Text2D(String text, FontProducer fontProducer, double voxelSize){
@@ -255,6 +260,10 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
 
     public void setText(String val) {
         mp_text.setValue(val);
+    }
+
+    public String getText() {
+        return mp_text.getValue();
     }
 
     /**
@@ -359,7 +368,16 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
      */
     public BufferedImage getImage(){
 
-        initialize();        
+        initialize();
+/*
+        try {
+            File f = new File("/Users/giles/tmp/text.png");
+            printf("Saving text string: %s\n",f.getAbsoluteFile());
+            ImageIO.write(m_cachedData.image,"png", f);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+*/
         return m_cachedData.image;
     }
 

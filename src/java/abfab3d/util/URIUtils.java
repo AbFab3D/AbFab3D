@@ -285,6 +285,29 @@ public class URIUtils {
         return ret_val;
     }
 
+    /**
+     * Checks if a file or directory is in a subdirectory of a base directory.
+     * @param base The base directory
+     * @param child The child file or directory
+     * @return True if child is in a subdirectory of base. False otherwise.
+     * @throws IOException
+     */
+    public static boolean isInSubDirectory(File base, File child) throws IOException {
+    	if (child == null) return false;
+    	
+    	base = base.getCanonicalFile();
+    	child = child.getCanonicalFile();
+
+	    File parentFile = child;
+	    while (parentFile != null) {
+	    	if (base.equals(parentFile)) {
+	    		return true;
+	        }
+	        parentFile = parentFile.getParentFile();
+	    }
+	    return false;
+    }
+    
     private static void createDir(File dir) {
         if (!dir.mkdirs()) throw new RuntimeException("Can not create dir " + dir);
     }
