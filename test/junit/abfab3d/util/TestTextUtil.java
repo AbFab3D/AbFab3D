@@ -12,8 +12,17 @@
 
 package abfab3d.util;
 
+import java.awt.font.OpenType;
+import sun.font.Font2D;
+import sun.font.ScriptRun;
+import sun.font.Script;
+import sun.font.FontUtilities;
+
 // External Imports
 import javax.imageio.ImageIO;
+
+//import java.lang.reflect.Class;
+import java.lang.reflect.Method;
 
 import java.io.File;
 
@@ -153,10 +162,13 @@ public class TestTextUtil extends TestCase {
     public void devTestKerning2() throws Exception{
         
         //String str1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn";
-        String str1 = "opqrstuvwxyz";
+        //String str1 = "#W";
+        String str1 = "$";
+        //String str1 = "opqrstuvwxyz";
         //        String str1 = "ABCDEFGHIJKLMNOPQRSTUVWZYZ";
         //String str2 = "abcdefghijklmnopqrstuvwxyz";
-        String str2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        String str2 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        //String str2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         int len1 = str1.length();
         int len2 = str2.length();
         int fontSize = 200;
@@ -166,12 +178,19 @@ public class TestTextUtil extends TestCase {
         double cellY = fontSize*1.2;
         double x0 = fontSize*0.2;
         double y0 = fontSize*0.8;
-        
-        String fontName = "Pinyon Script LatinOnly";
+        //String fontPath = "test/images/PinyonScript-Regular.ttf";
+        //String fontPath = "test/images/PinyonScript-LatinOnly_v3.ttf";
+        String fontPath = "test/images/PinyonScript-LatinOnly_v3a.ttf";
+        //String fontName = "Pinyon Script LatinOnly";
+        String fontName = "Pinyon Script LatinOnly v2";
+        //String fontName = "Berkshire Swash v2";
         //String fontName = "Pinyon Script";
-        Font font = new Font(fontName, Font.PLAIN, fontSize);
+        //Font font = new Font(fontName, Font.PLAIN, fontSize);
+        Font font =Font.createFont(Font.TRUETYPE_FONT,new File(fontPath));
+
         Hashtable<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
         map.put(TextAttribute.KERNING, TextAttribute.KERNING_ON);
+        map.put(TextAttribute.SIZE, new Double(fontSize));        
         font = font.deriveFont(map);
 
         
@@ -201,6 +220,64 @@ public class TestTextUtil extends TestCase {
             ImageIO.write(image, "png", new File(fmt("/tmp/kerning/%s_(%2d).png",fontName, (int)c1)));
         }
     }
+
+    public void devTestKerning3() throws Exception{
+        
+        String str1 = "1";
+        // "#$@&*?!<>0123456789";
+        String str2 = "!\"#!$%&'()*+,-./0123456789:;<?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+        int len1 = str1.length();
+        int len2 = str2.length();
+        int fontSize = 200;
+        double strokeWidth = fontSize*0.09;
+        double spacing = 0.0;      
+        double cellX = fontSize*4;
+        double cellY = fontSize*1.2;
+        double x0 = fontSize*1.0;
+        double y0 = fontSize*0.8;
+        String fontPath = "test/images/PinyonScript-LatinOnly_v3a.ttf";
+        String fontName = "PinyonScript-LatinOnly_v3a";
+        Font font =Font.createFont(Font.TRUETYPE_FONT,new File(fontPath));
+
+        Hashtable<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
+        map.put(TextAttribute.KERNING, TextAttribute.KERNING_ON);
+        map.put(TextAttribute.SIZE, new Double(fontSize));        
+        font = font.deriveFont(map);
+
+        for(int i = 0; i < len1; i++){
+            
+            int imageWidth = (int)(cellX);
+            int imageHeight = (int)(str2.length()*cellY);
+            
+            BufferedImage image1 = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+            BufferedImage image2 = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g1 = (Graphics2D)image1.getGraphics();
+            g1.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+            g1.setColor(Color.WHITE);        
+            g1.fillRect(0,0,imageWidth, imageHeight);
+            Graphics2D g2 = (Graphics2D)image2.getGraphics();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(Color.WHITE);        
+            g2.fillRect(0,0,imageWidth, imageHeight);
+
+            char c1 = str1.charAt(i);
+            printf("%c \n",c1);                
+
+            for(int j = 0; j < len2; j++){
+                char c2 = str2.charAt(j);
+                String text1 = fmt("%c%c", c1, c2);
+                String text2 = fmt("%c%c", c2, c1);
+                double x = x0;
+                double y = y0 + j * cellY;
+                TextUtil.renderText(g1, font, text1, x,y, spacing, strokeWidth);
+                TextUtil.renderText(g2, font, text2, x,y, spacing, strokeWidth);
+            }
+            ImageIO.write(image1, "png", new File(fmt("/tmp/kerning/%s_(%2d)_1.png",fontName, (int)c1)));
+            ImageIO.write(image2, "png", new File(fmt("/tmp/kerning/%s_(%2d)_2.png",fontName, (int)c1)));
+
+        }
+    }
+
     
     static String getName(char c){
         if(c >= 'A' && c <= 'Z') return "c"+c+"";
@@ -320,6 +397,214 @@ public class TestTextUtil extends TestCase {
 
     }
 
+
+    void devTestOpenType() throws Exception{
+
+        //Font font = Font.createFont(Font.TRUETYPE_FONT, new File("test/images/PinyonScript-Regular.ttf"));
+        Font font = Font.createFont(Font.TRUETYPE_FONT, new File("test/images/PinyonScript-LatinOnly_v2.otf"));
+
+        //Font font = new Font("Pinyon Script LatinOnly", Font.PLAIN, 100);
+        printf("font: %s\n",font);
+        Class c = font.getClass();
+        Method meth[] = c.getDeclaredMethods();
+        for(int i = 0; i < meth.length; i++){
+            printf("method: %s\n", meth[i]);
+        }
+        Class[] inter = c.getInterfaces();
+        for(int i = 0; i < inter.length; i++){
+            printf("inter: %s\n", inter[i]);
+        }
+        if (font instanceof OpenType) {
+            printf("openType: %s\n", (OpenType)font);           
+        }                
+
+        Font2D f2 = FontUtilities.getFont2D(font);
+        
+        //sun.font.StrikeMetrics
+
+
+    }
+
+
+    void devTestScriptRuns(){
+
+        char[] text = "#@abcdABCD123".toCharArray();
+        ScriptRun scriptRun = new ScriptRun(text, 0, text.length);
+        
+        while (scriptRun.next()) {
+            int start  = scriptRun.getScriptStart();
+            int limit  = scriptRun.getScriptLimit();
+            int script = scriptRun.getScriptCode();
+            
+            System.out.println("Script \"" + script + "\" from " +
+                               start + " to " + limit + ".");
+        }
+    }
+
+    static void printKerningPair(String glyphA[],String glyphB[]){
+
+        for(int i = 0; i < glyphA.length; i++){
+            for(int j = 0; j < glyphB.length; j++){
+                printf(" pos %s %s <0> <0>;\n",glyphA[i],glyphB[j]);
+            }            
+        }
+    }
+
+    void devTestPrintKerningTable(){
+    
+        String symbols[] = {
+            "exclam",
+            "quotedbl",
+            "numbersign",
+            "dollar",
+            "percent",
+            "ampersand",
+            "quotesingle",
+            "parenleft",
+            "parenright",
+            "asterisk",
+            "plus",
+            "comma",
+            "hyphen",
+            "period",
+            "slash",
+            "zero",
+            "one",
+            "two",
+            "three",
+            "four",
+            "five",
+            "six",
+            "seven",
+            "eight",
+            "nine",
+            "colon",
+            "semicolon",
+            "less",
+            "equal",
+            "greater",
+            "question",
+            "at",
+            "bracketleft",
+            "backslash",
+            "bracketright",
+            "asciicircum",
+            "underscore",
+            "grave",
+            "braceleft",
+            "bar",
+            "braceright",
+            "asciitilde"};
+        String letter1[] = {
+            "@KernClass_A",
+            "@KernClass_B",
+            "@KernClass_C",
+            "@KernClass_D",
+            "@KernClass_E",
+            "@KernClass_F",
+            "@KernClass_G",
+            "@KernClass_H",
+            "@KernClass_I",
+            "@KernClass_J",
+            "@KernClass_K",
+            "@KernClass_L",
+            "@KernClass_M",
+            "@KernClass_N",
+            "@KernClass_O",
+            "@KernClass_P",
+            "@KernClass_Q",
+            "@KernClass_R",
+            "@KernClass_S",
+            "@KernClass_T",
+            "@KernClass_U",
+            "@KernClass_V",
+            "@KernClass_W",
+            "@KernClass_X",
+            "@KernClass_Y",
+            "@KernClass_Z",
+            "@KernClass_a1",
+            "@KernClass_b",
+            "@KernClass_c",
+            "@KernClass_d",
+            "@KernClass_e",
+            "@KernClass_f",
+            "@KernClass_g",
+            "@KernClass_h1",
+            "@KernClass_i",
+            "@KernClass_j",
+            "@KernClass_k",
+            "@KernClass_l",
+            "@KernClass_m",
+            "@KernClass_o",
+            "@KernClass_p",
+            "@KernClass_q",
+            "@KernClass_r",
+            "@KernClass_s",
+            "@KernClass_t",
+            "@KernClass_u",
+            "@KernClass_v",
+            "@KernClass_w",
+            "@KernClass_x",
+            "@KernClass_y",
+            "@KernClass_z"};            
+        String letter2[] = {
+            "@KernClass_A",
+            "@KernClass_B",
+            "@KernClass_C",
+            "@KernClass_D",
+            "@KernClass_E",
+            "@KernClass_F",
+            "@KernClass_G",
+            "@KernClass_H",
+            "@KernClass_I",
+            "@KernClass_J",
+            "@KernClass_K",
+            "@KernClass_L",
+            "@KernClass_M",
+            "@KernClass_N",
+            "@KernClass_O",
+            "@KernClass_P",
+            "@KernClass_Q",
+            "@KernClass_R",
+            "@KernClass_S",
+            "@KernClass_T",
+            "@KernClass_U",
+            "@KernClass_V",
+            "@KernClass_W",
+            "@KernClass_X",
+            "@KernClass_Y",
+            "@KernClass_Z",
+            "@KernClass_a",
+            "@KernClass_b",
+            "@KernClass_c",
+            "@KernClass_d",
+            "@KernClass_e",
+            "@KernClass_f",
+            "@KernClass_g",
+            "@KernClass_h",
+            "@KernClass_i",
+            "@KernClass_j",
+            "@KernClass_l",
+            "@KernClass_m",
+            "@KernClass_o",
+            "@KernClass_p",
+            "@KernClass_q",
+            "@KernClass_r",
+            "@KernClass_s",
+            "@KernClass_t",
+            "@KernClass_u",
+            "@KernClass_v",
+            "@KernClass_w",
+            "@KernClass_x",
+            "@KernClass_y",
+            "@KernClass_z"};
+            
+        printKerningPair(symbols,symbols);
+        printKerningPair(symbols,letter2);
+        printKerningPair(letter1,symbols);
+
+    }
+        
     public static void main(String arg[]) throws Exception {
 
 
@@ -327,7 +612,11 @@ public class TestTextUtil extends TestCase {
         //new TestTextUtil().devTestRenderOutline();
         //new TestTextUtil().devTestKerning();
         //new TestTextUtil().devTestKerning2();
-        new TestTextUtil().devTestLineMetrics();
+        new TestTextUtil().devTestKerning3();
+        //new TestTextUtil().devTestPrintKerningTable();
+        //new TestTextUtil().devTestLineMetrics();
+        //new TestTextUtil().devTestOpenType();
+        //new TestTextUtil().devTestScriptRuns();
         
     }
     
