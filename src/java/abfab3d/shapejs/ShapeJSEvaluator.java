@@ -391,7 +391,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
                     uri = new File(basedir).toURI();
                 }
 
-                printf("Creating new module scope.  dir: %s\n",uri);
                 scope = new ModuleScope(gs, uri, null);
             }
 

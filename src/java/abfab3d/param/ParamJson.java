@@ -450,46 +450,59 @@ public class ParamJson {
 
     public static Object getObjectValueFromJson(JsonElement value, Parameter param) {
 
-        if(DEBUG) printf("parseJson(%s -> %s)\n", value, param);
-        switch(param.getType()){
-            default:
-                throw new RuntimeException(fmt("getJsonValue(%s, type:%s) not implemented\n", value.getClass().getName(), param.getType()));
-            case BOOLEAN:
-                return new Boolean(value.getAsJsonPrimitive().getAsBoolean());
-            case DOUBLE:
-                return new Double(value.getAsJsonPrimitive().getAsDouble());
-            case FLOAT:
-                return new Float(value.getAsJsonPrimitive().getAsFloat());
-            case BYTE:
-                return new Byte(value.getAsJsonPrimitive().getAsByte());
-            case SHORT:
-                return new Short(value.getAsJsonPrimitive().getAsShort());
-            case INTEGER:
-                return new Integer(value.getAsJsonPrimitive().getAsInt());
-            case LONG:
-                return new Long(value.getAsJsonPrimitive().getAsLong());
-            case STRING:
-                return value.getAsString();
-            case STRING_LIST:
-                return getStringListFromJson(value);
-            case LOCATION:
-                return getLocationFromJson(value);
-            case ENUM:
-                return value.getAsString();
-            case URI:
-                return value.getAsString();
-            case SNODE:
-                return getSNodeFromJson(value);
-            case SNODE_LIST:
-                return getSNodeListFromJson(value);
-            case VECTOR_3D:
-                return getVector3dFromJson(value);
-            case AXIS_ANGLE_4D:
-                return getAxisAngle4dFromJson(value);
-            case COLOR:
-                return getColorFromJson(value);
-            case USERDEFINED:
-                return getUserDefinedFromJson((JsonObject)value,(UserDefinedParameter)param);
+        if(DEBUG) printf("parseJson(val: %s  name: %s  type: %s)\n", value, param.getName(),param.getType());
+        try {
+            switch (param.getType()) {
+                default:
+                    throw new RuntimeException(fmt("getJsonValue(%s, type:%s) not implemented\n", value.getClass().getName(), param.getType()));
+                case BOOLEAN:
+                    return new Boolean(value.getAsJsonPrimitive().getAsBoolean());
+                case DOUBLE:
+                    return new Double(value.getAsJsonPrimitive().getAsDouble());
+                case FLOAT:
+                    return new Float(value.getAsJsonPrimitive().getAsFloat());
+                case BYTE:
+                    Double bnum = value.getAsJsonPrimitive().getAsDouble();
+                    return new Byte(bnum.byteValue());
+                case SHORT:
+                    Double snum = value.getAsJsonPrimitive().getAsDouble();
+                    return new Short(snum.shortValue());
+                case INTEGER:
+                    // JSON has no int type, so in transmital it becomes a double.  Handle the case here
+                    // Specifically using value.getAsJsonPrimitive().getAsNumber() does not work
+                    Double inum = value.getAsJsonPrimitive().getAsDouble();
+                    return new Integer(inum.intValue());
+                case LONG:
+                    Double lnum = value.getAsJsonPrimitive().getAsDouble();
+                    return new Integer(lnum.intValue());
+                case STRING:
+                    return value.getAsString();
+                case STRING_LIST:
+                    return getStringListFromJson(value);
+                case LOCATION:
+                    return getLocationFromJson(value);
+                case ENUM:
+                    return value.getAsString();
+                case URI:
+                    return value.getAsString();
+                case SNODE:
+                    return getSNodeFromJson(value);
+                case SNODE_LIST:
+                    return getSNodeListFromJson(value);
+                case VECTOR_3D:
+                    return getVector3dFromJson(value);
+                case AXIS_ANGLE_4D:
+                    return getAxisAngle4dFromJson(value);
+                case COLOR:
+                    return getColorFromJson(value);
+                case USERDEFINED:
+                    return getUserDefinedFromJson((JsonObject) value, (UserDefinedParameter) param);
+            }
+        } catch(Exception e) {
+            printf("Problem parsing: %s  val: %s  json: %s\n",param.getName(),value,value.getAsJsonPrimitive().getAsNumber().getClass());
+            e.printStackTrace();
+
+            throw new IllegalArgumentException(fmt("Invalid param value.  name: %s  val: %s\n",param.getName(),value));
         }
     }
 

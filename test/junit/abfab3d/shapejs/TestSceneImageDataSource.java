@@ -49,16 +49,16 @@ public class TestSceneImageDataSource extends TestCase {
     public void testBasic() throws IOException {
         int width = 64;
         int height = 64;
-
-        URI uri = new File("test/scripts/gyrosphere_params.js").toURI();
-        Script s = new Script(uri);
+        String scriptPath = "test/scripts/gyrosphere_params.js";
+        //URI uri = new File().toURI();
+        //Script s = new Script(uri);
 
         ScriptManager sm = ScriptManager.getInstance();
         String jobID = UUID.randomUUID().toString();
 
         HashMap<String, Object> params = new HashMap<String, Object>();
 
-        ScriptResources sr = sm.prepareScript(jobID, s, params);
+        ScriptResources sr = sm.prepareScript(jobID, scriptPath, params);
         sm.executeScript(sr);
         assertTrue("Eval failed", sr.evaluatedScript.isSuccess());
         Scene scene = (Scene)sr.evaluatedScript.getResult();

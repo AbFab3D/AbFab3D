@@ -253,7 +253,7 @@ public class TextUtil {
         if(DEBUG)printf("renderText(%d, %d, %s) \n", x,y, text);
 
         char ctext[] = text.toCharArray();
-        GlyphVector gv = font.layoutGlyphVector(g.getFontRenderContext(), ctext, 0, ctext.length, 0);
+        GlyphVector gv = font.layoutGlyphVector(g.getFontRenderContext(), ctext, 0, ctext.length,  Font.LAYOUT_LEFT_TO_RIGHT);
         double space = spacing*gv.getGlyphPosition(ctext.length).getX()/ctext.length;        
         for(int i = 0; i < ctext.length; i++){
             Point2D pnt = gv.getGlyphPosition(i);
