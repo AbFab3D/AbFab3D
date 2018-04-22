@@ -48,6 +48,8 @@ public class STLWriter implements TriangleCollector {
     private boolean triCountWritten = false;
 
     Vector3d defaultNormal = new Vector3d(0.,0.,0.);
+    private boolean generateNormals = false;
+
     OutputStream m_output; 
     int m_triCount = 0;
     FileOutputStream m_fileStream;
@@ -55,6 +57,10 @@ public class STLWriter implements TriangleCollector {
 
     boolean isOpened = false; // if output file is opened
     boolean osPassedIn = false;  // don't close streams passed in
+
+    // scratch vars for normal generation
+    private Vector3d vecba = new Vector3d();
+    private Vector3d vecca = new Vector3d();
 
     static void writeInt4(OutputStream out, int value) throws IOException{
         
@@ -178,6 +184,10 @@ public class STLWriter implements TriangleCollector {
         writeInt4(m_output, 0);
     }
 
+    public void setGenerateNormals(boolean val) {
+        generateNormals = val;
+    }
+
     public void finalize(){
         try {
             if(isOpened){
@@ -217,7 +227,19 @@ public class STLWriter implements TriangleCollector {
         try {
             m_triCount++;
 
-            writeVector(m_output, defaultNormal);
+            if (generateNormals) {
+                // Not all STL readers handle 0,0,0 normals so calculate it.
+                // n := normalize(cross(B-A, C-A))
+                // a = v0, b = v1, c = v2
+                vecba.sub(v1,v0);
+                vecca.sub(v2,v0);
+                vecba.cross(vecba,vecca);
+                vecba.normalize();
+
+                writeVector(m_output, vecba);
+            } else {
+                writeVector(m_output, defaultNormal);
+            }
             writeVector(m_output, v0);
             writeVector(m_output, v1);
             writeVector(m_output, v2);
