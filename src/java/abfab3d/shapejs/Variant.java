@@ -133,7 +133,14 @@ public class Variant  {
             printScriptError(sr);
             throw new RuntimeException(fmt("failed to prepare script", aspath));
         }
-        
+
+        try {
+            // Reset the params to their default value
+            m_sm.resetParams(m_jobID);
+        } catch(NotCachedException nce) {
+            // ignore
+        }
+
         if (DEBUG) printParamsMap("after first prepareScript", paramMap);
         Map<String, Parameter> scriptParams = sr.getParams();
         ParamJson.getParamValuesFromJson(oparams, scriptParams);

@@ -252,7 +252,7 @@ public class GridSaver {
                 mesh = getMesh(grid);
                 STLWriter stl = new STLWriter(outFile);
                 String OS = System.getProperty("os.name").toLowerCase();
-                printf("OS is: %s\n",OS);
+
                 if (OS.indexOf("mac") != -1) {
                      stl.setGenerateNormals(true);
                 }
@@ -296,7 +296,7 @@ public class GridSaver {
             case TYPE_STL:
                 STLWriter stl = new STLWriter(os, mesh.getTriangleCount());
                 String OS = System.getProperty("os.name").toLowerCase();
-                printf("OS is: %s\n",OS);
+
                 if (OS.indexOf("mac") != -1) {
                     stl.setGenerateNormals(true);
                 }
