@@ -294,6 +294,7 @@ public class ShapeJSGlobal {
         globals.put("IN", Units.IN);
         globals.put("FT", Units.FT);
         globals.put("PI", Math.PI);
+        globals.put("PT", Units.PT);
         globals.put("TORADIANS", Units.TORADIANS);
         globals.put("TODEGREE", Units.TODEGREE);
 
