@@ -12,19 +12,29 @@
 
 package abfab3d.util;
 import java.awt.*;
+
+import javax.imageio.ImageIO;
+import java.io.File;
+
 import java.awt.image.BufferedImage;
 import java.awt.geom.Point2D;
 import java.awt.font.GlyphVector;
 import java.awt.font.TextLayout;
 import java.awt.font.TextAttribute;
+import java.awt.font.FontRenderContext;
 import java.awt.BasicStroke;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.AffineTransform;
+
 import java.util.HashSet;
 import java.util.Hashtable;
 
+import static java.lang.Math.floor;
+import static java.lang.Math.ceil;
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
+
 
 /**
  * 
@@ -276,6 +286,168 @@ public class TextUtil {
     }
 
 
+    
+    public static void getKerning(Graphics2D g,  Font font, String text, double spacing, double resolution, double x, double y) {
+                
+        if(DEBUG)printf("getKerning(%s) \n", text);
+        double halfWidth = spacing/2;
+        char ctext[] = text.toCharArray();
+        
+        //GlyphVector gv = font.createGlyphVector(g.getFontRenderContext(), ctext);
+        GlyphVector gv = font.layoutGlyphVector(g.getFontRenderContext(), ctext, 0, ctext.length, 0);
+
+        Rectangle2D textRect = gv.getVisualBounds(); 
+        if(true)printf("textRect: [x:%5.1f y:%5.1f w:%5.1f h:%5.1f]\n", 
+                       textRect.getX(),textRect.getY(),textRect.getWidth(), textRect.getHeight());
+
+
+        //double posx = textRect.getX(), posy = 0;
+        double posx = 0, posy = y;
+
+        for(int i = 0; i < ctext.length; i++){
+            Point2D pnt = gv.getGlyphPosition(i);            
+            Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();            
+            rect = getExpandedRect(rect, halfWidth);
+            //g.draw(rect);
+            double xr = posx + rect.getX();
+            double yr = rect.getY();
+            
+            g.setColor(Color.blue);
+            //g.draw(new Rectangle2D.Double(posx, rect.getY()+y, rect.getWidth(),rect.getHeight()));
+            //g.draw(new Rectangle2D.Double(posx+x, y+rect.getY(), rect.getWidth(),rect.getHeight()));
+            posy = rect.getY();
+            g.setColor(Color.red);
+            double r = 4;
+            Point2D pos = gv.getGlyphPosition(i); 
+
+
+            printf("%d(%c):[(%5.1f,%5.1f);[(%5.1f,%5.1f); %5.1f x %5.1f]\n",
+                   i, ctext[i],xr,yr, rect.getX(),rect.getY(),rect.getWidth(),rect.getHeight());   
+            Point2D gp = new Point2D.Double(posx+(pos.getX() - rect.getX()),0);
+            gv.setGlyphPosition(i, gp); 
+
+            fillCircle(g, x+gp.getX(),y+gp.getY(), r);
+
+            
+            posx += rect.getWidth();
+            
+        }
+
+        //AffineTransform trans = new AffineTransform();
+        //trans.translate(x,y);
+        //g.setTransform(trans);
+
+                
+        g.setColor(Color.BLACK);
+
+        g.drawGlyphVector(gv, (float)x,(float)y);
+        
+        g.setColor(Color.blue);        
+        drawCircle(g,x,y,8);
+        
+        BasicStroke outlineStroke = new BasicStroke((float)spacing, BasicStroke.CAP_ROUND,  	BasicStroke.JOIN_ROUND);
+        g.setStroke(outlineStroke);
+        g.setColor(Color.gray);
+        Shape textOutline = gv.getOutline();
+        AffineTransform at = new AffineTransform();
+        at.translate(x,y);
+        g.setTransform(at);
+        g.draw(textOutline);
+        
+        g.setColor(Color.BLACK);
+        g.drawGlyphVector(gv, 0,0);
+        //g.setTransform(savedTransform);
+        double margin = 1; // margin around glyphs 
+        for(int i = 0; i < ctext.length; i++){
+            Point2D gp = gv.getGlyphPosition(i);
+            Shape gs = gv.getGlyphOutline(i);
+            Rectangle2D srect = getExpandedRect(gs.getBounds(), halfWidth+margin);
+            printf("srect:[%5.1f,%5.1f; %5.1f x %5.1f]\n",srect.getX(),srect.getY(),srect.getWidth(),srect.getHeight());
+            Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();            
+            g.setColor(Color.blue);
+            g.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND,  	BasicStroke.JOIN_ROUND));
+            g.draw(srect);
+            g.setStroke(outlineStroke);  
+            g.setColor(Color.gray);
+            g.draw(gs);
+            g.setColor(Color.black);
+            g.fill(gs);            
+            g.setColor(Color.red);
+            fillCircle(g, gp.getX(),gp.getY(), 5);
+
+            Grid2D gg = getShapeOutline(gs, srect, outlineStroke);
+            
+            if (true) {
+                try {
+                    ImageIO.write(Grid2DtoImage.getARGBImage(gg), "png", new File(fmt("/tmp/kerning_%02d.png",i)));
+                } catch(Exception e){
+                    e.printStackTrace();
+                }           
+                
+            }
+        }
+
+    }
+
+    static final void fillCircle(Graphics2D g, double x, double y, double r){
+        g.fill(new Ellipse2D.Double(x-r,y-r,2*r,2*r));
+    }
+
+    static final void drawCircle(Graphics2D g, double x, double y, double r){
+        g.draw(new Ellipse2D.Double(x-r,y-r,2*r,2*r));
+    }
+
+    static Rectangle2D getExpandedRect(Rectangle2D rect, double width){
+        return new Rectangle2D.Double(rect.getX()-width,rect.getY()-width, rect.getWidth() + 2*width, rect.getHeight() + 2*width);
+    }
+
+    //
+    // draw shape into given rectangle using stroke 
+    //
+    static Grid2D getShapeOutline(Shape shape, Rectangle2D rect, Stroke stroke){
+        
+        roundRect(rect, 1.);
+
+        int width = (int)(rect.getWidth());
+        int height = (int)(rect.getHeight());
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = (Graphics2D)image.getGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        g.setColor(Color.white);
+        g.fill(new Rectangle2D.Double(0,0,width, height));
+        AffineTransform at = new AffineTransform();
+        at.translate(-rect.getX(),-rect.getY());
+        g.setTransform(at);                
+        g.setColor(Color.black);
+        g.setStroke(stroke);
+        g.draw(shape);
+        
+        double x0 = rect.getX();
+        double x1 = rect.getX() + rect.getWidth();
+        double y0 = rect.getY();
+        double y1 = rect.getY() + rect.getHeight();
+        double z0 = 0;
+        double z1 = 1;
+
+        return ImageToGrid2D.makeGrid(image, true, new Bounds(x0, x1, y0, y1, z0, z1));
+        
+    }
+
+    /**
+       expand rectangle to the nearest voxel boundary
+       @return rounder rect 
+     */
+    public static void roundRect(Rectangle2D rect, double voxelSize){
+
+        double x0 = voxelSize*floor(rect.getX()/voxelSize);
+        double y0 = voxelSize*floor(rect.getY()/voxelSize);
+        double x1 = voxelSize*ceil((rect.getX() + rect.getWidth())/voxelSize);
+        double y1 = voxelSize*ceil((rect.getY() + rect.getHeight())/voxelSize);
+        rect.setFrameFromDiagonal(x0,y0, x1,y1);
+        
+    }
+
     /**
      *  returns transformation, which transforms rectIn into rectOut
      *  optionally it preserves aspect ratio 
@@ -428,7 +600,8 @@ public class TextUtil {
         double ty = rect.getHeight();
         double textHeight = (height-(insets.top + insets.bottom));
         if(textHeight <= 0)
-            throw new IllegalArgumentException(fmt("negative textHeight: %7.3f  height: %7.3f insets.top:  %7.3f  insets.bottom: %7.3f", textHeight, height, insets.top, insets.bottom));
+            throw new IllegalArgumentException(fmt("negative textHeight: %7.3f  height: %7.3f insets.top:  %7.3f  insets.bottom: %7.3f", 
+                                                   textHeight, height, insets.top, insets.bottom));
         double textWidth = textHeight * tx / ty + (insets.left + insets.right);
 
         return textWidth;
