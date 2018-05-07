@@ -23,5 +23,5 @@ import java.io.*;
  * @author Alan Hudson
  */
 public interface URLHandler {
-    public Object parse(Reader r, String basedir, Scriptable scopeΩ) throws IOException;
+    public Object parse(Reader r, String basedir, Scriptable scope) throws IOException;
 }
