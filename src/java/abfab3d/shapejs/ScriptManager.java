@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.time;
 
@@ -601,6 +602,57 @@ public class ScriptManager {
             return cache.get(jobID);
         } catch (ExecutionException ee) {
             throw new NotCachedException();
+        }
+    }
+
+    /**
+     * Lock a jobID.  Used to serialize operations to a job
+     * @param jobID
+     */
+    public ScriptResources lockJobID(String jobID) throws NotCachedException {
+        try {
+            ScriptResources sr = cache.get(jobID);
+
+            // If your trying to lock something that doesn't exist just return
+            if (sr == null) return null;
+
+            if (!sr.locked) {
+                sr.locked = true;
+
+                return sr;
+            }
+
+            // busy weight
+            long timeout = 180000;
+            long t0 = time();
+            while(time() - t0 < timeout) {
+                try { Thread.sleep(10); } catch(InterruptedException ie) {}
+
+                sr = cache.get(jobID);
+                if (!sr.locked) {
+                    sr.locked = true;
+
+                    return sr;
+                }
+            }
+
+            // failed to get lock.  Restart the whole system
+            printf(fmt("Cannot get jobID lock: %s, exiting.",jobID));
+            System.out.flush();
+            System.exit(-1);
+        } catch (ExecutionException ee) {
+            throw new NotCachedException();
+        }
+
+        return null;
+    }
+
+    public void unlockJobID(String jobID) {
+        try {
+            ScriptResources sr = cache.get(jobID);
+            sr.locked = false;
+        } catch (ExecutionException ee) {
+            // Silently ignore unlocking of non existant jobs
         }
     }
 
