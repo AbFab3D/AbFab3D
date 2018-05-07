@@ -436,9 +436,9 @@ public class ScriptManager {
 
                     if (uriMapper != null) {
                         URIMapper.MapResult mr = uriMapper.mapURI(urlStr);
+                        if (DEBUG) printf("Orig url: %s --> Mapped url: %s  sensitive: %b\n",urlStr,mr.uri,mr.sensitiveData);
                         urlStr = mr.uri;
 
-                        if (DEBUG) printf("Mapped url: %s  sensitive: %b\n",urlStr,mr.sensitiveData);
                         if (mr.sensitiveData) {
                             resources.sensitiveData = true;
                         }
@@ -561,7 +561,9 @@ public class ScriptManager {
                             		throw new IllegalArgumentException("Invalid uri file: " + urlStr);
                             	}
 
-                            	// Relative url file does not exist
+                                printf("Adding base dir: %s to: %s == %s\n",baseDir,urlStr,f.getAbsolutePath());
+
+                                // Relative url file does not exist
                             	if (!f.exists()) {
                             		printf("Uri file does not exist: %s\n", f.getAbsolutePath());
                             		throw new IllegalArgumentException("Uri file does not exist: " + urlStr);

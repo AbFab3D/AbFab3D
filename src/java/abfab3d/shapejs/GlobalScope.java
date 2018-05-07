@@ -69,7 +69,7 @@ public class GlobalScope extends ImporterTopLevel
         initStandardObjects(cx, sealedStdLib);
 
         if (globals == null) {
-            globals = new ShapeJSGlobal();
+            globals = new ShapeJSGlobal(basedir,this);
         }
 
         // Initialize AbFab3D specific globals
@@ -83,9 +83,7 @@ public class GlobalScope extends ImporterTopLevel
         }
 
         if (basedir != null) {
-            // TODO: This needs to be the parentDir of the loaded project
             ArrayList<String> modules = new ArrayList<>();
-            //URI uri = new File(System.getProperty("user.dir") + "/scripts/project").toURI();
 
             URI uri = new File(basedir).toURI();
 

@@ -23,11 +23,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.sun.corba.se.impl.ior.NewObjectKeyTemplateBase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -95,8 +97,9 @@ public class Variant  {
      */
     public int readDesign(String basedir,String path) throws IOException, NotCachedException {
 
-        if (DEBUG) printf("ShapeJSDesingn.readDesign(%s)\n", path);
+        if (DEBUG) printf("ShapeJSDesign.readDesign(%s)\n", path);
         clearMessages();
+
         File file = new File(path);
         String design = FileUtils.readFileToString(file);
 
@@ -127,8 +130,89 @@ public class Variant  {
 
         script = FileUtils.readFileToString(new File(aspath));
         ScriptResources sr;
+
         sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap);
         
+        if (!sr.evaluatedScript.isSuccess()) {
+            printScriptError(sr);
+            throw new RuntimeException(fmt("failed to prepare script", aspath));
+        }
+
+        try {
+            // Reset the params to their default value
+            m_sm.resetParams(m_jobID);
+        } catch(NotCachedException nce) {
+            // ignore
+        }
+
+
+        if (DEBUG) printParamsMap("after first prepareScript", paramMap);
+        Map<String, Parameter> scriptParams = sr.getParams();
+        ParamJson.getParamValuesFromJson(oparams, scriptParams);
+        Map<String, Object> uriParams = resolveURIParams(file, sr.getParams());
+        //
+
+        // this needed for params conversion
+        
+        // Don't reprocess uri parameters with relative path
+        boolean skipRelativePath = true;
+
+        sr = m_sm.updateParams(m_jobID, uriParams, skipRelativePath);
+        sr = m_sm.executeScript(sr);
+
+        if (!sr.evaluatedScript.isSuccess()) {
+            printScriptError(sr);
+            throw new RuntimeException(fmt("failed to execute script", aspath));
+        }
+        m_designPath = path;
+        m_scriptPath = aspath;
+        m_evaluatedScript = sr.evaluatedScript;
+        m_scene = m_evaluatedScript.getResult();
+        return ResultCodes.RESULT_OK;
+
+    }
+
+    /**
+     * read design file (in JSON format)
+     *
+     * @return Result.SUCCESS
+     */
+    public int readDesign(String basedir,String variantdir,Reader design) throws IOException, NotCachedException {
+
+        clearMessages();
+
+        File file = new File(variantdir);
+
+        JsonParser parser = new JsonParser();
+        JsonObject obj = parser.parse(design).getAsJsonObject();
+        Object spathObj = obj.get(SCRIPT_PATH);
+        if (spathObj == null) throw new IllegalArgumentException("Variant missing scriptPath");
+        String spath = obj.get(SCRIPT_PATH).getAsString();
+        JsonObject oparams = obj.get(SCRIPT_PARAMS).getAsJsonObject();
+        if (DEBUG) printf("script path: %s\n", spath);
+        if (DEBUG) printf("params: %s\n", oparams);
+        if (spath == null) {
+            m_scriptPath = null;
+            throw new RuntimeException("scriptPath is undefined");
+        }
+        if (oparams == null) {
+            throw new RuntimeException("script params undefined");
+        }
+
+        String aspath = resolvePath(file, new File(spath));
+
+        // load fresh script, to reset params default values
+
+        if (DEBUG) printf("reading new script:%s\n", aspath);
+
+        // empty param map
+        LinkedHashMap<String, Object> paramMap = new LinkedHashMap<>();
+
+        script = FileUtils.readFileToString(new File(aspath));
+        ScriptResources sr;
+
+        sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap);
+
         if (!sr.evaluatedScript.isSuccess()) {
             printScriptError(sr);
             throw new RuntimeException(fmt("failed to prepare script", aspath));
@@ -148,9 +232,9 @@ public class Variant  {
         //
 
         // this needed for params conversion
-        
+
         // Don't reprocess uri parameters with relative path
-        boolean skipRelativePath = true;  
+        boolean skipRelativePath = true;
         sr = m_sm.updateParams(m_jobID, uriParams, skipRelativePath);
         sr = m_sm.executeScript(sr);
 
@@ -158,7 +242,7 @@ public class Variant  {
             printScriptError(sr);
             throw new RuntimeException(fmt("failed to execute script", aspath));
         }
-        m_designPath = path;
+        m_designPath = NEW_DESIGN;
         m_scriptPath = aspath;
         m_evaluatedScript = sr.evaluatedScript;
         m_scene = m_evaluatedScript.getResult();
@@ -272,7 +356,7 @@ public class Variant  {
         Map<String, Parameter> params = sr.getParams();
 
         Map<String, Object> uriParams = resolveURIParams(fpath, params);
-        printf("uriParams: %s\n", uriParams);
+
         if (uriParams.size() > 0) {
             sr = m_sm.prepareScript(m_jobID, null,(String) null, uriParams);
         }
@@ -656,9 +740,11 @@ public class Variant  {
     }
 
     //
-    // resolve relative pathes to absolute
+    // resolve relative paths to absolute
     //
     static Map<String, Object> resolveURIParams(File parentFile, Map<String, Parameter> params) {
+
+        printf("Resolvong URI params.  parent: %s\n",parentFile.getAbsoluteFile());
 
         HashMap<String, Object> ret_val = new HashMap<>();
 
