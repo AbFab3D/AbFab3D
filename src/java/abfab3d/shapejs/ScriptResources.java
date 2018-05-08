@@ -31,6 +31,7 @@ public class ScriptResources {
     public boolean sensitiveData = false;
     public boolean sensitiveScript = false;
     public String baseDir;
+    public volatile boolean locked;
 
 
     public ScriptResources() {

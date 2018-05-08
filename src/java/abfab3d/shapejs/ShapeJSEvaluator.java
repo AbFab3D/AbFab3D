@@ -394,6 +394,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 }
 
                 scope = new ModuleScope(gs, uri, null);
+                scope.defineProperty("SHAPEJS_BASEDIR",basedir,0);
             }
 
             if (script == null && this.script == null) {
@@ -695,7 +696,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
         NativeObject argsMap = new NativeObject();
 
         for (Parameter p : defs.values()) {
-            Object jo = convParameterToJSObject(p);
+            Object jo = convParameterToJSObject(scope,p);
 
             if (jo != null) {
                 if (DEBUG) printf("Adding arg: %s -> %s\n", p.getName(), jo);
@@ -712,7 +713,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
      * @param param
      * @return The object to use at the Javascript level
      */
-    private Object convParameterToJSObject(Parameter param) {
+    public static Object convParameterToJSObject(Scriptable scope,Parameter param) {
         Object jsVal = null;
 
         switch (param.getType()) {
@@ -764,7 +765,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 NativeObject result = new NativeObject();
                 Map<String,Parameter> props = udp.getProperties();
                 for(Map.Entry<String,Parameter> p : props.entrySet()) {
-                    result.defineProperty(p.getKey(),convParameterToJSObject(p.getValue()),0);
+                    result.defineProperty(p.getKey(),convParameterToJSObject(scope,p.getValue()),0);
                 }
                 jsVal = result;
                 break;

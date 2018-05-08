@@ -48,47 +48,52 @@ public class Units{
                 mval = val;
                 break;
             case CM:
-                mval = val / CM;
+                mval = val * CM;
                 break;
             case MM:
-                mval = val / MM;
+                mval = val * MM;
                 break;
             case M2:
                 mval = val;
                 break;
             case CM2:
-                mval = val / CM2;
+                mval = val * CM2;
+                break;
+            case MM2:
+                mval = val * MM2;
                 break;
             case M3:
                 mval = val;
                 break;
             case MM3:
-                mval = val / MM3;
+                mval = val * MM3;
                 break;
             case CM3:
-                mval = val / CM3;
+                mval = val * CM3;
                 break;
-            default: throw new IllegalArgumentException("Unsupported unit: " + inUnit);
+            default: throw new IllegalArgumentException("Unsupported in unit: " + inUnit);
         }
 
         switch(outUnit) {
             case M:
                 return mval;
             case CM:
-                return mval * CM;
+                return mval / CM;
             case MM:
-                return mval * MM;
+                return mval / MM;
             case M2:
                 return mval;
             case CM2:
-                return mval * CM2;
+                return mval / CM2;
+            case MM2:
+                return mval / MM2;
             case M3:
                 return mval;
             case MM3:
-                return mval * MM3;
+                return mval / MM3;
             case CM3:
-                return mval * CM3;
-            default: throw new IllegalArgumentException("Unsupported unit: " + inUnit);
+                return mval / CM3;
+            default: throw new IllegalArgumentException("Unsupported out unit: " + outUnit);
         }
     }
 }

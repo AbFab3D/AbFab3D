@@ -79,8 +79,8 @@ import java.awt.Font;
 import java.io.*;
 
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.text.NumberFormat;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -104,6 +104,7 @@ public class ShapeJSGlobal {
     public static final boolean CACHE_URLS = true;
     public static final int MAX_TIME = 120 * 1000;
 
+    public static final String SHAPEJS_BASEDIR_PROP = "SHAPEJS_BASEDIR";
     public static final String SMOOTHING_WIDTH_VAR = "meshSmoothingWidth";
     public static final String ERROR_FACTOR_VAR = "meshErrorFactor";
     public static final String MESH_MIN_PART_VOLUME_VAR = "meshMinPartVolume";
@@ -148,6 +149,10 @@ public class ShapeJSGlobal {
     private static HashMap<String,URLHandler> contentHandlers = new HashMap<String, URLHandler>();
     private static HTTPRequester httpRequester;
 
+    private static final HashMap<String,String> extToMime;
+    private String basedir;
+    private GlobalScope globalScope;
+
     static {
         if (!CACHE_URLS) {
             printf("*** ShapeJSGlobal caching turned off\n");
@@ -160,6 +165,56 @@ public class ShapeJSGlobal {
 
         urlCache = new FileDiskCache(loc + "url");
         BufferDiskCache gpuCache = BufferDiskCache.getInstance(DEFAULT_SIZE,loc + "buffer",false, true);
+
+        extToMime = new HashMap<>();
+        extToMime.put("json","application/json");
+        extToMime.put("shapevar","application/shapevar");
+        extToMime.put("png","image/png");
+        extToMime.put("jpg","image/jpeg");
+        extToMime.put("jpeg","image/jpeg");
+
+        addContentHandler("application/json",new JSONHandler());
+        addContentHandler("application/shapevar",new ShapeVariantHandler());
+    }
+
+    static {
+        modelDistanceCache = CacheBuilder.newBuilder()
+                .softValues()
+                .expireAfterAccess(24 * 60, TimeUnit.MINUTES)
+                .removalListener(new ModelDistanceCacheEntry())
+                .build(
+                        new CacheLoader<String, ModelDistanceCacheEntry>() {
+                            public ModelDistanceCacheEntry load(String key) throws ExecutionException {
+                                throw new ExecutionException(new IllegalArgumentException("Can't load key: " + key));
+                            }
+
+                        });
+
+        urlToFileCache = new ConcurrentHashMap<String, URLToFileCacheEntry>();
+        fileToUrlCache = new ConcurrentHashMap<String, String>();
+    }
+
+    public ShapeJSGlobal(String basedir, GlobalScope scope) {
+        globals.put("MM", Units.MM);
+        globals.put("MM3", Units.MM3);
+        globals.put("CM", Units.CM);
+        globals.put("CM3", Units.CM3);
+        globals.put("IN", Units.IN);
+        globals.put("FT", Units.FT);
+        globals.put("PT", Units.PT);
+        globals.put("PI", Math.PI);
+        globals.put("TORADIANS", Units.TORADIANS);
+        globals.put("TODEGREE", Units.TODEGREE);
+
+        globals.put(ERROR_FACTOR_VAR, errorFactorDefault);
+        globals.put(SMOOTHING_WIDTH_VAR, smoothingWidthDefault);
+        globals.put(MESH_MIN_PART_VOLUME_VAR, minimumVolumeDefault);
+        globals.put(MESH_MAX_PART_COUNT_VAR, maxPartsDefault);
+        globals.put(MESH_MAX_TRI_COUNT_VAR, maxTriCountDefault);
+
+        globals.put("console", new Console());
+        this.basedir = basedir;
+        this.globalScope = scope;
     }
 
     public static void configureURLCacheDir(String dir, long maxSize) {
@@ -245,67 +300,17 @@ public class ShapeJSGlobal {
         return outputFileName;
     }
 
-    /*
-    public static void setErrorFactor(double value){
-        errorFactor = value;
-    }
-
-    public static void setMaxDecimationCount(int value){
-        maxDecimationCount = value;
-    }
-
-    public static void setSmoothingWidth(double value){
-        smoothingWidth = value;
-    }
-    */
     private static String[] globalFunctionsSecure = {
-            "load", "loadImage", "getModelBounds", "loadModelDistance", "loadModelDensity", "loadFont", "createGrid", "writeTree", "print", "loadURL"
+            "load", "loadImage", "getModelBounds", "loadModelDistance", "loadModelDensity", "loadFont", "createGrid", "writeTree", "print", "loadURL","loadUrl"
     };       // "writeImage" as debug
 
 
     private static String[] globalFunctionsAll = {
-            "load", "loadImage", "getModelBounds", "loadModelDistance", "loadModelDensity", "loadFont", "createGrid", "writeAsMesh", "writeAsSVX", "writeTree", "print", "loadURL"
+            "load", "loadImage", "getModelBounds", "loadModelDistance", "loadModelDensity", "loadFont", "createGrid", "writeAsMesh", "writeAsSVX", "writeTree", "print", "loadURL", "loadUrl"
     };  // "writeImage"
 
     private HashMap<String, Object> globals = new HashMap<String, Object>();
 
-    static {
-        modelDistanceCache = CacheBuilder.newBuilder()
-                .softValues()
-                .expireAfterAccess(24 * 60, TimeUnit.MINUTES)
-                .removalListener(new ModelDistanceCacheEntry())
-                .build(
-                        new CacheLoader<String, ModelDistanceCacheEntry>() {
-                            public ModelDistanceCacheEntry load(String key) throws ExecutionException {
-                                throw new ExecutionException(new IllegalArgumentException("Can't load key: " + key));
-                            }
-
-                        });
-
-        urlToFileCache = new ConcurrentHashMap<String, URLToFileCacheEntry>();
-        fileToUrlCache = new ConcurrentHashMap<String, String>();
-    }
-
-    public ShapeJSGlobal() {
-        globals.put("MM", Units.MM);
-        globals.put("MM3", Units.MM3);
-        globals.put("CM", Units.CM);
-        globals.put("CM3", Units.CM3);
-        globals.put("IN", Units.IN);
-        globals.put("FT", Units.FT);
-        globals.put("PI", Math.PI);
-        globals.put("TORADIANS", Units.TORADIANS);
-        globals.put("TODEGREE", Units.TODEGREE);
-
-        globals.put(ERROR_FACTOR_VAR, errorFactorDefault);
-        globals.put(SMOOTHING_WIDTH_VAR, smoothingWidthDefault);
-        globals.put(MESH_MIN_PART_VOLUME_VAR, minimumVolumeDefault);
-        globals.put(MESH_MAX_PART_COUNT_VAR, maxPartsDefault);
-        globals.put(MESH_MAX_TRI_COUNT_VAR, maxTriCountDefault);
-
-        globals.put("console", new Console());
-
-    }
 
     public String[] getFunctions() {
         if (isLocalRun)
@@ -859,6 +864,10 @@ public class ShapeJSGlobal {
             }
         }
 
+        File f = new File(filename);
+        if (!f.exists()) {
+            filename = thisObj.get(SHAPEJS_BASEDIR_PROP,thisObj) + File.separator + filename;
+        }
         ImageLoader reader = new ImageLoader(filename);
         int w = reader.getWidth();
         int h = reader.getHeight();
@@ -869,6 +878,7 @@ public class ShapeJSGlobal {
         ImageToGrid2D conv = new ImageToGrid2D(reader);
 
         Scriptable ret_val = (Scriptable) cx.javaToJS(conv, thisObj);
+
         return ret_val;
 
     }
@@ -947,8 +957,242 @@ public class ShapeJSGlobal {
         return ret_val;
     }
     */
+
     /**
-     * js function to load urls
+     * js function to load urls. Input is a map of options.  Currently supported options are:
+     *    url - url to load.  Relative paths will be resolved to the projects base dir
+     *    method - HTTP method.  GET,POST supported currently
+     *    mimetype - The mimetype to request.  "raw" will return the raw unparsed response as a string
+     *    headers - array of strings passed directly to request
+     *    user - username to use for basic auth
+     *    password - password to use for basic auth
+     *    timeout - timeout in ms
+     *
+     * returns a map:
+     *    statusCode - http status code
+     *    reason - explanation of error code response
+     *    response - The response as the requested object(by mimetype) or the raw string
+     *    contentType - The type of the response object
+     *
+     * TODO: We should add caching to this but need to respect last modified times.
+     *
+     */
+    public static Object loadUrl(Context cx, Scriptable thisObj,
+                                 Object[] args, Function funObj) {
+
+        long t0 = time();
+        if (args.length < 1) {
+            throw Context.reportRuntimeError(
+                    "No args provided for loadUrl() command");
+        }
+
+        Map<String,Object> argsMap = (Map<String,Object>) (args[0]);
+
+        String url = Context.toString(argsMap.get("url"));
+        String method = Context.toString(argsMap.get("method"));
+        String mimetype = Context.toString(argsMap.get("mimetype"));
+
+        if (url == null || url.length() == 0) {
+            throw Context.reportRuntimeError("No url provided for loadUrl() command");
+        }
+
+        int TIMEOUT = 180000;
+        if (argsMap.get("timeout") != null) {
+            String st = Context.toString(argsMap.get("timeout"));
+            try {
+                NumberFormat nf = NumberFormat.getInstance();
+                TIMEOUT = nf.parse(st).intValue();
+            } catch(Exception e) {
+                throw Context.reportRuntimeError("Invalid timeout: " + st);
+            }
+        }
+
+        String USER = (String) argsMap.get("user");
+        String PASSWORD = (String) argsMap.get("password");
+        Map<String, String> headers = new HashMap<String, String>();
+
+        if (argsMap.get("headers") != null) {
+            headers.putAll((Map)argsMap.get("headers"));
+        }
+
+        if (!url.startsWith("http")) {
+            // Assume local reference, we currently don't handle other protocols
+            if (url.contains("..")) {
+                printf("Attempt to hack loadURL: %s\n",url);
+                NativeObject ret = new NativeObject();
+                ret.defineProperty("statusCode",400,0);
+                ret.defineProperty("reason","Relative urls not allowed",0);
+
+                return ret;
+            }
+
+            // TODO: Need to handle project basedir.  Not sure how to yet.
+            File f = new File(url);
+
+            if (!f.exists()) {
+                url = thisObj.get(SHAPEJS_BASEDIR_PROP,thisObj) + File.separator + url;
+
+                f = new File(url);
+
+                if (!f.exists()) {
+                    printf("loadUrl failed no file: %s\n", url);
+                    NativeObject ret = new NativeObject();
+                    ret.defineProperty("statusCode", 404, 0);
+                    ret.defineProperty("reason", fmt("Request file: %s does not exist", url), 0);
+                    return ret;
+                }
+            };
+
+            try {
+                FileReader r = new FileReader(f);
+                String respSt = IOUtils.toString(r);
+                StringReader sr = new StringReader(respSt);
+
+                String respMime = getMimeTypeByExtension(mimetype, FilenameUtils.getExtension(url));
+
+                // We need to guess mimetype by extension
+                String basedir = (String) thisObj.get(SHAPEJS_BASEDIR_PROP,thisObj);
+
+                Object resp = handleContent(sr,respMime,thisObj,basedir);
+
+                NativeObject ret = new NativeObject();
+                ret.defineProperty("statusCode",200,0);
+                ret.defineProperty("response",resp,0);
+                return ret;
+            } catch(Exception e) {
+                e.printStackTrace();
+                NativeObject ret = new NativeObject();
+                ret.defineProperty("statusCode",400,0);
+                ret.defineProperty("reason",e.getMessage(),0);
+                return ret;
+            }
+        } else {
+            try {
+                URL purl = new URL(url);
+                String host = purl.getHost();
+
+                URLStats stats = loading.get(host);
+                if (stats == null) {
+                    stats = new URLStats();
+                }
+
+                if (System.currentTimeMillis() - stats.lastLoad > LUR_WINDOW) {
+                    stats.attempts = 0;
+                }
+                int factor = (int) Math.floor(stats.attempts / LUR_PERIOD);
+                long delay = LUR_DELAY * factor;
+                if (delay > 0) {
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException ie) {
+                    }
+                }
+
+                long stime = System.currentTimeMillis();
+                while (stats.inUse == true) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException ie) {
+                    }
+                    if (System.currentTimeMillis() - stime > 20000) {
+                        return "{error:\"Timed out\"}";
+                    }
+                }
+
+                try {
+                    stats.inUse = true;
+                    stats.lastLoad = System.currentTimeMillis();
+                    stats.attempts++;
+
+                    if (httpRequester == null) throw new IllegalArgumentException("Ho HTTP Requester set, cannot download URL");
+
+                    HTTPRequester.Method reqMet = HTTPRequester.Method.GET;
+                    if (method.equalsIgnoreCase("POST")) reqMet = HTTPRequester.Method.POST;
+
+                    // TODO: This doesn't pass back the status codes or mime types
+                    String response = httpRequester.sendRequest(url, reqMet, null, null, headers,
+                            null, USER, PASSWORD, TIMEOUT, TIMEOUT, false);
+
+                    StringReader sr = new StringReader(response);
+
+                    String basedir = (String) thisObj.get(SHAPEJS_BASEDIR_PROP,thisObj);
+                    Object resp = handleContent(sr,"application/json",thisObj,basedir);
+
+                    NativeObject ret = new NativeObject();
+                    ret.defineProperty("statusCode",200,0);
+                    ret.defineProperty("response",resp,0);
+                    return ret;
+                } finally {
+                    stats.inUse = false;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * For local operations guess the mimetype by the extension.  If we don't know it assume the
+     * requested mimetype is right
+     * @param reqMime
+     * @param ext
+     * @return
+     */
+    private static String getMimeTypeByExtension(String reqMime, String ext) {
+        String mime = extToMime.get(ext);
+        if (mime == null) {
+            return reqMime;
+        }
+
+        return mime;
+    }
+
+    private static Object handleContent(Reader r, String mimetype, Scriptable thisObj, String basedir) throws IOException {
+        URLHandler handler = contentHandlers.get(mimetype);
+        if (handler != null) {
+            Object recs = handler.parse(r,basedir,thisObj);
+
+            recs = convertObjToJavascript(recs,thisObj);
+            return recs;
+        } else {
+            printf("loadUrl No handler for: %s\n",mimetype);
+            String resp = IOUtils.toString(r);
+
+            return resp;
+        }
+    }
+
+    // The built in Context.javaToJs doesn't seem to be working right for maps.  This method
+    // converts all maps to NativeObject.  This is a deep operation
+    private static Object convertObjToJavascript(Object obj, Scriptable thisObj) {
+        if (obj instanceof Map) {
+            NativeObject no = new NativeObject();
+            Map map = (Map) obj;
+            Set<Map.Entry> set = map.entrySet();
+
+            for(Map.Entry entry : set) {
+                //no.defineProperty((String)entry.getKey(),entry.getValue(),0);
+                Object co = convertObjToJavascript(entry.getValue(),thisObj);
+
+                no.defineProperty((String)entry.getKey(),co,0);
+            }
+            return no;
+        } else if (obj instanceof List) {
+            ArrayList ret = new ArrayList();
+            for(Object o : (List) obj) {
+                ret.add(convertObjToJavascript(o,thisObj));
+            }
+
+            return ret;
+        } else {
+            return Context.javaToJS(obj,thisObj);
+        }
+    }
+    /**
+     * js function to load urls. Old method will be removed someday
+     *
      * returns map of return value
      */
     public static Object loadURL(Context cx, Scriptable thisObj,
@@ -989,7 +1233,10 @@ public class ShapeJSGlobal {
             if (handler != null) {
                 try {
                     FileReader r = new FileReader(f);
-                    Object[] recs = handler.parse(r);
+                    String basedir = (String) thisObj.get(SHAPEJS_BASEDIR_PROP,thisObj);
+
+                    Object recs = handler.parse(r,basedir,thisObj);
+                    Context.javaToJS(recs,thisObj);
 
                     return recs;
                 } catch(Exception e) {
@@ -1046,16 +1293,7 @@ public class ShapeJSGlobal {
                     String response = httpRequester.sendRequest(url, HTTPRequester.Method.GET, null, null, headers,
                             null, USER, PASSWORD, TIMEOUT, TIMEOUT, false);
 
-                    respMap = gson.fromJson(response, Map.class);
-
-                    printf("Copying over properties");
-                    NativeObject no = new NativeObject();
-                    for (Map.Entry<String, Object> vals : respMap.entrySet()) {
-                        Object val = vals.getValue();
-                        printf("key: %s  val: %s\n", vals.getKey(), val);
-                        no.defineProperty(vals.getKey(), val, 0);
-                    }
-                    return no;
+                    return handleJSON(response, thisObj);
                 } finally {
                     stats.inUse = false;
                 }
@@ -1067,6 +1305,54 @@ public class ShapeJSGlobal {
         return null;
     }
 
+    /**
+     * Handle JSON responses.  The challenge here is how to parse generically.  Ie top level
+     * could be Object, List etc.
+     *
+     * @param response
+     * @return
+     */
+    private static Object handleJSON(String response, Scriptable thisObj) {
+        Gson gson = new Gson();
+        Exception e1 = null;
+
+        try {
+            // Try object mapping first
+            Map<String, Object> respMap = gson.fromJson(response, Map.class);
+
+            NativeObject no = new NativeObject();
+            for (Map.Entry<String, Object> vals : respMap.entrySet()) {
+                Object val = vals.getValue();
+                no.defineProperty(vals.getKey(), val, 0);
+            }
+
+            return respMap;
+        } catch(Exception e) {
+            e1 = e;
+        }
+
+        Exception e2 = null;
+
+        try {
+            Object obj = gson.fromJson(response,Object.class);
+            obj = Context.javaToJS(obj,thisObj);
+            return obj;
+        } catch (Exception e) {
+            e2 = e;
+        }
+
+        // If we got here we've failed to parse the JSON.
+        // Not sure how to safely return this to the caller
+        printf("Failed to parse JSON.  Exceptions:\n");
+        if (e1 != null) {
+            e1.printStackTrace();
+        }
+        if (e2 != null) {
+            e2.printStackTrace();
+        }
+
+        return null;
+    }
     /**
      * js function to load a font
      * returns BufferedImage
