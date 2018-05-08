@@ -59,7 +59,7 @@ public class Variant  {
 
     private String m_scriptPath = UNDEFINED;
     private String m_designPath = NEW_DESIGN;
-
+    private boolean m_sandboxed = true;
     private Parameterizable m_scene;
 
     EvaluatedScript m_evaluatedScript;
@@ -127,7 +127,7 @@ public class Variant  {
 
         script = FileUtils.readFileToString(new File(aspath));
         ScriptResources sr;
-        sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap);
+        sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap, m_sandboxed);
         
         if (!sr.evaluatedScript.isSuccess()) {
             printScriptError(sr);
@@ -254,7 +254,7 @@ public class Variant  {
         script = FileUtils.readFileToString(fpath);
 
         String basedir = FilenameUtils.getPath(path);
-        ScriptResources sr = m_sm.prepareScript(m_jobID, basedir,script, null);
+        ScriptResources sr = m_sm.prepareScript(m_jobID, basedir,script, null, m_sandboxed);
 
         if (!sr.evaluatedScript.isSuccess()) {
             if (DEBUG) printf("failed to prepareScript()\n");
@@ -267,7 +267,7 @@ public class Variant  {
         Map<String, Object> uriParams = resolveURIParams(fpath, params);
         printf("uriParams: %s\n", uriParams);
         if (uriParams.size() > 0) {
-            sr = m_sm.prepareScript(m_jobID, null,(String) null, uriParams);
+            sr = m_sm.prepareScript(m_jobID, null,(String) null, uriParams, m_sandboxed);
         }
         m_sm.executeScript(sr);
 
@@ -312,7 +312,7 @@ public class Variant  {
             Map<String, Parameter> oldParams = sr.getParams();
             Map<String, Object> oldValues = convParamsToObjects(oldParams);
 
-            sr = m_sm.prepareScript(m_jobID, null,script, null);
+            sr = m_sm.prepareScript(m_jobID, null,script, null, m_sandboxed);
 
             // reapply old values.  Removed values will be ignored
             m_sm.updateParams(m_jobID, oldValues);

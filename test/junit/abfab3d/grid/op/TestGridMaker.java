@@ -42,7 +42,7 @@ import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.core.Vec;
 import abfab3d.core.MathUtil;
-import abfab3d.util.TextUtil;
+import abfab3d.datasources.TextUtil;
 import abfab3d.util.Insets2;
 import abfab3d.util.Symmetry;
 import abfab3d.core.VecTransform;

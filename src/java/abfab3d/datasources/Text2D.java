@@ -54,7 +54,6 @@ import abfab3d.param.Parameter;
 
 import abfab3d.grid.op.SystemFontLoader;
 
-import abfab3d.util.TextUtil;
 import abfab3d.util.Insets2;
 
 import javax.imageio.ImageIO;

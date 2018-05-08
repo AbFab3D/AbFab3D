@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
+package abfab3d.datasources;
 import java.awt.*;
 
 import javax.imageio.ImageIO;
@@ -29,6 +29,13 @@ import java.awt.geom.AffineTransform;
 
 import java.util.HashSet;
 import java.util.Hashtable;
+
+import abfab3d.core.Grid2D;
+import abfab3d.core.Bounds;
+import abfab3d.grid.op.Grid2DtoImage;
+import abfab3d.grid.op.ImageToGrid2D;
+import abfab3d.util.Insets2;
+
 
 import static java.lang.Math.floor;
 import static java.lang.Math.ceil;
@@ -304,6 +311,7 @@ public class TextUtil {
         //double posx = textRect.getX(), posy = 0;
         double posx = 0, posy = y;
 
+        printf("glyph vector\n");
         for(int i = 0; i < ctext.length; i++){
             Point2D pnt = gv.getGlyphPosition(i);            
             Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();            
@@ -321,7 +329,7 @@ public class TextUtil {
             Point2D pos = gv.getGlyphPosition(i); 
 
 
-            printf("%d(%c):[(%5.1f,%5.1f);[(%5.1f,%5.1f); %5.1f x %5.1f]\n",
+            printf("glyph:%d(%c):[pos:(%5.1f,%5.1f); rect:[(%5.1f,%5.1f); %5.1f x %5.1f]\n",
                    i, ctext[i],xr,yr, rect.getX(),rect.getY(),rect.getWidth(),rect.getHeight());   
             Point2D gp = new Point2D.Double(posx+(pos.getX() - rect.getX()),0);
             gv.setGlyphPosition(i, gp); 
@@ -357,12 +365,13 @@ public class TextUtil {
         g.setColor(Color.BLACK);
         g.drawGlyphVector(gv, 0,0);
         //g.setTransform(savedTransform);
-        double margin = 1; // margin around glyphs 
+        double rectMargin = 2; // margin around glyphs 
+        printf("stacked rectangles\n");
         for(int i = 0; i < ctext.length; i++){
             Point2D gp = gv.getGlyphPosition(i);
             Shape gs = gv.getGlyphOutline(i);
-            Rectangle2D srect = getExpandedRect(gs.getBounds(), halfWidth+margin);
-            printf("srect:[%5.1f,%5.1f; %5.1f x %5.1f]\n",srect.getX(),srect.getY(),srect.getWidth(),srect.getHeight());
+            Rectangle2D srect = getExpandedRect(gs.getBounds(), halfWidth + rectMargin);
+            printf("exRect:[%5.1f,%5.1f; %5.1f x %5.1f]\n",srect.getX(),srect.getY(),srect.getWidth(),srect.getHeight());
             Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();            
             g.setColor(Color.blue);
             g.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND,  	BasicStroke.JOIN_ROUND));

@@ -141,8 +141,12 @@ public class ScriptManager {
         matMapper = mm;
     }
 
+    public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params, boolean sandboxed) {
+        return prepareScript(jobID,null,script,params, sandboxed);
+    }
+
     public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params) {
-        return prepareScript(jobID,null,script,params);
+        return prepareScript(jobID,null,script,params, true);
     }
 
     /**
@@ -154,7 +158,7 @@ public class ScriptManager {
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources prepareScript(String jobID, String basedir,String script, Map<String, Object> params) {
+    public ScriptResources prepareScript(String jobID, String basedir,String script, Map<String, Object> params, boolean sandboxed) {
         ScriptResources sr = null;
 
         long t0 = time();
@@ -177,7 +181,7 @@ public class ScriptManager {
                 sr = new ScriptResources();
                 sr.baseDir = basedir;
                 sr.jobID = jobID;
-                sr.eval = new ShapeJSEvaluator();
+                sr.eval = new ShapeJSEvaluator(sandboxed);
                 sr.eval.setBaseDir(basedir);
                 sr.eval.prepareScript(script, params);
                 sr.evaluatedScript = sr.eval.getResult();
@@ -260,7 +264,7 @@ public class ScriptManager {
      * @throws NotCachedException
      */
     public ScriptResources prepareScript(String jobID, String basedir,Script script, Map<String, Object> params) {
-        return prepareScript(jobID, basedir,script.getCode(), params);
+        return prepareScript(jobID, basedir,script.getCode(), params, true);
     }
 
     /**

@@ -203,4 +203,28 @@ public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer
             return image;
         }
     }
+
+    /**
+       utility function to convert BufferedImage into Grid2D 
+       @param image image to be convert 
+       @param useColor if true generates color grid data (INT_ARGB), grayscale data otherwise 
+       @param imageRect - physical size of the image (in meters). 
+       imageRect left top corner is mapped into left to corner of image pixel (0,0)
+       imageRect bottom right corner is mapped into right bottom cornet of image pixel (imageWidth-1,imageHeight-1)       
+       
+     */
+    public static Grid2D makeGrid(BufferedImage image, boolean useColor, Bounds bounds){
+
+        Grid2D grid;
+        if(useColor)
+            grid = makeColorGrid(image, 1.);
+        else 
+            grid = makeGrayGrid(image, 1.);
+
+        grid.setGridBounds(bounds);
+        
+        return grid;
+        
+    }
+
 } // class ImageReader

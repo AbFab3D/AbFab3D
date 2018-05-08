@@ -10,13 +10,14 @@
  *
  ****************************************************************************/
 
-package abfab3d.util;
+package abfab3d.datasources;
 
 import java.awt.font.OpenType;
-import sun.font.Font2D;
-import sun.font.ScriptRun;
-import sun.font.Script;
-import sun.font.FontUtilities;
+import java.awt.font.FontRenderContext;
+//import sun.font.Font2D;
+//import sun.font.ScriptRun;
+//import sun.font.Script;
+//import sun.font.FontUtilities;
 
 // External Imports
 import javax.imageio.ImageIO;
@@ -47,6 +48,8 @@ import java.awt.Graphics2D;
 
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
+
+import abfab3d.util.Insets2;
 
 import static java.lang.Math.abs;
 
@@ -223,9 +226,10 @@ public class TestTextUtil extends TestCase {
 
     public void devTestKerning3() throws Exception{
         
-        String str1 = "1";
-        // "#$@&*?!<>0123456789";
-        String str2 = "!\"#!$%&'()*+,-./0123456789:;<?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+        String str1 = "+";
+        // "#$@&*?!<>0123456789+ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        // %()/|\[]{}~^_-
+        String str2 = "!\"#$%&'()*+,-./0123456789:;<>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
         int len1 = str1.length();
         int len2 = str2.length();
         int fontSize = 200;
@@ -418,7 +422,7 @@ public class TestTextUtil extends TestCase {
             printf("openType: %s\n", (OpenType)font);           
         }                
 
-        Font2D f2 = FontUtilities.getFont2D(font);
+        //Font2D f2 = FontUtilities.getFont2D(font);
         
         //sun.font.StrikeMetrics
 
@@ -427,7 +431,7 @@ public class TestTextUtil extends TestCase {
 
 
     void devTestScriptRuns(){
-
+        /*
         char[] text = "#@abcdABCD123".toCharArray();
         ScriptRun scriptRun = new ScriptRun(text, 0, text.length);
         
@@ -439,6 +443,7 @@ public class TestTextUtil extends TestCase {
             System.out.println("Script \"" + script + "\" from " +
                                start + " to " + limit + ".");
         }
+        */
     }
 
     static void printKerningPair(String glyphA[],String glyphB[]){
@@ -605,6 +610,41 @@ public class TestTextUtil extends TestCase {
 
     }
         
+    void devTestAutoKerning() throws Exception {
+
+        //String text = "WW+1jJ1";
+        String text = "N\\-431415";
+        double fontSize = 300;
+        
+        int imageWidth = (int)(fontSize*text.length()*1.);
+        int imageHeight = (int)(fontSize*1.5);
+        double x0 = fontSize*1.0;
+        double y0 = fontSize*0.8;
+        double spacing = 0.1*fontSize;
+
+        BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = (Graphics2D)image.getGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);        
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);        
+        g.setColor(Color.white);
+        g.fill(new Rectangle2D.Double(0,0,imageWidth, imageHeight));
+        FontRenderContext frc = g.getFontRenderContext();
+        
+        String fontPath = "test/images/PinyonScript-LatinOnly_v3a.ttf";
+        Font font = Font.createFont(Font.TRUETYPE_FONT,new File(fontPath));
+
+        Hashtable<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
+        map.put(TextAttribute.KERNING, TextAttribute.KERNING_ON);
+        map.put(TextAttribute.SIZE, new Double(fontSize));        
+        font = font.deriveFont(map);
+
+        TextUtil.getKerning(g,  font, text, spacing, 0.3, x0, y0);
+        
+        if (DEBUG) ImageIO.write(image, "png", new File("/tmp/kerning.png"));
+
+    }
+
+
     public static void main(String arg[]) throws Exception {
 
 
@@ -612,7 +652,8 @@ public class TestTextUtil extends TestCase {
         //new TestTextUtil().devTestRenderOutline();
         //new TestTextUtil().devTestKerning();
         //new TestTextUtil().devTestKerning2();
-        new TestTextUtil().devTestKerning3();
+        //new TestTextUtil().devTestKerning3();
+        new TestTextUtil().devTestAutoKerning();
         //new TestTextUtil().devTestPrintKerningTable();
         //new TestTextUtil().devTestLineMetrics();
         //new TestTextUtil().devTestOpenType();

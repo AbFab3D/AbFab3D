@@ -54,7 +54,7 @@ import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.op.GridMaker;
 
 
-import abfab3d.util.TextUtil;
+import abfab3d.datasources.TextUtil;
 import abfab3d.util.Symmetry;
 
 import abfab3d.datasources.DataSourceGrid;

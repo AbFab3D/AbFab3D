@@ -18,8 +18,7 @@ import abfab3d.core.Grid2D;
 import static abfab3d.core.Output.fmt;
 
 /**
- * A 2D grid backed by array. 
- * it formally uses interface of AttributeGrid, but z param is ignored 
+ * A 2D grid backed by int array. 
  * 
  * @author Vladimir Bulatov
  */

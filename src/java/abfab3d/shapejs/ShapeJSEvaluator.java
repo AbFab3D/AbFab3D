@@ -47,8 +47,8 @@ import static abfab3d.core.Output.time;
  */
 public class ShapeJSEvaluator implements MaterialMapper {
 
-    final static boolean DEBUG = false;
-    final static boolean DEBUG_SECURITY = false;
+    final static boolean DEBUG = true;
+    final static boolean DEBUG_SECURITY = true;
 
     /** Packages allowed to be imported.  Security mechanism */
     private static ArrayList<String> packageWhitelist = new ArrayList<String>();
@@ -176,6 +176,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
         // Do not make abfab3d.io.output exposed as a package big security hole
         classImports.add("abfab3d.io.output.SingleMaterialModelWriter");
         classImports.add("abfab3d.io.output.VoxelModelWriter");
+        // this IS a security problem 
+        //classImports.add("abfab3d.io.output.STLWriter");
 
         // Be explicit about io.input to stop reading of disk contents
         classImports.add("abfab3d.io.input.AttributedMesh");

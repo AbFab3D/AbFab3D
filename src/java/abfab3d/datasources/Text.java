@@ -26,7 +26,6 @@ import abfab3d.param.*;
 
 
 import abfab3d.core.Vec;
-import abfab3d.util.TextUtil;
 import abfab3d.util.Insets2;
 
 import static java.lang.Math.abs;
