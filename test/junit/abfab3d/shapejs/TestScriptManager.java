@@ -24,6 +24,7 @@ import junit.framework.TestSuite;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -73,7 +74,7 @@ public class TestScriptManager extends TestCase {
         params.put("period",12);
 
         try {
-            sm.prepareScript(jobID, (String) null, params);
+            sm.prepareScript(jobID, (ArrayList<String>)null, (String) null, params, true);
         } catch(Exception e) {
             return;
         }

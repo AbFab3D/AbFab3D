@@ -76,10 +76,10 @@ public class ShapeJSEvaluator implements MaterialMapper {
     private LinkedHashMap<String, Scriptable> jsObjects = new LinkedHashMap<>();
 
     private Scene scene;
-    private String basedir; // The base directory of the loaded script
+    private ArrayList<String> m_libDirs; // The location to search libraries
 
     /** Should we run this in a sandbox, default it true */
-    private boolean sandboxed;
+    private boolean m_sandboxed;
 
     private static Type stringListType = new TypeToken<List<String>>() {
     }.getType();
@@ -91,7 +91,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
     // Import list baked down to a string for speed
     private static String imports;
 
-    private EvaluatedScript result = null;
+    private EvaluatedScript m_result = null;
     private String script = null;
 
     // scratch variables
@@ -135,7 +135,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
     }
 
     public ShapeJSEvaluator() {
-        this.sandboxed = true;
+        this.m_sandboxed = true;
         types = new LinkedHashMap<String, Parameter>();
         defs = new LinkedHashMap<String, Parameter>();
 
@@ -144,7 +144,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
     public ShapeJSEvaluator(boolean sandboxed) {
         new Exception().printStackTrace();
-        this.sandboxed = sandboxed;
+        this.m_sandboxed = sandboxed;
         types = new LinkedHashMap<String, Parameter>();
         defs = new LinkedHashMap<String, Parameter>();
 
@@ -327,7 +327,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
      */
     public void clear() {
         if (DEBUG) printf("Clearing defs\n");
-        result = null;
+        m_result = null;
         types.clear();
         defs.clear();
         scope = null;
@@ -344,7 +344,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
     public void prepareScript(String script, Map<String, Object> params) {
         long t0 = time();
 
-        if (sandboxed && !ContextFactory.hasExplicitGlobal()) {
+        if (m_sandboxed && !ContextFactory.hasExplicitGlobal()) {
             org.mozilla.javascript.ContextFactory.GlobalSetter gsetter = ContextFactory.getGlobalSetter();
 
             if (gsetter != null) {
@@ -356,7 +356,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             printf("Explicit global: %b\n", ContextFactory.hasExplicitGlobal());
         }
 
-        if (DEBUG) printf("prepareScript(this: %s script, sandbox: %b)\n", this, sandboxed);
+        if (DEBUG) printf("prepareScript(this: %s script, sandbox: %b)\n", this, m_sandboxed);
         Context cx = Context.enter();
         Object scene = null;
 
@@ -371,7 +371,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             Context.ClassShutterSetter setter = cx.getClassShutterSetter();
             DebugLogger.clearLog(cx);
 
-            if (sandboxed && setter != null) {
+            if (m_sandboxed && setter != null) {
                 setter.setClassShutter(getShutter());
             }
 
@@ -386,15 +386,18 @@ public class ShapeJSEvaluator implements MaterialMapper {
                 contextFactory.setErrorReporter(errors);
 
                 GlobalScope gs = new GlobalScope();
-                gs.initShapeJS(contextFactory,basedir);
+                gs.initShapeJS(contextFactory,m_libDirs,m_sandboxed);
 
                 URI uri = null;
-                if (basedir != null) {
-                    uri = new File(basedir).toURI();
+                String baseDir = null;
+                if (m_libDirs != null && m_libDirs.size() > 0) {
+                    baseDir = m_libDirs.get(0);
+                    uri = new File(baseDir).toURI();
+                    
                 }
 
                 scope = new ModuleScope(gs, uri, null);
-                scope.defineProperty("SHAPEJS_BASEDIR",basedir,0);
+                scope.defineProperty("SHAPEJS_BASEDIR",baseDir,0);
             }
 
             if (script == null && this.script == null) {
@@ -419,7 +422,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                         printf("Null error message.  Orig execption: \n");
                         e.printStackTrace();
                     }
-                    result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, addErrorLine(e.getMessage(), this.script, headerLines), getPrintLogs(cx), time() - t0);
+                    m_result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, addErrorLine(e.getMessage(), this.script, headerLines), getPrintLogs(cx), time() - t0);
                     return;
                 }
 
@@ -428,7 +431,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                     Object ptypes = scope.get("types", scope);
                     types = parseDefinition(ptypes, true);
                 } catch (ClassCastException cce) {
-                    result = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, cce.getMessage(), getPrintLogs(cx), time() - t0);
+                    m_result = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, cce.getMessage(), getPrintLogs(cx), time() - t0);
                     return;
                 }
 
@@ -467,7 +470,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
                         printf("%s\n", defs);
                     }
                 } catch (ClassCastException cce) {
-                    result = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, cce.getMessage(), getPrintLogs(cx), time() - t0);
+                    m_result = new EvaluatedScript(ShapeJSErrors.ErrorType.INVALID_PARAMETER_VALUE, cce.getMessage(), getPrintLogs(cx), time() - t0);
                     return;
                 }
             }
@@ -479,7 +482,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
         if (DEBUG) printf("Eval worked.  defs: %s\n", defs);
 
-        result = new EvaluatedScript(true, script, null, null, null, null, defs, (time() - t0));
+        m_result = new EvaluatedScript(true, script, null, null, null, null, defs, (time() - t0));
     }
 
     /**
@@ -491,14 +494,14 @@ public class ShapeJSEvaluator implements MaterialMapper {
     public void updateParams(Map<String, Object> params) {
         long t0 = time();
 
-        if (DEBUG) printf("updateScript(this: %s script, sandbox: %b)\n", this, sandboxed);
+        if (DEBUG) printf("updateScript(this: %s script, sandbox: %b)\n", this, m_sandboxed);
         Context cx = Context.enter();
 
         try {
             Context.ClassShutterSetter setter = cx.getClassShutterSetter();
             DebugLogger.clearLog(cx);
 
-            if (sandboxed && setter != null) {
+            if (m_sandboxed && setter != null) {
                 setter.setClassShutter(getShutter());
             }
             if (scope == null) {
@@ -510,7 +513,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             Context.exit();
         }
 
-        result = new EvaluatedScript(true, script, null, null, null, null, defs, (time() - t0));
+        m_result = new EvaluatedScript(true, script, null, null, null, null, defs, (time() - t0));
     }
 
     /**
@@ -524,7 +527,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
             Context.ClassShutterSetter setter = cx.getClassShutterSetter();
             DebugLogger.clearLog(cx);
 
-            if (sandboxed && setter != null) {
+            if (m_sandboxed && setter != null) {
                 setter.setClassShutter(getShutter());
             }
             if (scope == null) {
@@ -554,7 +557,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
         if (DEBUG) printf("ShapeJSEvaluator.executeScript()\n");
         long t0 = time();
 
-        if (sandboxed && !ContextFactory.hasExplicitGlobal()) {
+        if (m_sandboxed && !ContextFactory.hasExplicitGlobal()) {
             org.mozilla.javascript.ContextFactory.GlobalSetter gsetter = ContextFactory.getGlobalSetter();
 
             if (gsetter != null) {
@@ -562,12 +565,12 @@ public class ShapeJSEvaluator implements MaterialMapper {
             }
         }
 
-        if (DEBUG) printf("executeScript(script, sandbox: %b)\n", sandboxed);
+        if (DEBUG) printf("executeScript(script, sandbox: %b)\n", m_sandboxed);
         Context cx = Context.enter();
 
         try {
             Context.ClassShutterSetter setter = cx.getClassShutterSetter();
-            if (sandboxed && setter != null) {
+            if (m_sandboxed && setter != null) {
                 setter.setClassShutter(getShutter());
             }
 
@@ -575,20 +578,20 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
             if (method == null) {
 
-                result = new EvaluatedScript(true, script, null, null, null, null, defs, (time() - t0));
+                m_result = new EvaluatedScript(true, script, null, null, null, null, defs, (time() - t0));
 
                 // Get all errors in a string array
-                addErrors(errors, result);
+                addErrors(errors, m_result);
 
-                return result;
+                return m_result;
             }
 
             Object o = scope.get(method, scope);
 
             if (o == org.mozilla.javascript.Scriptable.NOT_FOUND) {
                 printf("Cannot find function main()\n");
-                result = new EvaluatedScript(ShapeJSErrors.ErrorType.MAIN_FUNCTION_NOT_FOUND, time() - t0);
-                return result;
+                m_result = new EvaluatedScript(ShapeJSErrors.ErrorType.MAIN_FUNCTION_NOT_FOUND, time() - t0);
+                return m_result;
             }
             Function main = (Function) o;
 
@@ -624,15 +627,15 @@ public class ShapeJSEvaluator implements MaterialMapper {
                     msg = e.getMessage();
                 }
 
-                result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, addErrorLine(msg, this.script, headerLines), getPrintLogs(cx), time() - t0);
-                return result;
+                m_result = new EvaluatedScript(ShapeJSErrors.ErrorType.PARSING_ERROR, addErrorLine(msg, this.script, headerLines), getPrintLogs(cx), time() - t0);
+                return m_result;
             }
             if (DEBUG) printf("result of JS evaluation: %s\n", result2);
 
             if (result2 == null || result2 instanceof Undefined) {
                 // This used to be a success, changed to a failure as we require a Scene to be returned
-                result = new EvaluatedScript(ShapeJSErrors.ErrorType.EMPTY_SCENE, time() - t0);
-                return result;
+                m_result = new EvaluatedScript(ShapeJSErrors.ErrorType.EMPTY_SCENE, time() - t0);
+                return m_result;
             }
 
             if (result2 instanceof NativeJavaObject) {
@@ -647,12 +650,12 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
                 String[] print_logs = prints != null ? (String[]) prints.toArray(new String[prints.size()]) : null;
 
-                result = new EvaluatedScript(true, script, scene, print_logs, null, null, defs, time() - t0);
+                m_result = new EvaluatedScript(true, script, scene, print_logs, null, null, defs, time() - t0);
 
                 // Get all errors in a string array
-                addErrors(errors, result);
+                addErrors(errors, m_result);
 
-                return result;
+                return m_result;
             }
 
         } finally {
@@ -866,17 +869,17 @@ public class ShapeJSEvaluator implements MaterialMapper {
      * @return
      */
     public EvaluatedScript getResult() {
-        return result;
+        return m_result;
     }
 
 
-    public void setBaseDir(String dir) {
-        this.basedir = dir;
+    /**
+       set locatrions to search libs 
+     */
+    public void setLibDirs(ArrayList<String> libs) {
+        m_libDirs = libs;
     }
 
-    public String getBaseDir() {
-        return basedir;
-    }
 
     private String[] getPrintLogs(Context cx) {
         List<String> prints = DebugLogger.getLog(cx);

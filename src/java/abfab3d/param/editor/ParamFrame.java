@@ -20,6 +20,7 @@ import abfab3d.param.Parameterizable;
 import javax.swing.*;
 
 public class ParamFrame extends JFrame {
+
     private ParamPanel panel;
 
     public ParamFrame(Parameterizable node) {

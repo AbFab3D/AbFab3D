@@ -50,6 +50,7 @@ public class TestSceneImageDataSource extends TestCase {
         int width = 64;
         int height = 64;
         String scriptPath = "test/scripts/gyrosphere_params.js";
+        String baseDir = null;
         //URI uri = new File().toURI();
         //Script s = new Script(uri);
 
@@ -58,7 +59,7 @@ public class TestSceneImageDataSource extends TestCase {
 
         HashMap<String, Object> params = new HashMap<String, Object>();
 
-        ScriptResources sr = sm.prepareScript(jobID, scriptPath, params);
+        ScriptResources sr = sm.prepareScript(jobID, baseDir, scriptPath, params, true);
         sm.executeScript(sr);
         assertTrue("Eval failed", sr.evaluatedScript.isSuccess());
         Scene scene = (Scene)sr.evaluatedScript.getResult();

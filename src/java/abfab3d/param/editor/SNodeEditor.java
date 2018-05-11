@@ -36,7 +36,7 @@ public class SNodeEditor extends BaseEditor  {
 
     private SNodeParameter m_param;
     private JComponent m_panel;
-    private ParamPanel child;
+    private ParamFrame child;
         
     private JTextField m_textField;
  
@@ -70,10 +70,10 @@ public class SNodeEditor extends BaseEditor  {
 
         Parameterizable node = (Parameterizable)p;
 
-        ParamPanel panel = child;
+        ParamFrame panel = child;
         if(panel == null){
-            panel = new ParamPanel(node);
-            panel.addParamChangedListeners(getParamChangedListeners());
+            panel = new ParamFrame(node);
+            panel.getPanel().addParamChangedListeners(getParamChangedListeners());
             child = panel;
             panel.setLocation(getNewLocation());
         }
@@ -93,8 +93,8 @@ public class SNodeEditor extends BaseEditor  {
 
         m_textField.setText(node.getClass().getSimpleName());
 
-        ParamPanel panel = new ParamPanel(node);
-        panel.addParamChangedListeners(getParamChangedListeners());
+        ParamFrame panel = new ParamFrame(node);
+        panel.getPanel().addParamChangedListeners(getParamChangedListeners());
         if(child != null)
             child.setVisible(false);
 

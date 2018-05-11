@@ -211,7 +211,7 @@ public class Variant  {
         script = FileUtils.readFileToString(new File(aspath));
         ScriptResources sr;
 
-        sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap);
+        sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap, m_sandboxed);
 
         if (!sr.evaluatedScript.isSuccess()) {
             printScriptError(sr);
@@ -358,7 +358,7 @@ public class Variant  {
         Map<String, Object> uriParams = resolveURIParams(fpath, params);
 
         if (uriParams.size() > 0) {
-            sr = m_sm.prepareScript(m_jobID, null,(String) null, uriParams, m_sandboxed);
+            sr = m_sm.prepareScript(m_jobID, (ArrayList<String>)null,(String) null, uriParams, m_sandboxed);
         }
         m_sm.executeScript(sr);
 
@@ -404,7 +404,7 @@ public class Variant  {
             Map<String, Object> oldValues = convParamsToObjects(oldParams);
 
            
-            sr = m_sm.prepareScript(m_jobID, null,script, null, m_sandboxed);
+            sr = m_sm.prepareScript(m_jobID, (ArrayList<String>)null,script, null, m_sandboxed);
 
             // reapply old values.  Removed values will be ignored
             m_sm.updateParams(m_jobID, oldValues);

@@ -37,7 +37,7 @@ public class SNodeListEditor extends BaseEditor {
 
     private SNodeListParameter m_param;
     private JComponent m_panel;
-    private HashMap<Parameterizable,ParamPanel> children;
+    private HashMap<Parameterizable,ParamFrame> children;
     DefaultListModel m_listDataModel;
     JList m_list;
     
@@ -53,7 +53,7 @@ public class SNodeListEditor extends BaseEditor {
         super(param);
         m_param = param;
 
-        children = new HashMap<Parameterizable,ParamPanel>();
+        children = new HashMap<Parameterizable,ParamFrame>();
 
         m_panel = makeComponent();
 
@@ -86,10 +86,10 @@ public class SNodeListEditor extends BaseEditor {
         //printf("Got selection: %s\n", node);
         //WindowManager wm = WindowManager.getInstance();
 
-        ParamPanel panel = children.get(node);
+        ParamFrame panel = children.get(node);
         if(panel == null){
-            panel = new ParamPanel(node);
-            panel.addParamChangedListeners(getParamChangedListeners());
+            panel = new ParamFrame(node);
+            panel.getPanel().addParamChangedListeners(getParamChangedListeners());
             children.put(node, panel);
             panel.setLocation(getNewLocation());
         } else {
@@ -108,8 +108,8 @@ public class SNodeListEditor extends BaseEditor {
         Parameterizable node = (Parameterizable)factory.createSNode(names[index]);
         m_param.add(node);
         printf("created new: %s\n", node);
-        ParamPanel panel = new ParamPanel(node);
-        panel.addParamChangedListeners(getParamChangedListeners());
+        ParamFrame panel = new ParamFrame(node);
+        panel.getPanel().addParamChangedListeners(getParamChangedListeners());
         children.put(node, panel);
         
         panel.setLocation(getNewLocation());
@@ -125,7 +125,7 @@ public class SNodeListEditor extends BaseEditor {
         List list = m_param.getValue();
         Parameterizable node = (Parameterizable)list.get(index);
         list.remove(index);
-        ParamPanel panel = children.get(node);
+        ParamFrame panel = children.get(node);
         if(panel != null)
             panel.setVisible(false);
 

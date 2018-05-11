@@ -22,6 +22,8 @@ import java.util.List;
  * @author Alan Hudson
  */
 public class StringListParameter extends ListParameter {
+
+    
     public StringListParameter(String name) {
 
         this(name, name);
@@ -32,7 +34,7 @@ public class StringListParameter extends ListParameter {
         this(name, desc, new ArrayList());
     }
 
-    public StringListParameter(String name, String values[]) {
+    public StringListParameter(String name, String values[]){
         super(name, name);
         List list = new ArrayList();
         for(int i = 0; i < values.length; i++){
@@ -47,6 +49,22 @@ public class StringListParameter extends ListParameter {
         super(name, desc);
 
         setValue(initialValue);
+    }
+
+    public void add(String str){
+        getList().add(str);
+    }
+
+    public void clear(){
+        getList().clear();
+    }
+
+    public int size(){
+        return getList().size();
+    }
+
+    public final ArrayList getList(){
+        return (ArrayList)value;
     }
 
     /**
@@ -64,7 +82,7 @@ public class StringListParameter extends ListParameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
-        if (!(val instanceof List)) {
+        if (!(val instanceof ArrayList)) {
             throw new IllegalArgumentException("Unsupported type for StringList: " + val + " in param: " + getName());
         }
     }

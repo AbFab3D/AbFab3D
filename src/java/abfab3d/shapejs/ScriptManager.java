@@ -10,13 +10,17 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
+import java.util.ArrayList;
+
 import abfab3d.core.Initializable;
 import abfab3d.io.input.URIMapper;
 import abfab3d.param.Parameter;
 import abfab3d.param.ParameterType;
 import abfab3d.param.Parameterizable;
 import abfab3d.param.URIParameter;
+
 import abfab3d.util.URIUtils;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -142,24 +146,56 @@ public class ScriptManager {
         matMapper = mm;
     }
 
-    public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params, boolean sandboxed) {
-        return prepareScript(jobID,null,script,params, sandboxed);
-    }
+    //    public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params, boolean sandboxed) {
+    //    return prepareScript(jobID,null,script,params, sandboxed);
+    //}
 
-    public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params) {
-        return prepareScript(jobID,null,script,params, true);
-    }
+    //public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params) {
+    //    return prepareScript(jobID,null,script,params, true);
+    //}
+
 
     /**
      * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
      *
      * @param jobID
      * @param script
+     * @param libDir - directory of library location 
+     * @param params -  Must be Java native objects expected for the parameter type     
+     * @return
+     * @throws NotCachedException
+     */
+    public ScriptResources prepareScript(String jobID, String libDir,Script script, Map<String, Object> params) {
+        return prepareScript(jobID, libDir,script.getCode(), params, true);
+    }
+
+    /**
+     * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
+     *
+     * @param jobID
+     * @param libDir - directory of library location 
+     * @param script
      * @param params -  Must be Java native objects expected for the parameter type
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources prepareScript(String jobID, String basedir,String script, Map<String, Object> params, boolean sandboxed) {
+    public ScriptResources prepareScript(String jobID, String libDir,String script, Map<String, Object> params, boolean sandboxed) {
+        ArrayList<String> libDirs = new ArrayList<String>();
+        libDirs.add(libDir);
+        return prepareScript(jobID, libDirs, script, params, sandboxed);
+    }
+
+    /**
+     * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
+     *
+     * @param jobID
+     * @param libDirs - list of directory of library location 
+     * @param script
+     * @param params -  Must be Java native objects expected for the parameter type
+     * @return
+     * @throws NotCachedException
+     */
+    public ScriptResources prepareScript(String jobID, ArrayList<String> libDirs,String script, Map<String, Object> params, boolean sandboxed) {
         ScriptResources sr = null;
 
         long t0 = time();
@@ -180,19 +216,21 @@ public class ScriptManager {
         try {
             if (sr == null) {
                 sr = new ScriptResources();
-                sr.baseDir = basedir;
+                sr.setLibDirs(libDirs);
                 sr.jobID = jobID;
-                sr.eval = new ShapeJSEvaluator(sandboxed);
-                sr.eval.setBaseDir(basedir);
-                sr.eval.prepareScript(script, params);
-                sr.evaluatedScript = sr.eval.getResult();
+                ShapeJSEvaluator eval = new ShapeJSEvaluator(sandboxed);
+                eval.setLibDirs(libDirs);
+                eval.prepareScript(script, params);
+
+                sr.setEvaluator(eval);
+                sr.evaluatedScript = eval.getResult();
                 sr.script = script;
                 if (!sr.evaluatedScript.isSuccess()) {
                     return sr;
                 }
 
                 // Apply all values in first pass
-                sr.eval.updateParams(params);
+                eval.updateParams(params);
 
                 Map<String, Object> downloadedParams = downloadURI(sr, null);
 
@@ -253,19 +291,6 @@ public class ScriptManager {
         if (DEBUG) printf("ScriptManager.prepareScript download: %d ms\n", time() - t0);
 
         return sr;
-    }
-
-    /**
-     * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
-     *
-     * @param jobID
-     * @param script
-     * @param params -  Must be Java native objects expected for the parameter type
-     * @return
-     * @throws NotCachedException
-     */
-    public ScriptResources prepareScript(String jobID, String basedir,Script script, Map<String, Object> params) {
-        return prepareScript(jobID, basedir,script.getCode(), params, true);
     }
 
     /**
@@ -542,19 +567,23 @@ public class ScriptManager {
                         ret_val.put(key, localPath);
                         cache = true;
                     } else {
-                    	// Url is a relate file path. Must have a baseDir
-                    	if (resources.baseDir == null) {
-                            printf("downloadURI: No baseDir specified, skipping param: %s, val: %s\n", key, urlStr);
+                    	// Url is a relate file path. Must have a libDirs
+                        ArrayList<String> libDirs = resources.getLibDirs();
+                    	if (libDirs == null || libDirs.size() < 1) {
+                            printf("downloadURI: No libDisr specified, skipping param: %s, val: %s\n", key, urlStr);
                     	} else {
                     		// Two possible scenarios here:
                     		// 1. The url val is already an absolute path -> skip this part
                     		// 2. The url val is a relative path -> convert to absolute path
-                    		
+                            
                     		File f = new File(urlStr);
-                    		
+
+                            // TODO - search in multiple lib locations 
+                            // now search in first one only 
+                    		String libDir = libDirs.get(0);
                         	if (!skipRelativePath && !f.isAbsolute()) {
-                        		File baseDir = new File(resources.baseDir);
-                            	f = new File(resources.baseDir + File.separator + urlStr);
+                        		File baseDir = new File(libDir);
+                            	f = new File(libDir + File.separator + urlStr);
                             	
                             	// Relative url file must be in the baseDir
                             	boolean isChild = URIUtils.isInSubDirectory(baseDir, f);

@@ -13,6 +13,7 @@ package abfab3d.shapejs;
 
 import abfab3d.param.Parameter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public class ScriptResources {
     public ShapeJSEvaluator eval;
     public boolean sensitiveData = false;
     public boolean sensitiveScript = false;
-    public String baseDir;
+    private ArrayList<String> libDirs;
     public volatile boolean locked;
 
 
@@ -45,8 +46,18 @@ public class ScriptResources {
     public Map<String,Parameter> getParams() {
         return eval.getParams();
     }
+    
+    public void setEvaluator(ShapeJSEvaluator evaluator){
 
-    public void setBaseDir(String baseDir) {
-    	this.baseDir = baseDir;
+        this.eval = evaluator;
+
+    }
+
+    public void setLibDirs(ArrayList<String> libDirs) {
+    	this.libDirs = libDirs;
+    }
+
+    public ArrayList<String> getLibDirs(){
+        return this.libDirs;
     }
 }

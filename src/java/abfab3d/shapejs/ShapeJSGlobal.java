@@ -150,7 +150,7 @@ public class ShapeJSGlobal {
     private static HTTPRequester httpRequester;
 
     private static final HashMap<String,String> extToMime;
-    private String basedir;
+
     private GlobalScope globalScope;
 
     static {
@@ -194,7 +194,8 @@ public class ShapeJSGlobal {
         fileToUrlCache = new ConcurrentHashMap<String, String>();
     }
 
-    public ShapeJSGlobal(String basedir, GlobalScope scope) {
+    public ShapeJSGlobal(GlobalScope scope) {
+        
         globals.put("MM", Units.MM);
         globals.put("MM3", Units.MM3);
         globals.put("CM", Units.CM);
@@ -213,7 +214,6 @@ public class ShapeJSGlobal {
         globals.put(MESH_MAX_TRI_COUNT_VAR, maxTriCountDefault);
 
         globals.put("console", new Console());
-        this.basedir = basedir;
         this.globalScope = scope;
     }
 
@@ -866,7 +866,11 @@ public class ShapeJSGlobal {
 
         File f = new File(filename);
         if (!f.exists()) {
+            //
+            // TODO have search in multiple places 
+            //
             filename = thisObj.get(SHAPEJS_BASEDIR_PROP,thisObj) + File.separator + filename;
+
         }
         ImageLoader reader = new ImageLoader(filename);
         int w = reader.getWidth();
@@ -1025,8 +1029,9 @@ public class ShapeJSGlobal {
 
                 return ret;
             }
-
+            //
             // TODO: Need to handle project basedir.  Not sure how to yet.
+            //
             File f = new File(url);
 
             if (!f.exists()) {

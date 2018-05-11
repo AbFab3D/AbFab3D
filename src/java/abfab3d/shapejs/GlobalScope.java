@@ -39,37 +39,34 @@ public class GlobalScope extends ImporterTopLevel
     private boolean initialized;
     private static ShapeJSGlobal globals;
 
-    public GlobalScope()
-    {
+    public GlobalScope(){
     }
-
-    public GlobalScope(Context cx)
-    {
-        initShapeJS(cx,null);
-    }
+    
+    //public GlobalScope(Context cx) {        
+    //    initShapeJS(cx,null);
+    // }
 
     public boolean isInitialized() {
         return initialized;
     }
 
-    public void initShapeJS(ContextFactory factory, final String basedir)
-    {
+    public void initShapeJS(ContextFactory factory, final ArrayList<String> libDirs, final boolean sandboxed) {
+
         factory.call(new ContextAction() {
-            public Object run(Context cx)
-            {
-                initShapeJS(cx,basedir);
-                return null;
-            }
-        });
+                public Object run(Context cx){
+                    initShapeJS(cx,libDirs, sandboxed);
+                    return null;
+                }
+            });
     }
 
-    public void initShapeJS(Context cx, String basedir) {
+    public void initShapeJS(Context cx, ArrayList<String> libDirs, boolean sandboxed) {
         // Define some global functions particular to the shell. Note
         // that these functions are not part of ECMA.
         initStandardObjects(cx, sealedStdLib);
 
         if (globals == null) {
-            globals = new ShapeJSGlobal(basedir,this);
+            globals = new ShapeJSGlobal(this);
         }
 
         // Initialize AbFab3D specific globals
@@ -82,13 +79,16 @@ public class GlobalScope extends ImporterTopLevel
                     ScriptableObject.DONTENUM);
         }
 
-        if (basedir != null) {
+        if (libDirs != null) {
+            
             ArrayList<String> modules = new ArrayList<>();
+            for(int i = 0; i < libDirs.size(); i++){
+                String dir = libDirs.get(i);
+                URI uri = new File(dir).toURI();
+                modules.add(uri.toASCIIString());
+            }
 
-            URI uri = new File(basedir).toURI();
-
-            modules.add(uri.toASCIIString());
-            installRequire(cx, modules, true);  // TODO: Review sandbox rules and follow
+            installRequire(cx, modules, sandboxed);  // TODO: Review sandbox rules and follow
         } else {
             printf("No basedir for global scope\n");
         }
@@ -99,8 +99,7 @@ public class GlobalScope extends ImporterTopLevel
         return globals;
     }
 
-    public Require installRequire(Context cx, List<String> modulePath,
-                                  boolean sandboxed) {
+    public Require installRequire(Context cx, List<String> modulePath, boolean sandboxed) {
         RequireBuilder rb = new RequireBuilder();
         rb.setSandboxed(sandboxed);
         List<URI> uris = new ArrayList<URI>();

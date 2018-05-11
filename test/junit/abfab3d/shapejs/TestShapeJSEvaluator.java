@@ -103,11 +103,11 @@ public class TestShapeJSEvaluator extends TestCase {
     public void testURNResolution() {
         URI uri = new File("test/scripts/urn_resolution.js").toURI();
         Script s = new Script(uri);
-
+        String baseDir = null;
         ScriptManager sm = ScriptManager.getInstance();
         String jobID = UUID.randomUUID().toString();
 
-        ScriptResources sr = sm.prepareScript(jobID,s.getCode(),null);
+        ScriptResources sr = sm.prepareScript(jobID,baseDir, s.getCode(),null, true);
         EvaluatedScript result = sr.eval.getResult();
 
         assertTrue("Not success", result.isSuccess());
@@ -135,12 +135,13 @@ public class TestShapeJSEvaluator extends TestCase {
 
     public void testUserDefined() {
         URI uri = new File("test/scripts/user_defined_type.js").toURI();
+        String baseDir = null;
         Script s = new Script(uri);
 
         ScriptManager sm = ScriptManager.getInstance();
         String jobID = UUID.randomUUID().toString();
 
-        ScriptResources sr = sm.prepareScript(jobID,s.getCode(),null);
+        ScriptResources sr = sm.prepareScript(jobID,baseDir, s.getCode(),null, true);
         EvaluatedScript result = sr.eval.getResult();
 
         assertTrue("Not success", result.isSuccess());
@@ -173,11 +174,11 @@ public class TestShapeJSEvaluator extends TestCase {
     public void testUserDefinedDefaultVal() {
         URI uri = new File("test/scripts/user_defined_type_defaultVal.js").toURI();
         Script s = new Script(uri);
-
+        String baseDir = null;
         ScriptManager sm = ScriptManager.getInstance();
         String jobID = UUID.randomUUID().toString();
 
-        ScriptResources sr = sm.prepareScript(jobID,s.getCode(),null);
+        ScriptResources sr = sm.prepareScript(jobID,baseDir, s.getCode(),null, true);
         EvaluatedScript result = sr.eval.getResult();
 
         assertTrue("Not success", result.isSuccess());
