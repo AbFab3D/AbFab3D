@@ -146,27 +146,34 @@ public class ScriptManager {
         matMapper = mm;
     }
 
-    //    public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params, boolean sandboxed) {
-    //    return prepareScript(jobID,null,script,params, sandboxed);
-    //}
-
-    //public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params) {
-    //    return prepareScript(jobID,null,script,params, true);
-    //}
-
+   /**
+     * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
+     *
+     * @param jobID
+     * @param script
+     * @param params -  Must be Java native objects expected for the parameter type
+     * @return
+     * @throws NotCachedException
+     */
+    public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params) {
+        ArrayList<String> libDirs = new ArrayList<String>();
+        return prepareScript(jobID, libDirs, script, params, true);
+    }
 
     /**
      * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
      *
      * @param jobID
+     * @param libDir - directory of library location
      * @param script
-     * @param libDir - directory of library location 
-     * @param params -  Must be Java native objects expected for the parameter type     
+     * @param params -  Must be Java native objects expected for the parameter type
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources prepareScript(String jobID, String libDir,Script script, Map<String, Object> params) {
-        return prepareScript(jobID, libDir,script.getCode(), params, true);
+    public ScriptResources prepareScript(String jobID, String libDir,String script, Map<String, Object> params) {
+        ArrayList<String> libDirs = new ArrayList<String>();
+        libDirs.add(libDir);
+        return prepareScript(jobID, libDirs, script, params, true);
     }
 
     /**
