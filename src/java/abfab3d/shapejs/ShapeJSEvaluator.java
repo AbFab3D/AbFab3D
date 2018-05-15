@@ -143,7 +143,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
     }
 
     public ShapeJSEvaluator(boolean sandboxed) {
-        new Exception().printStackTrace();
         this.m_sandboxed = sandboxed;
         types = new LinkedHashMap<String, Parameter>();
         defs = new LinkedHashMap<String, Parameter>();

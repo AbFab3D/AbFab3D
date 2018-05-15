@@ -12,6 +12,7 @@ public interface Material {
      */
     public MaterialShader getShader();
     public String getName();
+    public String getAlternateName();
     public String getLabel();
 
     /**
