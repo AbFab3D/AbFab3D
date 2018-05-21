@@ -1159,6 +1159,7 @@ public class ShapeJSGlobal {
         if (handler != null) {
             Object recs = handler.parse(r,basedir,thisObj);
 
+            printf("Resp is: %s\n",recs);
             recs = convertObjToJavascript(recs,thisObj);
             return recs;
         } else {

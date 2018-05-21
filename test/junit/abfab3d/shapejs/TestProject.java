@@ -24,6 +24,7 @@ import junit.framework.TestSuite;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -53,26 +54,26 @@ public class TestProject extends TestCase {
      */
     public void testLoadManifest() {
         try {
-            Project p = Project.load("test/projects/image_pendant/manifest.json");
+            Project p = Project.load("test/projects/image_pendant/manifest.json", new ArrayList<String>());
 
             List<ProjectItem> scripts = p.getScripts();
-            assertEquals("Wrong number of scripts",1,scripts.size());
+            assertEquals("Wrong number of scripts",2,scripts.size());
 
-            printf("Checking for: %s \n",p.getParentDir() + File.separator + scripts.get(0).getPath());
-            assertTrue("Not there",new File(p.getParentDir() + File.separator + scripts.get(0).getPath()).exists());
+            printf("Checking for: %s \n",scripts.get(0).getPath());
+            assertTrue("Not there",new File(scripts.get(0).getPath()).exists());
 
             List<VariantItem> variants = p.getVariants();
             assertEquals("Wrong number of variants",2,variants.size());
-            assertTrue("Not there: "+variants.get(0).getPath(),new File(p.getParentDir() + File.separator + variants.get(0).getPath()).exists());
-            assertTrue("Not there",new File(p.getParentDir() + File.separator + variants.get(1).getPath()).exists());
+            assertTrue("Not there: "+variants.get(0).getPath(),new File(variants.get(0).getPath()).exists());
+            assertTrue("Not there",new File(variants.get(1).getPath()).exists());
 
             assertNotNull("Missing thumb",variants.get(0).getThumbnail());
             assertNotNull("Missing thumb",variants.get(1).getThumbnail());
 
             List<ProjectItem> resources = p.getResources();
             assertEquals("Wrong number of resources",2,resources.size());
-            assertTrue("Not there",new File(p.getParentDir() + File.separator + resources.get(0).getPath()).exists());
-            assertTrue("Not there",new File(p.getParentDir() + File.separator + resources.get(1).getPath()).exists());
+            assertTrue("Not there",new File(resources.get(0).getPath()).exists());
+            assertTrue("Not there",new File(resources.get(1).getPath()).exists());
 
             assertNotNull("Name set",p.getName());
             assertNotNull("Author set",p.getAuthor());
@@ -99,26 +100,26 @@ public class TestProject extends TestCase {
      */
     public void testLoadZip() {
         try {
-            Project p = Project.load("test/projects/image_pendant/image_pendant.shapeprj");
+            Project p = Project.load("test/projects/image_pendant/image_pendant.shapeprj", new ArrayList<String>());
 
             List<ProjectItem> scripts = p.getScripts();
             assertEquals("Wrong number of scripts",1,scripts.size());
 
-            printf("Checking for: %s \n",p.getParentDir() + File.separator + scripts.get(0).getPath());
-            assertTrue("Not there",new File(p.getParentDir() + File.separator + scripts.get(0).getPath()).exists());
+            printf("Checking for: %s \n",scripts.get(0).getPath());
+            assertTrue("Not there",new File(scripts.get(0).getPath()).exists());
 
             List<VariantItem> variants = p.getVariants();
             assertEquals("Wrong number of variants",2,variants.size());
-            assertTrue("Not there: "+variants.get(0).getPath(),new File(p.getParentDir() + File.separator + variants.get(0).getPath()).exists());
-            assertTrue("Not there",new File(p.getParentDir() + File.separator + variants.get(1).getPath()).exists());
+            assertTrue("Not there: "+variants.get(0).getPath(),new File(variants.get(0).getPath()).exists());
+            assertTrue("Not there",new File(variants.get(1).getPath()).exists());
 
             assertNotNull("Missing thumb",variants.get(0).getThumbnail());
             assertNotNull("Missing thumb",variants.get(1).getThumbnail());
 
             List<ProjectItem> resources = p.getResources();
             assertEquals("Wrong number of resources",2,resources.size());
-            assertTrue("Not there",new File(p.getParentDir() + File.separator + resources.get(0).getPath()).exists());
-            assertTrue("Not there",new File(p.getParentDir() + File.separator + resources.get(1).getPath()).exists());
+            assertTrue("Not there",new File(resources.get(0).getPath()).exists());
+            assertTrue("Not there",new File(resources.get(1).getPath()).exists());
 
             assertNotNull("Name set",p.getName());
             assertNotNull("Author set",p.getAuthor());

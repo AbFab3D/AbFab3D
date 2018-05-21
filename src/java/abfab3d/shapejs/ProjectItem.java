@@ -22,9 +22,11 @@ package abfab3d.shapejs;
 public class ProjectItem {
     protected String m_path;
     protected String m_thumbnail;
+    protected String m_origPath;
 
-    public ProjectItem(String path, String thumbnail) {
-        this.m_path = path;
+    public ProjectItem(String origPath,String fullPath, String thumbnail) {
+        this.m_path = fullPath;
+        this.m_origPath = origPath;
         this.m_thumbnail = thumbnail;
     }
 
@@ -42,5 +44,13 @@ public class ProjectItem {
 
     public String getPath() {
         return m_path;
+    }
+
+    public String getOrigPath() {
+        return m_origPath;
+    }
+
+    public void setOrigPath(String val) {
+        m_origPath = val;
     }
 }

@@ -10,7 +10,7 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
-import java.util.ArrayList;
+import java.util.*;
 
 import abfab3d.core.Initializable;
 import abfab3d.io.input.URIMapper;
@@ -37,9 +37,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -202,7 +199,7 @@ public class ScriptManager {
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources prepareScript(String jobID, ArrayList<String> libDirs,String script, Map<String, Object> params, boolean sandboxed) {
+    public ScriptResources prepareScript(String jobID, List<String> libDirs, String script, Map<String, Object> params, boolean sandboxed) {
         ScriptResources sr = null;
 
         long t0 = time();
@@ -575,7 +572,7 @@ public class ScriptManager {
                         cache = true;
                     } else {
                     	// Url is a relate file path. Must have a libDirs
-                        ArrayList<String> libDirs = resources.getLibDirs();
+                        List<String> libDirs = resources.getLibDirs();
                     	if (libDirs == null || libDirs.size() < 1) {
                             printf("downloadURI: No libDisr specified, skipping param: %s, val: %s\n", key, urlStr);
                     	} else {
@@ -628,6 +625,7 @@ public class ScriptManager {
 
                 } else if (param.getType() == ParameterType.URI_LIST) {
                     // TODO: Handle uri list
+                    new Exception("Unhandled case.  Downloading uri list\n").printStackTrace();
                 }
 
             } catch (Exception e) {

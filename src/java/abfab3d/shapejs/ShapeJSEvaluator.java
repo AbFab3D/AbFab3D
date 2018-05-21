@@ -47,8 +47,8 @@ import static abfab3d.core.Output.time;
  */
 public class ShapeJSEvaluator implements MaterialMapper {
 
-    final static boolean DEBUG = true;
-    final static boolean DEBUG_SECURITY = true;
+    final static boolean DEBUG = false;
+    final static boolean DEBUG_SECURITY = false;
 
     /** Packages allowed to be imported.  Security mechanism */
     private static ArrayList<String> packageWhitelist = new ArrayList<String>();
@@ -875,8 +875,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
     /**
        set locatrions to search libs 
      */
-    public void setLibDirs(ArrayList<String> libs) {
-        m_libDirs = libs;
+    public void setLibDirs(List<String> libs) {
+        m_libDirs = new ArrayList<String>(libs);
     }
 
 

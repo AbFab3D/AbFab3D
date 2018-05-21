@@ -23,7 +23,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.sun.corba.se.impl.ior.NewObjectKeyTemplateBase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -96,7 +95,24 @@ public class Variant  {
      * @return Result.SUCCESS
      */
     public int readDesign(String basedir,String path) throws IOException, NotCachedException {
+        ArrayList<String> basedirs = new ArrayList<>();
+        basedirs.add(basedir);
 
+        return readDesign(basedirs,path);
+    }
+
+    /**
+     * read design file (in JSON format)
+     *
+     * @return Result.SUCCESS
+     */
+    public int readDesign(List<String> basedirs,String path) throws IOException, NotCachedException {
+
+        printf("readDesign.  basedirs: %s");
+        for(String st: basedirs) {
+            printf("\t %s\n",st);
+        }
+        printf("\n");
         if (DEBUG) printf("ShapeJSDesign.readDesign(%s)\n", path);
         clearMessages();
 
@@ -131,7 +147,7 @@ public class Variant  {
         script = FileUtils.readFileToString(new File(aspath));
         ScriptResources sr;
         
-        sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap, m_sandboxed);
+        sr = m_sm.prepareScript(m_jobID, basedirs,script, paramMap, m_sandboxed);
         
         if (!sr.evaluatedScript.isSuccess()) {
             printScriptError(sr);
@@ -165,7 +181,7 @@ public class Variant  {
             throw new RuntimeException(fmt("failed to execute script", aspath));
         }
         m_designPath = path;
-        m_scriptPath = aspath;
+        m_scriptPath = new File(aspath).getAbsolutePath();
         m_evaluatedScript = sr.evaluatedScript;
         m_scene = m_evaluatedScript.getResult();
         return ResultCodes.RESULT_OK;
@@ -243,7 +259,7 @@ public class Variant  {
             throw new RuntimeException(fmt("failed to execute script", aspath));
         }
         m_designPath = NEW_DESIGN;
-        m_scriptPath = aspath;
+        m_scriptPath = new File(aspath).getAbsolutePath();
         m_evaluatedScript = sr.evaluatedScript;
         m_scene = m_evaluatedScript.getResult();
         return ResultCodes.RESULT_OK;
@@ -745,7 +761,7 @@ public class Variant  {
     //
     static Map<String, Object> resolveURIParams(File parentFile, Map<String, Parameter> params) {
 
-        printf("Resolvong URI params.  parent: %s\n",parentFile.getAbsoluteFile());
+        printf("Resolving URI params.  parent: %s\n",parentFile.getAbsoluteFile());
 
         HashMap<String, Object> ret_val = new HashMap<>();
 
@@ -753,7 +769,7 @@ public class Variant  {
             if (par.getType() == ParameterType.URI) {
                 String parPath = (String) par.getValue();
 
-                if (parPath != null) {
+                if (parPath != null && !(parPath.startsWith("http") || parPath.startsWith("urn:"))) {
                     String newPath = resolvePath(parentFile, new File(parPath));
                     if (!newPath.equals(parPath)) {
                         ret_val.put(par.getName(), newPath);
