@@ -14,6 +14,7 @@ package abfab3d.shapejs;
 import org.mozilla.javascript.Scriptable;
 
 import java.io.*;
+import java.util.List;
 
 /**
  * Parses a file and returns a Javascript object
@@ -23,5 +24,5 @@ import java.io.*;
  * @author Alan Hudson
  */
 public interface URLHandler {
-    public Object parse(Reader r, String basedir, Scriptable scope) throws IOException;
+    public Object parse(Reader r, String basedir, List<String> libDirs, Scriptable scope) throws IOException;
 }

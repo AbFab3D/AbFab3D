@@ -61,8 +61,6 @@ public class VariantItem extends ProjectItem {
 
             File ms = new File(pdir + File.separator + "variants" + File.separator + mainScript);
             mainScript = FilenameUtils.normalize(ms.getAbsolutePath());
-
-            printf("Loading variant.  mainScript is: %s\n",mainScript);
         } catch(IOException ioe) {
             ioe.printStackTrace();
         }

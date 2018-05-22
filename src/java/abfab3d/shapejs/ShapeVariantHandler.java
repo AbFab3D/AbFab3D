@@ -21,7 +21,9 @@ import org.mozilla.javascript.Scriptable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static abfab3d.core.Output.printf;
@@ -36,14 +38,18 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class ShapeVariantHandler implements URLHandler {
-    public Object parse(Reader r, String basedir, Scriptable scope) throws IOException {
+    public Object parse(Reader r, String basedir, List<String> libDirs, Scriptable scope) throws IOException {
         Variant var = new Variant();
 
         // Relative pathing needs a file in the variant dir but it doesn't really have to exist
         String vardir = basedir + File.separator + "variants" + File.separator + "fake.shapevar";
 
+        ArrayList<String> libs = new ArrayList<String>();
+        libs.add(basedir);
+        libs.addAll(libDirs);
+
         try {
-            var.readDesign(basedir, vardir, r);
+            var.readDesign(libs, vardir, r);
         } catch(Exception e) {
 
             e.printStackTrace();

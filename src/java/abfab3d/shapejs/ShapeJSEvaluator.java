@@ -248,9 +248,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
         classWhiteList.add("java.awt.Color");
         classWhiteList.add("java.awt.geom.Point2D$Double");
         classWhiteList.add("sun.java2d.SunGraphics2D");  // Needed for image creation
-
-        printf("Added Point2D\n");
-
     }
 
     private static void initHeader() {

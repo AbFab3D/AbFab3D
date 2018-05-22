@@ -108,11 +108,6 @@ public class Variant  {
      */
     public int readDesign(List<String> basedirs,String path) throws IOException, NotCachedException {
 
-        printf("readDesign.  basedirs: %s");
-        for(String st: basedirs) {
-            printf("\t %s\n",st);
-        }
-        printf("\n");
         if (DEBUG) printf("ShapeJSDesign.readDesign(%s)\n", path);
         clearMessages();
 
@@ -194,6 +189,18 @@ public class Variant  {
      * @return Result.SUCCESS
      */
     public int readDesign(String basedir,String variantdir,Reader design) throws IOException, NotCachedException {
+        ArrayList<String> libs = new ArrayList<>();
+        libs.add(basedir);
+
+        return readDesign(libs,variantdir,design);
+    }
+
+    /**
+     * read design file (in JSON format)
+     *
+     * @return Result.SUCCESS
+     */
+    public int readDesign(List<String> libDirs,String variantdir,Reader design) throws IOException, NotCachedException {
 
         clearMessages();
 
@@ -227,7 +234,7 @@ public class Variant  {
         script = FileUtils.readFileToString(new File(aspath));
         ScriptResources sr;
 
-        sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap, m_sandboxed);
+        sr = m_sm.prepareScript(m_jobID, libDirs,script, paramMap, m_sandboxed);
 
         if (!sr.evaluatedScript.isSuccess()) {
             printScriptError(sr);
