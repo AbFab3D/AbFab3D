@@ -440,6 +440,8 @@ public class Project {
 
                             path = normalizeSlashes("../" + path);
                             resolvedParams.put(entry.getKey(), path);
+                        } else {
+                            resolvedParams.put(entry.getKey(), entry.getValue());
                         }
                     } else {
                         //printf("resolved params.  key: %s   class: %s\n",entry.getKey(),entry.getValue().getClass());
