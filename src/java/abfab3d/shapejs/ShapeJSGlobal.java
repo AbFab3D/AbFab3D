@@ -136,6 +136,8 @@ public class ShapeJSGlobal {
     private static ConcurrentHashMap<String, URLToFileCacheEntry> urlToFileCache;
     private static ConcurrentHashMap<String, String> fileToUrlCache;
     private static FileDiskCache urlCache;
+    
+    private static ConcurrentHashMap<String, String> fileToStockMediaCache;
 
     // Keep loadURL from being used to attack servers.  Every period number of requests to the same host we back off by delay * requests
     // based on window time
@@ -193,6 +195,7 @@ public class ShapeJSGlobal {
 
         urlToFileCache = new ConcurrentHashMap<String, URLToFileCacheEntry>();
         fileToUrlCache = new ConcurrentHashMap<String, String>();
+        fileToStockMediaCache = new ConcurrentHashMap<String, String>();
     }
 
     public ShapeJSGlobal(GlobalScope scope) {
@@ -1751,6 +1754,14 @@ public class ShapeJSGlobal {
 
     public static String getURL(String key) {
         return urlCache.get(key);
+    }
+
+    public static void putStockUrn(String filePath, String urn) {
+    	fileToStockMediaCache.put(filePath, urn);
+    }
+    
+    public static String getStockUrn(String filePath) {
+    	return fileToStockMediaCache.get(filePath);
     }
 
     static class ModelDistanceCacheEntry implements RemovalListener<String, ModelDistanceCacheEntry> {

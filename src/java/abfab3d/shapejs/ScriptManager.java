@@ -65,7 +65,7 @@ public class ScriptManager {
     private static final String IMAGES_DIR = "/stock/media/images";
     private static final String MODELS_DIR = "/stock/media/models";
 
-    private static final Map<String, String> media;
+    public static final Map<String, String> media;
 
     private static MaterialMapper matMapper;
     private static URIMapper uriMapper = null;
@@ -483,6 +483,10 @@ public class ScriptManager {
                     if (file != null && (new File(file)).exists()) {
                         ret_val.put(key, file);
 
+                        // Make sure mapping of local file path to stock media urn is in memory
+                        if (ShapeJSGlobal.getStockUrn(file) == null) {
+                        	ShapeJSGlobal.putStockUrn(file,  urlStr);
+                        }
                         continue;
                     }
 
@@ -555,10 +559,12 @@ public class ScriptManager {
                         localPath = URIUtils.writeDataURIToFile(key, urlStr, workingDirPath);
                         ret_val.put(key, localPath);
                     } else if (urlStr.startsWith("urn:shapeways:")) {
+
                         if (media.get(urlStr) == null) {
                             throw new Exception("Invalid media resource: " + urlStr);
                         }
 
+                        // Export stock media file to tmp dir
                         localPath = TMP_DIR + media.get(urlStr);
                         File f = new File(localPath);
                         if (!f.exists()) {
@@ -621,6 +627,11 @@ public class ScriptManager {
                     if (cache) {
                         localPath = ShapeJSGlobal.putURL(urlStr, localPath);
                         ret_val.put(key, localPath);
+                        
+                        // If uri is to stock media, store mapping of the cached path to the urn
+                        if (urlStr.startsWith("urn:shapeways:")) {
+                        	ShapeJSGlobal.putStockUrn(localPath, urlStr);
+                        }
                     }
 
                 } else if (param.getType() == ParameterType.URI_LIST) {

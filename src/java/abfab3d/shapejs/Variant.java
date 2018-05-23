@@ -142,6 +142,18 @@ public class Variant  {
         script = FileUtils.readFileToString(new File(aspath));
         ScriptResources sr;
         
+        //====================================================================
+        // This section only parses and resolves the script's default values
+        // Will download and cache any default uri value
+        //====================================================================
+        
+        try {
+            // Reset the params to their default value
+            m_sm.resetParams(m_jobID);
+        } catch(NotCachedException nce) {
+            // ignore
+        }
+        
         sr = m_sm.prepareScript(m_jobID, basedirs,script, paramMap, m_sandboxed);
         
         if (!sr.evaluatedScript.isSuccess()) {
@@ -149,15 +161,13 @@ public class Variant  {
             throw new RuntimeException(fmt("failed to prepare script", aspath));
         }
 
-        try {
-            // Reset the params to their default value
-            m_sm.resetParams(m_jobID);
-        } catch(NotCachedException nce) {
-            // ignore
-        }
-
-
         if (DEBUG) printParamsMap("after first prepareScript", paramMap);
+        
+        //====================================================================
+        // This section parses the variant's parameter values
+        // Will download and cache any uri value in the variant
+        //====================================================================
+        
         Map<String, Parameter> scriptParams = sr.getParams();
         ParamJson.getParamValuesFromJson(oparams, scriptParams);
         Map<String, Object> uriParams = resolveURIParams(file, sr.getParams());
@@ -169,6 +179,11 @@ public class Variant  {
         boolean skipRelativePath = true;
 
         sr = m_sm.updateParams(m_jobID, uriParams, skipRelativePath);
+        
+        //====================================================================
+        // Parameter parsing and setting done, Now execute the script
+        //====================================================================
+        
         sr = m_sm.executeScript(sr);
 
         if (!sr.evaluatedScript.isSuccess()) {
@@ -766,7 +781,7 @@ public class Variant  {
     //
     // resolve relative paths to absolute
     //
-    static Map<String, Object> resolveURIParams(File parentFile, Map<String, Parameter> params) {
+    static Map<String, Object> resolveURIParams(File parentFile, Map<String, Parameter> params) throws IOException {
 
         printf("Resolving URI params.  parent: %s\n",parentFile.getAbsoluteFile());
 
@@ -776,11 +791,23 @@ public class Variant  {
             if (par.getType() == ParameterType.URI) {
                 String parPath = (String) par.getValue();
 
-                if (parPath != null && !(parPath.startsWith("http") || parPath.startsWith("urn:"))) {
-                    String newPath = resolvePath(parentFile, new File(parPath));
-                    if (!newPath.equals(parPath)) {
-                        ret_val.put(par.getName(), newPath);
-                    }
+                if (parPath != null) {
+                    if (parPath.startsWith("http:") || parPath.startsWith("https:") ||
+                        parPath.startsWith("urn:shapeways:")) {
+
+                        // Leave http and urn:shapeways uri as is. downloadUri() will handle the
+                        // download and conversion to the cached path
+                        // TODO: What if caching is off? Where would the path to the stock urn be?
+                        ret_val.put(par.getName(), parPath);
+                        
+                    } else {
+                        // Local urls
+                        String newPath = resolvePath(parentFile, new File(parPath));
+                        if (!newPath.equals(parPath)) {
+                            ret_val.put(par.getName(), newPath);
+                        }
+                	}
+
                 }
             }
         }
