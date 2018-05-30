@@ -49,6 +49,7 @@ public class Polygon implements TriangleProducer, Transformer {
     // single subcycle of polygon 
     //
     PointSetArray m_part = null; 
+    double m_zcoord = 0.;
 
     Vector<PointSet> m_polygon = new Vector<PointSet>();
 
@@ -140,6 +141,22 @@ public class Polygon implements TriangleProducer, Transformer {
             m_polygon.add(m_part);            
             m_part = null;
         }        
+    }
+
+    /**
+       @return contours count 
+     */
+    public int getContourCount(){
+
+        return m_polygon.size();
+
+    }
+    
+    /**
+       @return contour of given index 
+     */
+    public PointSet getContour(int index){
+        return m_polygon.get(index);
     }
 
     /**
@@ -288,7 +305,7 @@ public class Polygon implements TriangleProducer, Transformer {
     }
 
     /**
-       splits shape into individual contours with optiponal reversing of contours direction 
+       splits shape into individual contours with optional reversing of contours direction 
      */
     Vector<PointSet> getContours(Shape shape, boolean doReverse){
         
@@ -316,7 +333,7 @@ public class Polygon implements TriangleProducer, Transformer {
             case PathIterator.SEG_LINETO: 
                 if(contour == null) contour = new PointSetArray();
                 if(abs(coord[0] - lastX) + abs(coord[1] - lastY) > EPS){
-                    contour.addPoint(coord[0],coord[1], 0.);                          
+                    contour.addPoint(coord[0],coord[1], m_zcoord);                          
                     lastX = coord[0];
                     lastY = coord[1];
                 }

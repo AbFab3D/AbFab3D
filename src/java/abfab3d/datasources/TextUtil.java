@@ -29,10 +29,12 @@ import java.awt.geom.AffineTransform;
 
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.ArrayList;
 
 import abfab3d.core.Grid2D;
 import abfab3d.core.Bounds;
 import abfab3d.grid.op.Grid2DtoImage;
+import abfab3d.grid.Grid2DInt;
 import abfab3d.grid.op.ImageToGrid2D;
 import abfab3d.util.Insets2;
 
@@ -313,7 +315,7 @@ public class TextUtil {
 
         printf("glyph vector\n");
         for(int i = 0; i < ctext.length; i++){
-            Point2D pnt = gv.getGlyphPosition(i);            
+            Point2D glyphPos = gv.getGlyphPosition(i);            
             Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();            
             rect = getExpandedRect(rect, halfWidth);
             //g.draw(rect);
@@ -329,9 +331,9 @@ public class TextUtil {
             Point2D pos = gv.getGlyphPosition(i); 
 
 
-            printf("glyph:%d(%c):[pos:(%5.1f,%5.1f); rect:[(%5.1f,%5.1f); %5.1f x %5.1f]\n",
-                   i, ctext[i],xr,yr, rect.getX(),rect.getY(),rect.getWidth(),rect.getHeight());   
-            Point2D gp = new Point2D.Double(posx+(pos.getX() - rect.getX()),0);
+            printf("glyph[%d]:(%c):[gpos:(%6.1f,%4.1f); grect:[(%6.1f,%6.1f); %5.1f x %5.1f]\n",
+                   i, ctext[i],glyphPos.getX(), glyphPos.getY(), rect.getX(),rect.getY(),rect.getWidth(),rect.getHeight());   
+            Point2D gp = new Point2D.Double(posx+(glyphPos.getX() - rect.getX()),0);
             gv.setGlyphPosition(i, gp); 
 
             fillCircle(g, x+gp.getX(),y+gp.getY(), r);
@@ -365,13 +367,18 @@ public class TextUtil {
         g.setColor(Color.BLACK);
         g.drawGlyphVector(gv, 0,0);
         //g.setTransform(savedTransform);
-        double rectMargin = 2; // margin around glyphs 
+        double rectMargin = 2; // margin around glyphs to make sure we have some white space 
+        double textMargins = halfWidth + rectMargin;
+
         printf("stacked rectangles\n");
+        
+        ArrayList<Grid2D> glyphGrids = new ArrayList<Grid2D>();
+
         for(int i = 0; i < ctext.length; i++){
             Point2D gp = gv.getGlyphPosition(i);
             Shape gs = gv.getGlyphOutline(i);
-            Rectangle2D srect = getExpandedRect(gs.getBounds(), halfWidth + rectMargin);
-            printf("exRect:[%5.1f,%5.1f; %5.1f x %5.1f]\n",srect.getX(),srect.getY(),srect.getWidth(),srect.getHeight());
+            Rectangle2D srect = getExpandedRect(gs.getBounds(), textMargins);
+            printf("exRect:[%6.1f,%6.1f; %5.1f x %5.1f]\n",srect.getX(),srect.getY(),srect.getWidth(),srect.getHeight());
             Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();            
             g.setColor(Color.blue);
             g.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND,  	BasicStroke.JOIN_ROUND));
@@ -384,17 +391,50 @@ public class TextUtil {
             g.setColor(Color.red);
             fillCircle(g, gp.getX(),gp.getY(), 5);
 
-            Grid2D gg = getShapeOutline(gs, srect, outlineStroke);
-            
+            Grid2D glyphGrid = getShapeOutline(gs, srect, outlineStroke);
+            glyphGrids.add(glyphGrid);
+
+        }
+        
+        //Grid2D textGrid = makeImageGrid(getExpandedRect(textRect,textMargins),1.);
+        //Bounds textBounds = textGrid.getGridBounds();
+        //printf("imageBounds:[%7.1f %7.1f;%7.1f %7.1f]\n",textBounds.xmin, textBounds.xmax, textBounds.ymin, textBounds.ymax);
+
+        for(int i = 0; i < glyphGrids.size(); i++){
             if (true) {
+                Bounds b = glyphGrids.get(i).getGridBounds();
+                printf("glyphBounds:[%7.1f %7.1f;%7.1f %7.1f]\n", b.xmin, b.xmax,b.ymin, b.ymax);
                 try {
-                    ImageIO.write(Grid2DtoImage.getARGBImage(gg), "png", new File(fmt("/tmp/kerning_%02d.png",i)));
+                    ImageIO.write(Grid2DtoImage.getARGBImage(glyphGrids.get(i)), "png", new File(fmt("/tmp/kerning_%02d.png",i)));
                 } catch(Exception e){
                     e.printStackTrace();
                 }           
                 
             }
+            
         }
+        int rightBound[] = new int[0];
+        
+    }
+
+    /**
+       makes Grid2D with given graphics rectangle bounds
+       y-axis direction is flipped 
+     */
+    static Grid2D makeImageGrid(Rectangle2D rect, double voxelSize){
+        
+        double 
+            xmin = rect.getX(),
+            xmax = xmin + rect.getWidth(),
+            // swap direction of y axis 
+            ymin = -(rect.getY() + rect.getHeight()),
+            ymax = -rect.getY(),
+            zmin = 0,
+            zmax = voxelSize;
+        Bounds bounds = new Bounds(xmin, xmax, ymin, ymax, zmin, zmax);
+        bounds.roundBounds(voxelSize);
+        Grid2D grid = new Grid2DInt(bounds,voxelSize);
+        return grid;
 
     }
 
@@ -434,8 +474,8 @@ public class TextUtil {
         
         double x0 = rect.getX();
         double x1 = rect.getX() + rect.getWidth();
-        double y0 = rect.getY();
-        double y1 = rect.getY() + rect.getHeight();
+        double y0 = -(rect.getY() + rect.getHeight());
+        double y1 = -(rect.getY());
         double z0 = 0;
         double z1 = 1;
 
@@ -649,4 +689,15 @@ public class TextUtil {
         String[] fonts = g.getAvailableFontFamilyNames();
         return fonts;
     }
+
+    static class GlyphGrid {
+        
+        Grid2D grid;
+
+        GlyphGrid(Grid2D grid){
+            this.grid = grid;
+        }
+        
+    }
+
 }
