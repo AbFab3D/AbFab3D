@@ -15,6 +15,7 @@ import abfab3d.param.Parameter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,11 +54,11 @@ public class ScriptResources {
 
     }
 
-    public void setLibDirs(ArrayList<String> libDirs) {
-    	this.libDirs = libDirs;
+    public void setLibDirs(List<String> libDirs) {
+    	this.libDirs = new ArrayList(libDirs);
     }
 
-    public ArrayList<String> getLibDirs(){
+    public List<String> getLibDirs(){
         return this.libDirs;
     }
 }

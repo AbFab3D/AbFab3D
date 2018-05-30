@@ -136,6 +136,8 @@ public class ShapeJSGlobal {
     private static ConcurrentHashMap<String, URLToFileCacheEntry> urlToFileCache;
     private static ConcurrentHashMap<String, String> fileToUrlCache;
     private static FileDiskCache urlCache;
+    
+    private static ConcurrentHashMap<String, String> fileToStockMediaCache;
 
     // Keep loadURL from being used to attack servers.  Every period number of requests to the same host we back off by delay * requests
     // based on window time
@@ -150,6 +152,7 @@ public class ShapeJSGlobal {
     private static HTTPRequester httpRequester;
 
     private static final HashMap<String,String> extToMime;
+    private static final ArrayList<String> libDirs = new ArrayList<>();  // Library directories to search
 
     private GlobalScope globalScope;
 
@@ -192,6 +195,7 @@ public class ShapeJSGlobal {
 
         urlToFileCache = new ConcurrentHashMap<String, URLToFileCacheEntry>();
         fileToUrlCache = new ConcurrentHashMap<String, String>();
+        fileToStockMediaCache = new ConcurrentHashMap<String, String>();
     }
 
     public ShapeJSGlobal(GlobalScope scope) {
@@ -215,6 +219,14 @@ public class ShapeJSGlobal {
 
         globals.put("console", new Console());
         this.globalScope = scope;
+    }
+
+    public static void configureLibDirs(List<String> dirs) {
+        libDirs.clear();
+        for(String dir : dirs) {
+            String st = FilenameUtils.separatorsToSystem(dir);
+            libDirs.add(st);
+        }
     }
 
     public static void configureURLCacheDir(String dir, long maxSize) {
@@ -1057,8 +1069,11 @@ public class ShapeJSGlobal {
 
                 // We need to guess mimetype by extension
                 String basedir = (String) thisObj.get(SHAPEJS_BASEDIR_PROP,thisObj);
+                ArrayList<String> libs = new ArrayList<>();
+                libs.add(basedir);
+                libs.addAll(libDirs);
 
-                Object resp = handleContent(sr,respMime,thisObj,basedir);
+                Object resp = handleContent(sr,respMime,thisObj,basedir,libs);
 
                 NativeObject ret = new NativeObject();
                 ret.defineProperty("statusCode",200,0);
@@ -1121,7 +1136,11 @@ public class ShapeJSGlobal {
                     StringReader sr = new StringReader(response);
 
                     String basedir = (String) thisObj.get(SHAPEJS_BASEDIR_PROP,thisObj);
-                    Object resp = handleContent(sr,"application/json",thisObj,basedir);
+                    ArrayList<String> libs = new ArrayList<>();
+                    libs.add(basedir);
+                    libs.addAll(libDirs);
+
+                    Object resp = handleContent(sr,"application/json",thisObj,basedir,libs);
 
                     NativeObject ret = new NativeObject();
                     ret.defineProperty("statusCode",200,0);
@@ -1154,11 +1173,13 @@ public class ShapeJSGlobal {
         return mime;
     }
 
-    private static Object handleContent(Reader r, String mimetype, Scriptable thisObj, String basedir) throws IOException {
+    private static Object handleContent(Reader r, String mimetype, Scriptable thisObj, String basedir, List<String> libDirs) throws IOException {
+
         URLHandler handler = contentHandlers.get(mimetype);
         if (handler != null) {
-            Object recs = handler.parse(r,basedir,thisObj);
+            Object recs = handler.parse(r,basedir,libDirs,thisObj);
 
+            printf("Resp is: %s\n",recs);
             recs = convertObjToJavascript(recs,thisObj);
             return recs;
         } else {
@@ -1235,12 +1256,16 @@ public class ShapeJSGlobal {
             String ext = FilenameUtils.getExtension(url);
 
             URLHandler handler = contentHandlers.get(ext);
+
             if (handler != null) {
                 try {
                     FileReader r = new FileReader(f);
                     String basedir = (String) thisObj.get(SHAPEJS_BASEDIR_PROP,thisObj);
+                    ArrayList<String> libs = new ArrayList<>();
+                    libs.add(basedir);
+                    libs.addAll(libDirs);
 
-                    Object recs = handler.parse(r,basedir,thisObj);
+                    Object recs = handler.parse(r,basedir,libs,thisObj);
                     Context.javaToJS(recs,thisObj);
 
                     return recs;
@@ -1729,6 +1754,14 @@ public class ShapeJSGlobal {
 
     public static String getURL(String key) {
         return urlCache.get(key);
+    }
+
+    public static void putStockUrn(String filePath, String urn) {
+    	fileToStockMediaCache.put(filePath, urn);
+    }
+    
+    public static String getStockUrn(String filePath) {
+    	return fileToStockMediaCache.get(filePath);
     }
 
     static class ModelDistanceCacheEntry implements RemovalListener<String, ModelDistanceCacheEntry> {

@@ -33,11 +33,12 @@ public abstract class BaseRenderableMaterial extends BaseParameterizable impleme
     protected SNodeParameter mp_renderingParams = new SNodeParameter("renderingParams");
     protected SNodeParameter mp_source = new SNodeParameter("source");
     protected StringParameter m_name = new StringParameter("name","Unnamed Material");
+    protected StringParameter m_alternateName = new StringParameter("alternateName", null);
     protected StringParameter m_label = new StringParameter("label","Unlabeled Material");
     protected EnumParameter m_matType = new EnumParameter("materialType", MaterialType.getStringValues(),MaterialType.SINGLE_MATERIAL.toString());
 
     private Parameter m_aparam[] = new Parameter[]{
-            mp_renderingParams, mp_source,m_name,m_matType
+            mp_renderingParams, mp_source, m_name, m_alternateName, m_matType
     };
 
     public BaseRenderableMaterial(String name) {
@@ -47,6 +48,13 @@ public abstract class BaseRenderableMaterial extends BaseParameterizable impleme
 
     public BaseRenderableMaterial(String name, String label) {
         m_name.setValue(name);
+        m_label.setValue(label);
+        addParams(m_aparam);
+    }
+    
+    public BaseRenderableMaterial(String name, String alternateName, String label) {
+        m_name.setValue(name);
+        m_alternateName.setValue(alternateName);
         m_label.setValue(label);
         addParams(m_aparam);
     }
@@ -73,4 +81,11 @@ public abstract class BaseRenderableMaterial extends BaseParameterizable impleme
         m_matType.setValue(val);
     }
 
+    public void setAlternateName(String val) {
+        m_alternateName.setValue(val);
+    }
+    
+    public String getAlternateName() {
+        return m_alternateName.getValue();
+    }
 }

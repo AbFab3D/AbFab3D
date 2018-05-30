@@ -18,6 +18,7 @@ import com.google.gson.Gson;
 import org.mozilla.javascript.Scriptable;
 
 import java.io.*;
+import java.util.List;
 
 import static abfab3d.core.Output.printf;
 
@@ -27,7 +28,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class JSONHandler implements URLHandler {
-    public Object parse(Reader r, String basedir, Scriptable scope) throws IOException {
+    public Object parse(Reader r, String basedir, List<String> libDirs, Scriptable scope) throws IOException {
         Gson gson = new Gson();
 
         return gson.fromJson(r, Object.class);

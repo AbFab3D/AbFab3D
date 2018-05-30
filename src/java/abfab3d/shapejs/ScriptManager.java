@@ -10,7 +10,7 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
-import java.util.ArrayList;
+import java.util.*;
 
 import abfab3d.core.Initializable;
 import abfab3d.io.input.URIMapper;
@@ -37,9 +37,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -68,7 +65,7 @@ public class ScriptManager {
     private static final String IMAGES_DIR = "/stock/media/images";
     private static final String MODELS_DIR = "/stock/media/models";
 
-    private static final Map<String, String> media;
+    public static final Map<String, String> media;
 
     private static MaterialMapper matMapper;
     private static URIMapper uriMapper = null;
@@ -146,27 +143,34 @@ public class ScriptManager {
         matMapper = mm;
     }
 
-    //    public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params, boolean sandboxed) {
-    //    return prepareScript(jobID,null,script,params, sandboxed);
-    //}
-
-    //public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params) {
-    //    return prepareScript(jobID,null,script,params, true);
-    //}
-
+   /**
+     * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
+     *
+     * @param jobID
+     * @param script
+     * @param params -  Must be Java native objects expected for the parameter type
+     * @return
+     * @throws NotCachedException
+     */
+    public ScriptResources prepareScript(String jobID, String script, Map<String, Object> params) {
+        ArrayList<String> libDirs = new ArrayList<String>();
+        return prepareScript(jobID, libDirs, script, params, true);
+    }
 
     /**
      * Prepare a script for execution.  Evaluates the javascript and downloads any parameters
      *
      * @param jobID
+     * @param libDir - directory of library location
      * @param script
-     * @param libDir - directory of library location 
-     * @param params -  Must be Java native objects expected for the parameter type     
+     * @param params -  Must be Java native objects expected for the parameter type
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources prepareScript(String jobID, String libDir,Script script, Map<String, Object> params) {
-        return prepareScript(jobID, libDir,script.getCode(), params, true);
+    public ScriptResources prepareScript(String jobID, String libDir,String script, Map<String, Object> params) {
+        ArrayList<String> libDirs = new ArrayList<String>();
+        libDirs.add(libDir);
+        return prepareScript(jobID, libDirs, script, params, true);
     }
 
     /**
@@ -195,7 +199,7 @@ public class ScriptManager {
      * @return
      * @throws NotCachedException
      */
-    public ScriptResources prepareScript(String jobID, ArrayList<String> libDirs,String script, Map<String, Object> params, boolean sandboxed) {
+    public ScriptResources prepareScript(String jobID, List<String> libDirs, String script, Map<String, Object> params, boolean sandboxed) {
         ScriptResources sr = null;
 
         long t0 = time();
@@ -479,6 +483,10 @@ public class ScriptManager {
                     if (file != null && (new File(file)).exists()) {
                         ret_val.put(key, file);
 
+                        // Make sure mapping of local file path to stock media urn is in memory
+                        if (ShapeJSGlobal.getStockUrn(file) == null) {
+                        	ShapeJSGlobal.putStockUrn(file,  urlStr);
+                        }
                         continue;
                     }
 
@@ -551,10 +559,12 @@ public class ScriptManager {
                         localPath = URIUtils.writeDataURIToFile(key, urlStr, workingDirPath);
                         ret_val.put(key, localPath);
                     } else if (urlStr.startsWith("urn:shapeways:")) {
+
                         if (media.get(urlStr) == null) {
                             throw new Exception("Invalid media resource: " + urlStr);
                         }
 
+                        // Export stock media file to tmp dir
                         localPath = TMP_DIR + media.get(urlStr);
                         File f = new File(localPath);
                         if (!f.exists()) {
@@ -568,7 +578,7 @@ public class ScriptManager {
                         cache = true;
                     } else {
                     	// Url is a relate file path. Must have a libDirs
-                        ArrayList<String> libDirs = resources.getLibDirs();
+                        List<String> libDirs = resources.getLibDirs();
                     	if (libDirs == null || libDirs.size() < 1) {
                             printf("downloadURI: No libDisr specified, skipping param: %s, val: %s\n", key, urlStr);
                     	} else {
@@ -617,10 +627,16 @@ public class ScriptManager {
                     if (cache) {
                         localPath = ShapeJSGlobal.putURL(urlStr, localPath);
                         ret_val.put(key, localPath);
+                        
+                        // If uri is to stock media, store mapping of the cached path to the urn
+                        if (urlStr.startsWith("urn:shapeways:")) {
+                        	ShapeJSGlobal.putStockUrn(localPath, urlStr);
+                        }
                     }
 
                 } else if (param.getType() == ParameterType.URI_LIST) {
                     // TODO: Handle uri list
+                    new Exception("Unhandled case.  Downloading uri list\n").printStackTrace();
                 }
 
             } catch (Exception e) {

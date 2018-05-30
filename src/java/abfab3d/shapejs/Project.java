@@ -178,23 +178,22 @@ public class Project {
 
         f.mkdirs();
 
+        Path pbase = Paths.get(dir);
+
         LinkedHashMap<String,Object> manifest = new LinkedHashMap<>();
         ArrayList<String> scriptList = new ArrayList<>();
         for(ProjectItem script : scripts) {
-            String fname = FilenameUtils.separatorsToUnix(script.getPath());
-            scriptList.add(fname);
+            scriptList.add(FilenameUtils.separatorsToUnix(script.getOrigPath()));
         }
 
         ArrayList<String> variantList = new ArrayList<>();
         for(ProjectItem variant : variants) {
-            String fname = FilenameUtils.separatorsToUnix(variant.getPath());
-            variantList.add(fname);
+            variantList.add(FilenameUtils.separatorsToUnix(variant.getOrigPath()));
         }
 
         ArrayList<String> resourceList = new ArrayList<>();
         for(ProjectItem resource : resources) {
-            String fname = FilenameUtils.separatorsToUnix(resource.getPath());
-            resourceList.add(fname);
+            resourceList.add(FilenameUtils.separatorsToUnix(resource.getOrigPath()));
         }
 
         manifest.put(NAME_PROP,name);
@@ -222,7 +221,7 @@ public class Project {
     }
 
     // Resolve a resource to a local directory
-    private String resolveResouce(String origPath, String origFile,String destDir) throws IOException {
+    private String resolveResource(String origPath, String origFile,String destDir) throws IOException {
         // Copy the resource into the dest dir
         // Create a relative url for the resource
 
@@ -274,12 +273,7 @@ public class Project {
         FileUtils.copyFile(srcFile,destFile);
     }
 
-    /**
-     * Export a project into a transmital zip
-     *
-     * TODO: This code is horrible because of pathing questions.  Fix later, work up an angle to blame Tony for it.
-     */
-    public void exportProject(File targetDir) {
+    public void exportProjectOld(File targetDir) {
         // TODO: Lots of weirdness related to relative pathing.  Fix later.  For now
         // assume standard dirs for scripts,variants,etc
 
@@ -301,7 +295,7 @@ public class Project {
                         if (sval.startsWith("../..")) {
                             // this is relative to the variant file location...
                             // TODO: For now assume that proj parent dir / variants
-                            String path = resolveResouce(getParentDir()+
+                            String path = resolveResource(getParentDir()+
                                             File.separator+"variants" + File.separator + sval,sval,
                                     tmpdSt + File.separator + "resolved");
 
@@ -340,33 +334,214 @@ public class Project {
                         File.separator + "fonts");
                 if (fpath.exists()) FileUtils.copyDirectory(fpath, frpath);
 
-                VariantItem nvi = new VariantItem(vi.getPath(),null);
+                VariantItem nvi = new VariantItem(vi.getOrigPath(),vi.getPath(),null);
 
-                String ms = "../" + vi.getMainScript();
-                ms = normalizeSlashes(ms);
+                Path base = Paths.get(getParentDir() + File.separator + "variants");
+                Path abs = Paths.get(vi.getMainScript());
+
+                String ms = base.relativize(abs).toString();
+
+                FilenameUtils.separatorsToUnix(ms);
                 nvi.setMainScript(ms);
                 nvi.setParams(resolvedParams);
 
-                String vpath = tmpdSt + File.separator + vi.getPath();
+                String vpath = tmpdSt + File.separator + vi.getOrigPath();
                 new File(vpath).getParentFile().mkdirs();
 
                 nvi.save(vpath);
                 resolved.addVariant(nvi);
             }
 
+            String projDirNormalized = FilenameUtils.normalize(getParentDir());
+
             for (ProjectItem script : getScripts()) {
 
-                String spath = script.getPath();
                 String tpath = script.getThumbnail();
 
-                ProjectItem pi = new ProjectItem(spath,tpath);
+                String origPath = FilenameUtils.separatorsToSystem(script.getOrigPath());
+                String fullPath = FilenameUtils.separatorsToSystem(FilenameUtils.normalize(script.getPath()));
 
-                String vpath = tmpdSt + File.separator + script.getPath();
+                if (fullPath.startsWith(projDirNormalized)) {
+                    // Script was in the local dir
+                    ProjectItem pi = new ProjectItem(script.getOrigPath(),script.getPath(),tpath);
+
+                    String vpath = tmpdSt + File.separator + script.getOrigPath();
+                    new File(vpath).getParentFile().mkdirs();
+
+                    FileUtils.copyFile(new File(script.getPath()),new File(vpath));
+                    resolved.addScript(pi);
+                } else {
+                    // Script was resolved on the path
+
+                    int idx = fullPath.indexOf(origPath);
+                    String libDir = fullPath.substring(0,idx);
+                    printf("FullPath: %s  origPath: %s  libDir: %s\n",fullPath,origPath,libDir);
+                    // TODO: Assume one level of dir is enough to make unique
+                    String path = FilenameUtils.getPathNoEndSeparator(libDir);
+                    idx = path.lastIndexOf(File.separator);
+                    String shortName = "resolved" + File.separator + path.substring(idx+1) + File.separator + origPath;
+                    String fullName = tmpdSt + File.separator + shortName;
+
+                    printf("libdir: %s  shortName: %s  fullName: %s\n",libDir,shortName,fullName);
+                    ProjectItem pi = new ProjectItem(shortName,fullName,tpath);
+
+                    new File(fullName).getParentFile().mkdirs();
+
+                    FileUtils.copyFile(new File(script.getPath()),new File(fullName));
+                    resolved.addScript(pi);
+                }
+            }
+
+            resolved.save(tmpdSt);
+
+            String parentDir = getParentDir();
+            int idx = parentDir.lastIndexOf(File.separator);
+            if (idx > -1) {
+                parentDir = parentDir.substring(idx+1);
+            }
+            String zipname = targetDir.getAbsolutePath() + File.separator + parentDir + ".zip";
+            printf("Creating zip: %s\n",zipname);
+            Zip.createZip(tmpdSt,zipname,false);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    /**
+     * Export a project into a transmital zip
+     *
+     * TODO: This code is horrible because of pathing questions.  Fix later, work up an angle to blame Tony for it.
+     */
+    public void exportProject(File targetDir) {
+        // TODO: Lots of weirdness related to relative pathing.  Fix later.  For now
+        // assume standard dirs for scripts,variants,etc
+
+        Project resolved = new Project();
+
+        try {
+            Path tmpd = Files.createTempDirectory("exportProject");
+            String tmpdSt = tmpd.toFile().getAbsolutePath();
+
+            printf("Exporting to: %s\n",tmpdSt);
+            for (VariantItem vi : getVariants()) {
+                Map<String, Object> params = vi.getParams();
+                HashMap<String, Object> resolvedParams = new HashMap<>();
+                for (Map.Entry<String, Object> entry : params.entrySet()) {
+                    // TODO: How to know the datatype, need to parse the script
+                    // Just check for strings with ../.. for now
+                    if (entry.getValue() instanceof String) {
+                        String sval = (String) entry.getValue();
+                        if (sval.startsWith("../..")) {
+                            // this is relative to the variant file location...
+                            // TODO: For now assume that proj parent dir / variants
+                            String path = resolveResource(getParentDir()+
+                                            File.separator+"variants" + File.separator + sval,sval,
+                                    tmpdSt + File.separator + "resolved");
+
+                            path = normalizeSlashes("../" + path);
+                            resolvedParams.put(entry.getKey(), path);
+                        } else {
+                            resolvedParams.put(entry.getKey(), entry.getValue());
+                        }
+                    } else {
+                        //printf("resolved params.  key: %s   class: %s\n",entry.getKey(),entry.getValue().getClass());
+                        resolvedParams.put(entry.getKey(), entry.getValue());
+                    }
+                }
+
+                // Assume any items in the resources dir need to be copied
+                // Otherwise the manifest file must contain a valid list of resources...
+                File rpath = new File(getParentDir() +
+                        File.separator + "resources");
+                File drpath = new File(tmpdSt +
+                        File.separator + "resources");
+                if (rpath.exists()) FileUtils.copyDirectory(rpath, drpath);
+
+
+                VariantItem nvi = new VariantItem(vi.getOrigPath(),vi.getPath(),null);
+
+                Path base = Paths.get(getParentDir() + File.separator + "variants");
+                Path abs = Paths.get(vi.getMainScript());
+
+                String ms = base.relativize(abs).toString();
+
+                FilenameUtils.separatorsToUnix(ms);
+                nvi.setMainScript(ms);
+                nvi.setParams(resolvedParams);
+
+                String vpath = tmpdSt + File.separator + vi.getOrigPath();
                 new File(vpath).getParentFile().mkdirs();
 
-                FileUtils.copyFile(new File(getParentDir()+
-                        File.separator + script.getPath()),new File(vpath));
-                resolved.addScript(pi);
+                nvi.save(vpath);
+                resolved.addVariant(nvi);
+            }
+
+            String projDirNormalized = FilenameUtils.normalize(getParentDir());
+
+            for (ProjectItem script : getScripts()) {
+
+                String tpath = script.getThumbnail();
+
+                String origPath = FilenameUtils.separatorsToSystem(script.getOrigPath());
+                String fullPath = FilenameUtils.separatorsToSystem(FilenameUtils.normalize(script.getPath()));
+
+                if (fullPath.startsWith(projDirNormalized)) {
+                    // Script was in the local dir
+                    ProjectItem pi = new ProjectItem(script.getOrigPath(),script.getPath(),tpath);
+
+                    String vpath = tmpdSt + File.separator + script.getOrigPath();
+                    new File(vpath).getParentFile().mkdirs();
+
+                    FileUtils.copyFile(new File(script.getPath()),new File(vpath));
+                    resolved.addScript(pi);
+                } else {
+                    // Script was resolved on the path
+
+                    int idx = fullPath.indexOf(origPath);
+                    String libDir = fullPath.substring(0,idx);
+                    printf("FullPath: %s  origPath: %s  libDir: %s\n",fullPath,origPath,libDir);
+                    // TODO: Assume one level of dir is enough to make unique
+                    String path = FilenameUtils.getPathNoEndSeparator(libDir);
+                    idx = path.lastIndexOf(File.separator);
+                    String shortName = "resolved" + File.separator + path.substring(idx+1) + File.separator + origPath;
+                    String fullName = tmpdSt + File.separator + shortName;
+
+                    printf("libdir: %s  shortName: %s  fullName: %s\n",libDir,shortName,fullName);
+                    ProjectItem pi = new ProjectItem(shortName,fullName,tpath);
+
+                    new File(fullName).getParentFile().mkdirs();
+
+                    FileUtils.copyFile(new File(script.getPath()),new File(fullName));
+                    resolved.addScript(pi);
+                }
+            }
+
+            printf("Handling resources\n");
+            List<ProjectItem> resources = getResources();
+            for(ProjectItem res: resources) {
+                File rpath;
+                File drpath;
+
+                String path = res.getOrigPath();
+                if (path.endsWith("*")) {
+                    printf("Dir Entry: %s\n",path);
+
+                    String bare = path.substring(0,path.length()-1);
+                    // copy direct
+                    rpath = new File(getParentDir() +
+                            File.separator + "resources");
+                    drpath = new File(tmpdSt +
+                            File.separator + bare);
+                    if (rpath.exists()) FileUtils.copyDirectory(rpath, drpath);
+                } else {
+                    rpath = new File(res.getPath());
+                    drpath = new File(tmpdSt +
+                            File.separator + res.getOrigPath());
+                    drpath.mkdirs();
+
+                    printf("Copying resource: %s -> %s\n",rpath,drpath);
+                    FileUtils.copyFile(rpath,drpath);
+                }
             }
 
             resolved.save(tmpdSt);
@@ -400,7 +575,7 @@ public class Project {
      * @return
      * @throws IOException
      */
-    public static Project load(String file) throws IOException {
+    public static Project load(String file, List<String> libDirs) throws IOException {
         Path workingDirName = Files.createTempDirectory("loadProject");
         String resultDirPath = workingDirName.toAbsolutePath().toString();
 
@@ -422,7 +597,7 @@ public class Project {
             }
 
             manifest = fname[0];
-            Project ret = createProject(resultDirPath,manifest);
+            Project ret = createProject(resultDirPath,libDirs,manifest);
 
             // Who is responsible for cleaning up the project afterwards?
             return ret;
@@ -430,7 +605,7 @@ public class Project {
             String wd = new File(FilenameUtils.getFullPath(file)).getCanonicalPath();
             manifest = FilenameUtils.getName(file);
 
-            Project ret = createProject(wd,manifest);
+            Project ret = createProject(wd,libDirs,manifest);
             return ret;
         } else {
             throw new IllegalArgumentException("Unknown file type: " + FilenameUtils.getExtension(file));
@@ -444,7 +619,7 @@ public class Project {
      * @param manifest The project manifest
      * @return
      */
-    private static Project createProject(String dir, String manifest) {
+    private static Project createProject(String dir, List<String> libDirs, String manifest) {
         try {
             Gson gson = new GsonBuilder().create();
 
@@ -460,18 +635,18 @@ public class Project {
             ArrayList<ProjectItem> scripts = new ArrayList<>();
             ArrayList<VariantItem> variants = new ArrayList<>();
             ArrayList<ProjectItem> resources = new ArrayList<>();
-            String cdir = new File(dir).getCanonicalPath();
+            String projDir = new File(dir).getCanonicalPath();
 
             List<String> uscripts = (List<String>) props.get("scripts");
-            processItem(uscripts,cdir,scripts);
+            processItem(uscripts,projDir,libDirs,scripts);
             ret.setScripts(scripts);
 
             List<String> uvariants = (List<String>) props.get("variants");
-            processVariant(uvariants,cdir,variants);
+            processVariant(uvariants,projDir,libDirs,variants);
             ret.setVariants(variants);
 
             List<String> uresources = (List<String>) props.get("resources");
-            processItem(uresources,cdir,resources);
+            processItem(uresources,projDir,libDirs,resources);
             ret.setResources(resources);
 
             ret.setParentDir(dir);
@@ -482,54 +657,109 @@ public class Project {
         }
     }
 
-    private static void processItem(List<String> uscripts,String cdir,ArrayList<ProjectItem> scripts) throws IOException {
-        if (uscripts != null) {
+    /**
+     * Strip nulls from a list.  Trailing
+     * @param list
+     */
+    private static List stripNull(List list) {
+        Iterator itr = list.iterator();
 
-            for (String script : uscripts) {
-                if (script == null) continue;
+        while(itr.hasNext()) {
+            Object p = itr.next();
 
-                String cscript = sanitizeUserFilename(cdir + File.separator + script,cdir);
-
-                String thumbnail = null;
-
-                // check for thumbnail
-                File tf = new File(cscript + ".png");
-                if (tf.exists()) {
-                    thumbnail = tf.getAbsolutePath();
-                }
-
-                String relativeScript = makeRelative(cdir,cscript);
-                String relativeThumb = null;
-                if (thumbnail != null) makeRelative(cdir,thumbnail);
-
-                ProjectItem pi = new ProjectItem(relativeScript,relativeThumb);
-                scripts.add(pi);
+            if (p == null) {
+                itr.remove();
             }
+        }
+
+        return list;
+    }
+
+    /**
+     * Resolves a resource given by searching the project and libDirs.  Supports a single wildcard ending
+     * to denote a directory resource
+     *
+     * @param res
+     * @param projDir
+     * @param libDirs
+     * @return The absolute path of the item or null if not found
+     */
+    private static String resolveResource(String res, String projDir, List<String> libDirs) {
+        File f = new File(projDir + File.separator + res);
+        if (f.exists()) {
+            return f.getAbsolutePath();
+        }
+
+        for(String dir : libDirs) {
+            f = new File(dir + File.separator + res);
+            if (f.exists()) {
+                return f.getAbsolutePath();
+            }
+        }
+
+        // handle wildcard case
+        if (!res.endsWith("*")) return null;
+
+        String baseRes = res.substring(0,res.length()-1);
+
+        f = new File(projDir + File.separator + baseRes);
+        if (f.exists()) {
+            return f.getAbsolutePath() + File.separator + "*";
+        }
+
+        for(String dir : libDirs) {
+            f = new File(dir + File.separator + baseRes);
+            if (f.exists()) {
+                return f.getAbsolutePath() + File.separator + "*";
+            }
+        }
+
+        return null;
+    }
+
+    private static void processItem(List<String> uscripts,String projDir,List<String> libDirs,List<ProjectItem> scripts) throws IOException {
+        if (uscripts == null) return;
+
+        for (String script : uscripts) {
+            if (script == null) continue;
+
+
+            String rscript = resolveResource(script,projDir,libDirs);
+
+            if (rscript == null) {
+                printf("Cannot resolve ProjectItem: %s\n",script);
+                rscript = "Resource not found";
+            }
+            String thumbnail = null;
+
+            // check for thumbnail
+            File tf = new File(rscript + ".png");
+            if (tf.exists()) {
+                thumbnail = tf.getAbsolutePath();
+            }
+
+            ProjectItem pi = new ProjectItem(script,rscript,thumbnail);
+            scripts.add(pi);
         }
     }
 
-    private static void processVariant(List<String> uvariants,String cdir,ArrayList<VariantItem> variants) throws IOException {
+    private static void processVariant(List<String> uvariants,String projDir,List<String> libDirs,List<VariantItem> variants) throws IOException {
         if (uvariants != null) {
 
             for (String script : uvariants) {
                 if (script == null) continue;
 
-                String cscript = sanitizeUserFilename(cdir + File.separator + script,cdir);
+                String rscript = resolveResource(script,projDir,libDirs);
 
                 String thumbnail = null;
 
                 // check for thumbnail
-                String tf = script + ".png";
-                thumbnail = sanitizeUserFilename(cdir + File.separator + tf,cdir);
-                if (!(new File(thumbnail).exists())) {
-                    thumbnail = null;
+                File tf = new File(rscript + ".png");
+                if (tf.exists()) {
+                    thumbnail = tf.getAbsolutePath();
                 }
 
-                String relativeScript = makeRelative(cdir,cscript);
-                String relativeThumb = null;
-                if (thumbnail != null) relativeThumb = makeRelative(cdir,thumbnail);
-
-                VariantItem pi = new VariantItem(cdir,relativeScript,relativeThumb);
+                VariantItem pi = new VariantItem(projDir,script,rscript,thumbnail);
                 variants.add(pi);
             }
         }

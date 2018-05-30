@@ -23,7 +23,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.sun.corba.se.impl.ior.NewObjectKeyTemplateBase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -96,6 +95,18 @@ public class Variant  {
      * @return Result.SUCCESS
      */
     public int readDesign(String basedir,String path) throws IOException, NotCachedException {
+        ArrayList<String> basedirs = new ArrayList<>();
+        basedirs.add(basedir);
+
+        return readDesign(basedirs,path);
+    }
+
+    /**
+     * read design file (in JSON format)
+     *
+     * @return Result.SUCCESS
+     */
+    public int readDesign(List<String> basedirs,String path) throws IOException, NotCachedException {
 
         if (DEBUG) printf("ShapeJSDesign.readDesign(%s)\n", path);
         clearMessages();
@@ -131,22 +142,32 @@ public class Variant  {
         script = FileUtils.readFileToString(new File(aspath));
         ScriptResources sr;
         
-        sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap, m_sandboxed);
+        //====================================================================
+        // This section only parses and resolves the script's default values
+        // Will download and cache any default uri value
+        //====================================================================
         
-        if (!sr.evaluatedScript.isSuccess()) {
-            printScriptError(sr);
-            throw new RuntimeException(fmt("failed to prepare script", aspath));
-        }
-
         try {
             // Reset the params to their default value
             m_sm.resetParams(m_jobID);
         } catch(NotCachedException nce) {
             // ignore
         }
-
+        
+        sr = m_sm.prepareScript(m_jobID, basedirs,script, paramMap, m_sandboxed);
+        
+        if (!sr.evaluatedScript.isSuccess()) {
+            printScriptError(sr);
+            throw new RuntimeException(fmt("failed to prepare script", aspath));
+        }
 
         if (DEBUG) printParamsMap("after first prepareScript", paramMap);
+        
+        //====================================================================
+        // This section parses the variant's parameter values
+        // Will download and cache any uri value in the variant
+        //====================================================================
+        
         Map<String, Parameter> scriptParams = sr.getParams();
         ParamJson.getParamValuesFromJson(oparams, scriptParams);
         Map<String, Object> uriParams = resolveURIParams(file, sr.getParams());
@@ -158,6 +179,11 @@ public class Variant  {
         boolean skipRelativePath = true;
 
         sr = m_sm.updateParams(m_jobID, uriParams, skipRelativePath);
+        
+        //====================================================================
+        // Parameter parsing and setting done, Now execute the script
+        //====================================================================
+        
         sr = m_sm.executeScript(sr);
 
         if (!sr.evaluatedScript.isSuccess()) {
@@ -165,7 +191,7 @@ public class Variant  {
             throw new RuntimeException(fmt("failed to execute script", aspath));
         }
         m_designPath = path;
-        m_scriptPath = aspath;
+        m_scriptPath = new File(aspath).getAbsolutePath();
         m_evaluatedScript = sr.evaluatedScript;
         m_scene = m_evaluatedScript.getResult();
         return ResultCodes.RESULT_OK;
@@ -178,6 +204,18 @@ public class Variant  {
      * @return Result.SUCCESS
      */
     public int readDesign(String basedir,String variantdir,Reader design) throws IOException, NotCachedException {
+        ArrayList<String> libs = new ArrayList<>();
+        libs.add(basedir);
+
+        return readDesign(libs,variantdir,design);
+    }
+
+    /**
+     * read design file (in JSON format)
+     *
+     * @return Result.SUCCESS
+     */
+    public int readDesign(List<String> libDirs,String variantdir,Reader design) throws IOException, NotCachedException {
 
         clearMessages();
 
@@ -211,7 +249,7 @@ public class Variant  {
         script = FileUtils.readFileToString(new File(aspath));
         ScriptResources sr;
 
-        sr = m_sm.prepareScript(m_jobID, basedir,script, paramMap, m_sandboxed);
+        sr = m_sm.prepareScript(m_jobID, libDirs,script, paramMap, m_sandboxed);
 
         if (!sr.evaluatedScript.isSuccess()) {
             printScriptError(sr);
@@ -243,7 +281,7 @@ public class Variant  {
             throw new RuntimeException(fmt("failed to execute script", aspath));
         }
         m_designPath = NEW_DESIGN;
-        m_scriptPath = aspath;
+        m_scriptPath = new File(aspath).getAbsolutePath();
         m_evaluatedScript = sr.evaluatedScript;
         m_scene = m_evaluatedScript.getResult();
         return ResultCodes.RESULT_OK;
@@ -743,9 +781,9 @@ public class Variant  {
     //
     // resolve relative paths to absolute
     //
-    static Map<String, Object> resolveURIParams(File parentFile, Map<String, Parameter> params) {
+    static Map<String, Object> resolveURIParams(File parentFile, Map<String, Parameter> params) throws IOException {
 
-        printf("Resolvong URI params.  parent: %s\n",parentFile.getAbsoluteFile());
+        printf("Resolving URI params.  parent: %s\n",parentFile.getAbsoluteFile());
 
         HashMap<String, Object> ret_val = new HashMap<>();
 
@@ -754,10 +792,22 @@ public class Variant  {
                 String parPath = (String) par.getValue();
 
                 if (parPath != null) {
-                    String newPath = resolvePath(parentFile, new File(parPath));
-                    if (!newPath.equals(parPath)) {
-                        ret_val.put(par.getName(), newPath);
-                    }
+                    if (parPath.startsWith("http:") || parPath.startsWith("https:") ||
+                        parPath.startsWith("urn:shapeways:")) {
+
+                        // Leave http and urn:shapeways uri as is. downloadUri() will handle the
+                        // download and conversion to the cached path
+                        // TODO: What if caching is off? Where would the path to the stock urn be?
+                        ret_val.put(par.getName(), parPath);
+                        
+                    } else {
+                        // Local urls
+                        String newPath = resolvePath(parentFile, new File(parPath));
+                        if (!newPath.equals(parPath)) {
+                            ret_val.put(par.getName(), newPath);
+                        }
+                	}
+
                 }
             }
         }

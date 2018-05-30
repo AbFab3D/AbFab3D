@@ -47,8 +47,8 @@ import static abfab3d.core.Output.time;
  */
 public class ShapeJSEvaluator implements MaterialMapper {
 
-    final static boolean DEBUG = true;
-    final static boolean DEBUG_SECURITY = true;
+    final static boolean DEBUG = false;
+    final static boolean DEBUG_SECURITY = false;
 
     /** Packages allowed to be imported.  Security mechanism */
     private static ArrayList<String> packageWhitelist = new ArrayList<String>();
@@ -143,7 +143,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
     }
 
     public ShapeJSEvaluator(boolean sandboxed) {
-        new Exception().printStackTrace();
         this.m_sandboxed = sandboxed;
         types = new LinkedHashMap<String, Parameter>();
         defs = new LinkedHashMap<String, Parameter>();
@@ -251,9 +250,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
         classWhiteList.add("java.awt.Color");
         classWhiteList.add("java.awt.geom.Point2D$Double");
         classWhiteList.add("sun.java2d.SunGraphics2D");  // Needed for image creation
-
-        printf("Added Point2D\n");
-
     }
 
     private static void initHeader() {
@@ -878,8 +874,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
     /**
        set locatrions to search libs 
      */
-    public void setLibDirs(ArrayList<String> libs) {
-        m_libDirs = libs;
+    public void setLibDirs(List<String> libs) {
+        m_libDirs = new ArrayList<String>(libs);
     }
 
 

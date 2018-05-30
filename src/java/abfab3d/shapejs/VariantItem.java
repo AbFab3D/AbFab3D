@@ -22,6 +22,8 @@ import org.apache.commons.io.FilenameUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,29 +38,29 @@ public class VariantItem extends ProjectItem {
     protected String mainScript;
     protected Map<String,Object> params;
 
-    public VariantItem(String pdir,String path, String thumbnail) {
-        super(path,thumbnail);
+    public VariantItem(String pdir,String origPath, String fullPath, String thumbnail) {
+        super(origPath,fullPath,thumbnail);
 
-        parse(pdir,path);
+        parse(pdir,origPath,fullPath);
     }
 
-    public VariantItem(String path,String thumbnail) {
-        super(path,thumbnail);
+    public VariantItem(String origPath,String fullPath,String thumbnail) {
+        super(origPath,fullPath,thumbnail);
 
         params = new HashMap<>();
     }
 
-    private void parse(String pdir,String path) {
+    private void parse(String pdir,String origPath,String fullPath) {
         Gson gson = new GsonBuilder().create();
 
         try {
-            String mst = FileUtils.readFileToString(new File(pdir + File.separator + path), Charset.defaultCharset());
+            String mst = FileUtils.readFileToString(new File(fullPath), Charset.defaultCharset());
             Map<String, Object> props = gson.fromJson(mst, Map.class);
             mainScript = (String) props.get("scriptPath");
             params = (Map<String,Object>) props.get("scriptParams");  // TODO: This loses datatyping
 
-            String abspath = pdir + File.separator + FilenameUtils.getPath(path) + File.separator + mainScript;
-            mainScript = Project.makeRelative(pdir,abspath);
+            File ms = new File(pdir + File.separator + "variants" + File.separator + mainScript);
+            mainScript = FilenameUtils.normalize(ms.getAbsolutePath());
         } catch(IOException ioe) {
             ioe.printStackTrace();
         }
@@ -69,7 +71,9 @@ public class VariantItem extends ProjectItem {
 
         try {
             HashMap<String, Object> obj = new HashMap<>();
-            obj.put("scriptPath", mainScript);
+
+            // make the mainScript value be relative to the variant file
+            obj.put("scriptPath", FilenameUtils.separatorsToUnix(mainScript));
             obj.put("scriptParams", params);
             String st = gson.toJson(obj);
             FileUtils.writeStringToFile(new File(file), st);
