@@ -503,7 +503,8 @@ public class Project {
                     // TODO: Assume one level of dir is enough to make unique
                     String path = FilenameUtils.getPathNoEndSeparator(libDir);
                     idx = path.lastIndexOf(File.separator);
-                    String shortName = "resolved" + File.separator + path.substring(idx+1) + File.separator + origPath;
+//                    String shortName = "resolved" + File.separator + path.substring(idx+1) + File.separator + origPath;
+                    String shortName = origPath;  // Place in top level so requires works
                     String fullName = tmpdSt + File.separator + shortName;
 
                     printf("libdir: %s  shortName: %s  fullName: %s\n",libDir,shortName,fullName);
