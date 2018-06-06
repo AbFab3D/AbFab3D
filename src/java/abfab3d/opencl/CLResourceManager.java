@@ -68,6 +68,14 @@ public class CLResourceManager implements Runnable {
         scheduler.scheduleAtFixedRate(this, timeout, timeout, TimeUnit.MILLISECONDS);
         */
     }
+    
+    public long getCapacity(){
+        return maxBytes;
+    }
+
+    public long getCurrentSize(){
+        return currBytes;
+    }
 
     public static CLResourceManager getInstance(long contextID) {
         return getInstance(contextID,-1,DEFAULT_TIMEOUT_MS);
