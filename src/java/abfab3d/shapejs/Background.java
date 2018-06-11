@@ -238,19 +238,24 @@ public class Background extends BaseParameterizable implements Initializable {
         long t0 = time();
 
         String imageSource = mp_imageSource.getValue();
-        if (imageSource == null)
-            throw new RuntimeException("imageSource is null");
+        if (imageSource == null){
+            m_imageData = new ImageColor(1, 1);
+            //throw new RuntimeException("imageSource is null");
+            printf("%s: imageSource is null\n", this.getClass().getName());
+        }
 
         InputStream is = FileUtil.getResourceAsStream(imageSource);
         if (is == null) {
             m_imageData = new ImageColor(1, 1);
-            throw new RuntimeException("Cannot load background file: " + imageSource);
+            //throw new RuntimeException("Cannot load background file: " + imageSource);
+            printf("%s: Cannot load background file\n", this.getClass().getName(), imageSource);
+
         }
         try {
             m_imageData = new ImageColor(ImageIO.read(is));
         } catch(IOException ioe) {
             m_imageData = new ImageColor(1, 1);
-            throw new RuntimeException("Cannot load background file: " + imageSource);
+            printf("%s: Cannot read background file: %s\n", this.getClass().getName(), imageSource);
         }
 
         return ResultCodes.RESULT_OK;

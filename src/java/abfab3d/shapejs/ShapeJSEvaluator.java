@@ -171,6 +171,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
         // Classes we want imported by default
         classImports.add("java.util.Vector");
+        classImports.add("java.util.Random");
 
         // Do not make abfab3d.io.output exposed as a package big security hole
         classImports.add("abfab3d.io.output.SingleMaterialModelWriter");
@@ -240,6 +241,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
         classWhiteList.add("java.lang.String");
         classWhiteList.add("java.lang.reflect.Array");
         classWhiteList.add("java.util.Vector");
+        classWhiteList.add("java.util.Random");
         classWhiteList.add("java.util.ArrayList");
         classWhiteList.add("java.util.Map");
         classWhiteList.add("java.util.HashMap");

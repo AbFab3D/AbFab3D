@@ -34,6 +34,8 @@ import static abfab3d.core.Output.printf;
  */
 public class ParamPanel extends JPanel {
 
+    static final boolean DEBUG = false;
+
     static final int SPACE = 2;
 
     private java.util.List<Parameterizable> m_node;
@@ -228,7 +230,7 @@ public class ParamPanel extends JPanel {
         panel.removeAll();
         panel.setLayout(new GridBagLayout());
 
-        printf("***Adding params to panel: %d\n",param.length);
+        if(DEBUG)printf("***Adding params to panel: %d\n",param.length);
         for(int i=0; i < param.length; i++) {
 
             double hWeight = (i < param.length - 1) ? (0.) : (1.);

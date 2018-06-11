@@ -50,7 +50,7 @@ import static abfab3d.core.Output.time;
  * @author Alan Hudson
  */
 public class ScriptManager {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final boolean STOP_CACHING = false;
     private static final int DEFAULT_CACHE_TIMEOUT_MS = 60 * 60 * 1000;
     private static int sm_cacheTimeout = DEFAULT_CACHE_TIMEOUT_MS; // time-out for cache items

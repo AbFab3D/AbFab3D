@@ -16,7 +16,7 @@ import static abfab3d.core.Output.printf;
  */
 public class WindowManager implements WindowListener {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     private static int lastY;
     private ArrayList<Component> panels;
