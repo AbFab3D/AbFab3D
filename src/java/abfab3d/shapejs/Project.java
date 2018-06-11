@@ -536,9 +536,12 @@ public class Project {
                     if (rpath.exists()) FileUtils.copyDirectory(rpath, drpath);
                 } else {
                     rpath = new File(res.getPath());
-                    drpath = new File(tmpdSt +
-                            File.separator + res.getOrigPath());
-                    drpath.mkdirs();
+                    String fname = tmpdSt +
+                            File.separator + res.getOrigPath();
+                    drpath = new File(fname);
+
+                    String dirname = FilenameUtils.getPath(fname);
+                    new File(dirname).mkdirs();
 
                     printf("Copying resource: %s -> %s\n",rpath,drpath);
                     FileUtils.copyFile(rpath,drpath);
