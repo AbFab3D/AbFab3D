@@ -77,4 +77,7 @@ public class EditorFactory implements EditorCreator {
         return sm_factory;
     }
     
+    public static void clearAllCreators() {
+        factories.clear();
+    }
 }

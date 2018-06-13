@@ -55,6 +55,9 @@ public abstract class BaseEditor implements Editor {
         }
     }
 
+    public Parameter getParam() {
+        return m_param;
+    }
 
     /**
        upodate UI of this editor 

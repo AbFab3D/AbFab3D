@@ -100,13 +100,22 @@ public class Variant  {
 
         return readDesign(basedirs,path);
     }
+    
+    /**
+     * read design file (in JSON format)
+     *
+     * @return Result.SUCCESS
+     */
+    public int readDesign(List<String> basedirs, String path) throws IOException, NotCachedException {
+        return readDesign(basedirs, path, true);
+    }
 
     /**
      * read design file (in JSON format)
      *
      * @return Result.SUCCESS
      */
-    public int readDesign(List<String> basedirs,String path) throws IOException, NotCachedException {
+    public int readDesign(List<String> basedirs, String path, boolean execute) throws IOException, NotCachedException {
 
         if (DEBUG) printf("ShapeJSDesign.readDesign(%s)\n", path);
         clearMessages();
@@ -140,7 +149,6 @@ public class Variant  {
         LinkedHashMap<String, Object> paramMap = new LinkedHashMap<>();
 
         script = FileUtils.readFileToString(new File(aspath));
-        ScriptResources sr;
         
         //====================================================================
         // This section only parses and resolves the script's default values
@@ -154,7 +162,7 @@ public class Variant  {
             // ignore
         }
         
-        sr = m_sm.prepareScript(m_jobID, basedirs,script, paramMap, m_sandboxed);
+        ScriptResources sr = m_sm.prepareScript(m_jobID, basedirs,script, paramMap, m_sandboxed);
         
         if (!sr.evaluatedScript.isSuccess()) {
             printScriptError(sr);
@@ -171,7 +179,6 @@ public class Variant  {
         Map<String, Parameter> scriptParams = sr.getParams();
         ParamJson.getParamValuesFromJson(oparams, scriptParams);
         Map<String, Object> uriParams = resolveURIParams(file, sr.getParams());
-        //
 
         // this needed for params conversion
         
@@ -184,12 +191,15 @@ public class Variant  {
         // Parameter parsing and setting done, Now execute the script
         //====================================================================
         
-        sr = m_sm.executeScript(sr);
+        if (execute) {
+            sr = m_sm.executeScript(sr);
 
-        if (!sr.evaluatedScript.isSuccess()) {
-            printScriptError(sr);
-            throw new RuntimeException(fmt("failed to execute script", aspath));
+            if (!sr.evaluatedScript.isSuccess()) {
+                printScriptError(sr);
+                throw new RuntimeException(fmt("failed to execute script", aspath));
+            }
         }
+
         m_designPath = path;
         m_scriptPath = new File(aspath).getAbsolutePath();
         m_evaluatedScript = sr.evaluatedScript;
@@ -479,6 +489,18 @@ public class Variant  {
         return ret_val;
     }
 
+    public void executeDesign() throws NotCachedException {
+        ScriptResources sr = m_sm.getResources(m_jobID);
+        sr = m_sm.executeScript(sr);
+
+        if (!sr.evaluatedScript.isSuccess()) {
+            printScriptError(sr);
+            throw new RuntimeException(fmt("failed to execute script", m_scriptPath));
+        }
+        
+        m_evaluatedScript = sr.evaluatedScript;
+        m_scene = m_evaluatedScript.getResult();
+    }
 
     /**
      * writes design into specified path
