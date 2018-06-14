@@ -75,7 +75,7 @@ public class Variant  {
     /**
      * read design from specified path
      */
-    public int read(String basedir,String path) throws IOException, NotCachedException {
+    public int read(String basedir,String path) throws IOException, NotCachedException, InvalidScriptException {
 
         if (path.toLowerCase().endsWith(EXT_JS) || path.toLowerCase().endsWith(EXT_SHAPE_JS)) {
             return readScript(path);
@@ -85,7 +85,7 @@ public class Variant  {
             // thumbnail?
             return readDesign(basedir,path.substring(0, path.toLowerCase().lastIndexOf(EXT_PNG)));
         } else {
-            throw new RuntimeException(fmt("unknown file type:%s", path));
+            throw new IllegalArgumentException(fmt("unknown file type:%s", path));
         }
     }
 
@@ -94,7 +94,7 @@ public class Variant  {
      *
      * @return Result.SUCCESS
      */
-    public int readDesign(String basedir,String path) throws IOException, NotCachedException {
+    public int readDesign(String basedir,String path) throws IOException, NotCachedException, InvalidScriptException {
         ArrayList<String> basedirs = new ArrayList<>();
         basedirs.add(basedir);
 
@@ -106,7 +106,7 @@ public class Variant  {
      *
      * @return Result.SUCCESS
      */
-    public int readDesign(List<String> basedirs, String path) throws IOException, NotCachedException {
+    public int readDesign(List<String> basedirs, String path) throws IOException, NotCachedException, InvalidScriptException {
         return readDesign(basedirs, path, true);
     }
 
@@ -115,7 +115,8 @@ public class Variant  {
      *
      * @return Result.SUCCESS
      */
-    public int readDesign(List<String> basedirs, String path, boolean execute) throws IOException, NotCachedException {
+    public int readDesign(List<String> basedirs, String path, boolean execute) 
+            throws IOException, NotCachedException, InvalidScriptException {
 
         if (DEBUG) printf("ShapeJSDesign.readDesign(%s)\n", path);
         clearMessages();
@@ -133,7 +134,7 @@ public class Variant  {
         if (DEBUG) printf("params: %s\n", oparams);
         if (spath == null) {
             m_scriptPath = null;
-            throw new RuntimeException("scriptPath is undefined");
+            throw new InvalidScriptException(null, "scriptPath is undefined", null);
         }
         if (oparams == null) {
             throw new RuntimeException("script params undefined");
@@ -166,7 +167,7 @@ public class Variant  {
         
         if (!sr.evaluatedScript.isSuccess()) {
             printScriptError(sr);
-            throw new RuntimeException(fmt("failed to prepare script", aspath));
+            throw new InvalidScriptException(aspath, "failed to prepare script", sr.evaluatedScript.getErrorLogs());
         }
 
         if (DEBUG) printParamsMap("after first prepareScript", paramMap);
@@ -196,7 +197,7 @@ public class Variant  {
 
             if (!sr.evaluatedScript.isSuccess()) {
                 printScriptError(sr);
-                throw new RuntimeException(fmt("failed to execute script", aspath));
+                throw new InvalidScriptException(aspath, "failed to execute script", sr.evaluatedScript.getErrorLogs());
             }
         }
 
@@ -213,7 +214,9 @@ public class Variant  {
      *
      * @return Result.SUCCESS
      */
-    public int readDesign(String basedir,String variantdir,Reader design) throws IOException, NotCachedException {
+    public int readDesign(String basedir,String variantdir,Reader design)
+            throws IOException, NotCachedException, InvalidScriptException {
+        
         ArrayList<String> libs = new ArrayList<>();
         libs.add(basedir);
 
@@ -225,7 +228,8 @@ public class Variant  {
      *
      * @return Result.SUCCESS
      */
-    public int readDesign(List<String> libDirs,String variantdir,Reader design) throws IOException, NotCachedException {
+    public int readDesign(List<String> libDirs,String variantdir,Reader design)
+            throws IOException, NotCachedException, InvalidScriptException {
 
         clearMessages();
 
@@ -241,7 +245,7 @@ public class Variant  {
         if (DEBUG) printf("params: %s\n", oparams);
         if (spath == null) {
             m_scriptPath = null;
-            throw new RuntimeException("scriptPath is undefined");
+            throw new InvalidScriptException(null, "scriptPath is undefined", null);
         }
         if (oparams == null) {
             throw new RuntimeException("script params undefined");
@@ -263,7 +267,7 @@ public class Variant  {
 
         if (!sr.evaluatedScript.isSuccess()) {
             printScriptError(sr);
-            throw new RuntimeException(fmt("failed to prepare script", aspath));
+            throw new InvalidScriptException(aspath, "failed to prepare script", sr.evaluatedScript.getErrorLogs());
         }
 
         try {
@@ -288,7 +292,7 @@ public class Variant  {
 
         if (!sr.evaluatedScript.isSuccess()) {
             printScriptError(sr);
-            throw new RuntimeException(fmt("failed to execute script", aspath));
+            throw new InvalidScriptException(aspath, "failed to prepare script", sr.evaluatedScript.getErrorLogs());
         }
         m_designPath = NEW_DESIGN;
         m_scriptPath = new File(aspath).getAbsolutePath();
@@ -378,7 +382,9 @@ public class Variant  {
      *
      * @return Result.SUCCESS
      */
-    public int readDesign(String basedir,String path, String jobID) throws IOException, NotCachedException {
+    public int readDesign(String basedir,String path, String jobID)
+            throws IOException, NotCachedException, InvalidScriptException {
+        
     	m_jobID = jobID;
     	return readDesign(basedir, path);
     }
@@ -412,7 +418,6 @@ public class Variant  {
 
         if (!sr.evaluatedScript.isSuccess()) {
             printScriptError(sr);
-            //throw new RuntimeException(fmt("failed to execute script", path));
             return ResultCodes.RESULT_ERROR;
         }
 
@@ -434,7 +439,7 @@ public class Variant  {
     /**
      * reload script file which was changed
      */
-    public int reloadScript() {
+    public int reloadScript() throws InvalidScriptException {
 
         clearMessages();
         if (DEBUG) printf("ShapeJSDesign.reloadScript(%s)\n", m_scriptPath);
@@ -442,7 +447,7 @@ public class Variant  {
         try {
             script = FileUtils.readFileToString(new File(m_scriptPath));
         } catch (Exception e) {
-            throw new RuntimeException(fmt("error reading file: %s\n", m_scriptPath));
+            throw new InvalidScriptException(m_scriptPath, fmt("error reading file: %s\n", m_scriptPath), null);
         }
 
         ScriptResources sr = null;
@@ -489,13 +494,13 @@ public class Variant  {
         return ret_val;
     }
 
-    public void executeDesign() throws NotCachedException {
+    public void executeDesign() throws NotCachedException, InvalidScriptException {
         ScriptResources sr = m_sm.getResources(m_jobID);
         sr = m_sm.executeScript(sr);
 
         if (!sr.evaluatedScript.isSuccess()) {
             printScriptError(sr);
-            throw new RuntimeException(fmt("failed to execute script", m_scriptPath));
+            throw new InvalidScriptException(m_scriptPath, "failed to execute script", sr.evaluatedScript.getErrorLogs());
         }
         
         m_evaluatedScript = sr.evaluatedScript;
