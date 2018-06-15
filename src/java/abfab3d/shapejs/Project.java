@@ -412,15 +412,17 @@ public class Project {
      *
      * TODO: This code is horrible because of pathing questions.  Fix later, work up an angle to blame Tony for it.
      */
-    public void exportProject(File targetDir) {
+    public String exportProject(File targetDir) {
         // TODO: Lots of weirdness related to relative pathing.  Fix later.  For now
         // assume standard dirs for scripts,variants,etc
 
+        String tmpdSt = null;
+        String zipPath = null;
         Project resolved = new Project();
 
         try {
             Path tmpd = Files.createTempDirectory("exportProject");
-            String tmpdSt = tmpd.toFile().getAbsolutePath();
+            tmpdSt = tmpd.toFile().getAbsolutePath();
 
             printf("Exporting to: %s\n",tmpdSt);
             for (VariantItem vi : getVariants()) {
@@ -536,9 +538,12 @@ public class Project {
                     if (rpath.exists()) FileUtils.copyDirectory(rpath, drpath);
                 } else {
                     rpath = new File(res.getPath());
-                    drpath = new File(tmpdSt +
-                            File.separator + res.getOrigPath());
-                    drpath.mkdirs();
+                    String fname = tmpdSt +
+                            File.separator + res.getOrigPath();
+                    drpath = new File(fname);
+
+                    String dirname = FilenameUtils.getPath(fname);
+                    new File(dirname).mkdirs();
 
                     printf("Copying resource: %s -> %s\n",rpath,drpath);
                     FileUtils.copyFile(rpath,drpath);
@@ -552,12 +557,22 @@ public class Project {
             if (idx > -1) {
                 parentDir = parentDir.substring(idx+1);
             }
-            String zipname = targetDir.getAbsolutePath() + File.separator + parentDir + ".zip";
-            printf("Creating zip: %s\n",zipname);
-            Zip.createZip(tmpdSt,zipname,false);
+            zipPath = targetDir.getAbsolutePath() + File.separator + parentDir + ".zip";
+            printf("Creating zip: %s\n",zipPath);
+            Zip.createZip(tmpdSt,zipPath,false);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
+        
+        // Project files have been zipped, remove the temporary files
+        // TODO: Better way to auto remove temporary files?
+        try {
+            FileUtils.deleteDirectory(new File(tmpdSt));
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        
+        return zipPath;
     }
 
     /**
@@ -577,11 +592,11 @@ public class Project {
      * @throws IOException
      */
     public static Project load(String file, List<String> libDirs) throws IOException {
-        Path workingDirName = Files.createTempDirectory("loadProject");
-        String resultDirPath = workingDirName.toAbsolutePath().toString();
-
         String manifest = null;
         if (file.endsWith(EXT_PROJECT)) {  // This a zipped container
+            Path workingDirName = Files.createTempDirectory("loadProject");
+            String resultDirPath = workingDirName.toAbsolutePath().toString();
+            
             extractZip(file,resultDirPath);
 
             File dir = workingDirName.toFile();
