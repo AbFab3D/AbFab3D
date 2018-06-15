@@ -790,6 +790,7 @@
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/mesh" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/shapejs" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/core" jars="**/*.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/intersect" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="" jars="**/*.jar" />
 
   </target>

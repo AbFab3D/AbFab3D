@@ -147,7 +147,7 @@ public class Sphere extends TransformableDataSource {
     public int initialize() {
 
         super.initialize();
-
+        
         double r = mp_radius.getValue();
 
         if( r < 0){
@@ -162,6 +162,8 @@ public class Sphere extends TransformableDataSource {
         x0 = c.x;
         y0 = c.y;
         z0 = c.z;
+
+        //updateBounds();
 
         return ResultCodes.RESULT_OK;
     }

@@ -113,7 +113,7 @@ public class PointSetArray implements TriangleProducer, PointSet  {
     }
 
     /**
-       set subdivision level used to spheres 
+       set subdivision level used for visiualization
      */
     public void setSubdivisionLevel(int level){
         m_subdivisionLevel = level;
@@ -129,6 +129,10 @@ public class PointSetArray implements TriangleProducer, PointSet  {
         coord[start+1]= y;
         coord[start+2]= z;
         m_size++;
+    }
+
+    public final void addPoint(Tuple3d pnt){
+        addPoint(pnt.x,pnt.y,pnt.z);
     }
 
     /**

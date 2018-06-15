@@ -88,7 +88,9 @@ public class Vec {
 
     }
 
-    public final void mulScale(double value){            
+    
+    public final void mulScale(double value){ 
+
         scaleFactor *= value;
 
     }
@@ -131,12 +133,18 @@ public class Vec {
 
     }
 
+    public void addSet(Tuple3d a){
+        v[0] += a.x;
+        v[1] += a.y;
+        v[2] += a.z;        
+    }
+
     public double dot(Tuple3d a){
         return v[0]*a.x +  v[1]*a.y+  v[2]*a.z;
     }
 
     /**
-       makes liner interpolation between u, and v using param t and places result in res
+       makes linear interpolation between u, and v using param t and places result in res
      */
     public static void lerp(Vec u, Vec w, double t, Vec res){
 

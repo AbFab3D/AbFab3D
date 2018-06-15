@@ -307,7 +307,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * @return
      */
     public Bounds getBounds() {
-        if (boundsDirty) updateBounds();
+        if (m_bounds == null || boundsDirty) updateBounds();
 
         return m_bounds;
     }

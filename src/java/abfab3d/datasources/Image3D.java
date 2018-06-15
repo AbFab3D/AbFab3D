@@ -1366,6 +1366,10 @@ public class Image3D extends TransformableDataSource {
         public int getChannelsCount() {
             return 1;
         }
+
+        public Bounds getBounds(){
+            return null;
+        }
     }
 
 

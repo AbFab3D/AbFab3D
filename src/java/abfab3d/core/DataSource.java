@@ -37,6 +37,12 @@ public interface DataSource {
        it is the count of data values returned in  getDataValue()        
      */
     public int getChannelsCount();
+    
+    /**
+       @return bounds of this data source. It may be null for data sources without bounds 
+       
+     */
+    public Bounds getBounds();
 
 
 }

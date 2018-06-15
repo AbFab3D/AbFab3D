@@ -10,6 +10,7 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
+import abfab3d.core.Bounds;
 import abfab3d.core.DataSource;
 import abfab3d.core.ResultCodes;
 import abfab3d.core.Vec;
@@ -46,5 +47,10 @@ public class SceneImageDataSource implements DataSource {
     @Override
     public int getChannelsCount() {
         return 4;
+    }
+
+    @Override
+    public Bounds getBounds() {
+        return null;
     }
 }

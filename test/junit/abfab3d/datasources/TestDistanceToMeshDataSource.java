@@ -359,6 +359,10 @@ public class TestDistanceToMeshDataSource extends TestCase {
         public int getChannelsCount(){
             return 3;
         }
+
+        public Bounds getBounds(){
+            return null;
+        }
     } // class CheckerboardColorizer
 
     //
@@ -409,7 +413,10 @@ public class TestDistanceToMeshDataSource extends TestCase {
          public int getChannelsCount(){
             return 3;
         }
-   } // class CheckerboardColorizer3D
+         public Bounds getBounds(){
+            return null;
+        }
+  } // class CheckerboardColorizer3D
 
 
 

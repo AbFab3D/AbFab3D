@@ -822,7 +822,7 @@ public class Bounds implements Cloneable {
     }
 
     public String toString(double unit) {
-        return fmt("%8.4f,%8.4f %8.4f,%8.4f %8.4f,%8.4f; %8.4f",xmin/unit, xmax/unit, ymin/unit, ymax/unit, zmin/unit, zmax/unit, m_voxelSize/unit);
+        return fmt("%8.4f %8.4f %8.4f %8.4f %8.4f %8.4f; %8.4f",xmin/unit, xmax/unit, ymin/unit, ymax/unit, zmin/unit, zmax/unit, m_voxelSize/unit);
     }
 
     public Bounds clone() {

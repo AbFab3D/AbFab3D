@@ -1594,6 +1594,18 @@ public class MathUtil {
         
     }
 
+    /**
+       orthogonalize vector v to vector a 
+       vectora HAS to be normalized 
+     */
+    public static void orthogonalize(Vector3d v, Vector3d a){
+
+        double d = v.dot(a);
+        v.x -= d*a.x;
+        v.y -= d*a.y;
+        v.z -= d*a.z;
+        
+    }
 
     /**
      * Round up a numerator to be divisible by denominator.  
