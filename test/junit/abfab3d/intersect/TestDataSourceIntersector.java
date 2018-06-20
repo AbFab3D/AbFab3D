@@ -104,12 +104,14 @@ public class TestDataSourceIntersector extends BaseTestCase  {
         probe.initialize();
 
         DataSourceIntersector dsi = new DataSourceIntersector();
-        dsi.set("voxelSize",0.5*MM);
-        dsi.set("minStep",0.5*MM);
+        dsi.set("voxelSize",0.01*MM);
+        dsi.set("minStep",0.05*MM);
+        dsi.set("dimension", 2);
 
         Vector3d data[] = new Vector3d[]{
-            new Vector3d(2*r, 0,0),new Vector3d(-1,0,0),
-            //new Vector3d(2*r, 0,0),new Vector3d(1,0,0),
+            new Vector3d(0, 2*r,0),new Vector3d(-1,-1,0),
+            //new Vector3d(2*r, 0,0),new Vector3d(-1,0,0),
+            //new Vector3d(2*r,2*r,0),new Vector3d(-1,-1,0),
             //new Vector3d(r+rp/2, 0,0),new Vector3d(-1,0,0),
         };
         long t0 = time();

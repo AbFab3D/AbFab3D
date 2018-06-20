@@ -46,10 +46,18 @@ import javax.vecmath.Vector3d;
 import java.awt.image.BufferedImage;
 import java.util.Vector;
 
-import static abfab3d.core.MathUtil.*;
-import static abfab3d.core.Output.*;
+import static abfab3d.core.MathUtil.lerp2;
+import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.MathUtil.fmod;
+import static abfab3d.core.MathUtil.blendMax;
+import static abfab3d.core.MathUtil.blendMin;
+import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Output.time;
 import static abfab3d.core.Units.MM;
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.max;
 
 
 /**

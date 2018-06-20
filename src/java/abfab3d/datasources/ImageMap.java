@@ -40,6 +40,7 @@ import abfab3d.param.ParamCache;
 import abfab3d.grid.op.ImageLoader;
 import abfab3d.grid.op.ImageToGrid2D;
 import abfab3d.grid.op.GaussianBlur;
+import abfab3d.grid.op.DistanceTransform2DOp;
 import abfab3d.grid.op.Copy;
 
 import abfab3d.core.Vec;
@@ -49,6 +50,7 @@ import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
+import static abfab3d.core.MathUtil.lerp2;
 import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.core.MathUtil.step01;
 import static abfab3d.core.MathUtil.step10;
@@ -96,7 +98,6 @@ public class ImageMap extends TransformableDataSource {
 
     SNodeParameter mp_source = new SNodeParameter("source","Image source", null);
     // public parameters 
-    //ObjectParameter  mp_imageSource = new ObjectParameter("image","image source",null);
     Vector3dParameter  mp_center = new Vector3dParameter("center","center of the image box",new Vector3d(0.,0.,0.));
     Vector3dParameter  mp_size = new Vector3dParameter("size","size of the image box",new Vector3d(0.1,0.1,0.1));
     BooleanParameter  mp_repeatX = new BooleanParameter("repeatX","repeat image along X", false);
@@ -104,6 +105,11 @@ public class ImageMap extends TransformableDataSource {
     DoubleParameter  mp_whiteDisp = new DoubleParameter("whiteDisplacement","displacement for white level", 0*MM);
     DoubleParameter  mp_blackDisp = new DoubleParameter("blackDisplacement","displacement for black level", 1*MM);
     DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
+    DoubleParameter mp_maxDist = new DoubleParameter("maxDist", "maximal distance to calculate distance transform", 20 * MM);
+    BooleanParameter mp_useDistanceToImage = new BooleanParameter("useDistacneToImage", "Use distance to the image contour", false);
+    DoubleParameter mp_imageThreshold = new DoubleParameter("imageThershold", "location of image contour", 0.5);
+
+    private static final double IMAGE_THRESHOLD = 0.5; // location of outline image contour 
 
     private final Parameter m_aparams[] = new Parameter[]{
         mp_source,
@@ -114,6 +120,9 @@ public class ImageMap extends TransformableDataSource {
         mp_whiteDisp,
         mp_blackDisp,
         mp_blurWidth,
+        mp_maxDist,
+        mp_useDistanceToImage,
+        mp_imageThreshold
 
     };
 
@@ -125,7 +134,7 @@ public class ImageMap extends TransformableDataSource {
 
     // 
     private Grid2D m_imageGrid;
-    // converted to get physical value from grid attribute
+    // converter to get physical value from grid attribute
     protected GridDataChannel m_dataChannel;
 
 
@@ -185,7 +194,7 @@ public class ImageMap extends TransformableDataSource {
     }
 
     /**
-     * Image3D with given image path and size
+     * ImageMap with given image path and size
      *
      * @param imgProducer holder of BufferedImage
      * @param sx        width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
@@ -348,12 +357,21 @@ public class ImageMap extends TransformableDataSource {
         return m_imageGrid.getWidth();
     }
 
+
     /**
      * @noRefGuide
      */
     public int getBitmapHeight(){
         return m_imageGrid.getHeight();
     }
+
+    /**
+       
+     */
+    public Grid2D getBitmapGrid(){
+        return m_imageGrid;
+    }
+    
 
     /**
      * Get a label suitable for caching.  Includes only the items that would affect the computationally expensive items to cache.
@@ -434,9 +452,15 @@ public class ImageMap extends TransformableDataSource {
         double white = mp_whiteDisp.getValue();
         double black = mp_blackDisp.getValue();
 
-        m_valueOffset = black;
-        m_valueFactor = white - black;
+        if(mp_useDistanceToImage.getValue()){
+            // 
+            m_valueOffset = 0;
+            m_valueFactor = 1;
 
+        } else {
+            m_valueOffset = black;
+            m_valueFactor = white - black;
+        }
         long t0 = System.currentTimeMillis();
 
         String label = getDataLabel();
@@ -463,7 +487,7 @@ public class ImageMap extends TransformableDataSource {
         
     private Grid2D prepareImage(){
         
-        Object obj = mp_source.getValue(); 
+        Object obj = mp_source.getValue() ;
         if(DEBUG) printf("prepareImage_v1(%s)\n", obj);
         if(obj == null || !(obj instanceof Grid2DProducer))
             throw new RuntimeException(fmt("unrecoginized grid source: %s\n",obj));
@@ -471,13 +495,21 @@ public class ImageMap extends TransformableDataSource {
         Grid2DProducer producer = (Grid2DProducer)obj; 
         
         Grid2D grid = producer.getGrid2D(); 
+
         if(DEBUG) printf("ImageMap grid: %s\n", grid);
+
+        //
+        // need to create copy of original grid because operations can modify it 
+        //
         grid = Copy.createCopy(grid);
+        
         grid.setGridBounds(getBounds());
 
+        //printf("gridBounds before processing: %s\n",grid.getGridBounds().toString(1.0));        
+        grid = executeOps(grid, createOps());
         
-        grid = executeOps(grid, createOps(grid));
-
+        //printf("gridBounds after  processing: %s\n",grid.getGridBounds().toString(1.0));
+        
         return grid;
         
     }
@@ -486,6 +518,7 @@ public class ImageMap extends TransformableDataSource {
        @Override 
     */
     public Bounds getBounds(){
+        
         Vector3d size = mp_size.getValue();
         Vector3d center = mp_center.getValue();
         return new Bounds(center.x - size.x/2,center.x + size.x/2,center.y - size.y/2,center.y + size.y/2,center.z - size.z/2,center.z + size.z/2);
@@ -494,7 +527,7 @@ public class ImageMap extends TransformableDataSource {
     /**
        makes sequence of operations to apply to the image 
     */
-    private Vector<Operation2D> createOps(Grid2D grid){
+    private Vector<Operation2D> createOps(){//Grid2D grid){
         
         Vector<Operation2D> ops = new Vector<Operation2D>(5);
         
@@ -502,7 +535,14 @@ public class ImageMap extends TransformableDataSource {
         if(blurWidth > 0.){
             ops.add(new  GaussianBlur(blurWidth));            
         }
-        
+
+        if (mp_useDistanceToImage.getValue()) {
+            // do distance transform 
+            double maxDist = mp_maxDist.getValue();
+            double threshold = mp_imageThreshold.getValue();
+            ops.add(new DistanceTransform2DOp(maxDist, maxDist, threshold));
+        }
+
         return ops;
     }
 
@@ -582,8 +622,9 @@ public class ImageMap extends TransformableDataSource {
             dy1 = 1.- dy;
 
 
-        double v = 
-            dx * dy * v11 + dx1 * dy * v01 + dx * dy1 * v10 + dx1 * dy1 * v00;
+        double v = lerp2(v00, v10, v01, v11, dx, dy);
+        //double iValue = lerp2(v00, v10, v01, v11, dx, dy);
+        //    dx * dy * v11 + dx1 * dy * v01 + dx * dy1 * v10 + dx1 * dy1 * v00;
 
         dataValue.v[0] = v*m_valueFactor + m_valueOffset;
 

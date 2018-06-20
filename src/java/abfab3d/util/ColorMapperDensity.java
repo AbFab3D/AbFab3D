@@ -20,7 +20,7 @@ import abfab3d.core.MathUtil;
    the density is shown as stripes of changing colors from color0 to color1
    value 0.0 corresponds to color0
    value 1.0 corresponds to color1
-   if stripeWidth is supplied the values changes will be shown with stripes of 
+   if stripeWidth is supplied the values changes will be shown with stripes of stripe width 
 
 
 

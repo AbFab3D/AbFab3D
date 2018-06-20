@@ -613,11 +613,13 @@ public class TestTextUtil extends TestCase {
     void devTestAutoKerning() throws Exception {
 
         //String text = "WW+1jJ1";
-        String text = "N\\-431415";
-        double fontSize = 300;
+        //String text = "N\\-431415";
+        //String text = "abfgh";
+        String text = "WaWa";
+        double fontSize = 400;
         
         int imageWidth = (int)(fontSize*text.length()*1.);
-        int imageHeight = (int)(fontSize*1.5);
+        int imageHeight = (int)(fontSize*1.2);
         double x0 = fontSize*1.0;
         double y0 = fontSize*0.8;
         double spacing = 0.1*fontSize;
@@ -638,7 +640,7 @@ public class TestTextUtil extends TestCase {
         map.put(TextAttribute.SIZE, new Double(fontSize));        
         font = font.deriveFont(map);
 
-        TextUtil.getKerning(g,  font, text, spacing, 0.3, x0, y0);
+        AutoKerning.getKerning(g,  font, text, spacing, 0.3, x0, y0);
         
         if (DEBUG) ImageIO.write(image, "png", new File("/tmp/kerning.png"));
 
@@ -653,11 +655,11 @@ public class TestTextUtil extends TestCase {
         //new TestTextUtil().devTestKerning();
         //new TestTextUtil().devTestKerning2();
         //new TestTextUtil().devTestKerning3();
-        new TestTextUtil().devTestAutoKerning();
         //new TestTextUtil().devTestPrintKerningTable();
         //new TestTextUtil().devTestLineMetrics();
         //new TestTextUtil().devTestOpenType();
         //new TestTextUtil().devTestScriptRuns();
+        new TestTextUtil().devTestAutoKerning();
         
     }
     

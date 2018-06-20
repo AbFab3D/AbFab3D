@@ -16,7 +16,7 @@ import static abfab3d.core.Output.printf;
  *
  * @author Alan Hudson
  */
-public class Grid2DSourceWrapper extends BaseParameterizable implements Grid2D, SourceWrapper, Grid2DProducer, Parameterizable {
+public class Grid2DSourceWrapper extends BaseParameterizable implements Grid2D, SourceWrapper, Grid2DProducer{
     private static final boolean DEBUG = false;
     private Grid2D grid;
     private String source;
