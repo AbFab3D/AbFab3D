@@ -613,9 +613,12 @@ public class TestTextUtil extends TestCase {
     void devTestAutoKerning() throws Exception {
 
         //String text = "WW+1jJ1";
-        //String text = "N\\-431415";
+        String text = "N\\-431415";
         //String text = "abfgh";
-        String text = "WaWa";
+        //String text = "АБВГДЕЖ";
+        //String text = "ABC.\u0410\u0411\u0412\u0413\u0414\u0415\u0416"; 
+        //String text = "W.W.Б";
+        //String text = "/\\";
         double fontSize = 400;
         
         int imageWidth = (int)(fontSize*text.length()*1.);
@@ -623,6 +626,7 @@ public class TestTextUtil extends TestCase {
         double x0 = fontSize*1.0;
         double y0 = fontSize*0.8;
         double spacing = 0.1*fontSize;
+        double resolution = 1;
 
         BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D)image.getGraphics();
@@ -633,6 +637,7 @@ public class TestTextUtil extends TestCase {
         FontRenderContext frc = g.getFontRenderContext();
         
         String fontPath = "test/images/PinyonScript-LatinOnly_v3a.ttf";
+        //String fontPath = "test/images/times.ttf";
         Font font = Font.createFont(Font.TRUETYPE_FONT,new File(fontPath));
 
         Hashtable<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
@@ -640,12 +645,35 @@ public class TestTextUtil extends TestCase {
         map.put(TextAttribute.SIZE, new Double(fontSize));        
         font = font.deriveFont(map);
 
-        AutoKerning.getKerning(g,  font, text, spacing, 0.3, x0, y0);
+        AutoKerning.getKerning(g,  font, text, spacing, resolution, x0, y0);
         
         if (DEBUG) ImageIO.write(image, "png", new File("/tmp/kerning.png"));
 
     }
 
+    static String getCyrillicString() {
+        String s = "";
+        for(char ch = 0x0410; ch<= 0x0416; ch++)
+            s += ch;        
+        return s;
+        
+    }
+    void devTestCyrillic() throws Exception {
+
+
+        String s = "";
+        for(char ch=0x0410; ch<=0x0412; ch++)
+            s += ch;
+        s = new String(s.getBytes("UTF-8"), "UTF-8");
+        //System.out.println(s); 
+        
+        String t = "\u0410\u0411\u0412";
+        t = new String(t.getBytes("UTF-8"), "UTF-8");
+
+        for(int i = 0; i < t.length(); i++){
+            printf("char[%2d]: 0x%x 0x%x \n",i, (int)s.charAt(i), (int)t.charAt(i));
+        }
+    }
 
     public static void main(String arg[]) throws Exception {
 
@@ -660,6 +688,7 @@ public class TestTextUtil extends TestCase {
         //new TestTextUtil().devTestOpenType();
         //new TestTextUtil().devTestScriptRuns();
         new TestTextUtil().devTestAutoKerning();
+        //new TestTextUtil().devTestCyrillic();
         
     }
     

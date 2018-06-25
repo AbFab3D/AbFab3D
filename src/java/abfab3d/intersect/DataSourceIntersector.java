@@ -44,6 +44,7 @@ import static abfab3d.core.Units.MM;
 public class DataSourceIntersector extends BaseParameterizable{
 
     static final boolean DEBUG = false;
+    static final double UNIT = MM;
 
     public static final int RESULT_OK = ResultCodes.RESULT_OK;
     public static final int RESULT_INITIAL_INTERSECTION = 2;
@@ -152,12 +153,12 @@ public class DataSourceIntersector extends BaseParameterizable{
         // 1. Find points on the from moving surface of probe
         
         Bounds probeBounds = probe.getBounds();
-        if(DEBUG)printf("probeBounds: %s mm\n",probeBounds.toString(MM));
+        if(DEBUG)printf("probeBounds: %s mm\n",probeBounds.toString(UNIT));
         Vector3d pc = probeBounds.getCenter();
         Vector3d pr = probeBounds.getSize();
         double probeRadius = 0.5*pr.length();
 
-        if(DEBUG)printf("probeBoundsRadius: %s mm\n",probeRadius/MM);
+        if(DEBUG)printf("probeBoundsRadius: %s mm\n",probeRadius/UNIT);
 
 
         // make plane orthogonal to the direction 
@@ -218,25 +219,25 @@ public class DataSourceIntersector extends BaseParameterizable{
 
             for(int ia = -na; ia <= na; ia++){
                 double ua = ia*voxelSize;
-                if(ua*ua + ub*ub > probeRadius*probeRadius) 
-                    continue;
-                probeRayStart.set(a.x*ua + b.x*ub,a.y*ua + b.y*ub,a.z*ua + b.z*ub);
+                //if(ua*ua + ub*ub > probeRadius*probeRadius) 
+                //    continue;
+                probeRayStart.set(a.x*ua + b.x*ub + pc.x,a.y*ua + b.y*ub+pc.y,a.z*ua + b.z*ub+pc.z);
                 probeRayStart.add(pointOnPlane);
-                //printf("ia: %d", ia);
+                //printf("ia: %d\n", ia);
                 //printValuesOnRay(probe, 0, probeRayStart, probeDir, 3*voxelSize, 50);
 
                 IntersectionResult res = getShapeRayIntersection(probe, probeRayStart, probeDir);
                 switch(res.code){
                 case RESULT_OK: 
                     if(DEBUG)printf("start: %s -> end: %s contact: %s  radius:%7.3f\n",
-                                    toString(probeRayStart, MM), toString(res.end,MM), toString(res.contact,MM), res.end.length()/MM);
+                                    toString(probeRayStart, UNIT), toString(res.end,UNIT), toString(res.contact,UNIT), res.end.length()/UNIT);
                     frontPoints.addPoint(res.end);
                     break;
                 case RESULT_NO_INTERSECTION: 
-                    if(DEBUG)printf("start: %s -> no intersection\n",toString(probeRayStart, MM));
+                    if(DEBUG)printf("start: %s -> no intersection\n",toString(probeRayStart, UNIT));
                     break;
                 case RESULT_INITIAL_INTERSECTION: 
-                    if(DEBUG)printf("start: %s -> initial intersection\n",toString(probeRayStart, MM));
+                    if(DEBUG)printf("start: %s -> initial intersection\n",toString(probeRayStart, UNIT));
                     break;                    
                 }
             }            
@@ -389,7 +390,7 @@ public class DataSourceIntersector extends BaseParameterizable{
 
         public String toString(double unit){
 
-            return fmt("result: %s end: (%7.3f %7.3f %7.3f) contact: (%7.3f %7.3f %7.3f) ",getCodeString(code), 
+            return fmt("code: %s end: (%7.3f %7.3f %7.3f) contact: (%7.3f %7.3f %7.3f) ",getCodeString(code), 
                       end.x/unit,end.y/unit,end.z/unit,contact.x/unit,contact.y/unit, contact.z/unit );
         }
 

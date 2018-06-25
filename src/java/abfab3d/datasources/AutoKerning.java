@@ -58,7 +58,8 @@ import static abfab3d.core.Output.fmt;
  */
 public class AutoKerning {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
+    static final boolean WRITE_DEBUG_IMAGES = true;
 
     /**
        
@@ -136,7 +137,7 @@ public class AutoKerning {
             Point2D gp = gv.getGlyphPosition(i);
             Shape glyphShape = gv.getGlyphOutline(i);
             Rectangle2D srect = getExpandedRect(glyphShape.getBounds(), textMargins);
-            printf("glyph: %c [%7.2f %7.2f ]\n",ctext[i], srect.getMinY(), srect.getMaxY());
+            //printf("glyph: %c [%7.2f %7.2f ]\n",ctext[i], srect.getMinY(), srect.getMaxY());
             if(DEBUG)printf("exRect:[%6.1f,%6.1f; %5.1f x %5.1f]\n",srect.getX(),srect.getY(),srect.getWidth(),srect.getHeight());
             //Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();            
             textGraphics.setColor(Color.blue);
@@ -166,11 +167,11 @@ public class AutoKerning {
         
         if(DEBUG)printf("glyphCount:%d\n", glyphImages.size());
         for(int i = 0; i < glyphImages.size(); i++){
-            if (true) {
+            if (WRITE_DEBUG_IMAGES) {
                 ImageMap imageMap = glyphImages.get(i);
                 Grid2D grid = imageMap.getBitmapGrid();
                 Bounds b = imageMap.getBounds();
-                if(DEBUG)printf("glyphBounds:[%7.1f %7.1f;%7.1f %7.1f]\n", b.xmin, b.xmax,b.ymin, b.ymax);
+                if(DEBUG)printf("glyph: %c  bounds:[%7.1f %7.1f;%7.1f %7.1f]\n", text.charAt(i), b.xmin, b.xmax,b.ymin, b.ymax);
 
                 try {                    
                     ImageIO.write(Grid2DtoImage.getARGBImage(grid), "png", new File(fmt("/tmp/kerning_%02d.png",i)));
@@ -182,17 +183,18 @@ public class AutoKerning {
         
         DataSourceIntersector dsi = new DataSourceIntersector();
         dsi.set("dimension", 2);
-        dsi.set("voxelSize",0.5);
-        dsi.set("minStep",0.5);
+        dsi.set("voxelSize",resolution);
+        dsi.set("minStep",resolution);
         dsi.set("maxDistance", 2*font.getSize());
 
         Vector3d direction = new Vector3d(-1,0,0);
 
         Union un = new Union(glyphImages.get(0));
         // accumulated shift of last glyph 
-        double totalShift = 0;
+        //double totalShift = 0;
         Bounds firstBounds = glyphImages.get(0).getBounds();
         double xmin = firstBounds.xmin;
+        double xmax = firstBounds.xmax;
         double ymin = firstBounds.ymin;
         double ymax = firstBounds.ymax;
 
@@ -206,28 +208,28 @@ public class AutoKerning {
             ymin = min(ymin, b2.ymin);
             ymax = max(ymax, b2.ymax);
             printf("glyph: %c  [%7.2f %7.2f] - %c [%7.2f %7.2f]\n", text.charAt(i), b1.ymin, b1.ymax, text.charAt(i+1), b2.ymin, b2.ymax);
-
-            Vector3d start = new Vector3d(b1.getSizeX()/2 + b2.getSizeX()/2, 0, 0);
+            Vector3d start = new Vector3d( xmax + b2.getSizeX()/2, 0, 0);
             //printValuesOnRay(glyph2, 0, new Vector3d(-b2.getSizeX()/2, 0,0),new Vector3d(1,0,0),1., 100);
-            
-            DataSourceIntersector.IntersectionResult is = dsi.getShapesIntersection(glyph1, glyph2,start, direction);
-            Vector3d shift = is.getLocation();
-            glyph2.setTransform(new Translation(totalShift + shift.x,0,0));
-            totalShift += shift.x;
+            un.initialize();
+            DataSourceIntersector.IntersectionResult is = dsi.getShapesIntersection(un, glyph2,start, direction);
+            Vector3d glyphShift = is.getLocation();
+            glyph2.setTransform(new Translation(glyphShift.x,0,0));
+            printf("glyph: %c(%4x)  glyphShift:%7.2f\n", text.charAt(i+1), (int)text.charAt(i+1), glyphShift.x);
             un.add(glyph2);
-            //if(true)printf("intersection result: %s\n", is.toString(1.));
+            xmax = max(xmax, glyphShift.x + b2.xmax);
+            if(true)printf("intersection result: %s\n", is.toString(1.));
         }
-        double xmax = totalShift + glyphImages.get(glyphImages.size()-1).getBounds().xmax;
-        
-        ImageMaker im = new ImageMaker();
-        Bounds imBounds = new Bounds(xmin, xmax, ymin, ymax,0,1);
-        printf("imBounds: %s\n", imBounds.toString(1.));
-        un.initialize();
-        BufferedImage img = im.renderImage(imBounds.getWidthVoxels(1.), imBounds.getHeightVoxels(1.), imBounds, new DistanceToColor(un));
-        try {
-            ImageIO.write(img, "png", new File("/tmp/kerning_result.png"));
-        } catch(Exception e){
-            e.printStackTrace();            
+        if(WRITE_DEBUG_IMAGES){
+            ImageMaker im = new ImageMaker();
+            Bounds imBounds = new Bounds(xmin, xmax, ymin, ymax,0,1);
+            printf("imBounds: %s\n", imBounds.toString(1.));
+            un.initialize();
+            BufferedImage img = im.renderImage(imBounds.getWidthVoxels(1.), imBounds.getHeightVoxels(1.), imBounds, new DistanceToColor(un));
+            try {
+                ImageIO.write(img, "png", new File("/tmp/kerning_result.png"));
+            } catch(Exception e){
+                e.printStackTrace();            
+            }
         }
         //double xmin = glyphImages.get(0);
         int rightBound[] = new int[0];
