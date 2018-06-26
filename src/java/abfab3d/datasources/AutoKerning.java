@@ -15,11 +15,16 @@ import java.awt.*;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.AffineTransform;
-import java.awt.font.GlyphVector;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Ellipse2D;
 
+import java.awt.font.GlyphVector;
+import java.awt.font.TextAttribute;
+
+
 import java.awt.image.BufferedImage;
+
+import java.util.Hashtable;
 
 import javax.vecmath.Vector3d;
 import javax.imageio.ImageIO;
@@ -58,16 +63,26 @@ import static abfab3d.core.Output.fmt;
  */
 public class AutoKerning {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static final boolean WRITE_DEBUG_IMAGES = true;
-
+    static final double DOT_SIZE = 4; // size of dots used in the debug images 
     /**
        
      */
-    public static void getKerning(Graphics2D textGraphics,  Font font, String text, double spacing, double resolution, double x, double y) {
-                
+    public int placeText(Graphics2D textGraphics, Font font, String text, double fontSize, double glyphSpacing, double resolution, double glyphLocation[]) {
+
+        //double fontSize = 200;
+        double x0 = fontSize*1.0; // arbitrary, used for visual tests only 
+        double y0 = fontSize*0.8;
+        
+        Hashtable<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
+        
+        //map.put(TextAttribute.KERNING, TextAttribute.KERNING_ON);
+        map.put(TextAttribute.SIZE, new Double(fontSize));        
+        font = font.deriveFont(map);
+        
         if(DEBUG)printf("getKerning(%s) \n", text);
-        double halfWidth = spacing/2;
+        double halfWidth = glyphSpacing/2;
         char ctext[] = text.toCharArray();
         
         //GlyphVector gv = font.createGlyphVector(glyphGraphics.getFontRenderContext(), ctext);
@@ -79,7 +94,7 @@ public class AutoKerning {
 
 
         //double posx = textRect.getX(), posy = 0;
-        double posx = 0, posy = y;
+        double posx = 0, posy = y0;
 
         if(DEBUG)printf("glyph vector\n");
         for(int i = 0; i < ctext.length; i++){
@@ -94,30 +109,29 @@ public class AutoKerning {
             //glyphGraphics.draw(new Rectangle2D.Double(posx, rect.getY()+y, rect.getWidth(),rect.getHeight()));
             //glyphGraphics.draw(new Rectangle2D.Double(posx+x, y+rect.getY(), rect.getWidth(),rect.getHeight()));
             posy = rect.getY();
-            textGraphics.setColor(Color.red);
-            double r = 4;
-            Point2D pos = gv.getGlyphPosition(i); 
 
+            Point2D pos = gv.getGlyphPosition(i); 
 
             if(DEBUG)printf("glyph[%d]:(%c):[gpos:(%6.1f,%4.1f); grect:[(%6.1f,%6.1f); %5.1f x %5.1f]\n",
                             i, ctext[i],glyphPos.getX(), glyphPos.getY(), rect.getX(),rect.getY(),rect.getWidth(),rect.getHeight());   
             Point2D gp = new Point2D.Double(posx+(glyphPos.getX() - rect.getX()),0);
             gv.setGlyphPosition(i, gp); 
             
-            fillCircle(textGraphics, x+gp.getX(),y+gp.getY(), r);
+            textGraphics.setColor(Color.red);
+            fillCircle(textGraphics, x0+gp.getX(),y0+gp.getY(), DOT_SIZE);
 
             
             posx += rect.getWidth();
             
         }
                 
-        textGraphics.setColor(Color.BLACK); textGraphics.drawGlyphVector(gv, (float)x,(float)y);        
-        textGraphics.setColor(Color.blue); drawCircle(textGraphics,x,y,8);
+        textGraphics.setColor(Color.BLACK); textGraphics.drawGlyphVector(gv, (float)x0,(float)y0);        
+        textGraphics.setColor(Color.blue); drawCircle(textGraphics,x0,y0,8);
         
-        BasicStroke outlineStroke = new BasicStroke((float)spacing, BasicStroke.CAP_ROUND,  	BasicStroke.JOIN_ROUND);
+        BasicStroke outlineStroke = new BasicStroke((float)glyphSpacing, BasicStroke.CAP_ROUND,  	BasicStroke.JOIN_ROUND);
         textGraphics.setStroke(outlineStroke); textGraphics.setColor(Color.gray);
         Shape textOutline = gv.getOutline();
-        AffineTransform at = new AffineTransform(); at.translate(x,y);
+        AffineTransform at = new AffineTransform(); at.translate(x0,y0);
 
         textGraphics.setTransform(at);
         textGraphics.draw(textOutline);
@@ -207,17 +221,18 @@ public class AutoKerning {
             Bounds b2 = glyph2.getBounds();
             ymin = min(ymin, b2.ymin);
             ymax = max(ymax, b2.ymax);
-            printf("glyph: %c  [%7.2f %7.2f] - %c [%7.2f %7.2f]\n", text.charAt(i), b1.ymin, b1.ymax, text.charAt(i+1), b2.ymin, b2.ymax);
+            if(DEBUG)printf("glyph: %c  [%7.2f %7.2f] - %c [%7.2f %7.2f]\n", text.charAt(i), b1.ymin, b1.ymax, text.charAt(i+1), b2.ymin, b2.ymax);
             Vector3d start = new Vector3d( xmax + b2.getSizeX()/2, 0, 0);
             //printValuesOnRay(glyph2, 0, new Vector3d(-b2.getSizeX()/2, 0,0),new Vector3d(1,0,0),1., 100);
             un.initialize();
             DataSourceIntersector.IntersectionResult is = dsi.getShapesIntersection(un, glyph2,start, direction);
             Vector3d glyphShift = is.getLocation();
             glyph2.setTransform(new Translation(glyphShift.x,0,0));
-            printf("glyph: %c(%4x)  glyphShift:%7.2f\n", text.charAt(i+1), (int)text.charAt(i+1), glyphShift.x);
+            glyphLocation[i+1] = glyphShift.x;
+            if(DEBUG)printf("glyph: %c(%4x)  glyphShift:%7.2f\n", text.charAt(i+1), (int)text.charAt(i+1), glyphShift.x);
             un.add(glyph2);
             xmax = max(xmax, glyphShift.x + b2.xmax);
-            if(true)printf("intersection result: %s\n", is.toString(1.));
+            if(DEBUG)printf("intersection result: %s\n", is.toString(1.));
         }
         if(WRITE_DEBUG_IMAGES){
             ImageMaker im = new ImageMaker();
@@ -234,6 +249,7 @@ public class AutoKerning {
         //double xmin = glyphImages.get(0);
         int rightBound[] = new int[0];
         
+        return 0;
     }
     
 

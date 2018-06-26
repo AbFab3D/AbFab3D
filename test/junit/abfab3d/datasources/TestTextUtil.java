@@ -14,6 +14,7 @@ package abfab3d.datasources;
 
 import java.awt.font.OpenType;
 import java.awt.font.FontRenderContext;
+import java.awt.geom.Point2D;
 //import sun.font.Font2D;
 //import sun.font.ScriptRun;
 //import sun.font.Script;
@@ -613,9 +614,9 @@ public class TestTextUtil extends TestCase {
     void devTestAutoKerning() throws Exception {
 
         //String text = "WW+1jJ1";
-        String text = "N\\-431415";
+        //String text = "N\\-431415";
+        String text = "012345";
         //String text = "abfgh";
-        //String text = "АБВГДЕЖ";
         //String text = "ABC.\u0410\u0411\u0412\u0413\u0414\u0415\u0416"; 
         //String text = "W.W.Б";
         //String text = "/\\";
@@ -623,31 +624,52 @@ public class TestTextUtil extends TestCase {
         
         int imageWidth = (int)(fontSize*text.length()*1.);
         int imageHeight = (int)(fontSize*1.2);
-        double x0 = fontSize*1.0;
-        double y0 = fontSize*0.8;
-        double spacing = 0.1*fontSize;
+        
+        double glyphSpacing = 0.01*fontSize;
         double resolution = 1;
+        double x0 = 0.1*fontSize;
+        double y0 = fontSize*0.5;
 
         BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = (Graphics2D)image.getGraphics();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);        
-        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);        
-        g.setColor(Color.white);
-        g.fill(new Rectangle2D.Double(0,0,imageWidth, imageHeight));
-        FontRenderContext frc = g.getFontRenderContext();
+        Graphics2D textGraphics = (Graphics2D)image.getGraphics();
+        textGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);        
+        textGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);        
+        textGraphics.setColor(Color.white);
+        textGraphics.fill(new Rectangle2D.Double(0,0,imageWidth, imageHeight));
+        AffineTransform oldTransform = textGraphics.getTransform();
+        //FontRenderContext frc = g.getFontRenderContext();
         
         String fontPath = "test/images/PinyonScript-LatinOnly_v3a.ttf";
         //String fontPath = "test/images/times.ttf";
         Font font = Font.createFont(Font.TRUETYPE_FONT,new File(fontPath));
 
-        Hashtable<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
-        map.put(TextAttribute.KERNING, TextAttribute.KERNING_ON);
+        double glyphLocations[] = new double[text.length()];
+
+        new AutoKerning().placeText(textGraphics, font, text, fontSize, glyphSpacing, resolution, glyphLocations);
+
+        for(int i = 0; i < glyphLocations.length; i++){
+            printf("glyphLocations[%2d] = %7.3f\n",i, glyphLocations[i]);
+        }
+
+        Hashtable<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();        
         map.put(TextAttribute.SIZE, new Double(fontSize));        
         font = font.deriveFont(map);
 
-        AutoKerning.getKerning(g,  font, text, spacing, resolution, x0, y0);
+        char ctext[] = text.toCharArray();        
+        GlyphVector gv = font.layoutGlyphVector(textGraphics.getFontRenderContext(), ctext, 0, ctext.length, 0);
+        for(int i = 0; i < ctext.length; i++){
+            gv.setGlyphPosition(i, new Point2D.Double(1.*glyphLocations[i], y0)); 
+        }
         
-        if (DEBUG) ImageIO.write(image, "png", new File("/tmp/kerning.png"));
+        if (DEBUG) ImageIO.write(image, "png", new File("/tmp/originalText.png"));
+        textGraphics.setTransform(oldTransform);
+        textGraphics.setColor(Color.WHITE);
+        textGraphics.fill(new Rectangle2D.Double(0,0,imageWidth, imageHeight));
+        textGraphics.setColor(Color.BLACK);
+        textGraphics.draw(new Rectangle2D.Double(1,1,imageWidth-2, imageHeight-2));
+        textGraphics.drawGlyphVector(gv, (float)x0,(float)y0);
+                
+        if (DEBUG) ImageIO.write(image, "png", new File("/tmp/packedText.png"));
 
     }
 
