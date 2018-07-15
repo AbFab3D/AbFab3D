@@ -615,19 +615,22 @@ public class TestTextUtil extends TestCase {
 
         //String text = "WW+1jJ1";
         //String text = "N\\-431415";
-        String text = "012345";
+        //String text = "00110011";
+        //String text = "34";
+        //String text = "67"; // no intersection 
+        String text = "W.+=+!|7!Jy";
         //String text = "abfgh";
         //String text = "ABC.\u0410\u0411\u0412\u0413\u0414\u0415\u0416"; 
         //String text = "W.W.Б";
         //String text = "/\\";
         double fontSize = 400;
         
-        int imageWidth = (int)(fontSize*text.length()*1.);
+        int imageWidth = (int)(fontSize*text.length()*1.5);
         int imageHeight = (int)(fontSize*1.2);
         
-        double glyphSpacing = 0.01*fontSize;
+        double glyphSpacing = 0.*fontSize;
         double resolution = 1;
-        double x0 = 0.1*fontSize;
+        double x0 = 0.*fontSize;
         double y0 = fontSize*0.5;
 
         BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
@@ -645,8 +648,10 @@ public class TestTextUtil extends TestCase {
 
         double glyphLocations[] = new double[text.length()];
 
-        new AutoKerning().placeText(textGraphics, font, text, fontSize, glyphSpacing, resolution, glyphLocations);
 
+        new AutoKerning().placeText(textGraphics, font, text, fontSize, glyphSpacing, resolution, glyphLocations);
+       if (DEBUG) ImageIO.write(image, "png", new File("/tmp/03_originalText.png"));
+ 
         for(int i = 0; i < glyphLocations.length; i++){
             printf("glyphLocations[%2d] = %7.3f\n",i, glyphLocations[i]);
         }
@@ -661,7 +666,6 @@ public class TestTextUtil extends TestCase {
             gv.setGlyphPosition(i, new Point2D.Double(1.*glyphLocations[i], y0)); 
         }
         
-        if (DEBUG) ImageIO.write(image, "png", new File("/tmp/originalText.png"));
         textGraphics.setTransform(oldTransform);
         textGraphics.setColor(Color.WHITE);
         textGraphics.fill(new Rectangle2D.Double(0,0,imageWidth, imageHeight));
@@ -669,7 +673,7 @@ public class TestTextUtil extends TestCase {
         textGraphics.draw(new Rectangle2D.Double(1,1,imageWidth-2, imageHeight-2));
         textGraphics.drawGlyphVector(gv, (float)x0,(float)y0);
                 
-        if (DEBUG) ImageIO.write(image, "png", new File("/tmp/packedText.png"));
+        if (DEBUG) ImageIO.write(image, "png", new File("/tmp/04_packedText.png"));
 
     }
 

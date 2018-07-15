@@ -46,10 +46,12 @@ public class DataSourceIntersector extends BaseParameterizable{
     static final boolean DEBUG = false;
     static final double UNIT = MM;
 
-    public static final int RESULT_OK = ResultCodes.RESULT_OK;
+    public static final int RESULT_INTERSECTION_FOUND = 1;
     public static final int RESULT_INITIAL_INTERSECTION = 2;
     public static final int RESULT_NO_INTERSECTION = 3;
-    public static final int RESULT_CANT_FIND_SURFACE_POINTS = 4;
+    public static final int RESULT_MAX_STEPS_EXCEEDED = 4;
+    public static final int RESULT_MAX_DISTANCE_SURPASSED = 5;
+    public static final int RESULT_CANT_FIND_SURFACE_POINTS = 6;
 
     
     DoubleParameter mp_minStep = new DoubleParameter("minStep",0.5*MM);
@@ -105,7 +107,7 @@ public class DataSourceIntersector extends BaseParameterizable{
             double dist1 = i * step;                
             
             if(dist1 > maxDistance) 
-                return new IntersectionResult(RESULT_NO_INTERSECTION, start, start); 
+                return new IntersectionResult(RESULT_MAX_DISTANCE_SURPASSED, start, start); 
             
             dir.set(direction);
             dir.scale(dist1);
@@ -119,7 +121,7 @@ public class DataSourceIntersector extends BaseParameterizable{
                 dir.set(direction);
                 dir.scale(d);   
                 end.add(dir);
-                return new IntersectionResult(RESULT_OK, end, end);
+                return new IntersectionResult(RESULT_INTERSECTION_FOUND, end, end);
             } 
             
             dist0 = dist1;
@@ -127,7 +129,7 @@ public class DataSourceIntersector extends BaseParameterizable{
             
         }
         
-        return new IntersectionResult(RESULT_NO_INTERSECTION, start, start); 
+        return new IntersectionResult(RESULT_MAX_STEPS_EXCEEDED, start, start); 
 
     }
 
@@ -228,17 +230,14 @@ public class DataSourceIntersector extends BaseParameterizable{
 
                 IntersectionResult res = getShapeRayIntersection(probe, probeRayStart, probeDir);
                 switch(res.code){
-                case RESULT_OK: 
+                case RESULT_INTERSECTION_FOUND: 
                     if(DEBUG)printf("start: %s -> end: %s contact: %s  radius:%7.3f\n",
                                     toString(probeRayStart, UNIT), toString(res.end,UNIT), toString(res.contact,UNIT), res.end.length()/UNIT);
                     frontPoints.addPoint(res.end);
                     break;
-                case RESULT_NO_INTERSECTION: 
-                    if(DEBUG)printf("start: %s -> no intersection\n",toString(probeRayStart, UNIT));
+                default:
+                    if(DEBUG)printf("start: %s -> %s\n",toString(probeRayStart, UNIT), res.toString(UNIT));
                     break;
-                case RESULT_INITIAL_INTERSECTION: 
-                    if(DEBUG)printf("start: %s -> initial intersection\n",toString(probeRayStart, UNIT));
-                    break;                    
                 }
             }            
             
@@ -269,7 +268,7 @@ public class DataSourceIntersector extends BaseParameterizable{
 
             double dist1 = i * step;                
             
-            if(dist1 > maxDistance)  return new IntersectionResult(RESULT_NO_INTERSECTION, start,start); 
+            if(dist1 > maxDistance)  return new IntersectionResult(RESULT_MAX_DISTANCE_SURPASSED, start,start); 
             
             dir.set(direction);
             dir.scale(dist1);
@@ -286,7 +285,7 @@ public class DataSourceIntersector extends BaseParameterizable{
                 dir.scale(d);   
                 end.add(dir);
                 minValuePoint0.interpolate(minValuePoint0,minValuePoint1, t);
-                return new IntersectionResult(RESULT_OK, end, minValuePoint0);
+                return new IntersectionResult(RESULT_INTERSECTION_FOUND, end, minValuePoint0);
             } 
             
             dist0 = dist1;
@@ -294,7 +293,7 @@ public class DataSourceIntersector extends BaseParameterizable{
             minValuePoint0.set(minValuePoint1);
         }
 
-        return new IntersectionResult(RESULT_NO_INTERSECTION,new Vector3d(start), new Vector3d(0,0,0));
+        return new IntersectionResult(RESULT_MAX_STEPS_EXCEEDED,new Vector3d(start), new Vector3d(0,0,0));
         
     }
 
@@ -349,10 +348,12 @@ public class DataSourceIntersector extends BaseParameterizable{
 
     public static String getCodeString(int code){
         switch(code){
-        case RESULT_OK: return "INTERSECTION";
+        case RESULT_INTERSECTION_FOUND: return "INTERSECTION";
         case RESULT_INITIAL_INTERSECTION: return "INITIAL_INTERSECTION";
         case RESULT_NO_INTERSECTION:  return "NO_INTERSECTION";
+        case RESULT_MAX_DISTANCE_SURPASSED:  return "MAX_DISTANCE_SURPASSED";
         case RESULT_CANT_FIND_SURFACE_POINTS: return "CANT_FIND_SURFACE_POINTS";
+        case RESULT_MAX_STEPS_EXCEEDED:  return "MAX_STEPS_EXCEEDED";
         default: return "UNKNOWN";
         }
     }
@@ -390,7 +391,7 @@ public class DataSourceIntersector extends BaseParameterizable{
 
         public String toString(double unit){
 
-            return fmt("code: %s end: (%7.3f %7.3f %7.3f) contact: (%7.3f %7.3f %7.3f) ",getCodeString(code), 
+            return fmt("code: %s location: (%7.3f %7.3f %7.3f) contact: (%7.3f %7.3f %7.3f) ",getCodeString(code), 
                       end.x/unit,end.y/unit,end.z/unit,contact.x/unit,contact.y/unit, contact.z/unit );
         }
 
