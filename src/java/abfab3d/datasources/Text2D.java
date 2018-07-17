@@ -368,16 +368,37 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     public BufferedImage getImage(){
 
         initialize();
-/*
+
         try {
-            File f = new File("/Users/giles/tmp/text.png");
+            File f = new File("/tmp/text.png");
             printf("Saving text string: %s\n",f.getAbsoluteFile());
             ImageIO.write(m_cachedData.image,"png", f);
         } catch(IOException ioe) {
             ioe.printStackTrace();
         }
-*/
+
         return m_cachedData.image;
+    }
+
+    static int debugImageCount = 0;
+
+    public String debugImage() {
+        if (debugImageCount < 3) {
+            try {
+                File f = File.createTempFile("imageDebug", ".png");
+                printf("debugImage: %s\n",f);
+                f.deleteOnExit();
+                ImageIO.write(m_cachedData.image,"png", f);
+
+                debugImageCount++;
+                return f.toString();
+            } catch(IOException ioe) {
+                ioe.printStackTrace();
+                return "IO Problem saving Image";
+            }
+        } else {
+            return "DebugImageCount exceeded";
+        }
     }
 
     /**
@@ -577,11 +598,13 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
                                        -(textRect.getY() + textRect.getHeight())*PT, // flip Y axis 
                                        -textRect.getY()*PT, 
                                        0,0, voxelSize);
+
         Bounds imageBounds = new Bounds((textRect.getX()-inset)*PT,
-                                        (textRect.getX() + textRect.getWidth()+2*inset)*PT,
-                                        -(textRect.getY() + textRect.getHeight()+2*inset)*PT, // flip Y axis 
-                                        -(textRect.getY() -inset)*PT, 
-                                        0,0, voxelSize);
+                (textRect.getX() + textRect.getWidth()+inset)*PT,
+                -(textRect.getY() + textRect.getHeight()+inset)*PT, // flip Y axis
+                -(textRect.getY() -inset)*PT,
+                0,0, voxelSize);
+
         if(DEBUG)printf("Text2D image bounds: (%s)mm\n", imageBounds.toString(MM));
         if(DEBUG)printf("Text2D text bounds: (%s)mm\n", textBounds.toString(MM));
 
@@ -599,7 +622,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
         g2.setColor(mp_backgroundColor.getValue().toAWT());
         g2.fill(new Rectangle2D.Double(0,0,imageWidth, imageHeight));
         g2.scale(scaleFactor,scaleFactor);
-        g2.translate(-textRect.getX() +  + inset,-textRect.getY()+inset);
+        g2.translate(-textRect.getX() + inset,-textRect.getY() + inset);
 
         if(mp_outline.getValue()){
 

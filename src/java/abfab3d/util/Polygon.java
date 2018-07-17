@@ -227,7 +227,6 @@ public class Polygon implements TriangleProducer, Transformer {
         // transform polygon into plane 
         Vector3d normal = getNormal();
         Vector3d center = getCenter();
-        printf("polygon normal: %s", normal);
         Vector3d axisZ = new Vector3d(0,0,1);
         AxisAngle4d aa = MathUtil.getAxisAngle(normal, axisZ);
         Matrix3d mat = new Matrix3d();
@@ -276,7 +275,6 @@ public class Polygon implements TriangleProducer, Transformer {
      */
     Path2D getPath(Vector<PointSet> poly){
         
-        printf("getPath() windRule: %s\n", getWindingRuleName(m_windingRule));
         Path2D.Double path = new Path2D.Double(m_windingRule);
         Vector3d pnt = new Vector3d();
         for(int k = 0; k < poly.size(); k++){
@@ -429,9 +427,7 @@ public class Polygon implements TriangleProducer, Transformer {
         }
 
         int triCount = m_triangulator.triangulateConcavePolygon(coord,0, vertCount, coordIndex,coordOutput, normal);
-        printf("triCount: %d\n", triCount);
-        
-        
+
         PointSet triangles = new PointSetArray();
 
         triCount = abs(triCount);
