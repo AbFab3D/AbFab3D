@@ -612,15 +612,16 @@ public class Variant  {
     /**
      * should be called to update scene when single parameter is changed via UI
      */
-    public int onScriptParamChanged(Parameter parameter) {
+    public int onScriptParamChanged(Parameter parameter) throws NotCachedException {
 
         if (false) printf("onScriptParamChanged(%s:%s)\n", parameter.getName(), parameter.getValue());
-        try {
-            LinkedHashMap<String, Object> params = new LinkedHashMap<String, Object>();
-            params.put(parameter.getName(), parameter.getValue());
+        
+        LinkedHashMap<String, Object> params = new LinkedHashMap<String, Object>();
+        params.put(parameter.getName(), parameter.getValue());
 
-            ScriptResources sr = null;
-            sr = m_sm.updateParams(m_jobID, params);
+        ScriptResources sr = m_sm.updateParams(m_jobID, params);
+        
+        try {
             m_sm.executeScript(sr);
 
             if (sr.evaluatedScript.isSuccess()) {

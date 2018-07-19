@@ -357,7 +357,7 @@ public class FileDiskCache {
 
         // Add a crc to insure uniqueness
         crc.reset();
-        crc.update(ret_val.getBytes());
+        crc.update(key.getBytes());
 
         String crcSt = Long.toHexString(crc.getValue());
 

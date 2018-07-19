@@ -1400,7 +1400,7 @@ public class ShapeJSGlobal {
             throw Context.reportRuntimeError("No file provided for loadFont() command");
         }
 
-        printf("loading font file: %s\n", filename);
+        //printf("loading font file: %s\n", filename);
 
         String reason = null;
 
