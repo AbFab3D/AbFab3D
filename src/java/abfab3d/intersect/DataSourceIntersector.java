@@ -82,7 +82,7 @@ public class DataSourceIntersector extends BaseParameterizable{
        @param start  initial point of ray 
        @param direction vector of ray direction 
      */
-    public IntersectionResult getShapeRayIntersection(DataSource dataSource, Vector3d start, Vector3d direction){
+    public Result getShapeRayIntersection(DataSource dataSource, Vector3d start, Vector3d direction){
 
         int maxSteps = mp_maxSteps.getValue();
         double minStep = mp_minStep.getValue();
@@ -98,7 +98,7 @@ public class DataSourceIntersector extends BaseParameterizable{
         double dist0 = 0; // distance to travel along the ray 
         double value0 = value.v[dataChannelIndex];  // value at that point 
         if(value0 < 0){
-            return new IntersectionResult(RESULT_INITIAL_INTERSECTION, start,start);
+            return new Result(RESULT_INITIAL_INTERSECTION, start,start);
         }
         Vector3d dir = new Vector3d();
 
@@ -107,7 +107,7 @@ public class DataSourceIntersector extends BaseParameterizable{
             double dist1 = i * step;                
             
             if(dist1 > maxDistance) 
-                return new IntersectionResult(RESULT_MAX_DISTANCE_SURPASSED, start, start); 
+                return new Result(RESULT_MAX_DISTANCE_SURPASSED, start, start); 
             
             dir.set(direction);
             dir.scale(dist1);
@@ -121,7 +121,7 @@ public class DataSourceIntersector extends BaseParameterizable{
                 dir.set(direction);
                 dir.scale(d);   
                 end.add(dir);
-                return new IntersectionResult(RESULT_INTERSECTION_FOUND, end, end);
+                return new Result(RESULT_INTERSECTION_FOUND, end, end);
             } 
             
             dist0 = dist1;
@@ -129,7 +129,7 @@ public class DataSourceIntersector extends BaseParameterizable{
             
         }
         
-        return new IntersectionResult(RESULT_MAX_STEPS_EXCEEDED, start, start); 
+        return new Result(RESULT_MAX_STEPS_EXCEEDED, start, start); 
 
     }
 
@@ -145,7 +145,7 @@ public class DataSourceIntersector extends BaseParameterizable{
        @param 
               
      */
-    public IntersectionResult getShapesIntersection(DataSource shape, DataSource probe, Vector3d start, Vector3d direction){
+    public Result getShapesIntersection(DataSource shape, DataSource probe, Vector3d start, Vector3d direction){
         
         double voxelSize = mp_voxelSize.getValue();
         double len = direction.length();
@@ -228,7 +228,7 @@ public class DataSourceIntersector extends BaseParameterizable{
                 //printf("ia: %d\n", ia);
                 //printValuesOnRay(probe, 0, probeRayStart, probeDir, 3*voxelSize, 50);
 
-                IntersectionResult res = getShapeRayIntersection(probe, probeRayStart, probeDir);
+                Result res = getShapeRayIntersection(probe, probeRayStart, probeDir);
                 switch(res.code){
                 case RESULT_INTERSECTION_FOUND: 
                     if(DEBUG)printf("start: %s -> end: %s contact: %s  radius:%7.3f\n",
@@ -246,13 +246,13 @@ public class DataSourceIntersector extends BaseParameterizable{
         if(DEBUG)printf("front surface points count: %d\n", frontPoints.size());
 
         if(frontPoints.size() < 1){
-            return new IntersectionResult(RESULT_CANT_FIND_SURFACE_POINTS, start, start);            
+            return new Result(RESULT_CANT_FIND_SURFACE_POINTS, start, start);            
         }
 
         Vector3d minValuePoint0 = new Vector3d();
         double value0 = getMinValue(shape, frontPoints, start,minValuePoint0);
         if(value0 < 0){
-            return new IntersectionResult(RESULT_INITIAL_INTERSECTION, start, minValuePoint0);
+            return new Result(RESULT_INITIAL_INTERSECTION, start, minValuePoint0);
         }        
         double dist0 = 0;
         int maxSteps = mp_maxSteps.getValue();
@@ -268,7 +268,7 @@ public class DataSourceIntersector extends BaseParameterizable{
 
             double dist1 = i * step;                
             
-            if(dist1 > maxDistance)  return new IntersectionResult(RESULT_MAX_DISTANCE_SURPASSED, start,start); 
+            if(dist1 > maxDistance)  return new Result(RESULT_MAX_DISTANCE_SURPASSED, start,start); 
             
             dir.set(direction);
             dir.scale(dist1);
@@ -285,7 +285,7 @@ public class DataSourceIntersector extends BaseParameterizable{
                 dir.scale(d);   
                 end.add(dir);
                 minValuePoint0.interpolate(minValuePoint0,minValuePoint1, t);
-                return new IntersectionResult(RESULT_INTERSECTION_FOUND, end, minValuePoint0);
+                return new Result(RESULT_INTERSECTION_FOUND, end, minValuePoint0);
             } 
             
             dist0 = dist1;
@@ -293,7 +293,7 @@ public class DataSourceIntersector extends BaseParameterizable{
             minValuePoint0.set(minValuePoint1);
         }
 
-        return new IntersectionResult(RESULT_MAX_STEPS_EXCEEDED,new Vector3d(start), new Vector3d(0,0,0));
+        return new Result(RESULT_MAX_STEPS_EXCEEDED,new Vector3d(start), new Vector3d(0,0,0));
         
     }
 
@@ -359,13 +359,16 @@ public class DataSourceIntersector extends BaseParameterizable{
     }
 
 
-    public static class IntersectionResult {
+    /**
+       class describes result of intersection search 
+     */
+    public static class Result {
 
         int code;
         Vector3d end; // end point of ray to to move probe 
         Vector3d contact; // point or contact between shapes
         
-        IntersectionResult(int code, Vector3d end, Vector3d contact){
+        Result(int code, Vector3d end, Vector3d contact){
             this.code = code;
             this.end = end;
             this.contact = contact;

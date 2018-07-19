@@ -66,12 +66,13 @@ public class AutoKerning {
     static final boolean DEBUG = true;
     static final boolean WRITE_DEBUG_IMAGES = true;
     static final double DOT_SIZE = 4; // size of dots used in the debug images 
+
+
     /**
        
      */
-    public int placeText(Graphics2D textGraphics, Font font, String text, double fontSize, double glyphSpacing, double resolution, double glyphLocation[]) {
+    public GlyphVector layoutGlyphVector(Graphics2D textGraphics, Font font, String text, double fontSize, double glyphSpacing, double resolution) {
 
-        
         if(DEBUG)printf("placeText(%s) \n", text);
         //double fontSize = 200;
         double x0 = fontSize*1.0; // arbitrary, used for visual tests only 
@@ -85,6 +86,7 @@ public class AutoKerning {
         double halfWidth = glyphSpacing/2;
         char ctext[] = text.toCharArray();
         int glyphCount = ctext.length;
+        double glyphLocation[] = new double[glyphCount];
 
         if(DEBUG)printf("halfWidt: %7.2f\n", halfWidth);
 
@@ -213,6 +215,7 @@ public class AutoKerning {
         ImageMap firstGlyph = glyphImages.get(0);
         
         Union un = new Union();
+        //un.add(makeLeftFence());
         un.add(firstGlyph);
         Bounds firstGlyphBounds = firstGlyph.getBounds();
         double ymin = firstGlyphBounds.ymin;
@@ -240,14 +243,21 @@ public class AutoKerning {
             if(DEBUG) printf("    start: %7.2f\n",start.x);
             //printValuesOnRay(glyph2, 0, new Vector3d(-b2.getSizeX()/2, 0,0),new Vector3d(1,0,0),1., 100);
             un.initialize();
-            DataSourceIntersector.IntersectionResult is = dsi.getShapesIntersection(un, glyph2,start, direction);
+            DataSourceIntersector.Result is = dsi.getShapesIntersection(un, glyph2,start, direction);
+
             if(DEBUG)printf("    packing result: %s\n", is.toString(1.));
-            Vector3d glyphShift = is.getLocation();
-            glyph2.setTransform(new Translation(glyphShift.x,0,0));
-            glyphLocation[i] = (glyphShift.x)-glyphOrigins[i]; 
-            if(DEBUG)printf("    glyphShift:%7.2f\n", glyphShift.x);
+            double glyphShift = is.getLocation().x;
+            if(is.getCode()  != DataSourceIntersector.RESULT_INTERSECTION_FOUND){
+                // no intersection found. Pack glyph to the left side 
+                glyphShift = b2.getSizeX()/2;
+            }
+
+            glyph2.setTransform(new Translation(glyphShift,0,0));
+            glyphLocation[i] = glyphShift -glyphOrigins[i]; 
+            if(DEBUG)printf("    glyphShift:%7.2f\n", glyphShift);
+
             un.add(glyph2);
-            xmax = max(xmax, glyphShift.x + b2.xmax);
+            xmax = max(xmax, glyphShift + b2.xmax);
             if(DEBUG)printf("    xmax: %7.2f\n", xmax);
         }
 
@@ -264,11 +274,45 @@ public class AutoKerning {
             }
         }
         //double xmin = glyphImages.get(0);
-        int rightBound[] = new int[0];
+        //int rightBound[] = new int[0];
+
+        for(int i = 0; i < ctext.length; i++){
+            gv.setGlyphPosition(i, new Point2D.Double(glyphLocation[i],0)); 
+        }
         
-        return 0;
+        return gv;
     }
     
+
+    static ImageMap sm_leftFence;
+
+    ImageMap makeLeftFence(){
+        if(sm_leftFence != null)
+            return sm_leftFence;
+        // size of bitmap 
+        int width = 10; int height = 20;
+
+        double fenceWidth=10, fenceHeight = 500;
+
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = (Graphics2D)image.getGraphics();
+        g.setColor(Color.white);
+        g.fill(new Rectangle2D.Double(0,0,width, height));
+        g.setColor(Color.black);
+        g.fill(new Rectangle2D.Double(1,1,width-2, height-2));
+        
+        
+        ImageMap imageMap = new ImageMap(image, fenceWidth, fenceHeight, 1.);
+        imageMap.set("center",new Vector3d(-fenceWidth/2,0.,0.));
+        imageMap.set("whiteDisplacement",1.);
+        imageMap.set("blackDisplacement",-1.);
+        //imageMap.setTransform(new Translation());
+        imageMap.initialize();
+        sm_leftFence = imageMap;
+        return sm_leftFence;
+        
+    }
+
 
     static Rectangle2D getExpandedRect(Rectangle2D rect, double width){
         return new Rectangle2D.Double(rect.getX()-width,rect.getY()-width, rect.getWidth() + 2*width, rect.getHeight() + 2*width);
@@ -312,7 +356,7 @@ public class AutoKerning {
         double x0 = rect.getX();
         double x1 = rect.getX() + rect.getWidth();
         // rect is in graphics coordinates with Y-down 
-        // bounds are in grid coordinates with Y-up 
+        // bounds are in screen coordinates with Y-up 
         double y0 = -(rect.getY() + rect.getHeight());
         double y1 = -(rect.getY());
 

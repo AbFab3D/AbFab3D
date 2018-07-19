@@ -53,6 +53,7 @@ import java.awt.font.LineMetrics;
 import abfab3d.util.Insets2;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.ceil;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
@@ -618,8 +619,11 @@ public class TestTextUtil extends TestCase {
         //String text = "00110011";
         //String text = "34";
         //String text = "67"; // no intersection 
-        String text = "W.+=+!|7!Jy";
-        //String text = "abfgh";
+        //String text = "W..+=+!|7!Jy";
+        //String text = ".-=`\"";
+        //String text = "/Ja";
+        //String text = "...Ja";
+        String text = ".-..Ja";
         //String text = "ABC.\u0410\u0411\u0412\u0413\u0414\u0415\u0416"; 
         //String text = "W.W.Б";
         //String text = "/\\";
@@ -630,8 +634,8 @@ public class TestTextUtil extends TestCase {
         
         double glyphSpacing = 0.*fontSize;
         double resolution = 1;
-        double x0 = 0.*fontSize;
-        double y0 = fontSize*0.5;
+        double textX = 0.*fontSize;
+        double textY = fontSize*0.8;
 
         BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D textGraphics = (Graphics2D)image.getGraphics();
@@ -640,7 +644,6 @@ public class TestTextUtil extends TestCase {
         textGraphics.setColor(Color.white);
         textGraphics.fill(new Rectangle2D.Double(0,0,imageWidth, imageHeight));
         AffineTransform oldTransform = textGraphics.getTransform();
-        //FontRenderContext frc = g.getFontRenderContext();
         
         String fontPath = "test/images/PinyonScript-LatinOnly_v3a.ttf";
         //String fontPath = "test/images/times.ttf";
@@ -649,31 +652,25 @@ public class TestTextUtil extends TestCase {
         double glyphLocations[] = new double[text.length()];
 
 
-        new AutoKerning().placeText(textGraphics, font, text, fontSize, glyphSpacing, resolution, glyphLocations);
+        GlyphVector gv = new AutoKerning().layoutGlyphVector(textGraphics, font, text, fontSize, glyphSpacing, resolution);
+
        if (DEBUG) ImageIO.write(image, "png", new File("/tmp/03_originalText.png"));
- 
-        for(int i = 0; i < glyphLocations.length; i++){
-            printf("glyphLocations[%2d] = %7.3f\n",i, glyphLocations[i]);
-        }
+       Rectangle2D grect = gv.getVisualBounds();       
+       printf("grect: %s\n", grect);
+       int twidth = (int)ceil(grect.getWidth());
+       int theight = (int)ceil(grect.getHeight());
 
-        Hashtable<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();        
-        map.put(TextAttribute.SIZE, new Double(fontSize));        
-        font = font.deriveFont(map);
-
-        char ctext[] = text.toCharArray();        
-        GlyphVector gv = font.layoutGlyphVector(textGraphics.getFontRenderContext(), ctext, 0, ctext.length, 0);
-        for(int i = 0; i < ctext.length; i++){
-            gv.setGlyphPosition(i, new Point2D.Double(1.*glyphLocations[i], y0)); 
-        }
-        
-        textGraphics.setTransform(oldTransform);
-        textGraphics.setColor(Color.WHITE);
-        textGraphics.fill(new Rectangle2D.Double(0,0,imageWidth, imageHeight));
-        textGraphics.setColor(Color.BLACK);
-        textGraphics.draw(new Rectangle2D.Double(1,1,imageWidth-2, imageHeight-2));
-        textGraphics.drawGlyphVector(gv, (float)x0,(float)y0);
-                
-        if (DEBUG) ImageIO.write(image, "png", new File("/tmp/04_packedText.png"));
+       BufferedImage timage = new BufferedImage(twidth, theight, BufferedImage.TYPE_INT_ARGB);
+       Graphics2D tg = (Graphics2D)timage.getGraphics();
+       tg.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);        
+       tg.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);        
+       tg.setColor(Color.white);
+       tg.fill(new Rectangle2D.Double(0,0,twidth, theight));
+       
+       tg.setColor(Color.black);
+       tg.drawGlyphVector(gv, -(float)grect.getX(), -(float)grect.getY());
+       
+       if (DEBUG) ImageIO.write(timage, "png", new File("/tmp/04_packedText.png"));
 
     }
 

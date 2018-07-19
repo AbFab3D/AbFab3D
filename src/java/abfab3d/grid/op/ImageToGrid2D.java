@@ -79,10 +79,10 @@ public class ImageToGrid2D extends BaseParameterizable implements Grid2DProducer
     /**
      * @param imageProducer - image producer
      */
-    public ImageToGrid2D(BufferedImage imageProducer) {
+    public ImageToGrid2D(BufferedImage image) {
         // Added for backwards compatibility
         addParams(m_params);
-        mp_imageProducer.setValue(new ImageWrapper(imageProducer));
+        mp_imageProducer.setValue(new ImageWrapper(image));
 
         // TODO: This will lose caching, but there is no way around that dealing with a raw BufferedImage
     }

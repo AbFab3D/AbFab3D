@@ -74,13 +74,15 @@ public class TestDataSourceIntersector extends BaseTestCase  {
         for(int i = 0; i < starts.length; i++){
             Vector3d start = starts[i];
             Vector3d dir = dirs[i];
-            DataSourceIntersector.IntersectionResult res = dsi.getShapeRayIntersection(s, start, dir);
+            DataSourceIntersector.Result res = dsi.getShapeRayIntersection(s, start, dir);
             
             printf("\n",start.x/MM,start.y/MM,start.z/MM); 
             printf("start: (%7.3f %7.3f %7.3f) mm ",toString(start,MM)); 
             printf("  dir: (%7.3f %7.3f %7.3f) \n",toString(dir,1.0)); 
             switch(res.code){
-            case DataSourceIntersector.RESULT_OK: 
+            default: 
+                printf("intersection:%s \n", res.toString(MM)); break;                
+            case DataSourceIntersector.RESULT_INTERSECTION_FOUND: 
                 printf("intersection: (%7.3f %7.3f %7.3f)mm\n", toString(res.end, MM)); break;
             case DataSourceIntersector.RESULT_NO_INTERSECTION: 
                 printf("no_intersection:\n"); break;
@@ -118,13 +120,15 @@ public class TestDataSourceIntersector extends BaseTestCase  {
         for(int i = 0; i < data.length/2; i++){
             Vector3d start = data[2*i];
             Vector3d dir = data[2*i+1];
-            DataSourceIntersector.IntersectionResult res = dsi.getShapesIntersection(shape, probe,start, dir);
+            DataSourceIntersector.Result res = dsi.getShapesIntersection(shape, probe,start, dir);
             
             printf("\n",start.x/MM,start.y/MM,start.z/MM); 
             printf("start: (%7.3f %7.3f %7.3f) mm ",start.x/MM,start.y/MM,start.z/MM); 
             printf("  dir: (%7.3f %7.3f %7.3f) \n",dir.x,dir.y, dir.z); 
             switch(res.code){
-            case DataSourceIntersector.RESULT_OK: 
+            default:  
+                printf("result: %s\n", res.toString(MM));
+            case DataSourceIntersector.RESULT_INTERSECTION_FOUND: 
                 printf("end: %s mm contact: %s length:%13.10f\n",toString(res.end,MM),toString(res.contact,MM),res.end.length()/MM); break;
             case DataSourceIntersector.RESULT_NO_INTERSECTION: 
                 printf("no_intersection:\n"); break;
