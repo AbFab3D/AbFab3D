@@ -127,63 +127,73 @@ public class TestText2D extends TestCase {
         ImageIO.write(img, "png", new File("/tmp/text_right_bottom.png"));
     }
  
-    public void devTestTextFit() throws Exception {
+    public void devTestTextNoFit() throws Exception {
 
-        String fontName = "Pinyon Script LatinOnly";
+        //String fontName = "Pinyon Script LatinOnly";
+        String fontPath = "test/images/PinyonScript-LatinOnly_v3a.ttf";
         //String fontPath = "test/images/PinyonScript-Regular.ttf";
         //String fontPath = "test/images/berkshireswash-regular.ttf";
-
         //String fontName = "Times New Roman";
-        double voxelSize = 0.02*MM;
-        double fontSize = 10*MM;
-        //String text = "1121131415";
-        //String text = "Berkshire Swash";
-        String text = "Carrie";
-        //norsuvwx";
-        //String text = "bdhiklt";
-        //String text = "gpqz";
-        //String text = "jfJS";
 
-        Text2D t = new Text2D(text, fontName, voxelSize);
-        //Text2D t = new Text2D(text, new FontLoader(fontPath), voxelSize);
+        double voxelSize = 0.05*MM;
+        double fontSize = 10*MM;
+        //String text = "CarrieJ";
+        String text = "/\\.,-={}";
+        double outlineWidth = 1*MM;
+        double inset = 1*MM;
+
+        //Text2D t = new Text2D(text, fontName, voxelSize);
+        Text2D t = new Text2D(text, new FontLoader(fontPath), voxelSize);
 
         t.set("fit", "none");
         t.set("vertAlign", "center");
         t.set("fontSize", fontSize/PT);
-        t.set("fillColor", new Color(0,0,0,0.3));
+        t.set("fillColor", new Color(0,0.3,0.));
         t.set("outlineColor", new Color(0.2,0.2,0.2));
         t.set("outline", new Boolean(true));
-        t.set("outlineWidth", 0.6*MM);
+        t.set("outlineWidth", outlineWidth);
         t.set("kerning", true);
+        t.set("inset", inset);
         t.setSpacing(0.03);
-        printf("first call to t.getImage()\n");
-        long t0 = time();
         BufferedImage img = t.getImage();
-        printf("first call t.getImage() %d ms\n", (time()-t0));
-        ImageIO.write(img, "png", new File("/tmp/testTextFit.png")); 
-        Bounds imageBounds = t.getImageBounds();
-        printf("imageBounds (%s)mm\n", imageBounds.toString(MM));
-        /*
-        for(int i = 0; i < 3; i++){
-            t0 = time();
-            Bounds imageBounds = t.getImageBounds();
-            printf("imageBounds (%s)mm timing %d ms\n", imageBounds.toString(MM),(time()-t0));
-        }
-        printf("setText()\n");
-        t.setText("AaceWJ");
- 
-       
-        for(int i = 0; i < 26; i++){
-            t.setText(fmt("N%c",('a'+i)));
-            t0 = time();
-            Bounds imageBounds = t.getImageBounds();
-            printf("imageBounds (%s)mm timing %d ms\n", imageBounds.toString(MM),(time()-t0));
-            BufferedImage img2 = t.getImage();
-            ImageIO.write(img2, "png", new File(fmt("/tmp/testText_%02d.png", i))); 
-        }
-        */
+        ImageIO.write(img, "png", new File("/tmp/testTextNoFit.png")); 
+        printf("textBounds (%s)mm\n", t.getTextBounds().toString(MM));
+        printf("imageBounds (%s)mm\n", t.getImageBounds().toString(MM));
     }
  
+    public void devTestAutoKerning() throws Exception {
+
+        String fontPath = "test/images/PinyonScript-LatinOnly_v3a.ttf";
+
+        double voxelSize = 0.05*MM;
+        double fontSize = 10*MM;
+        double outlineWidth = 1.*MM;
+        double glyphDistance = 0.3*MM;
+        double inset = 1*MM;
+        //String text = "CarrieJ";
+        String text = "/\\.,-={}";
+
+        //Text2D t = new Text2D(text, fontName, voxelSize);
+        Text2D t = new Text2D(text, new FontLoader(fontPath), voxelSize);
+
+        t.set("inset", inset);
+        t.set("fit", "none");
+        t.set("autoKerning", true);
+        t.set("vertAlign", "center");
+        t.set("fontSize", fontSize/PT);
+        t.set("fillColor", new Color(0,0,0.3));
+        t.set("outlineColor", new Color(0.2,0.2,0.2));
+        t.set("outline", new Boolean(true));
+        t.set("outlineWidth", outlineWidth);
+        t.set("kerning", true);
+        t.set("autoKerningDistance",glyphDistance);
+        BufferedImage img = t.getImage();
+        ImageIO.write(img, "png", new File("/tmp/testAutoKernng.png")); 
+        printf("textBounds (%s)mm\n", t.getTextBounds().toString(MM));
+        printf("imageBounds (%s)mm\n", t.getImageBounds().toString(MM));
+    }
+ 
+
     public void devTestGlyphPosition() throws Exception {
 
         String fontName = "Pinyon Script LatinOnly";
@@ -228,7 +238,8 @@ public class TestText2D extends TestCase {
         //new TestText2D().testBitmapSize();
         //new TestText2D().testTextWidth();
         //new TestText2D().devTestTextAlign();
-        //new TestText2D().devTestTextFit();               
-        new TestText2D().devTestGlyphPosition();               
+        new TestText2D().devTestTextNoFit();               
+        new TestText2D().devTestAutoKerning();               
+        // new TestText2D().devTestGlyphPosition();               
     }
 }

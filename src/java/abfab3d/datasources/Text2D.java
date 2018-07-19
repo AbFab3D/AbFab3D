@@ -129,7 +129,9 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     DoubleParameter mp_spacing    = new DoubleParameter("spacing","extra white space between characters in relative units", 0.);
     DoubleParameter mp_textOriginX = new DoubleParameter("textOriginX","text origin relative to left bounds", 0.);
     DoubleParameter mp_textOriginY = new DoubleParameter("textOriginY","text origin relative to bottom bounds", 0.);
-    BooleanParameter mp_kerning = new BooleanParameter("kerning","layout with pair kerning", false);
+    BooleanParameter mp_kerning = new BooleanParameter("kerning","text layout with pair kerning", false);
+    BooleanParameter mp_autoKerning = new BooleanParameter("autoKerning","text layout with automatic kerning", false);
+    DoubleParameter mp_autoKerningDistance = new DoubleParameter("autoKerningDistance","distance bettween glyphs to use with automatic kerning", 0.);
 
     DoubleParameter mp_outlineWidth = new DoubleParameter("outlineWidth","width of text outline", 0.1*MM);
 
@@ -162,7 +164,9 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
         mp_fillColor,
         mp_outlineColor,
         mp_backgroundColor,
-        mp_kerning
+        mp_kerning,
+        mp_autoKerning,
+        mp_autoKerningDistance
 
     };
 
@@ -269,12 +273,13 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
      * Set the font name.  The available fonts are server dependent.
      */
     public void setFontName(String fontName) {
+
         validateFontName(fontName);
         mp_fontSource.setValue(new SystemFontLoader(fontName)); 
     }
 
     public void setFontStyle(Integer val) {
-        mp_fontStyle.setValue(val);
+        set("fontStyle",val);
     }
 
     /**
@@ -282,11 +287,11 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
      * @param val The size in meters
      */
     public void setVoxelSize(double val) {
-        mp_voxelSize.setValue(val);
+        set("voxelSize", val);
     }
 
     public void setSpacing(double val) {
-        mp_spacing.setValue(val);
+        set("spacing", val);
     }
 
     public double getSpacing() {
@@ -294,7 +299,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     }
 
     public void setInset(double val) {
-        mp_inset.setValue(val);
+        set("inset", val);
     }
 
     public double getInset() {
@@ -311,7 +316,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
         if (val <= 0) {
             throw new IllegalArgumentException(fmt("illegal Text2D width:%11.9f", val));
         }
-        mp_width.setValue(val);
+        set("width", val);
     }
 
     public double getWidth() {
@@ -322,7 +327,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
         if (val <= 0) {
             throw new IllegalArgumentException(fmt("illegal Text2D height:%11.9f", val));
         }
-        mp_height.setValue(val);
+        set("height", val);
     }
 
     public double getHeight() {
@@ -330,7 +335,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     }
 
     public void setHorizAlign(String val) {
-        mp_horizAlign.setValue(val);
+        set("horizAlign",val);
     }
 
     public String getHorizAlign() {
@@ -338,7 +343,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     }
 
     public void setVertAlign(String val) {
-        mp_vertAlign.setValue(val);
+        set("vertAlign",val);
     }
 
     public String getVertAlign() {
@@ -346,7 +351,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     }
 
     public void setFit(String val) {
-        mp_fit.setValue(val);
+        set("fit",val);
     }
 
     public String getFit() {
@@ -354,7 +359,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     }
 
     public void setPreserveAspect(boolean val) {
-        mp_aspect.setValue(val);
+        set("preserveAspect",val);
     }
 
     public boolean getPreserveAspect() {
@@ -368,7 +373,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     public BufferedImage getImage(){
 
         initialize();
-
+        /*
         try {
             File f = new File("/tmp/text.png");
             printf("Saving text string: %s\n",f.getAbsoluteFile());
@@ -376,10 +381,11 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
         } catch(IOException ioe) {
             ioe.printStackTrace();
         }
-
+        */
         return m_cachedData.image;
     }
 
+    /*
     static int debugImageCount = 0;
 
     public String debugImage() {
@@ -400,7 +406,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
             return "DebugImageCount exceeded";
         }
     }
-
+    */
     /**
        @return physical bounds of the image
      */
@@ -497,13 +503,13 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     protected CachedTextData prepareData(){
         
         if(mp_fit.getIndex() == FIT_NONE){
-            return prepareData_v2();
+            return prepareData_noFit();
         } else {
-            return prepareData_v1();            
+            return prepareData_fit();            
         }
     }
         
-    protected CachedTextData prepareData_v1(){
+    protected CachedTextData prepareData_fit(){
         
         double voxelSize = mp_voxelSize.getValue();
         if(DEBUG) printf("  voxelSize:%7.5f\n", voxelSize);
@@ -552,17 +558,26 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
         return new CachedTextData(image, imageBounds, textBounds, null);
 
     }
-
-    protected CachedTextData prepareData_v2(){
+    
+    /**
+       text layout is done using text metrics 
+       size of bitmap is calculated from text size 
+       text origin is located at the base line 
+     */
+    protected CachedTextData prepareData_noFit(){
 
         
         double voxelSize = mp_voxelSize.getValue();
-        double fontSize = mp_fontSize.getValue();
+        // font size units is PT 
+        // image units are voxels 
+        double fontSize = mp_fontSize.getValue()*(PT/voxelSize); // font size in image pixels 
         int fontStyle = mp_fontStyle.getValue();
-        double inset = mp_inset.getValue()/PT;        
-        double spacing = mp_spacing.getValue();
+        double inset = mp_inset.getValue()/voxelSize;        
+        double spacing = mp_spacing.getValue();//
+
 
         if(DEBUG)printf("Text2D fontSize: %5.1f\n", fontSize);
+        if(DEBUG)printf("Text2D spacing: %5.1f\n", spacing);
         
         Font font = getFont();
         
@@ -572,44 +587,57 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
             map.put(TextAttribute.KERNING, TextAttribute.KERNING_ON);
         map.put(TextAttribute.SIZE, new Double(fontSize));        
         font = font.deriveFont(map);
+        // tiny image to get graphics 
 
         BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D)image.getGraphics(); 
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
         FontRenderContext frc = g.getFontRenderContext();
 
+        
         String text = mp_text.getValue();        
-        char ctext[] = text.toCharArray();
-        GlyphVector gv = font.layoutGlyphVector(frc, ctext, 0, ctext.length, 0);
-
-        // add extra spacing 
-        // last position is position after last glyph
-        double space = spacing*gv.getGlyphPosition(ctext.length).getX()/ctext.length; 
-        for(int i = 0; i < ctext.length; i++){
-            Point2D pnt = gv.getGlyphPosition(i);
-            //Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();
-            gv.setGlyphPosition(i, new Point2D.Double(pnt.getX() + space*i, pnt.getY())); 
-        }
+        GlyphVector gv;
+        if(mp_autoKerning.getValue()){
+            //
+            // do automatic kerning 
+            //
+            double autoKerningDistance = mp_autoKerningDistance.getValue()/voxelSize;
+            if(DEBUG) printf("fontSize:%7.2f pixels\n",fontSize);
+            if(DEBUG) printf("autoKerningDistance:%7.2f pixels\n",autoKerningDistance);
+            double resolutiuon = 1;
+            gv = new AutoKerning().layoutGlyphVector(g, font, text, fontSize, autoKerningDistance, resolutiuon);
+        } else {
+            //
+            // use system for text layout
+            //
+            char ctext[] = text.toCharArray();
+            gv = font.layoutGlyphVector(frc, ctext, 0, ctext.length, 0);
+            // add extra spacing 
+            // last position is position after last glyph
+            double space = spacing*gv.getGlyphPosition(text.length()).getX()/ctext.length; 
+            for(int i = 0; i < ctext.length; i++){
+                Point2D pnt = gv.getGlyphPosition(i);
+                gv.setGlyphPosition(i, new Point2D.Double(pnt.getX() + space*i, pnt.getY())); 
+            }
+        }        
 
         Rectangle2D textRect = gv.getVisualBounds(); 
 
-        Bounds textBounds = new Bounds(textRect.getX()*PT,
-                                       (textRect.getX() + textRect.getWidth())*PT,
-                                       -(textRect.getY() + textRect.getHeight())*PT, // flip Y axis 
-                                       -textRect.getY()*PT, 
-                                       0,0, voxelSize);
+        Bounds textBounds = new Bounds(textRect.getX()*voxelSize,
+                                       (textRect.getX() + textRect.getWidth())*voxelSize,
+                                       -(textRect.getY() + textRect.getHeight())*voxelSize, // flip Y axis 
+                                       -textRect.getY()*voxelSize, 
+                                       0,voxelSize, voxelSize);
 
-        Bounds imageBounds = new Bounds((textRect.getX()-inset)*PT,
-                (textRect.getX() + textRect.getWidth()+inset)*PT,
-                -(textRect.getY() + textRect.getHeight()+inset)*PT, // flip Y axis
-                -(textRect.getY() -inset)*PT,
-                0,0, voxelSize);
+        Bounds imageBounds = new Bounds((textRect.getX()-inset)*voxelSize,
+                (textRect.getX() + textRect.getWidth()+inset)*voxelSize,
+                -(textRect.getY() + textRect.getHeight()+inset)*voxelSize, // flip Y axis
+                -(textRect.getY() -inset)*voxelSize,
+                0,voxelSize, voxelSize);
 
         if(DEBUG)printf("Text2D image bounds: (%s)mm\n", imageBounds.toString(MM));
         if(DEBUG)printf("Text2D text bounds: (%s)mm\n", textBounds.toString(MM));
 
-        // font units are PT 
-        double scaleFactor = PT/voxelSize; // conversion from text units into image units
         // image is in voxels 
         int imageWidth =  imageBounds.getGridWidth();
         int imageHeight = imageBounds.getGridHeight();
@@ -621,14 +649,13 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
 
         g2.setColor(mp_backgroundColor.getValue().toAWT());
         g2.fill(new Rectangle2D.Double(0,0,imageWidth, imageHeight));
-        g2.scale(scaleFactor,scaleFactor);
         g2.translate(-textRect.getX() + inset,-textRect.getY() + inset);
 
         if(mp_outline.getValue()){
 
             g2.setColor(mp_outlineColor.getValue().toAWT());
             //double outlineWidth = mp_outlineWidth.getValue()/voxelSize;
-            double outlineWidth = (mp_outlineWidth.getValue()/PT); // width in points 
+            double outlineWidth = (mp_outlineWidth.getValue()/voxelSize); // width in points 
             BasicStroke stroke = new BasicStroke((float)outlineWidth, BasicStroke.CAP_ROUND,  	BasicStroke.JOIN_ROUND);
             g2.setStroke(stroke);
             Shape textOutline = gv.getOutline();

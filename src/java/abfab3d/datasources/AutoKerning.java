@@ -63,8 +63,8 @@ import static abfab3d.core.Output.fmt;
  */
 public class AutoKerning {
 
-    static final boolean DEBUG = true;
-    static final boolean WRITE_DEBUG_IMAGES = true;
+    static final boolean DEBUG = false;
+    static final boolean WRITE_DEBUG_IMAGES = false;
     static final double DOT_SIZE = 4; // size of dots used in the debug images 
 
 
@@ -224,8 +224,8 @@ public class AutoKerning {
         double xmin = firstGlyphBounds.xmin + firstGlyphCenter;
         double xmax = firstGlyphBounds.xmax + firstGlyphCenter;
 
-        printf("firstGlyphCenter: %7.2f firstGlyphSizeX: %7.2f \n",firstGlyphCenter, firstGlyphBounds.getSizeX());
-        printf("xmin: %7.2f xmax: %7.2f \n",xmin, xmax);
+        if(DEBUG)printf("firstGlyphCenter: %7.2f firstGlyphSizeX: %7.2f \n",firstGlyphCenter, firstGlyphBounds.getSizeX());
+        if(DEBUG)printf("xmin: %7.2f xmax: %7.2f \n",xmin, xmax);
         firstGlyph.setTransform(new Translation(firstGlyphCenter,0,0));
 
         glyphLocation[0] =   firstGlyphCenter - glyphOrigins[0];
@@ -264,7 +264,7 @@ public class AutoKerning {
         if(WRITE_DEBUG_IMAGES){
             ImageMaker im = new ImageMaker();
             Bounds imBounds = new Bounds(xmin, xmax, ymin, ymax,0,1);
-            printf("packed text bounds: %s\n", imBounds.toString(1.));
+            if(DEBUG)printf("packed text bounds: %s\n", imBounds.toString(1.));
             un.initialize();
             BufferedImage img = im.renderImage(imBounds.getWidthVoxels(1.), imBounds.getHeightVoxels(1.), imBounds, new DistanceToColor(un));
             try {
