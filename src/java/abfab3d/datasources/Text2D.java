@@ -432,8 +432,10 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     public Point2D getGlyphPosition(int index){
         initialize();        
         Point2D pnt = m_cachedData.gv.getGlyphPosition(index);
-        
-        return new Point2D.Double(pnt.getX()*PT, pnt.getY()*PT);
+
+        double vs = m_cachedData.voxelSize;
+
+        return new Point2D.Double(pnt.getX()*vs, pnt.getY()*vs);
 
     }
 
@@ -441,10 +443,13 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
         initialize();        
         Shape shape = m_cachedData.gv.getGlyphVisualBounds(index);        
         Rectangle2D rect = shape.getBounds2D();
-        return new Bounds(rect.getX()*PT, 
-                          (rect.getX() + rect.getWidth())*PT, 
-                          -(rect.getY() + rect.getHeight())*PT,
-                          -rect.getY()*PT,0,0);
+
+        double vs = m_cachedData.voxelSize;
+
+        return new Bounds(rect.getX()*vs,
+                          (rect.getX() + rect.getWidth())*vs,
+                          -(rect.getY() + rect.getHeight())*vs,
+                          -rect.getY()*vs,0,0);
     }
 
     protected void validateFontName(String fontName){
@@ -555,7 +560,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
         // this is not absolutely correct, the exact text bounds depend on the text fitting
         Bounds textBounds = new Bounds(inset,mp_width.getValue()-2*inset,inset,mp_height.getValue()-2*inset,0.,0.,voxelSize);
         
-        return new CachedTextData(image, imageBounds, textBounds, null);
+        return new CachedTextData(image, imageBounds, textBounds, null,voxelSize);
 
     }
     
@@ -668,7 +673,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
             g2.setColor(mp_fillColor.getValue().toAWT());
             g2.drawGlyphVector(gv, 0,0);
         }
-        return new CachedTextData(image2, imageBounds, textBounds, gv);
+        return new CachedTextData(image2, imageBounds, textBounds, gv,voxelSize);
 
     }
 
@@ -682,12 +687,12 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
         Bounds textBounds;
         GlyphVector gv;
         double voxelSize;
-        CachedTextData(BufferedImage _image, Bounds _imageBounds, Bounds _textBounds, GlyphVector _gv){
+        CachedTextData(BufferedImage _image, Bounds _imageBounds, Bounds _textBounds, GlyphVector _gv,double _vs){
             image = _image;
             imageBounds = _imageBounds;
             textBounds = _textBounds;
             gv = _gv;
-            //voxelSize = _voxelSize;
+            voxelSize = _vs;
         }
     }
 
