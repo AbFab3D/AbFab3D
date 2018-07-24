@@ -668,7 +668,6 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
             g2.setColor(mp_fillColor.getValue().toAWT());
             g2.drawGlyphVector(gv, 0,0);
         }
-
         return new CachedTextData(image2, imageBounds, textBounds, gv);
 
     }

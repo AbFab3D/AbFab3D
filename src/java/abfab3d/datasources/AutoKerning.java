@@ -73,7 +73,7 @@ public class AutoKerning {
      */
     public GlyphVector layoutGlyphVector(Graphics2D textGraphics, Font font, String text, double fontSize, double glyphSpacing, double resolution) {
 
-        if(DEBUG)printf("placeText(%s) \n", text);
+        if(DEBUG)printf("AutoKerning.layoutGlyphVector(%s, fontSize:%7.2f glyphSpacing:%7.2f, resolution:%7.2f)\n", text, fontSize, glyphSpacing, resolution);
         //double fontSize = 200;
         double x0 = fontSize*1.0; // arbitrary, used for visual tests only 
         double y0 = fontSize*0.8;
@@ -162,7 +162,7 @@ public class AutoKerning {
             Shape glyphShape = gv.getGlyphOutline(i);
             Rectangle2D srect = getExpandedRect(glyphShape.getBounds(), textMargins);
             //printf("glyph: %c [%7.2f %7.2f ]\n",ctext[i], srect.getMinY(), srect.getMaxY());
-            if(DEBUG)printf("exRect:[%6.1f,%6.1f; %5.1f x %5.1f]\n",srect.getX(),srect.getY(),srect.getWidth(),srect.getHeight());
+            //if(DEBUG)printf("exRect:[%6.1f,%6.1f; %5.1f x %5.1f]\n",srect.getX(),srect.getY(),srect.getWidth(),srect.getHeight());
             //Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();            
             textGraphics.setColor(Color.blue);
             textGraphics.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND,  	BasicStroke.JOIN_ROUND));
@@ -177,9 +177,12 @@ public class AutoKerning {
 
             Grid2D glyphGrid = getShapeImage(glyphShape, srect, outlineStroke, true, true);
             Bounds b = glyphGrid.getGridBounds();
-            if(DEBUG)printf("glyphBounds:[%7.1f %7.1f;%7.1f %7.1f]\n", b.xmin, b.xmax,b.ymin, b.ymax);
 
-            ImageMap imageMap = new ImageMap((Grid2DProducer)(new Grid2DSourceWrapper(fmt("glyph:%d",i),glyphGrid)), srect.getWidth(), srect.getHeight(), 1.);
+            String label = fmt("glyph:0x%X; font:%s",(int)ctext[i], font);
+            if(DEBUG)printf("glyph: %c  glyphBounds:[%7.1f %7.1f;%7.1f %7.1f]\n", ctext[i], b.xmin, b.xmax,b.ymin, b.ymax);
+            if(DEBUG)printf("  label:%s\n", label);
+
+            ImageMap imageMap = new ImageMap((Grid2DProducer)(new Grid2DSourceWrapper(label,glyphGrid)), srect.getWidth(), srect.getHeight(), 1.);
             // flip of y-coordinate 
             imageMap.set("center",new Vector3d(0, -srect.getCenterY(),0.));
             imageMap.set("whiteDisplacement",1.);

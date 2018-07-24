@@ -138,7 +138,8 @@ public class TestText2D extends TestCase {
         double voxelSize = 0.05*MM;
         double fontSize = 10*MM;
         //String text = "CarrieJ";
-        String text = "/\\.,-={}";
+        String text = "CWa/\\./?";
+        //String text = "/\\.,-={}";
         double outlineWidth = 1*MM;
         double inset = 1*MM;
 
@@ -171,7 +172,8 @@ public class TestText2D extends TestCase {
         double glyphDistance = 0.3*MM;
         double inset = 1*MM;
         //String text = "CarrieJ";
-        String text = "/\\.,-={}";
+        //String text = "/\\.,-={}";
+        String text = "CWa/\\./?";
 
         //Text2D t = new Text2D(text, fontName, voxelSize);
         Text2D t = new Text2D(text, new FontLoader(fontPath), voxelSize);
