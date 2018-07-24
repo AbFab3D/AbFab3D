@@ -84,6 +84,8 @@ public class DataSourceIntersector extends BaseParameterizable{
      */
     public Result getShapeRayIntersection(DataSource dataSource, Vector3d start, Vector3d direction){
 
+        initialize(dataSource);
+
         int maxSteps = mp_maxSteps.getValue();
         double minStep = mp_minStep.getValue();
         int dataChannelIndex = 0;
@@ -142,11 +144,14 @@ public class DataSourceIntersector extends BaseParameterizable{
        @param direction normalized ray direction 
 
        @param intersection point of contact returned in that vector 
-       @param 
+       @return result of intersection 
               
      */
     public Result getShapesIntersection(DataSource shape, DataSource probe, Vector3d start, Vector3d direction){
         
+        initialize(shape);
+        initialize(probe);
+
         double voxelSize = mp_voxelSize.getValue();
         double len = direction.length();
         if(len < EPS) 
@@ -399,7 +404,5 @@ public class DataSourceIntersector extends BaseParameterizable{
         }
 
     }
-
-
 
 }

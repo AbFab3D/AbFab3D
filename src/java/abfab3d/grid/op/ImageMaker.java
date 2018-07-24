@@ -15,6 +15,7 @@ package abfab3d.grid.op;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
+import abfab3d.core.Initializable;
 import abfab3d.core.Bounds;
 import abfab3d.core.DataSource;
 import abfab3d.core.Vec;
@@ -62,7 +63,9 @@ public class ImageMaker {
     }
 
     public void renderImage(int width, int height, Bounds bounds, DataSource imgRenderer, int [] imageData){
-
+        if(imgRenderer instanceof Initializable) {
+            ((Initializable)imgRenderer).initialize();
+        }
         //
         // TODO make it MT 
         //

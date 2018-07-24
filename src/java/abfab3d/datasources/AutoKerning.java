@@ -187,7 +187,7 @@ public class AutoKerning {
             imageMap.set("center",new Vector3d(0, -srect.getCenterY(),0.));
             imageMap.set("whiteDisplacement",1.);
             imageMap.set("blackDisplacement",-1.);
-            imageMap.initialize();
+            //imageMap.initialize();
             glyphImages.add(imageMap);
 
         }
@@ -245,7 +245,7 @@ public class AutoKerning {
             Vector3d start = new Vector3d( xmax + b2.getSizeX()/2, 0, 0);
             if(DEBUG) printf("    start: %7.2f\n",start.x);
             //printValuesOnRay(glyph2, 0, new Vector3d(-b2.getSizeX()/2, 0,0),new Vector3d(1,0,0),1., 100);
-            un.initialize();
+            //un.initialize();
             DataSourceIntersector.Result is = dsi.getShapesIntersection(un, glyph2,start, direction);
 
             if(DEBUG)printf("    packing result: %s\n", is.toString(1.));
@@ -268,7 +268,7 @@ public class AutoKerning {
             ImageMaker im = new ImageMaker();
             Bounds imBounds = new Bounds(xmin, xmax, ymin, ymax,0,1);
             if(DEBUG)printf("packed text bounds: %s\n", imBounds.toString(1.));
-            un.initialize();
+            //un.initialize();
             BufferedImage img = im.renderImage(imBounds.getWidthVoxels(1.), imBounds.getHeightVoxels(1.), imBounds, new DistanceToColor(un));
             try {
                 ImageIO.write(img, "png", new File("/tmp/02_packed_glyphs.png"));
@@ -310,7 +310,7 @@ public class AutoKerning {
         imageMap.set("whiteDisplacement",1.);
         imageMap.set("blackDisplacement",-1.);
         //imageMap.setTransform(new Translation());
-        imageMap.initialize();
+        //imageMap.initialize();
         sm_leftFence = imageMap;
         return sm_leftFence;
         
