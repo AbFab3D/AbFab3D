@@ -127,8 +127,8 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     IntParameter     mp_fontStyle = new IntParameter("fontStyle","style of font (BOLD ,ITALIC, PLAIN)", PLAIN);
     DoubleParameter mp_inset      = new DoubleParameter("inset","white space around text", 0.5*MM);
     DoubleParameter mp_spacing    = new DoubleParameter("spacing","extra white space between characters in relative units", 0.);
-    DoubleParameter mp_textOriginX = new DoubleParameter("textOriginX","text origin relative to left bounds", 0.);
-    DoubleParameter mp_textOriginY = new DoubleParameter("textOriginY","text origin relative to bottom bounds", 0.);
+    //DoubleParameter mp_textOriginX = new DoubleParameter("textOriginX","text origin relative to left bounds", 0.);
+    //DoubleParameter mp_textOriginY = new DoubleParameter("textOriginY","text origin relative to bottom bounds", 0.);
     BooleanParameter mp_kerning = new BooleanParameter("kerning","text layout with pair kerning", false);
     BooleanParameter mp_autoKerning = new BooleanParameter("autoKerning","text layout with automatic kerning", false);
     DoubleParameter mp_autoKerningDistance = new DoubleParameter("autoKerningDistance","distance bettween glyphs to use with automatic kerning", 0.);
@@ -156,8 +156,8 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
         mp_inset,
         mp_spacing,
         mp_fontSize,
-        mp_textOriginX,
-        mp_textOriginY,
+        //mp_textOriginX,
+        //mp_textOriginY,
         mp_outlineWidth,
         mp_outline,
         mp_fill,
@@ -373,15 +373,16 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
     public BufferedImage getImage(){
 
         initialize();
-        /*
-        try {
-            File f = new File("/tmp/text.png");
-            printf("Saving text string: %s\n",f.getAbsoluteFile());
-            ImageIO.write(m_cachedData.image,"png", f);
-        } catch(IOException ioe) {
-            ioe.printStackTrace();
+        if(false){
+            try {
+                File f = new File("/tmp/text.png");
+                printf("Saving text string: %s\n",f.getAbsoluteFile());
+                ImageIO.write(m_cachedData.image,"png", f);
+            } catch(IOException ioe) {
+                ioe.printStackTrace();
+            }
         }
-        */
+        
         return m_cachedData.image;
     }
 
@@ -601,6 +602,7 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
 
         
         String text = mp_text.getValue();        
+        char ctext[] = text.toCharArray();
         GlyphVector gv;
         if(mp_autoKerning.getValue()){
             //
@@ -611,14 +613,21 @@ public class Text2D extends BaseParameterizable implements ImageProducer {
             if(DEBUG) printf("autoKerningDistance:%7.2f pixels\n",autoKerningDistance);
             double resolutiuon = 1;
             gv = new AutoKerning().layoutGlyphVector(g, font, text, fontSize, autoKerningDistance, resolutiuon);
+            double space = spacing*fontSize;
+            for(int i = 0; i < ctext.length; i++){
+                Point2D pnt = gv.getGlyphPosition(i);
+                gv.setGlyphPosition(i, new Point2D.Double(pnt.getX() + space*i, pnt.getY())); 
+            }
         } else {
             //
             // use system for text layout
             //
-            char ctext[] = text.toCharArray();
             gv = font.layoutGlyphVector(frc, ctext, 0, ctext.length, 0);
             // add extra spacing 
             // last position is position after last glyph
+            // this spacing is strange. 
+            // It is fraction of average glyph width in the given string, therefore it depends on specific string. 
+            // 
             double space = spacing*gv.getGlyphPosition(text.length()).getX()/ctext.length; 
             for(int i = 0; i < ctext.length; i++){
                 Point2D pnt = gv.getGlyphPosition(i);

@@ -154,6 +154,10 @@ public class Cylinder extends TransformableDataSource {
         return mp_rounding.getValue();
     }
 
+    //protected void updateBounds() {
+                
+    //}
+
     /**
       @noRefGuide     
      */
@@ -192,39 +196,6 @@ public class Cylinder extends TransformableDataSource {
         m_normalA = nA/ss;
         m_normalO = nO/ss;
 
-        /*
-
-        printf("axis: (%7.5f  %7.5f %7.5f) center:(%7.5f  %7.5f %7.5f) r: (%7.5f, %7.5f ) \n", m_ax, m_ay, m_az, m_centerX, m_centerY, m_centerZ, m_r0, m_r1);
-
-        // old initiaization 
-        m_v0 = mp_v0.getValue();
-        m_v1= mp_v1.getValue();
-
-        m_center = new Vector3d(m_v0);
-        m_center.add(m_v1);
-        m_center.scale(0.5);
-
-        Vector3d caxis = new Vector3d(m_v1); // cylinder axis 
-        caxis.sub(m_center);
-
-        this.m_h2 =  caxis.length();
-
-        caxis.normalize();
-
-        // rotation axis 
-        Vector3d raxis = new Vector3d();
-        raxis.cross(caxis, Yaxis);
-        double sina = raxis.length();
-        double cosa = Yaxis.dot(caxis);
-        if (abs(sina) < EPSILON) {
-            // any axis orthogonal to Y will do the job 
-            raxis = new Vector3d(1, 0, 0);
-        }
-        raxis.normalize();
-        double angle = atan2(sina, cosa);
-        m_rotation = new Matrix3d();
-        m_rotation.set(new AxisAngle4d(raxis, angle));
-        */
         return ResultCodes.RESULT_OK;
     }
 
