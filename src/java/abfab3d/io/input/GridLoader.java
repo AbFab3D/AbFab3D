@@ -416,6 +416,72 @@ public class GridLoader {
                 
     }
 
+    /**
+     open mesh on given path and return density grid for that mesh
+
+     @return ddensity grid to the rasterized mesh
+     */
+    public AttributeGrid loadDensityGrid(TriangleProducer reader){
+
+        long t0 = time();
+        Bounds bounds = getModelBounds(reader);
+        if(DEBUG_TIMING)printf("getModelBounds(reader): %d ms\n",(time()-t0));
+
+        int nx = bounds.getGridWidth();
+        int ny = bounds.getGridHeight();
+        int nz = bounds.getGridDepth();
+        double voxelSize = bounds.getVoxelSize();
+
+        AttributeGrid densityGrid = createDensityGrid(bounds);
+
+        switch(m_densityAlgorithm){
+            default:
+                throw new IllegalArgumentException(fmt("unknown Density Rasterization Algorithm: %d",m_densityAlgorithm));
+
+            case RASTERIZER_DISTANCE:
+            {
+                t0 = time();
+                DistanceRasterizer rasterizer = new DistanceRasterizer(bounds, nx, ny, nz);
+                //rasterizer.setSubvoxelResolution(getMaxValue(m_densityBitCount));
+                rasterizer.getDensity(reader, densityGrid);
+                if(DEBUG_TIMING)printf("DistanceRasterizer() done %d ms\n", time() - t0);
+            }
+            break;
+
+            case RASTERIZER_DISTANCE2:
+            {
+                t0 = time();
+                DistanceRasterizer2 rasterizer = new DistanceRasterizer2(bounds, nx, ny, nz);
+                rasterizer.getDensity(reader, densityGrid);
+                if(DEBUG_TIMING)printf("DistanceRasterizer2() done %d ms\n", time() - t0);
+            }
+            break;
+
+            case RASTERIZER_WAVELET:
+            {
+                t0 = time();
+                WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
+                rasterizer.setSubvoxelResolution(getMaxValue(m_densityBitCount));
+                reader.getTriangles(rasterizer);
+                rasterizer.getRaster(densityGrid);
+                if(DEBUG_TIMING)printf("WaveletRasterizer() done %d ms\n", time() - t0);
+            }
+            break;
+
+            case RASTERIZER_ZBUFFER:
+            {
+                t0 = time();
+                MeshRasterizer rasterizer = new MeshRasterizer(bounds, nx, ny, nz);
+                rasterizer.setInteriorValue(getMaxValue(m_densityBitCount));
+                reader.getTriangles(rasterizer);
+                rasterizer.getRaster(densityGrid);
+                if(DEBUG_TIMING)printf("ZBufferRasterizer() done %d ms\n", time() - t0);
+            }
+        }
+
+        return densityGrid;
+
+    }
 
     /**
        calculates model bonds and select approproate voxel size 

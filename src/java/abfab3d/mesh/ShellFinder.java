@@ -15,6 +15,9 @@ import java.util.*;
 
 import javax.vecmath.Vector3d;
 
+import abfab3d.core.AttributedTriangleCollector;
+import abfab3d.core.TriangleProducer;
+import abfab3d.core.Vec;
 import abfab3d.util.StructMixedData;
 import abfab3d.util.StackOfInt;
 import abfab3d.core.TriangleCollector;
@@ -57,6 +60,7 @@ public class ShellFinder {
         return (ShellInfo[])vsi.toArray(new ShellInfo[vsi.size()]);
     }
 
+
     /**
      * Find shells sorted by volume.  ShellInfo will contain the volume.
      *
@@ -64,10 +68,21 @@ public class ShellFinder {
      * @return
      */
     public ShellInfo[] findShellsSorted(WingedEdgeTriangleMesh mesh, boolean naturalOrder){
+        return findShellsSorted(mesh,naturalOrder,false);
+    }
+
+    /**
+     * Find shells sorted by volume.  ShellInfo will contain the volume.
+     *
+     * @param mesh
+     * @return
+     */
+    public ShellInfo[] findShellsSorted(WingedEdgeTriangleMesh mesh, boolean naturalOrder, boolean calcBounds){
 
         Hashtable<Integer,Integer> hfaces = makeUnmarkedFaces(mesh);
         ArrayList<ShellInfo> vsi = new ArrayList<ShellInfo>();
         AreaCalculator ac = new AreaCalculator();
+        BoundsCalculator bc = new BoundsCalculator();
 
         while(true){
 
@@ -78,14 +93,24 @@ public class ShellFinder {
             ShellInfo si = markShell(mesh, shellFace, hfaces);
             vsi.add(si);
 
-            ac.reset();
-            getShell(mesh, si.startFace, ac);
-            si.volume = ac.getVolume();
+            if (!calcBounds) {
+                ac.reset();
+                getShell(mesh, si.startFace, ac);
+                si.volume = ac.getVolume();
+            } else {
+                ac.reset();
+                bc.reset();
+                getShell(mesh, si.startFace, ac,bc);
+                si.volume = ac.getVolume();
+                si.bounds = new double[6];
+                bc.getBounds(si.bounds);
+            }
         }
 
         Collections.sort(vsi, new ShellVolumeComparator(naturalOrder));
         return (ShellInfo[])vsi.toArray(new ShellInfo[vsi.size()]);
     }
+
 
     /**
 
@@ -132,6 +157,77 @@ public class ShellFinder {
             
         }    
         
+        return;
+    }
+
+    public TriangleProducer getShell(WingedEdgeTriangleMesh mesh, int startFace) {
+        return new TPWrapper(this,mesh,startFace);
+    }
+
+    static class TPWrapper implements TriangleProducer {
+        ShellFinder finder;
+        WingedEdgeTriangleMesh mesh;
+        int startFace;
+
+        public TPWrapper(ShellFinder finder,WingedEdgeTriangleMesh mesh, int startFace) {
+            this.finder = finder;
+            this.mesh = mesh;
+            this.startFace = startFace;
+        }
+
+        @Override
+        public boolean getTriangles(TriangleCollector tc) {
+            finder.getShell(mesh,startFace,tc);
+
+            return true;
+        }
+    }
+    /**
+
+     collect triangles from the shell starting from startFace to TriangleCollector
+
+     */
+    public void getShell(WingedEdgeTriangleMesh mesh, int startFace, TriangleCollector tc1, TriangleCollector tc2){
+
+        Hashtable<Integer,Integer> unmarkedFaces = makeUnmarkedFaces(mesh); // Why table not Map?
+        StackOfInt facesToCheck = new StackOfInt(100000);
+
+        StructMixedData faces = mesh.getFaces();
+        StructMixedData halfEdges = mesh.getHalfEdges();
+        int currentFace = startFace;
+
+        while(currentFace != -1){
+
+            unmarkedFaces.remove(new Integer(currentFace));   // TODO: garbage
+            sendFace(currentFace, mesh, tc1);
+            sendFace(currentFace, mesh, tc2);
+
+
+            int he = Face.getHe(faces, currentFace);
+
+            // face as 3 adjacent faces linked via HalfEdges
+            int twin = HalfEdge.getTwin(halfEdges, he);
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            he = HalfEdge.getNext(halfEdges, he);
+            twin = HalfEdge.getTwin(halfEdges, he);
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            he = HalfEdge.getNext(halfEdges, he);
+            twin = HalfEdge.getTwin(halfEdges, he);
+
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            currentFace = findNextFace(unmarkedFaces,facesToCheck);
+
+        }
+
         return;
     }
 
@@ -303,4 +399,94 @@ public class ShellFinder {
             }
         }
     }
+
+    /**
+     * Copied here from io.input.BoundsCalculator for compile order issues.  Simple class so hopefully it wont contain errors
+     */
+
+    static class BoundsCalculator implements TriangleCollector, AttributedTriangleCollector {
+
+
+        double
+                xmin = Double.MAX_VALUE, xmax = -Double.MAX_VALUE,
+                ymin = Double.MAX_VALUE, ymax = -Double.MAX_VALUE,
+                zmin = Double.MAX_VALUE, zmax = -Double.MAX_VALUE;
+
+        public boolean addTri(Vector3d v0,Vector3d v1,Vector3d v2){
+
+            checkVertex(v0);
+            checkVertex(v1);
+            checkVertex(v2);
+
+            return true; // to continue
+        }
+
+        @Override
+        public boolean addAttTri(Vec v0, Vec v1, Vec v2) {
+            checkVertex(v0);
+            checkVertex(v1);
+            checkVertex(v2);
+
+            return true; // to continue
+        }
+
+        public void checkVertex(Vector3d v){
+
+            double x = v.x;
+            double y = v.y;
+            double z = v.z;
+
+            if(x < xmin) xmin = x;
+            if(x > xmax) xmax = x;
+
+            if(y < ymin) ymin = y;
+            if(y > ymax) ymax = y;
+
+            if(z < zmin) zmin = z;
+            if(z > zmax) zmax = z;
+
+        }
+
+        public void checkVertex(Vec v){
+
+            double x = v.v[0];
+            double y = v.v[1];
+            double z = v.v[2];
+
+            if(x < xmin) xmin = x;
+            if(x > xmax) xmax = x;
+
+            if(y < ymin) ymin = y;
+            if(y > ymax) ymax = y;
+
+            if(z < zmin) zmin = z;
+            if(z > zmax) zmax = z;
+
+        }
+
+        public void getBounds(double bounds[]){
+
+            bounds[0] = xmin;
+            bounds[1] = xmax;
+            bounds[2] = ymin;
+            bounds[3] = ymax;
+            bounds[4] = zmin;
+            bounds[5] = zmax;
+
+        }
+
+        /**
+         * Reset all variables so this class can be reused;
+         */
+        public void reset() {
+            xmin = Double.MAX_VALUE;
+            xmax = -Double.MAX_VALUE;
+            ymin = Double.MAX_VALUE;
+            ymax = -Double.MAX_VALUE;
+            zmin = Double.MAX_VALUE;
+            zmax = -Double.MAX_VALUE;
+        }
+    }
+
+
 }

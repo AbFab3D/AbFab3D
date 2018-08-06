@@ -21,7 +21,7 @@ public interface TriangleProducer {
     /**
        feeds all triangles into supplied TriangleCollector 
 
-       returns true if success, false if faiure        
+       returns true if success, false if failure
      */
     public boolean getTriangles(TriangleCollector tc);
     

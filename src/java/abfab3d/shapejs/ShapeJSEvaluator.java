@@ -161,10 +161,12 @@ public class ShapeJSEvaluator implements MaterialMapper {
         packageWhitelist.add("abfab3d.geomutil");
         packageWhitelist.add("abfab3d.param");
         packageWhitelist.add("abfab3d.util");
+        packageWhitelist.add("abfab3d.intersect");
 
         // Packages we want imported to script by default
         scriptImports.add("abfab3d.datasources");
         scriptImports.add("abfab3d.transforms");
+        scriptImports.add("abfab3d.intersect");
         scriptImports.add("abfab3d.grid.op");
         scriptImports.add("abfab3d.core");
         scriptImports.add("javax.vecmath");

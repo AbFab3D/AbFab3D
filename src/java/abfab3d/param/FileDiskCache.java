@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.CRC32;
 
+import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 
 /**
@@ -411,6 +412,11 @@ public class FileDiskCache {
         File fdir = new File(dir);
 
         File[] files = fdir.listFiles();
+
+        if (files == null) {
+            printf("Cannot list files of dir: %s\n",dir);
+            throw new IllegalArgumentException(fmt("Cache dir misconfigured: %s\n",dir));
+        }
 
         for(File f : files) {
             String name = FilenameUtils.getBaseName(f.getName());
