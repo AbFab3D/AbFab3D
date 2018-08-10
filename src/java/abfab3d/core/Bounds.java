@@ -808,6 +808,22 @@ public class Bounds implements Cloneable {
         init();
     }
 
+
+    /**
+     * Combines this bounding box with a bounding object   so that the
+     * resulting bounding box encloses the original bounding box and the
+     * specified bounds object.
+     * @param bounds The other bounds object
+     */
+    public void combine(Bounds bounds) {
+        if( xmin > bounds.xmin) xmin = bounds.xmin;
+        if( ymin > bounds.ymin) ymin = bounds.ymin;
+        if( zmin > bounds.zmin) zmin = bounds.zmin;
+        if( xmax < bounds.xmax) xmax = bounds.xmax;
+        if( ymax < bounds.ymax) ymax = bounds.ymax;
+        if( zmax < bounds.zmax) zmax = bounds.zmax;
+    }
+
     protected void init(){
 
         nx = getGridWidth();

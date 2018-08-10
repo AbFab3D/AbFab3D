@@ -203,9 +203,7 @@ public class NumberScroller extends  JPanel {
                 //printf("repeater fistDelay: %s\n", doStop);
                 if(doStop)
                     return;
-                //printf("autorepeat start\n");
                 while(true){
-                    printf("autorepeat\n");                
                     doIncrement();
                     Thread.sleep(repeatDelay);
                     if(doStop)

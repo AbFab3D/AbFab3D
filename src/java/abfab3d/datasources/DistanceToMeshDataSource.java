@@ -24,6 +24,7 @@ import abfab3d.core.TriangleCollector;
 import abfab3d.core.AttributeGrid;
 
 
+import abfab3d.param.*;
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.util.PointSetCoordArrays;
 import abfab3d.util.MeshRasterizer;
@@ -40,15 +41,6 @@ import abfab3d.grid.op.ClosestPointIndexerMT;
 
 
 import abfab3d.datasources.TransformableDataSource;
-
-import abfab3d.param.SNodeParameter;
-import abfab3d.param.ParamCache;
-import abfab3d.param.Parameter;
-import abfab3d.param.DoubleParameter;
-import abfab3d.param.ObjectParameter;
-import abfab3d.param.BooleanParameter;
-import abfab3d.param.IntParameter;
-import abfab3d.param.BaseParameterizable;
 
 import static java.lang.Math.floor;
 import static java.lang.Math.min;
@@ -106,10 +98,8 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     BooleanParameter mp_extendDistance = new BooleanParameter("extendDistance", "whether to extend distance outside of grid",true);
     DoubleParameter mp_thinLayerHalfThickness = new DoubleParameter("thinLayerHalfThickness", "half thickness of thin layer (in voxels)",2.0);
     BooleanParameter mp_makeSolid = new BooleanParameter("makeSolid", "make interior data for closed mash",true);
-
-    protected long m_maxGridSize = 1000L*1000L*1000L;
-    protected long m_minGridSize = 1000L;
-    protected double m_maxDistance;
+    LongParameter mp_maxGridSize = new LongParameter("maxGridSize", "Max grid size", 1000L * 1000 * 1000);
+    LongParameter mp_minGridSize = new LongParameter("minGridSize", "Min grid size", 1000L);
 
     Parameter[] m_aparams = new Parameter[]{
         mp_meshProducer,
@@ -125,7 +115,9 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         mp_useThinLayer,
         mp_thinLayerHalfThickness,
         mp_extendDistance,
-        mp_makeSolid
+        mp_makeSolid,
+        mp_maxGridSize,
+        mp_minGridSize
     };
 
     protected String m_savedParamString = "";
@@ -436,6 +428,118 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
     }
 
+    public double getVoxelSize() {
+        return mp_voxelSize.getValue();
+    }
+
+    public void setVoxelSize(double voxelSize) {
+        this.mp_voxelSize.setValue(voxelSize);
+    }
+
+    public double getSurfaceVoxelSize() {
+        return mp_surfaceVoxelSize.getValue();
+    }
+
+    public void setSurfaceVoxelSize(double surfaceVoxelSize) {
+        this.mp_surfaceVoxelSize.setValue(surfaceVoxelSize);
+    }
+
+    public double getMargins() {
+        return mp_margins.getValue();
+    }
+
+    public void setMargins(double margins) {
+        this.mp_margins.setValue(margins);
+    }
+
+    public double getMaxDistance() {
+        return mp_maxDistance.getValue();
+    }
+
+    public void setMaxDistance(double maxDistance) {
+        this.mp_maxDistance.setValue(maxDistance);
+    }
+
+    public double getShellHalfThickness() {
+        return mp_shellHalfThickness.getValue();
+    }
+
+    public void setShellHalfThickness(double shellHalfThickness) {
+        this.mp_shellHalfThickness.setValue(shellHalfThickness);
+    }
+
+    public boolean getAttributeLoading() {
+        return mp_attributeLoading.getValue();
+    }
+
+    public void setAttributeLoading(boolean attributeLoading) {
+        this.mp_attributeLoading.setValue(attributeLoading);
+    }
+
+    public boolean getUseMultiPass() {
+        return mp_useMultiPass.getValue();
+    }
+
+    public void setUseMultiPass(boolean useMultiPass) {
+        this.mp_useMultiPass.setValue(useMultiPass);
+    }
+
+    public int getInterpolationType() {
+        return mp_interpolationType.getValue();
+    }
+
+    public void setInterpolationType(int interpolationType) {
+        this.mp_interpolationType.setValue(interpolationType);
+    }
+
+    public boolean getUseThinLayer() {
+        return mp_useThinLayer.getValue();
+    }
+
+    public void setUseThinLayer(boolean useThinLayer) {
+        this.mp_useThinLayer.setValue(useThinLayer);
+    }
+
+    public boolean getExtendDistance() {
+        return mp_extendDistance.getValue();
+    }
+
+    public void setExtendDistance(boolean extendDistance) {
+        this.mp_extendDistance.setValue(extendDistance);
+    }
+
+    public double getThinLayerHalfThickness() {
+        return mp_thinLayerHalfThickness.getValue();
+    }
+
+    public void setThinLayerHalfThickness(double thinLayerHalfThickness) {
+        this.mp_thinLayerHalfThickness.setValue(thinLayerHalfThickness);
+    }
+
+    public boolean getMakeSolid() {
+        return mp_makeSolid.getValue();
+    }
+
+    public void setMakeSolid(boolean makeSolid) {
+        this.mp_makeSolid.setValue(makeSolid);
+    }
+
+    public long getMaxGridSize() {
+        return mp_maxGridSize.getValue();
+    }
+
+    public void setMaxGridSize(long maxGridSize) {
+        this.mp_maxGridSize.setValue(maxGridSize);
+    }
+
+    public long getMinGridSize() {
+        return mp_minGridSize.getValue();
+    }
+
+    public void setMinGridSize(long minGridSize) {
+        this.mp_minGridSize.setValue(minGridSize);
+    }
+
     /**
        creates interpolator for mesh without interior
      */
@@ -660,17 +764,21 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         int ng[] = gridBounds.getGridSize(voxelSize);
         long voxels = (long) ng[0] * ng[1]*ng[2];
         double gridVolume = gridBounds.getVolume();
-        if(voxels > m_maxGridSize) {
-            voxelSize = Math.pow(gridVolume /m_maxGridSize, 1./3);
-        } else if (voxels < m_minGridSize){
-            voxelSize = Math.pow(gridVolume/m_minGridSize, 1./3);
+        if(voxels > mp_maxGridSize.getValue()) {
+            voxelSize = Math.pow(gridVolume /mp_maxGridSize.getValue(), 1./3);
+        } else if (voxels < mp_minGridSize.getValue()){
+            voxelSize = Math.pow(gridVolume/mp_minGridSize.getValue(), 1./3);
         }
+
         gridBounds.setVoxelSize(voxelSize);
         gridBounds.roundBounds();
+        ng = gridBounds.getGridSize(voxelSize);
+
         if(DEBUG){
             printf("DistanceToMeshDataSource()  grid:[%d x %d x %d] voxelSize: %7.3f mm\n",ng[0],ng[1],ng[2],voxelSize/MM);
             printf("                      meshBounds: (%s)\n",m_meshBounds);
             printf("                      gridBounds: (%s)\n",gridBounds);
+            printf("                      voxels: %d  minGridSize: %d  maxGridSize: %d\n",voxels,mp_minGridSize.getValue(),mp_maxGridSize.getValue());
         }                
         return gridBounds;
     }
