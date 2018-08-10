@@ -355,9 +355,25 @@ public class ShapeJSGlobal {
                 varargs[i] = args[i+1];
             }
 
+            // force all Numbers into Double so we can sanely print stuff
+            for(int i=0; i < varargs.length; i++) {
+                if (varargs[i] instanceof Number) {
+                    varargs[i] = ((Number)varargs[i]).doubleValue();
+                }
+                if (varargs[i] instanceof SandboxNativeJavaObject) {
+                    // unwrap the object for sane printing
+                    varargs[i] = ((SandboxNativeJavaObject)varargs[i]).getJavaObject();
+                }
+            }
+
+            // auto fix %d to %f.  There is no real perfect conversion for this but it will keep it from failing since we changed
+            // ints to floats
+            String format = Context.toString(args[0]);
+            format = format.replace("%d","%6.0f");
+
             String st = null;
             try {
-                st = String.format(Context.toString(args[0]), varargs);
+                st = String.format(format, varargs);
             } catch(Exception e) {
                 st = fmt("Error in printf: \"%s\"  msg: %s ",Context.toString(args[0]),e.getMessage());
             }
@@ -383,7 +399,7 @@ public class ShapeJSGlobal {
         //out.println();
 //        bldr.append("\n");
 
-        printf("%s\n", bldr.toString());
+        printf("%s", bldr.toString());
         DebugLogger.log(cx, bldr.toString());
         return Context.getUndefinedValue();
     }
