@@ -33,6 +33,8 @@ public class FileDiskCache {
     private static final boolean DEBUG = false;
     private static final long DEFAULT_SIZE = (long) (4 * 1e9);
     private static final int MAX_FILENAME_LENGTH = 108;
+    
+    private static final String DEFAULT_CACHE_DIR = "/tmp/shapejsCache";
 
     /** The directory to place files */
     private String dir;
@@ -56,13 +58,57 @@ public class FileDiskCache {
     }
 
     public FileDiskCache(String dir, long maxSize) {
-        this.dir = dir;
         this.maxSize = maxSize;
 
-        File d = new File(dir);
-        d.mkdirs();
-
+        // Try the cached dir specified
+        boolean success = createCacheDir(dir);
+        
+        if (!success) {
+            // Failed, now try the system tmp dir
+            String tmp = System.getProperty("java.io.tmpdir") + File.separator + "shapejsCache";
+            success = createCacheDir(tmp);
+            
+            if (!success) {
+                // Failed again, now try the DEFAULT_CACHE_DIR
+                success = createCacheDir(DEFAULT_CACHE_DIR);
+                
+                if (!success) {
+                    String error = "Failed to create cache dir. Tried\n " + 
+                            "\n  " + dir +
+                            "\n  " + tmp +
+                            "\n  " + DEFAULT_CACHE_DIR;
+                    throw new IllegalArgumentException(error);
+                }
+            }
+        }
+        
         loadEntries();
+    }
+    
+    private boolean createCacheDir(String dirPath) {
+        if (dirPath == null) {
+            printf("Invalid cache dir: %s\n", dirPath);
+            return false;
+        }
+        
+        this.dir = dirPath;
+        File d = new File(this.dir);
+        
+        if (!d.exists()) {
+            printf("Creating cache dir: %s\n", d.getAbsolutePath());
+            d.mkdirs();
+            
+            // Default location doesn't work either
+            if (!d.exists()) {
+                //throw new IllegalArgumentException("Failed to create default disk cache dir: " +  d.getAbsolutePath());
+                printf("Failed to create cache dir: %s\n", d.getAbsolutePath());
+                return false;
+            }
+        } else {
+            printf("Using cache dir: %s\n", d.getAbsolutePath());
+        }
+        
+        return true;
     }
 
     /**
@@ -430,6 +476,10 @@ public class FileDiskCache {
 
     public long getCurrentSize() {
         return currentSize;
+    }
+    
+    public String getCacheDir() {
+        return dir;
     }
 
     static class CacheEntry implements Comparator {

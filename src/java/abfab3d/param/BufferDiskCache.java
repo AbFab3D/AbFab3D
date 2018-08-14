@@ -89,11 +89,14 @@ public class BufferDiskCache implements Runnable {
     };
 
     private BufferDiskCache(long maxSize, String basedir, boolean compress, boolean lazyWrites) {
-        this.basedir = basedir;
         this.compress = compress;
         this.lazyWrites = lazyWrites;
 
         diskCache = new FileDiskCache(basedir, maxSize);
+
+        // FileDiskCache will use a different cache dir if it could not create the one specified
+        this.basedir = diskCache.getCacheDir();
+
         if (lazyWrites) {
             writeQueue = new LinkedBlockingQueue<>();
             terminate = false;
@@ -121,6 +124,7 @@ public class BufferDiskCache implements Runnable {
      */
     public void reconfigure(String dir, long maxSize) {
         diskCache = new FileDiskCache(dir, maxSize);
+        basedir = diskCache.getCacheDir();
     }
 
     public static BufferDiskCache getInstance() {
