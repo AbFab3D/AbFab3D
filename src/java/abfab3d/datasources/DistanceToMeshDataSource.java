@@ -391,7 +391,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         producer.getTriangles(tc2);
 
         int pcount = surfaceBuilder.getPointCount();
-        if(DEBUG)printf("DistanceToMeshDataSource pcount: %d\n", pcount);
+        if(DEBUG)printf("DistanceToMeshDataSource pcount: %d  vs: %6.2f mm\n", pcount,voxelSize/MM);
         double pnts[][] = new double[3][pcount];
         surfaceBuilder.getPoints(pnts[0], pnts[1], pnts[2]);
         
@@ -410,7 +410,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         AttributeGrid interiorGrid = new GridMask(gridDim[0],gridDim[1],gridDim[2]);        
 
         interiorRasterizer.getRaster(interiorGrid);
-        printf("surface building time: %d ms\n", time() - t0);
+        if (DEBUG) printf("surface building time: %d ms\n", time() - t0);
 
         double maxDistanceVoxels = maxDistance/voxelSize;       
         if(maxDistanceVoxels > shellHalfThickness){
@@ -419,7 +419,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
             ClosestPointIndexer.getPointsInGridUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
             ClosestPointIndexerMT.PI3_MT(pnts[0], pnts[1], pnts[2], maxDistanceVoxels, indexGrid, threadCount, useMultiPass);
             ClosestPointIndexer.getPointsInWorldUnits(indexGrid, pnts[0], pnts[1], pnts[2]);
-            printf("distance sweeping time: %d ms\n", time() - t0);
+            if (DEBUG) printf("distance sweeping time: %d ms\n", time() - t0);
         }
         
         setInteriorMask(indexGrid, interiorGrid, INTERIOR_MASK, preserveZero);

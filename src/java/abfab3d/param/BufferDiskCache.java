@@ -23,7 +23,9 @@ import java.nio.MappedByteBuffer;
 import java.nio.ShortBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -259,12 +261,15 @@ public class BufferDiskCache implements Runnable {
         String path = diskCache.convKeyToFilename(buff.getLabel(), "");
 
         File df = new File(basedir, path);
+        df.setReadable(true);
+        df.setWritable(true);
         FileChannel fc = null;
         FileOutputStream fos = null;
 
         try {
             fos = new FileOutputStream(df);
             fc = fos.getChannel();
+            //Files.setPosixFilePermissions(df.toPath(), PosixFilePermissions.fromString("rw-rw-rw-"));
 
             switch (buff.getType()) {
                 case BYTE:

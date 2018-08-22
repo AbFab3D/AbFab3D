@@ -114,6 +114,8 @@ public class CPUCache {
         cache.put(buffer.getLabel(), buffer);
 
         if (USE_DISK_CACHE && !justLoaded && diskCache) {
+            if (buffer.getLabel().contains("@")) return;  // Don't store memory references to disk
+
             BufferDiskCache.getInstance().put(buffer);
         }
     }

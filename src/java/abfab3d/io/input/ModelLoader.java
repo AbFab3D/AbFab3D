@@ -141,7 +141,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         }
         */
 
-        printf("Model Loader: %s\n", uri);
+        //printf("Model Loader: %s\n", uri);
 /*
         // TODO: How to deal with not wanting to cache user uploaded files(put in temp dir) versus local usage
         if (uri.startsWith("http")) {
@@ -340,7 +340,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
                         mesh = co.mesh;
                         reader = co.reader;
                         m_materialType = co.materialType;
-                        printf("Found a mesh cached2, returning\n");
+                        if (DEBUG) printf("Found a mesh cached2, returning\n");
                         if (reader == null) throw new IllegalArgumentException("reader cannot be null");
                     }
                 } else {
