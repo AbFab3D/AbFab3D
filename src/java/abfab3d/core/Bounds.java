@@ -841,6 +841,11 @@ public class Bounds implements Cloneable {
         return fmt("%8.4f %8.4f %8.4f %8.4f %8.4f %8.4f; %8.4f",xmin/unit, xmax/unit, ymin/unit, ymax/unit, zmin/unit, zmax/unit, m_voxelSize/unit);
     }
 
+    public String toString(String format, double unit) {
+        return fmt(fmt("%s %s, %s %s, %s %s; %s",format,format,format,format,format,format,format),
+                   xmin/unit, xmax/unit, ymin/unit, ymax/unit, zmin/unit, zmax/unit, m_voxelSize/unit);
+    }
+
     public Bounds clone() {
 
         try {

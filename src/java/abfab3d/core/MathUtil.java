@@ -1790,4 +1790,13 @@ public class MathUtil {
         double ret_val = (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
         return  ret_val;
     }
+
+
+    public static int initialize(Object obj){
+
+        if(obj instanceof Initializable)
+            return ((Initializable)obj).initialize();
+        else return ResultCodes.RESULT_OK;
+    }
+
 }

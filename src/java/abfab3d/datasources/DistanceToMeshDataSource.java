@@ -251,7 +251,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
         if(DEBUG)printf("%s.initAttributedMesh(%s)\n", getClass().getName(),atProducer);
 
-        int threadCount = 8;
+        int threadCount = 8;//getThreadCount();
         // find mesh bounds
         Bounds gridBounds = calculateGridBounds(BoundingBoxCalculator.getBounds(atProducer));
         super.setBounds(gridBounds);
@@ -715,11 +715,11 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
 
     /**
        set mask bits into attributes of grid if interior grid value != 0
-       it is used to store information interior and value info in single grid 
+       it is used to store information on interior and value info in single grid 
        caller is responsible that mask will fit into voxel storage size 
        @param grid grid to add mask to value 
        @param interior grid of inerior voxels 
-       @param mask - bit mask to set if voxel is interior 
+       @param mask - bit mask to set if voxel is interior (it is normally the sign bit (1<<31)
        @param preserveZero set interior bits even if original voxel value is 0
      */
     static public void setInteriorMask(AttributeGrid grid, AttributeGrid interior, long mask, boolean preserveZero){
@@ -854,7 +854,6 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
             
         }
     } // class TC2A 
-
 
     static class CachedData {
 
