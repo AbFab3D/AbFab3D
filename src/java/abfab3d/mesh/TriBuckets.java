@@ -29,7 +29,7 @@ import static abfab3d.core.Units.MM;
  */
 public class TriBuckets {       
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     int nx, ny, nz;
     ArrayInt m_buckets[];

@@ -428,7 +428,7 @@ public class MeshDistance {
         ArrayInt triangles = new ArrayInt(10);
 
         double getDistanceSquaredBuckets(Vector3d v){ 
-            
+
             triBuckets.getTriangles(v.x, v.y, v.z, triangles);
             
             double minDist = Double.MAX_VALUE;

@@ -44,4 +44,9 @@ public class SandboxNativeJavaObject extends NativeJavaObject {
 
         return super.get(name, start);
     }
+
+    // TODO: Do not make this public for security reasons
+    protected Object getJavaObject() {
+        return javaObject;
+    }
 }

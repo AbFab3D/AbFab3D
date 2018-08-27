@@ -121,7 +121,8 @@ import static abfab3d.core.Output.printf;
             }
         }
         
-        size = destIndex+1;
+//        size = destIndex+1;
+        size = destIndex;  // TODO:  DestIndex already incremented above
 
     }
 

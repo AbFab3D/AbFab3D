@@ -23,7 +23,9 @@ import java.nio.MappedByteBuffer;
 import java.nio.ShortBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,11 +91,14 @@ public class BufferDiskCache implements Runnable {
     };
 
     private BufferDiskCache(long maxSize, String basedir, boolean compress, boolean lazyWrites) {
-        this.basedir = basedir;
         this.compress = compress;
         this.lazyWrites = lazyWrites;
 
         diskCache = new FileDiskCache(basedir, maxSize);
+
+        // FileDiskCache will use a different cache dir if it could not create the one specified
+        this.basedir = diskCache.getCacheDir();
+
         if (lazyWrites) {
             writeQueue = new LinkedBlockingQueue<>();
             terminate = false;
@@ -121,6 +126,7 @@ public class BufferDiskCache implements Runnable {
      */
     public void reconfigure(String dir, long maxSize) {
         diskCache = new FileDiskCache(dir, maxSize);
+        basedir = diskCache.getCacheDir();
     }
 
     public static BufferDiskCache getInstance() {
@@ -255,12 +261,15 @@ public class BufferDiskCache implements Runnable {
         String path = diskCache.convKeyToFilename(buff.getLabel(), "");
 
         File df = new File(basedir, path);
+        df.setReadable(true);
+        df.setWritable(true);
         FileChannel fc = null;
         FileOutputStream fos = null;
 
         try {
             fos = new FileOutputStream(df);
             fc = fos.getChannel();
+            //Files.setPosixFilePermissions(df.toPath(), PosixFilePermissions.fromString("rw-rw-rw-"));
 
             switch (buff.getType()) {
                 case BYTE:
