@@ -27,7 +27,7 @@ public class GridBlock {
     static final boolean DEBUG=false;
     
     // min and max coordinates of blocks (inclusive)
-    int 
+    public int 
         xmin, xmax, ymin, ymax, zmin, zmax;
     
     Bounds m_gridBounds;
@@ -90,7 +90,7 @@ public class GridBlock {
        @param blockSize max size of block 
        @param overlap overlap between blocks 
      */
-    static Vector<GridBlock> makeBlocks(Bounds bounds, double vs, int blockSize, int overlap){
+    public static Vector<GridBlock> makeBlocks(Bounds bounds, double vs, int blockSize, int overlap){
 
         return makeBlocks(bounds.getGridWidth(vs),bounds.getGridHeight(vs),bounds.getGridDepth(vs), blockSize, overlap, bounds, vs);
 

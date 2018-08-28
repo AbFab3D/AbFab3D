@@ -13,6 +13,12 @@ package abfab3d.datasources;
 
 import javax.vecmath.Vector3d;
 
+import java.util.concurrent.ExecutorService; 
+import java.util.concurrent.Executors; 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Vector;
+
 import abfab3d.core.TriangleProducer;
 import abfab3d.core.AttributedTriangleProducer;
 import abfab3d.core.AttributedTriangleCollector;
@@ -39,6 +45,7 @@ import abfab3d.grid.op.SurfacePointsFinderDS;
 import abfab3d.grid.op.PointSetShellBuilder;
 import abfab3d.grid.op.ClosestPointIndexer;
 import abfab3d.grid.op.ClosestPointIndexerMT;
+import abfab3d.grid.op.GridBlock;
 
 
 import abfab3d.datasources.TransformableDataSource;
@@ -79,6 +86,7 @@ import static abfab3d.core.Output.time;
 public class DistanceToSurface extends TransformableDataSource {
 
     static final boolean DEBUG = false;
+    static final boolean DEBUG_TIMING = true;
     static final double DEFAULT_VOXEL_SIZE = 0.2*MM;
     static final double DEFAULT_SURFACE_VOXEL_SIZE  = 0.5;
     static final double DEFAULT_SHELL_HALF_THICKNESS = 2.6;
@@ -125,8 +133,6 @@ public class DistanceToSurface extends TransformableDataSource {
     protected String m_savedParamString = "";
     protected String m_currentParamString = "";
     
-    protected Bounds m_pointsBounds;
-
     // interpolator used to calculate distances 
     IndexedDistanceInterpolator m_distCalc;    
     /**
@@ -161,15 +167,6 @@ public class DistanceToSurface extends TransformableDataSource {
         return m_distCalc;
     }
 
-    /**
-       @Override
-     */
-    public Bounds getBounds(){
-
-        return m_bounds;
-
-    }
-
     protected boolean m_cachingEnabled = true;
 
     public void setCaching(boolean value){
@@ -195,19 +192,18 @@ public class DistanceToSurface extends TransformableDataSource {
             if (cd == null) {
                 // non cached 
                 if(DEBUG) printf("%s : non cached - full init\n",this);                
-                initializeNonCached();                
-                cd = new CachedData();
-                cd.distCalc = m_distCalc;
+                initializeUncached();                
+                cd = new CachedData(m_distCalc, m_bounds);
                 ParamCache.getInstance().put(label, cd);                
             } else {
                 
                 if(DEBUG) printf("%s : got cached\n", this);
-                // init from chached data 
+                // init from cached data 
                 m_distCalc = cd.distCalc;
-                m_bounds = cd.bounds;
+                setBounds(cd.bounds);
             }
         } else {            
-            initializeNonCached();                
+            initializeUncached();                
         }
         return ResultCodes.RESULT_OK;
 
@@ -217,16 +213,15 @@ public class DistanceToSurface extends TransformableDataSource {
        real non cached initialziation 
        makes all distance calculations here 
     */
-    protected int initializeNonCached(){
+    protected int initializeUncached(){
         
         if(DEBUG)printf("DistanceToPointsDataSource.initialize() - full calculation\n"); 
 
         
         long t0 = time();
         DataSource source = (DataSource)mp_source.getValue();
-
         initDistance(getSurfacePoints());
-        
+        if(DEBUG_TIMING) printf("DistanceToSurface.initializeUncached() time: %d ms\n", (time() - t0));
         return ResultCodes.RESULT_OK;
     }
 
@@ -259,8 +254,7 @@ public class DistanceToSurface extends TransformableDataSource {
         
         int threadCount = getThreadCount();
         // find mesh bounds
-        m_bounds = makeBounds();
-        Bounds gridBounds = calculateGridBounds(m_bounds);
+        Bounds gridBounds = calculateGridBounds(makeBounds());
         super.setBounds(gridBounds);
         double maxDistance = getMaxDistance(gridBounds);
         
@@ -358,8 +352,20 @@ public class DistanceToSurface extends TransformableDataSource {
        @param mask - bit mask to set if voxel is interior (it is normally the sign bit (1<<31)
        @param preserveZero set interior bits even if original voxel value is 0
      */
-    static void setInteriorMask(AttributeGrid grid, DataSource interior, long mask){
+    void setInteriorMask(AttributeGrid grid, DataSource interior, long mask){
+        long t0 = time();
+        int threads = getThreadCount();
+        if(threads > 1) 
+            setInteriorMaskMT(grid, interior, mask, threads);
+        else 
+            setInteriorMaskST(grid, interior, mask);
 
+        if(DEBUG_TIMING)printf("DistanceToSurface.setInteriorMask()[%d x %d x %d] time: %d ms\n", 
+                               grid.getWidth(), grid.getHeight(), grid.getDepth(),(time() - t0));
+    }
+
+    void setInteriorMaskST(AttributeGrid grid, DataSource interior, long mask){
+        long t0 = time();
         //TODO make code MT 
         int nx = grid.getWidth();
         int ny = grid.getHeight();
@@ -381,7 +387,113 @@ public class DistanceToSurface extends TransformableDataSource {
             }
         }
     }
+    
+    static final int BLOCK_SIZE = 20;
+    void setInteriorMaskMT(AttributeGrid grid, DataSource interior, long mask, int threadCount){
 
+        Vector<GridBlock> blocks = GridBlock.makeBlocks(grid.getGridBounds(), grid.getVoxelSize(), BLOCK_SIZE, 0);
+
+        if (DEBUG) printf("DistanceToSurface.setInteriorMaskMT(threadCount:%d)\n", threadCount);
+        if (DEBUG) printf("                       blocks count: %d\n", blocks.size());
+        
+        
+        BlockManager blockManager = new BlockManager(blocks);
+        InteriorBlockProcessor threads[] = new InteriorBlockProcessor[threadCount];
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        for (int i = 0; i < threadCount; i++) {
+
+            InteriorBlockProcessor bp = bp = new InteriorBlockProcessor(blockManager, grid, interior, mask);
+
+            threads[i] = bp;
+            executor.submit(threads[i]);
+        }
+
+        executor.shutdown();
+        long maxTime = 5; 
+        try {
+            executor.awaitTermination(maxTime, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    static class InteriorBlockProcessor implements Runnable {
+
+        Vec pnt = new Vec(3);
+        Vec interiorData = new Vec(4);
+        AttributeGrid grid;
+        DataSource interior;
+        long mask;
+        BlockManager blockManager;
+
+        InteriorBlockProcessor(BlockManager blockManager, AttributeGrid grid, DataSource interior, long mask){
+            this.mask = mask;
+            this.grid = grid;
+            this.interior = interior;            
+            this.blockManager = blockManager;
+        }
+        
+        void processBlock(GridBlock block){
+            int xmin = block.xmin;
+            int xmax = block.xmax;
+            int ymin = block.ymin;
+            int ymax = block.ymax;
+            int zmin = block.zmin;
+            int zmax = block.zmax;
+
+            for(int y = ymin; y <= ymax; y++){
+                for(int x = xmin; x <= xmax; x++){
+                    for(int z = zmin; z <= zmax; z++){                    
+                        grid.getWorldCoords( x, y, z, pnt.v);
+                        interior.getDataValue(pnt,interiorData); 
+
+                        if(interiorData.v[0] < 0.) {
+                            // interior 
+                            long a = grid.getAttribute(x,y,z);
+                            grid.setAttribute(x,y,z,(a|mask));
+                        }                        
+                    }
+                }
+            }            
+        }
+
+        public void run() {
+
+            try {
+                GridBlock block;
+                while ((block = blockManager.getNext()) != null) {
+                    // process block
+                    processBlock(block);
+                }
+            } catch (Throwable t) {
+                printf("Error in InteriorBlockProcessor\n");
+                t.printStackTrace();
+            }
+        }
+    }
+
+
+    /**
+     * class supply next unprocessed block to the block processor
+     */
+    static class BlockManager {
+
+        AtomicInteger count = new AtomicInteger(0);
+        Vector<GridBlock> blocks;
+
+        BlockManager(Vector<GridBlock> blocks) {
+            this.blocks = blocks;
+        }
+
+        GridBlock getNext() {
+            int nextIndex = count.getAndIncrement();
+            if (nextIndex >= blocks.size())
+                return null;
+            else
+                return blocks.get(nextIndex);
+        }
+    }// 
 
     static AttributeGrid createIndexGrid(Bounds bounds, double voxelSize){
 
@@ -392,10 +504,9 @@ public class DistanceToSurface extends TransformableDataSource {
     
     protected Bounds calculateGridBounds(Bounds bounds){
         
-        m_pointsBounds = bounds;
 
         double voxelSize = mp_voxelSize.getValue();
-        Bounds gridBounds = m_pointsBounds.clone();
+        Bounds gridBounds = bounds.clone();
         int ng[] = gridBounds.getGridSize(voxelSize);
         long voxels = (long) ng[0] * ng[1]*ng[2];
         double gridVolume = gridBounds.getVolume();
@@ -440,11 +551,18 @@ public class DistanceToSurface extends TransformableDataSource {
     }
 
 
+    /**
+       class data stroed in cache 
+     */
     static class CachedData {
 
         IndexedDistanceInterpolator distCalc;
-        Bounds pointsBounds;
         Bounds bounds;
+
+        CachedData(IndexedDistanceInterpolator distCalc, Bounds bounds){
+            this.bounds = bounds.clone();
+            this.distCalc = distCalc;
+        }
         
     }
 
