@@ -59,7 +59,7 @@ public class EvaluatedScript {
     private int opSize;
     private int dataSize;
 
-    public EvaluatedScript(boolean success, String code, Scene scene, String[] printLogs, List<Map<String, String>> warningLogs,
+    public EvaluatedScript(boolean success, String code, Parameterizable scene, String[] printLogs, List<Map<String, String>> warningLogs,
                            List<Map<String, String>> errorLogs, long evalTime) {
         m_result = scene;
         this.code = code;
@@ -70,7 +70,7 @@ public class EvaluatedScript {
         this.success = success;
     }
 
-    public EvaluatedScript(boolean success, String code, Scene scene, String[] printLogs, List<Map<String, String>> warningLogs,
+    public EvaluatedScript(boolean success, String code, Parameterizable scene, String[] printLogs, List<Map<String, String>> warningLogs,
                            List<Map<String, String>> errorLogs, Map<String, Parameter> scriptParams, long evalTime) {
 
         this(success, code, scene, printLogs, warningLogs, errorLogs, evalTime);

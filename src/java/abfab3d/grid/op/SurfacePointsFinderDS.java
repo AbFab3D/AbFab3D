@@ -40,6 +40,7 @@ import abfab3d.util.PointSet;
 import abfab3d.util.PointSetArray;
 
 import abfab3d.transforms.Identity;
+import org.mozilla.javascript.Context;
 
 import static abfab3d.core.Output.time;
 import static abfab3d.core.Output.printf;
@@ -90,13 +91,19 @@ public class SurfacePointsFinderDS extends BaseParameterizable {
     public PointSet findSurfacePoints(DataSource source, Bounds bounds){
        
         int threads = getThreadCount();
-        if(threads > 1) {
-            return findSurfacePointsMultiBlocksMT(source, bounds, threads);
-        }  else {
-            return findSurfacePointsMultiBlocks(source, bounds);
-            //return findSurfacePointsSingleBlock(source, bounds);
-       }
 
+        Context.enter();  // Necessary for JavascriptDataSource to work right
+
+        try {
+            if (threads > 1) {
+                return findSurfacePointsMultiBlocksMT(source, bounds, threads);
+            } else {
+                return findSurfacePointsMultiBlocks(source, bounds);
+                //return findSurfacePointsSingleBlock(source, bounds);
+            }
+        } finally {
+            Context.exit();
+        }
     }
 
     public PointSet findSurfacePointsMultiBlocks(DataSource source, Bounds bounds){
@@ -121,6 +128,7 @@ public class SurfacePointsFinderDS extends BaseParameterizable {
         for (int i = 0; i < blocks.size(); i++) {
             GridBlock block = blocks.get(i);
             block.getBounds(blockBounds);
+
             PointSetArray pnts = bp.findSurfacePoints(blockBounds);
             //PointSetArray pnts = null;
             if (false) printf("block[%3d %3d %3d %3d %3d %3d] count: %d\n", 
@@ -461,6 +469,8 @@ public class SurfacePointsFinderDS extends BaseParameterizable {
             if(pointsCollector == null){
                 throw new RuntimeException("pointsCollector can't be null");
             }
+
+            Context.enter();  // Necessary for JavascriptDataSource to work right
             try {
                 GridBlock block;
                 while ((block = blockManager.getNext()) != null) {
@@ -475,6 +485,8 @@ public class SurfacePointsFinderDS extends BaseParameterizable {
             } catch (Throwable t) {
                 printf("Error in Block Processor\n");
                 t.printStackTrace();
+            } finally {
+                Context.exit();
             }
         }
     } // class BlockProcessor 

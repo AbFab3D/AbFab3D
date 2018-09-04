@@ -175,9 +175,17 @@ public class ShapeJSGlobal {
         extToMime.put("png","image/png");
         extToMime.put("jpg","image/jpeg");
         extToMime.put("jpeg","image/jpeg");
+        extToMime.put("stl","application/sla");
+        extToMime.put("x3d","model/x3d+xml");
+        extToMime.put("x3dv","model/x3d-vrml");
+        extToMime.put("x3db","model/x3d+fastinfoset");
 
         addContentHandler("application/json",new JSONHandler());
         addContentHandler("application/shapevar",new ShapeVariantHandler());
+        addContentHandler("application/sla",new ProjectResourceHandler());
+        addContentHandler("model/x3d+xml",new ProjectResourceHandler());
+        addContentHandler("model/x3d-vrml",new ProjectResourceHandler());
+        addContentHandler("model/x3d+fastinfoset",new ProjectResourceHandler());
     }
 
     static {
@@ -1057,9 +1065,7 @@ public class ShapeJSGlobal {
 
                 return ret;
             }
-            //
-            // TODO: Need to handle project basedir.  Not sure how to yet.
-            //
+
             File f = new File(url);
 
             if (!f.exists()) {
@@ -1078,10 +1084,10 @@ public class ShapeJSGlobal {
 
             try {
                 FileReader r = new FileReader(f);
-                String respSt = IOUtils.toString(r);
-                StringReader sr = new StringReader(respSt);
+                //String respSt = IOUtils.toString(r);
+                //StringReader sr = new StringReader(respSt);
 
-                String respMime = getMimeTypeByExtension(mimetype, FilenameUtils.getExtension(url));
+                String respMime = getMimeTypeByExtension(mimetype, FilenameUtils.getExtension(url).toLowerCase());
 
                 // We need to guess mimetype by extension
                 String basedir = (String) thisObj.get(SHAPEJS_BASEDIR_PROP,thisObj);
@@ -1089,7 +1095,7 @@ public class ShapeJSGlobal {
                 libs.add(basedir);
                 libs.addAll(libDirs);
 
-                Object resp = handleContent(sr,respMime,thisObj,basedir,libs);
+                Object resp = handleContent(r,f.getAbsolutePath(),respMime,thisObj,basedir,libs);
 
                 NativeObject ret = new NativeObject();
                 ret.defineProperty("statusCode",200,0);
@@ -1156,7 +1162,7 @@ public class ShapeJSGlobal {
                     libs.add(basedir);
                     libs.addAll(libDirs);
 
-                    Object resp = handleContent(sr,"application/json",thisObj,basedir,libs);
+                    Object resp = handleContent(sr,url,"application/json",thisObj,basedir,libs);
 
                     NativeObject ret = new NativeObject();
                     ret.defineProperty("statusCode",200,0);
@@ -1189,11 +1195,11 @@ public class ShapeJSGlobal {
         return mime;
     }
 
-    private static Object handleContent(Reader r, String mimetype, Scriptable thisObj, String basedir, List<String> libDirs) throws IOException {
+    private static Object handleContent(Reader r, String path, String mimetype, Scriptable thisObj, String basedir, List<String> libDirs) throws IOException {
 
         URLHandler handler = contentHandlers.get(mimetype);
         if (handler != null) {
-            Object recs = handler.parse(r,basedir,libDirs,thisObj);
+            Object recs = handler.parse(r,path,basedir,libDirs,thisObj);
 
             printf("Resp is: %s\n",recs);
             recs = convertObjToJavascript(recs,thisObj);
@@ -1281,7 +1287,7 @@ public class ShapeJSGlobal {
                     libs.add(basedir);
                     libs.addAll(libDirs);
 
-                    Object recs = handler.parse(r,basedir,libs,thisObj);
+                    Object recs = handler.parse(r,f.getAbsolutePath(),basedir,libs,thisObj);
                     Context.javaToJS(recs,thisObj);
 
                     return recs;

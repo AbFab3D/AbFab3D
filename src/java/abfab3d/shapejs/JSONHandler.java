@@ -28,7 +28,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class JSONHandler implements URLHandler {
-    public Object parse(Reader r, String basedir, List<String> libDirs, Scriptable scope) throws IOException {
+    public Object parse(Reader r, String path,String basedir, List<String> libDirs, Scriptable scope) throws IOException {
         Gson gson = new Gson();
 
         return gson.fromJson(r, Object.class);

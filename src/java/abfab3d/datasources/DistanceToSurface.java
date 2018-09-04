@@ -58,6 +58,7 @@ import abfab3d.param.ObjectParameter;
 import abfab3d.param.BooleanParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.BaseParameterizable;
+import org.mozilla.javascript.Context;
 
 import static java.lang.Math.floor;
 import static java.lang.Math.min;
@@ -350,7 +351,6 @@ public class DistanceToSurface extends TransformableDataSource {
        @param grid grid to add mask to value 
        @param interior signed distance data source which describes the interior (negative data value means point is in the interior) 
        @param mask - bit mask to set if voxel is interior (it is normally the sign bit (1<<31)
-       @param preserveZero set interior bits even if original voxel value is 0
      */
     void setInteriorMask(AttributeGrid grid, DataSource interior, long mask){
         long t0 = time();
@@ -459,6 +459,7 @@ public class DistanceToSurface extends TransformableDataSource {
         }
 
         public void run() {
+            Context.enter();
 
             try {
                 GridBlock block;
@@ -469,6 +470,8 @@ public class DistanceToSurface extends TransformableDataSource {
             } catch (Throwable t) {
                 printf("Error in InteriorBlockProcessor\n");
                 t.printStackTrace();
+            } finally {
+                Context.exit();
             }
         }
     }

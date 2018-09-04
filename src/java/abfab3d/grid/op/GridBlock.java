@@ -103,7 +103,7 @@ public class GridBlock {
        @param blockSize max size of block 
        @param overlap overlap between blocks 
      */
-    static private Vector<GridBlock> makeBlocks(int nx, int ny, int nz, int blockSize, int overlap, Bounds gridBounds, double voxelSize){
+    public static Vector<GridBlock> makeBlocks(int nx, int ny, int nz, int blockSize, int overlap, Bounds gridBounds, double voxelSize){
 
         if(DEBUG) printf("makeBlocks(%d %d %d bockSize:%d overlap: %d\n", nx, ny, nz, blockSize, overlap);
         int rSize = blockSize - overlap;

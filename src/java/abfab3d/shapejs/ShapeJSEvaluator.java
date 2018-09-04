@@ -13,6 +13,7 @@ package abfab3d.shapejs;
 
 import abfab3d.core.Location;
 import abfab3d.core.Material;
+import abfab3d.datasources.JavascriptDataSource;
 import abfab3d.param.*;
 import abfab3d.util.Unit;
 import com.google.gson.Gson;
@@ -206,6 +207,7 @@ public class ShapeJSEvaluator implements MaterialMapper {
         classImports.add("abfab3d.core.Bounds");
         classImports.add("abfab3d.core.Vec");
         classImports.add("abfab3d.core.Location");
+        classImports.add("abfab3d.core.DataSource");
         classImports.add("abfab3d.param.Shape");
         classImports.add("abfab3d.util.PointSetArray");
         classImports.add("abfab3d.util.Complex");
@@ -357,6 +359,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
         }
 
         if (DEBUG) printf("prepareScript(this: %s script, sandbox: %b)\n", this, m_sandboxed);
+        printf("Entering context in ShapeJSEval.  thread: %s\n",Thread.currentThread());
+
         Context cx = Context.enter();
         Object scene = null;
 
@@ -477,6 +481,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
             updateParamMap(params);
         } finally {
+            printf("Exiting context\n");
+
             Context.exit();
         }
 
@@ -640,22 +646,54 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
             if (result2 instanceof NativeJavaObject) {
                 Object no = ((NativeJavaObject) result2).unwrap();
-                scene = (Scene) no;
+                if (no instanceof Scene) {
+                    scene = (Scene) no;
 
-                if (DEBUG) printf("end of runScript() shape: %s\n", scene);
+                    if (DEBUG) printf("end of runScript() shape: %s\n", scene);
 
+                    // Get print logs
+                    List<String> prints = DebugLogger.getLog(cx);
+                    DebugLogger.clear(cx);
+
+                    String[] print_logs = prints != null ? (String[]) prints.toArray(new String[prints.size()]) : null;
+
+                    m_result = new EvaluatedScript(true, script, scene, print_logs, null, null, defs, time() - t0);
+
+                    // Get all errors in a string array
+                    addErrors(errors, m_result);
+
+                    return m_result;
+                } else if (no instanceof JavascriptDataSource){
+                    // Get print logs
+                    List<String> prints = DebugLogger.getLog(cx);
+                    DebugLogger.clear(cx);
+
+                    String[] print_logs = prints != null ? (String[]) prints.toArray(new String[prints.size()]) : null;
+
+                    JavascriptDataSource jds = (JavascriptDataSource) no;
+                    m_result = new EvaluatedScript(true, script, jds, print_logs, null, null, defs, time() - t0);
+
+                    // Get all errors in a string array
+                    addErrors(errors, m_result);
+
+                    return m_result;
+
+                }
+            } else if (result2 instanceof NativeObject) {
+                Parameterizable no = new ParameterizableNativeWrapper((NativeObject)result2);
                 // Get print logs
                 List<String> prints = DebugLogger.getLog(cx);
                 DebugLogger.clear(cx);
 
                 String[] print_logs = prints != null ? (String[]) prints.toArray(new String[prints.size()]) : null;
 
-                m_result = new EvaluatedScript(true, script, scene, print_logs, null, null, defs, time() - t0);
+                m_result = new EvaluatedScript(true, script, no, print_logs, null, null, defs, time() - t0);
 
                 // Get all errors in a string array
                 addErrors(errors, m_result);
 
                 return m_result;
+
             }
 
         } finally {
@@ -1401,3 +1439,4 @@ public class ShapeJSEvaluator implements MaterialMapper {
         }
     }
 }
+
