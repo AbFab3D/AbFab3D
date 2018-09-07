@@ -9,15 +9,15 @@
    <attribute name="package"/>
    <attribute name="extra" default="" />
    <attribute name="jars" default="none" />
-   <attribute name="target" default="1.8" />
-   <attribute name="source" default="1.8" />
+   <attribute name="target" default="1.7" />
+   <attribute name="source" default="1.7" />
    <attribute name="include" default="*.java" />
    <attribute name="destdir" default="${classes.dir}" />
    <element name="exclude-elements" optional="true" />
    <element name="classpath-elements" optional="true" />
-   <sequential>     
+   <sequential>
       <echo message="Compiling @{package}" />
-      <javac listfiles="false" sourcepath="" destdir="@{destdir}" debug="true" srcdir="@{srcdir}" 
+      <javac listfiles="false" sourcepath="" destdir="@{destdir}" debug="true" srcdir="@{srcdir}"
         includeAntRuntime="false" source="@{source}" target="@{target}">
          <include name="@{package}/@{include}" />
          <exclude-elements />
@@ -27,7 +27,7 @@
             <fileset dir="@{libdir}" includes="@{jars}">
             </fileset>
          </classpath>
-      </javac>          
+      </javac>
    </sequential>
 </macrodef>
 
@@ -37,14 +37,14 @@
    <attribute name="excludes" default=""/>
    <attribute name="includes" default="" />
    <attribute name="todir" default="${classes.dir}/@{package}" />
-   <sequential>  
+   <sequential>
 <!--      <echo message="Copying Extras @{package} to: ${classes.dir}/@{package}" /> -->
 
       <copy todir="@{todir}" includeEmptyDirs="false">
          <fileset dir="@{srcdir}/@{package}" includes="@{includes}" excludes="Makefile @{excludes}">
             <depth max="0" />
          </fileset>
-      </copy>          
+      </copy>
    </sequential>
 </macrodef>
 
@@ -54,12 +54,12 @@
    <attribute name="includes" />
    <attribute name="excludes" default="" />
    <attribute name="manifest" default="" />
-   <sequential>  
-   
+   <sequential>
+
     <jar destfile="${jar.dir}/@{name}_@{version}.jar"  manifest="${manifest.dir}/@{manifest}" >
        <fileset dir="${classes.dir}" includes="@{includes}" excludes="@{excludes}" />
     </jar>
-         
-   </sequential>  
+
+   </sequential>
 </macrodef>
 </project>
