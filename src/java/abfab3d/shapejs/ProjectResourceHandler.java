@@ -11,26 +11,21 @@
  *
  * ***************************************************************************
  */
-
 package abfab3d.shapejs;
 
-import com.google.gson.Gson;
 import org.mozilla.javascript.Scriptable;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.List;
 
-import static abfab3d.core.Output.printf;
-
 /**
- * Parses JSON files and returns a Javascript object
+ * Handle references to project resources
  *
  * @author Alan Hudson
  */
-public class JSONHandler implements URLHandler {
-    public Object parse(Reader r, String path,String basedir, List<String> libDirs, Scriptable scope) throws IOException {
-        Gson gson = new Gson();
-
-        return gson.fromJson(r, Object.class);
+public class ProjectResourceHandler implements URLHandler {
+    public Object parse(Reader r, String path, String basedir, List<String> libDirs, Scriptable scope) throws IOException {
+        return path;
     }
 }

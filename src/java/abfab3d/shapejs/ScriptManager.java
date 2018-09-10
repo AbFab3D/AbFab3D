@@ -501,14 +501,14 @@ public class ScriptManager {
                             URI uri = new URI(yourl.getProtocol(), yourl.getUserInfo(), yourl.getHost(), yourl.getPort(), yourl.getPath(), "", yourl.getRef());
 
                             // TODO: this will get cleaned regularly?  not sure what todo here
-                            String basedir = System.getProperty("java.io.tmpdir") + "shapeways";
-                            File f = new File(basedir);
-                            f.mkdirs();
+                            String basedir = createDirInTmpDir("shapeways");
+
                             String filename = uri.toString().replaceAll("[:\\\\/*\"?|<>'.;]", "");
 
                             workingDirPath = basedir + File.separator + filename;
 
-                            f = new File(workingDirPath);
+                            File f = new File(workingDirPath);
+
                             if (f.exists()) {
                                 // already downloaded, assume its all good
                                 localPath = URIUtils.getUrlFilename(key, urlStr, workingDirPath, true);
@@ -758,5 +758,25 @@ public class ScriptManager {
         } finally {
             if (is != null) is.close();
         }
+    }
+    
+    /**
+     * Create a directoryin the temp directory. Uses temp /tmp if System tmpdir
+     * is unavailable.
+     * 
+     * @param dirInTmpDir
+     * @return
+     */
+    private String createDirInTmpDir(String dirInTmpDir) {
+        File f = new File(System.getProperty("java.io.tmpdir"), dirInTmpDir);
+        
+        f.mkdirs();
+        
+        if (!f.exists()) {
+            f = new File("/tmp", dirInTmpDir);
+            f.mkdirs();
+        }
+        
+        return f.getAbsolutePath();
     }
 }

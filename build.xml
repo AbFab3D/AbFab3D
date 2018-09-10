@@ -148,13 +148,13 @@
             jars=""
         />
         <compilejava package="abfab3d/grid/op"
-            jars="jafama.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_2.0.0.jar vecmath.jar batik-all-1.9.jar commons-io-2.4.jar"
+            jars="jafama.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_2.0.0.jar vecmath.jar batik-all-1.9.jar commons-io-2.4.jar js.jar"
         />
         <compilejava package="abfab3d/grid/query"
             jars=""
         />
         <compilejava package="abfab3d/datasources"
-            jars="jafama.jar vecmath.jar core-renderer.jar"
+            jars="jafama.jar vecmath.jar core-renderer.jar js.jar"
         />
         <compilejava package="abfab3d/mesh"
                      jars=""
