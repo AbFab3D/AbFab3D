@@ -101,6 +101,13 @@ public class Vec {
         v[2] = z;       
     }
 
+    public void set(double x, double y, double z, double w){
+        v[0] = x;
+        v[1] = y;
+        v[2] = z;       
+        v[3] = w;       
+    }
+
     public void set(Tuple3d t){
         v[0] = t.x;
         v[1] = t.y;

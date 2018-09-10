@@ -79,19 +79,28 @@ public class ImageMaker {
         // take w plane in the middle of bounds, or shall it be at zmin ? 
         double wmin = (bounds.zmin + bounds.zmax)/2;
         
-
-
+        int dataDim = imgRenderer.getChannelsCount();
+        double datav[] = data.v;
+        double pntv[] = pnt.v;
         for(int v = 0; v < height; v++){
 
-            // images y-axis pointing down 
+            //in images y-axis pointing down 
             int offy = width*(height-1-v);
+            double vvalue = vmin + v*dv;
             for(int u = 0; u < width; u++){
+                int offset = u + offy;
 
-                pnt.v[0] = umin + u*du;
-                pnt.v[1] = vmin + v*dv;
-                pnt.v[2] = wmin;
+                pnt.set(umin + u*du, vvalue, wmin);
+                data.set(0,0,0,0); // init data 
+
                 imgRenderer.getDataValue(pnt, data);
-                imageData[u + offy] = makeARGB(data.v[0],data.v[1],data.v[2],data.v[3]);
+                switch(dataDim){
+                default:
+                case 4: imageData[offset] = makeARGB(datav[0],datav[1],datav[2],datav[3]); break;
+                case 3: imageData[offset] = makeARGB(datav[0],datav[1],datav[2],1.); break;
+                case 2: imageData[offset] = makeARGB(datav[0],0,       datav[1],1.);break;
+                case 1: imageData[offset] = makeARGB(datav[0],datav[0],datav[0],1.);break;
+                }
             }
         }
     }
