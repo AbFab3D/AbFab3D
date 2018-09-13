@@ -100,6 +100,7 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
     BooleanParameter mp_makeSolid = new BooleanParameter("makeSolid", "make interior data for closed mash",true);
     LongParameter mp_maxGridSize = new LongParameter("maxGridSize", "Max grid size", 1000L * 1000 * 1000);
     LongParameter mp_minGridSize = new LongParameter("minGridSize", "Min grid size", 1000L);
+    BooleanParameter mp_useCaching = new BooleanParameter("useCaching", "turn on/off data caching", true);
 
     Parameter[] m_aparams = new Parameter[]{
         mp_meshProducer,
@@ -117,7 +118,8 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
         mp_extendDistance,
         mp_makeSolid,
         mp_maxGridSize,
-        mp_minGridSize
+        mp_minGridSize,
+        mp_useCaching
     };
 
     protected String m_savedParamString = "";
@@ -207,8 +209,10 @@ public class DistanceToMeshDataSource extends TransformableDataSource {
             cd = new CachedData();
             cd.distCalc = m_distCalc;
             cd.bounds = m_bounds;
-            cd.meshBounds = m_meshBounds;            
-            ParamCache.getInstance().put(m_currentParamString, cd);
+            cd.meshBounds = m_meshBounds;
+            if (mp_useCaching.getValue()) {
+                ParamCache.getInstance().put(m_currentParamString, cd);
+            }
 
         } else {
 

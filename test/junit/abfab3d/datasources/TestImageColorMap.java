@@ -42,7 +42,7 @@ public class TestImageColorMap extends TestCase {
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestImage3D.class);
+        return new TestSuite(TestImageColorMap.class);
     }
 
     int gridMaxAttributeValue = 127;
