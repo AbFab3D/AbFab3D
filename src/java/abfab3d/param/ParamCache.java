@@ -1,5 +1,6 @@
 package abfab3d.param;
 
+import abfab3d.core.CacheConfig;
 import com.google.common.cache.*;
 
 import java.util.ArrayList;
@@ -21,9 +22,9 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class ParamCache {
-    private static final boolean STOP_CACHING = false;
+    private static final boolean STOP_CACHING;
     private static final boolean DEBUG = false;
-    private static final boolean DEBUG_MISSES = true;
+    private static final boolean DEBUG_MISSES = false;
     private static final boolean REPORT_MEMORY_REFERENCE = false;
 
     private static final int JOB_RETAIN_MS = 60 * 60 * 1000;
@@ -36,6 +37,8 @@ public class ParamCache {
         if (DEBUG_MISSES) {
             misses = new BoundedStack<String>(25);
         }
+
+        STOP_CACHING = !CacheConfig.CPU_CACHE;
 
         if (STOP_CACHING) {
             printf("*** Param Cache caching is turned off ***\n");

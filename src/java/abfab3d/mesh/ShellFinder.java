@@ -78,12 +78,26 @@ public class ShellFinder {
      * @return
      */
     public ShellInfo[] findShellsSorted(WingedEdgeTriangleMesh mesh, boolean naturalOrder, boolean calcBounds){
+        return findShellsSorted(mesh,naturalOrder,calcBounds,Integer.MAX_VALUE);
+    }
+
+    /**
+     * Find shells sorted by volume.  ShellInfo will contain the volume.
+     *
+     * @param mesh
+     * @param naturalOrder Sort via natural order or reverse
+     * @param calcBounds Should we calculate bounds info per shell
+     * @param maxShells Stop after finding this many shell.  Returns null
+     * @return
+     */
+    public ShellInfo[] findShellsSorted(WingedEdgeTriangleMesh mesh, boolean naturalOrder, boolean calcBounds, int maxShells){
 
         Hashtable<Integer,Integer> hfaces = makeUnmarkedFaces(mesh);
         ArrayList<ShellInfo> vsi = new ArrayList<ShellInfo>();
         AreaCalculator ac = new AreaCalculator();
         BoundsCalculator bc = new BoundsCalculator();
 
+        int cnt = 0;
         while(true){
 
             Enumeration<Integer> e = hfaces.elements();
@@ -105,12 +119,17 @@ public class ShellFinder {
                 si.bounds = new double[6];
                 bc.getBounds(si.bounds);
             }
+
+            cnt++;
+
+            if (cnt > maxShells) {
+                return null;
+            }
         }
 
         Collections.sort(vsi, new ShellVolumeComparator(naturalOrder));
         return (ShellInfo[])vsi.toArray(new ShellInfo[vsi.size()]);
     }
-
 
     /**
 

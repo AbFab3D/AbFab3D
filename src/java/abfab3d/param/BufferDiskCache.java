@@ -1,5 +1,6 @@
 package abfab3d.param;
 
+import abfab3d.core.CacheConfig;
 import abfab3d.core.LabeledBuffer;
 import org.apache.commons.io.IOUtils;
 //import sun.misc.Unsafe;
@@ -56,8 +57,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class BufferDiskCache implements Runnable {
-    // TODO: do not check in figure out a better way to deal with large dirs
-    private static final boolean CACHE_ENABLED = true;
+    private static final boolean CACHE_ENABLED;
     private static final boolean MEMORY_HASH_FATAL = false;
 
     private static final int MAX_FILENAME = 64;
@@ -81,6 +81,10 @@ public class BufferDiskCache implements Runnable {
     private volatile boolean terminate;
     private Thread writeThread;
 
+
+    static {
+        CACHE_ENABLED = CacheConfig.DISK_CACHE;
+    }
 
     private static ThreadLocal<ThreadVars> threadVars = new ThreadLocal<ThreadVars>() {
         public ThreadVars initialValue() {

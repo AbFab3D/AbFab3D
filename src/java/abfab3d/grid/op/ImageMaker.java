@@ -58,10 +58,11 @@ public class ImageMaker {
 
 
     Slice getNextSlice(){
-        if(m_slicesIdx.intValue() >= m_slices.length)
+        int idx = m_slicesIdx.getAndIncrement();
+        if(idx >= m_slices.length) {
             return null;
-
-        return m_slices[m_slicesIdx.getAndIncrement()];
+        }
+        return m_slices[idx];
     }
 
     /**
@@ -189,6 +190,7 @@ public class ImageMaker {
             double datav[] = data.v;
 
             int v = -1;
+            int offset = -1;
             try {
                 //printf("%s:.run()\n", Thread.currentThread());
 
@@ -205,7 +207,7 @@ public class ImageMaker {
                     int offy = width * (height - 1 - v);
                     double vvalue = vmin + v * dv;
                     for (int u = 0; u < width; u++) {
-                        int offset = u + offy;
+                        offset = u + offy;
 
                         pnt.set(umin + u * du, vvalue, wmin);
                         data.set(0, 0, 0, 0); // init data
@@ -229,8 +231,9 @@ public class ImageMaker {
                     }
                 }
             } catch(Throwable t) {
-                printf("Problem on slice: %d / %d\n",v,height);
+                printf("Problem on slice: %d / %d  off: %d / %d\n",v,height,offset,imageData.length);
                 t.printStackTrace();
+                System.out.flush();
             }
         }
     } //class ShapeDilaterRunner

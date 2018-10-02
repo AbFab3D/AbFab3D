@@ -1,5 +1,6 @@
 package abfab3d.param;
 
+import abfab3d.core.CacheConfig;
 import abfab3d.core.LabeledBuffer;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -23,7 +24,7 @@ import static abfab3d.core.Output.printf;
  */
 public class CPUCache {
     private static final boolean DEBUG = false;
-    private static final boolean CACHE_ENABLED = true;
+    private static final boolean CACHE_ENABLED;
     private static final boolean USE_DISK_CACHE = true;
     private static final boolean DEBUG_MISSES = false;
     private static final int JOB_RETAIN_MS = 60 * 60 * 1000;
@@ -36,6 +37,8 @@ public class CPUCache {
         if (DEBUG_MISSES) {
             misses = new BoundedStack<String>(25);
         }
+
+        CACHE_ENABLED = CacheConfig.CPU_CACHE;
 
         if (!CACHE_ENABLED) {
             printf("*** CPUCache caching is turned off ***\n");
