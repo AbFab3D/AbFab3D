@@ -17,6 +17,7 @@ import abfab3d.core.TriangleProducer;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Tuple3d;
+import javax.vecmath.Tuple4d;
 
 import java.util.Vector;
 
@@ -167,6 +168,10 @@ public class PointSetArray implements TriangleProducer, PointSet  {
         addPoint(pnt.x,pnt.y,pnt.z);
     }
 
+    public final void addPoint(Tuple4d pnt){
+        addPoint(pnt.x,pnt.y,pnt.z, pnt.w);
+    }
+
     public final void addPoint(double pnt[]){
         if(m_dataDimension == 3){
             addPoint(pnt[0],pnt[1],pnt[2]); 
@@ -293,12 +298,32 @@ public class PointSetArray implements TriangleProducer, PointSet  {
 
     }
 
+    public void getPoint(int index, Tuple4d point){
+
+        int start = index*m_dataDimension;
+        point.x = coord[start];
+        point.y = coord[start+1];
+        point.z = coord[start+2];
+        point.w = coord[start+3];
+
+    }
+
     public void setPoint(int index, Tuple3d point){
 
         int start = index*m_dataDimension;
         coord[start] = point.x;
         coord[start+1] = point.y;
         coord[start+2] = point.z;
+
+    }
+
+    public void setPoint(int index, Tuple4d point){
+
+        int start = index*m_dataDimension;
+        coord[start] = point.x;
+        coord[start+1] = point.y;
+        coord[start+2] = point.z;
+        coord[start+3] = point.w;
 
     }
     
