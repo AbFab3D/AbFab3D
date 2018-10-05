@@ -106,7 +106,7 @@
                      jars=""
                 />
         <compilejava package="abfab3d/util"
-                     jars="gson-2.1.jar commons-io-2.4.jar commons-codec-1.7.jar commons-compress-1.9.jar xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar"
+                     jars="gson-2.1.jar commons-io-2.6.jar commons-codec-1.7.jar commons-compress-1.9.jar xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar"
                 />
         <compilejava package="abfab3d/param"
                      jars=""
@@ -115,7 +115,7 @@
                      jars=""
                 />
         <compilejava package="abfab3d/opencl"
-                     jars="jocl.jar commons-io-2.4.jar"
+                     jars="jocl.jar commons-io-2.6.jar"
                 />
         <compilejava package="abfab3d/random"
                      jars=""
@@ -148,7 +148,7 @@
             jars=""
         />
         <compilejava package="abfab3d/grid/op"
-            jars="jafama.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_2.0.0.jar vecmath.jar batik-all-1.9.jar commons-io-2.4.jar js.jar"
+            jars="jafama.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_2.0.0.jar vecmath.jar batik-all-1.9.jar commons-io-2.6.jar js.jar"
         />
         <compilejava package="abfab3d/grid/query"
             jars=""
@@ -164,10 +164,10 @@
         />
 
         <compilejava package="abfab3d/io/input"
-            jars="guava-18.0.jar commons-codec-1.7.jar commons-compress-1.9.jar vecmath.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar commons-io-2.4.jar"
+            jars="guava-18.0.jar commons-codec-1.7.jar commons-compress-1.9.jar vecmath.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar commons-io-2.6.jar"
         />
         <compilejava package="abfab3d/io/output"
-            jars="vecmath.jar toxiclibscore.jar volumeutils.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar commons-io-2.4.jar"
+            jars="vecmath.jar toxiclibscore.jar volumeutils.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar commons-io-2.6.jar"
         />
         <compilejava package="abfab3d/shapejs"
                      jars=""
@@ -298,7 +298,7 @@
                 <include name="java/abfab3d/transforms/RingWrap.java" />
                 <include name="java/abfab3d/transforms/PeriodicWrap.java" />
             </fileset>
-            <doclet name="doclet.RefGuideDoclet" path="${classes.dir}/build;${lib.dir}/commons-io-2.4.jar">
+            <doclet name="doclet.RefGuideDoclet" path="${classes.dir}/build;${lib.dir}/commons-io-2.6.jar">
                 <param name="-generateParts" value="true" />
             </doclet>
             <!-- Copy items from Javadoc to refguide directory for easy packaging -->
@@ -352,7 +352,7 @@
                 <include name="java/abfab3d/transforms/RingWrap.java" />
                 <include name="java/abfab3d/transforms/PeriodicWrap.java" />
             </fileset>
-            <doclet name="doclet.RefGuideDoclet" path="${classes.dir}/build;${lib.dir}/commons-io-2.4.jar">
+            <doclet name="doclet.RefGuideDoclet" path="${classes.dir}/build;${lib.dir}/commons-io-2.6.jar">
                 <param name="-generateParts" value="false" />
             </doclet>
         </javadoc>
