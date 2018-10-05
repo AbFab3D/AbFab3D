@@ -109,12 +109,12 @@ public class ShellFinder {
 
             if (!calcBounds) {
                 ac.reset();
-                getShell(mesh, si.startFace, ac);
+                getShell(mesh, si.startFace, ac, hfaces);
                 si.volume = ac.getVolume();
             } else {
                 ac.reset();
                 bc.reset();
-                getShell(mesh, si.startFace, ac,bc);
+                getShell(mesh, si.startFace, ac,bc, hfaces);
                 si.volume = ac.getVolume();
                 si.bounds = new double[6];
                 bc.getBounds(si.bounds);
@@ -179,6 +179,53 @@ public class ShellFinder {
         return;
     }
 
+    /**
+
+     collect triangles from the shell starting from startFace to TriangleCollector
+
+     */
+    public void getShell(WingedEdgeTriangleMesh mesh, int startFace, TriangleCollector tc,Hashtable<Integer,Integer> unmarkedFaces){
+
+        StackOfInt facesToCheck = new StackOfInt(100000);
+
+        StructMixedData faces = mesh.getFaces();
+        StructMixedData halfEdges = mesh.getHalfEdges();
+        int currentFace = startFace;
+
+        while(currentFace != -1){
+
+            unmarkedFaces.remove(new Integer(currentFace));   // TODO: garbage
+            sendFace(currentFace, mesh, tc);
+
+
+            int he = Face.getHe(faces, currentFace);
+
+            // face as 3 adjacent faces linked via HalfEdges
+            int twin = HalfEdge.getTwin(halfEdges, he);
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            he = HalfEdge.getNext(halfEdges, he);
+            twin = HalfEdge.getTwin(halfEdges, he);
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            he = HalfEdge.getNext(halfEdges, he);
+            twin = HalfEdge.getTwin(halfEdges, he);
+
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            currentFace = findNextFace(unmarkedFaces,facesToCheck);
+
+        }
+
+        return;
+    }
+
     public TriangleProducer getShell(WingedEdgeTriangleMesh mesh, int startFace) {
         return new TPWrapper(this,mesh,startFace);
     }
@@ -201,6 +248,7 @@ public class ShellFinder {
             return true;
         }
     }
+
     /**
 
      collect triangles from the shell starting from startFace to TriangleCollector
@@ -209,6 +257,54 @@ public class ShellFinder {
     public void getShell(WingedEdgeTriangleMesh mesh, int startFace, TriangleCollector tc1, TriangleCollector tc2){
 
         Hashtable<Integer,Integer> unmarkedFaces = makeUnmarkedFaces(mesh); // Why table not Map?
+        StackOfInt facesToCheck = new StackOfInt(100000);
+
+        StructMixedData faces = mesh.getFaces();
+        StructMixedData halfEdges = mesh.getHalfEdges();
+        int currentFace = startFace;
+
+        while(currentFace != -1){
+
+            unmarkedFaces.remove(new Integer(currentFace));   // TODO: garbage
+            sendFace(currentFace, mesh, tc1);
+            sendFace(currentFace, mesh, tc2);
+
+
+            int he = Face.getHe(faces, currentFace);
+
+            // face as 3 adjacent faces linked via HalfEdges
+            int twin = HalfEdge.getTwin(halfEdges, he);
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            he = HalfEdge.getNext(halfEdges, he);
+            twin = HalfEdge.getTwin(halfEdges, he);
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            he = HalfEdge.getNext(halfEdges, he);
+            twin = HalfEdge.getTwin(halfEdges, he);
+
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            currentFace = findNextFace(unmarkedFaces,facesToCheck);
+
+        }
+
+        return;
+    }
+
+    /**
+
+     collect triangles from the shell starting from startFace to TriangleCollector
+
+     */
+    public void getShell(WingedEdgeTriangleMesh mesh, int startFace, TriangleCollector tc1, TriangleCollector tc2,Hashtable<Integer,Integer> unmarkedFaces){
+
         StackOfInt facesToCheck = new StackOfInt(100000);
 
         StructMixedData faces = mesh.getFaces();
