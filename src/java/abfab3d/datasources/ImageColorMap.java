@@ -19,7 +19,6 @@ import abfab3d.core.Vec;
 import abfab3d.core.Grid2DProducer;
 import abfab3d.core.ImageProducer;
 
-
 import abfab3d.param.ParamCache;
 import abfab3d.param.Parameter;
 import abfab3d.param.BooleanParameter;
@@ -57,6 +56,7 @@ public class ImageColorMap extends TransformableDataSource {
 
     final static boolean DEBUG = false;
 
+    final static double NORM = (1./255.);
     final static public String sm_projectionNames[] = new String[]{"plain", "spherical", "cylindrical"};
     
     private boolean m_repeatX = false;
@@ -511,10 +511,10 @@ public class ImageColorMap extends TransformableDataSource {
             a11 = getAlpha(v11);            
         
 
-        double r = (dxdy * r11 + dx1dy * r01 + dxdy1 * r10 + dx1dy1 * r00) / 255.;
-        double g = (dxdy * g11 + dx1dy * g01 + dxdy1 * g10 + dx1dy1 * g00) / 255.;
-        double b = (dxdy * b11 + dx1dy * b01 + dxdy1 * b10 + dx1dy1 * b00) / 255.;
-        double a = (dxdy * a11 + dx1dy * a01 + dxdy1 * a10 + dx1dy1 * a00) / 255.;
+        double r = (dxdy * r11 + dx1dy * r01 + dxdy1 * r10 + dx1dy1 * r00) * NORM;
+        double g = (dxdy * g11 + dx1dy * g01 + dxdy1 * g10 + dx1dy1 * g00) * NORM;
+        double b = (dxdy * b11 + dx1dy * b01 + dxdy1 * b10 + dx1dy1 * b00) * NORM;
+        double a = (dxdy * a11 + dx1dy * a01 + dxdy1 * a10 + dx1dy1 * a00) * NORM;
 
         dataValue.v[0] = r;
         dataValue.v[1] = g;

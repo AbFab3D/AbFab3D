@@ -154,7 +154,9 @@ public class ImageUtil {
             ((g & 0xFF) << 8) |
             ((b & 0xFF) );    
     }
-
+    public static final int makeARGB(int rgba[]){
+        return makeARGB(rgba[0],rgba[1],rgba[2],rgba[3]);
+    }
     /**
        converts rgba color into single int 
        input colors are in range [0.,1.]

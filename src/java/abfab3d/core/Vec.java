@@ -120,6 +120,14 @@ public class Vec {
         t.z = v[2];       
     }
 
+    public final void get(double data[]){
+        System.arraycopy(v, 0, data, 0,v.length); 
+    }
+
+    public final void get(double data[], int offset){
+        System.arraycopy(v, 0, data, offset,v.length); 
+    }
+
     public void set(Vec in){
 
         if(in == this)
@@ -144,6 +152,22 @@ public class Vec {
         v[0] += a.x;
         v[1] += a.y;
         v[2] += a.z;        
+    }
+
+    public void addSet(double a[]){
+        int n  = Math.min(v.length, a.length);
+        for(int i = 0; i < n; i++){
+            v[i] += a[i];
+        }
+    }
+
+    public void clamp(double x0, double x1){
+
+        double n = v.length;
+
+        for(int i = 0; i < n; i++){
+            v[i] = MathUtil.clamp(v[i], x0, x1);
+        }
     }
 
     public double dot(Tuple3d a){
