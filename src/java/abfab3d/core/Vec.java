@@ -128,6 +128,14 @@ public class Vec {
         System.arraycopy(v, 0, data, offset,v.length); 
     }
 
+    public final void get(double data[], int offset, int count){
+        System.arraycopy(v, 0, data, offset,count); 
+    }
+
+    public final void set(double data[], int offset){
+        System.arraycopy(data, offset, v, 0, v.length); 
+    }
+
     public void set(Vec in){
 
         if(in == this)

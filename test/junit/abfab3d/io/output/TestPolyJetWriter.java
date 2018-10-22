@@ -39,6 +39,15 @@ import abfab3d.util.ImageUtil;
 import abfab3d.grid.op.ImageLoader;
 import abfab3d.datasources.ImageColorMap;
 import abfab3d.datasources.Torus;
+import abfab3d.datasources.Plane;
+import abfab3d.datasources.DataSourceMixer;
+import abfab3d.datasources.Mask;
+import abfab3d.datasources.Abs;
+import abfab3d.datasources.Sphere;
+
+import abfab3d.transforms.PeriodicWrap;
+import abfab3d.transforms.Translation;
+import abfab3d.transforms.Rotation;
 
 
 import static abfab3d.core.Output.printf;
@@ -117,7 +126,6 @@ public class TestPolyJetWriter {
                 source.getDataValue(pnt, data);
                 //gammaCorrect(data.v);
                 convertToWorkingSpace(data.v);
-                
                 data.addSet(error);
 
                 int index = getClosestColor(data.v);
@@ -239,18 +247,54 @@ public class TestPolyJetWriter {
         double R = 7*MM;
         double r = 2.9*MM;
         double margin = 0.1*MM;
+        double blur = 1*MM;
+        double a = r;
 
         double s = R+r+margin;
         double dz = r+margin;
         
         Torus torus = new Torus(R,r);
-        DataSource model = torus;
 
+        Mask mplane = new Mask(new Abs(new Plane(new Vector3d(1,0,0),0)), r/20, 0.1*MM);        
+        mplane.addTransform(new Translation(new Vector3d(r/4,0,0)));
+        mplane.addTransform(new PeriodicWrap(new Vector3d(r/2,0,0)));
+        mplane.addTransform(new Rotation(0,2,1,Math.PI/6));
+
+        Mask mplane1 = new Mask(new Abs(new Plane(new Vector3d(1,0,0),0)), r/20, 0.1*MM);        
+        mplane1.addTransform(new Translation(new Vector3d(r/4,0,0)));
+        mplane1.addTransform(new PeriodicWrap(new Vector3d(r/2,0,0)));
+        mplane1.addTransform(new Rotation(0,1,1,2*Math.PI/3));
+
+        Mask sphere = new Mask(new Sphere(a*0.45), 0, blur);        
+        sphere.addTransform(new Translation(new Vector3d(a/2,a/2,a/2)));
+        sphere.addTransform(new PeriodicWrap(new Vector3d(a,0,0),new Vector3d(0,a,0),new Vector3d(0,0,a)));
+        sphere.addTransform(new Rotation(1,0,1,2*Math.PI/3));
+
+        Mask sphere2 = new Mask(new Sphere(a*0.35), 0, blur/2);        
+        sphere2.addTransform(new Translation(new Vector3d(a/2,a/2,a/2)));
+        sphere2.addTransform(new PeriodicWrap(new Vector3d(a,0,0),new Vector3d(0,a,0),new Vector3d(0,0,a)));
+        sphere2.addTransform(new Rotation(1,2,1,Math.PI/5));
+
+        Mask sphere3 = new Mask(new Sphere(r/6), 0, 0.1*MM);        
+        sphere3.addTransform(new Translation(new Vector3d(r/4,r/4,r/4)));
+        sphere3.addTransform(new PeriodicWrap(new Vector3d(r/2,0,0),new Vector3d(0,r/2,0),new Vector3d(0,0,r/2)));
+        sphere3.addTransform(new Rotation(1,0,1,Math.PI/5));
+        
+        DataSource model = new DataSourceMixer(torus, sphere, sphere2, sphere3, mplane, mplane1);
+        
+        
         PolyJetWriter writer = new PolyJetWriter();
         
         writer.setBounds(new Bounds(-s,s,-s,s,-dz,dz));
-        writer.set("model", model);
-
+        writer.set("model", model);        
+        writer.set("ditheringType", 0);
+        writer.set("materials",new String[]{PolyJetWriter.S_CLEAR,
+                                            PolyJetWriter.S_MAGENTA,
+                                            PolyJetWriter.S_CYAN,                                              
+                                            PolyJetWriter.S_YELLOW, 
+                                            PolyJetWriter.S_WHITE, 
+                                            PolyJetWriter.S_BLACK,                                            
+            });
         writer.write();
 
     }
