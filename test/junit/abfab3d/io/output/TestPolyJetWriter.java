@@ -18,6 +18,8 @@ import javax.vecmath.Vector3d;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
+import java.util.Vector;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -36,6 +38,8 @@ import abfab3d.core.DataSource;
 import abfab3d.util.ImageUtil;
 
 
+import abfab3d.param.BaseParameterizable;
+
 import abfab3d.grid.op.ImageLoader;
 import abfab3d.datasources.ImageColorMap;
 import abfab3d.datasources.Torus;
@@ -44,6 +48,7 @@ import abfab3d.datasources.DataSourceMixer;
 import abfab3d.datasources.Mask;
 import abfab3d.datasources.Abs;
 import abfab3d.datasources.Sphere;
+import abfab3d.datasources.Box;
 
 import abfab3d.transforms.PeriodicWrap;
 import abfab3d.transforms.Translation;
@@ -57,7 +62,7 @@ import static abfab3d.core.Units.CM;
 
 import static abfab3d.util.ImageUtil.makeARGB;
 
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 
 
 /**
@@ -244,8 +249,46 @@ public class TestPolyJetWriter {
 
     void devTestWriter(){
 
-        double R = 7*MM;
-        double r = 2.9*MM;
+        double s = 10*MM;
+
+        //DataSource model = makeTorus(20*MM);
+        DataSource model = makeSphere(20*MM);
+
+        Bounds bounds = model.getBounds();
+        if(Bounds.isInfinite(bounds)) {
+            bounds = new Bounds(-s,s,-s,s,-s,s);
+        }
+
+        PolyJetWriter writer = new PolyJetWriter();
+        
+        writer.setBounds(bounds);
+        writer.set("model", model);        
+        writer.set("ditheringType", 0);
+        writer.set("firstSlice",bounds.getDepthVoxels(PolyJetWriter.SLICE_THICKNESS_HR)/2);
+        writer.set("slicesCount", 6);
+        writer.set("outFolder","/tmp/polyjet");
+        //writer.set("mapping", "color_rgba");
+        writer.set("mapping", "materials");
+
+        writer.set("materials",new String[]{PolyJetWriter.S_CLEAR,
+                                            PolyJetWriter.S_MAGENTA,
+                                            PolyJetWriter.S_CYAN,                                              
+                                            PolyJetWriter.S_YELLOW, 
+                                            PolyJetWriter.S_BLACK,                                            
+                                            PolyJetWriter.S_WHITE, 
+                                            
+            });
+        writer.write();
+
+    }
+
+    //
+    //  torus made with 6 materials
+    //
+    DataSource makeTorus(double size){
+
+        double R = 0.4*size;
+        double r = 0.5*size - R;
         double margin = 0.1*MM;
         double blur = 1*MM;
         double a = r;
@@ -280,29 +323,171 @@ public class TestPolyJetWriter {
         sphere3.addTransform(new PeriodicWrap(new Vector3d(r/2,0,0),new Vector3d(0,r/2,0),new Vector3d(0,0,r/2)));
         sphere3.addTransform(new Rotation(1,0,1,Math.PI/5));
         
-        DataSource model = new DataSourceMixer(torus, sphere, sphere2, sphere3, mplane, mplane1);
+        DataSourceMixer model = new DataSourceMixer(torus, sphere, sphere2, sphere3, mplane, mplane1);
+
+        model.setBounds(new Bounds(-s,s,-s,s,-dz,dz));
+
+        return model;
+    }
+
+
+    DataSource makeSphere(double size){
+
+        double R = 0.5*size;
+        double r = R*0.7;
+        double a = R*0.2;
+        double b = R*0.2;
+        double margin = 0.1*MM;
+        double blur = 0.5*MM;
+        double offset = 1*MM;
+
+        double s = R+margin;
         
+        Sphere sphere = new Sphere(R);
+
+        Mask sphere1 = new Mask(new Abs(new Sphere(0,a,0,r)),offset,blur);
+        Mask sphere2 = new Mask(new Abs(new Sphere(a/2,-a*sqrt(3)/2,0,r)), offset, blur);
+        Mask sphere3 = new Mask(new Abs(new Sphere(-a/2,-a*sqrt(3)/2,0,r)),offset,blur);
+        Mask box1 = new Mask(new Box(2*R, b, 2*R),0,blur);
+        Mask box2 = new Mask(new Box(b, 2*R, 2*R),0,blur);
         
+        DataSourceMixer model = new DataSourceMixer(sphere, sphere1,  sphere2, sphere3, box1, box2);
+        
+        model.setBounds(new Bounds(-s,s,-s,s,-s,s));
+
+        return model;
+    }
+
+    /**
+       enumerates all possible ordered combinations of 6 numbers from 0 to N giving sum N 
+       it let create all possible combinatoions of PolyJet materials with (0,1/N,...N/N) volume fraction each 
+     */
+    static Vector<int[]> makeMaterialsCombinations(int N){
+        
+        //int count = 0;
+        Vector<int[]> data = new Vector<int[]>();
+        for(int i = 0; i <= N; i++ ){
+            for(int j = i; j <= N; j++ ){
+                for(int k = j; k <= N; k++ ){
+                    for(int l = k; l <= N; l++ ){
+                        for(int m = l; m <= N; m++ ){
+                            int set[]  = new int[]{i,j-i,k-j,l-k,m-l,N-m};
+                            printf("%d%d%d%d%d%d\n", set[0],set[1],set[2],set[3],set[4],set[5]);  
+                            //count++;
+                            data.add(set);
+                        }
+                    }
+                }
+            }            
+        }
+        //        printf("N:%d, count:%d\n", N, data.size());
+        return data;
+    }
+
+
+    void makeMaterialSamplesTest(){
+
+        double sampleSize = 10*MM;
+        int quantization = 6;
+
+        DataSource model = makeMaterialsSample(sampleSize, quantization);
+
+        Bounds bounds = model.getBounds();
+
         PolyJetWriter writer = new PolyJetWriter();
         
-        writer.setBounds(new Bounds(-s,s,-s,s,-dz,dz));
+        writer.setBounds(bounds);
         writer.set("model", model);        
         writer.set("ditheringType", 0);
-        writer.set("materials",new String[]{PolyJetWriter.S_CLEAR,
+        writer.set("firstSlice",bounds.getDepthVoxels(PolyJetWriter.SLICE_THICKNESS_HR)/2);
+        writer.set("slicesCount", 1);
+        writer.set("outFolder","/tmp/polyjet");
+        //writer.set("mapping", "color_rgba");
+        writer.set("mapping", "materials");
+
+        writer.set("materials",new String[]{PolyJetWriter.S_WHITE, 
+                                            PolyJetWriter.S_BLACK,
+                                            PolyJetWriter.S_CLEAR,
+                                            PolyJetWriter.S_YELLOW, 
                                             PolyJetWriter.S_MAGENTA,
                                             PolyJetWriter.S_CYAN,                                              
-                                            PolyJetWriter.S_YELLOW, 
-                                            PolyJetWriter.S_WHITE, 
-                                            PolyJetWriter.S_BLACK,                                            
+                                            
+                                            
+                                            
             });
         writer.write();
 
     }
 
+    static DataSource makeMaterialsSample(double sampleSize, int quatization){
+
+        Vector<int[]> data = makeMaterialsCombinations(quatization);
+        int width = (int)ceil(sqrt(data.size()));
+        double boxSize = sampleSize*width;
+        Box box = new Box(boxSize,boxSize,1*MM);
+        DataSource colorizer = new MaterialSampler(data, 1./quatization, width, boxSize);
+        DataSourceMixer mixer = new DataSourceMixer(box, colorizer);
+        double s = boxSize/2;
+        Bounds bounds = new Bounds(-s,s,-s,s,-0.5*MM,0.5*MM);
+        bounds.expand(0.2*MM);
+        mixer.setBounds(bounds);
+        return mixer;
+        
+    }
+
+
+    static class MaterialSampler extends BaseParameterizable implements DataSource {
+        
+        Vector<int[]> data;
+        int width;
+        double boxSize;
+        int quantization;
+        double norm;
+        double cellSize;
+
+        MaterialSampler(Vector<int[]> data, double norm, int width, double boxSize){
+
+            this.quantization = quantization;
+            this.width = width;
+            this.boxSize = boxSize;
+            this.data = data;
+            this.cellSize = boxSize/width;
+            this.norm = norm;
+        }
+
+        public int getDataValue(Vec pnt, Vec dataValue){
+
+            int x = (int)(((pnt.v[0] + boxSize/2))/cellSize);
+            int y = (int)(((pnt.v[1] + boxSize/2))/cellSize);
+            
+            int index = (x + y*width);
+            if(index >= data.size() || index < 0) 
+                index = 0;
+            int[] set = data.get(index);
+            dataValue.v[0] = set[1]*norm;  // first material is background 
+            dataValue.v[1] = set[2]*norm;
+            dataValue.v[2] = set[3]*norm;
+            dataValue.v[3] = set[4]*norm;
+            dataValue.v[4] = set[5]*norm; // only store 5 materials. the first one is background
+            return 1;
+        }
+        
+        public int getChannelsCount(){
+            return 5;
+        }
+    
+        public Bounds getBounds(){
+            return null;
+        }
+        
+    }
+
     public static void main(String[] args) throws Exception {
 
         //new TestPolyJetWriter().devTestSingleImage();
-        new TestPolyJetWriter().devTestWriter();
+        //new TestPolyJetWriter().devTestWriter();
+        new TestPolyJetWriter().makeMaterialSamplesTest();
+        //makeMaterialsCombinations(1);
 
     }
 }

@@ -130,8 +130,12 @@ public class EnumParameter extends BaseParameter {
         value = m_values[index];
     }
 
-    public int getIndex() {
+    public final int getIndex() {
         return m_index;
+    }
+
+    public final int getSelectedIndex() {
+        return getIndex();
     }
 
 

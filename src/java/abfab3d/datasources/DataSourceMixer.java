@@ -197,6 +197,7 @@ public class DataSourceMixer extends TransformableDataSource {
     public int getBaseValue(Vec pnt, Vec data) {
 
         // TODO - reduce garbage collection 
+        //if(DEBUG) printf("m_maxChannelsCount:%d",m_maxChannelsCount);
         Vec sourceData = new Vec(m_maxChannelsCount);
         Vec sourcePnt = new Vec(pnt);
         //if(DEBUG && debugCount-- > 0) {

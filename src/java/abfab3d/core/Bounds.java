@@ -15,6 +15,7 @@ package abfab3d.core;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 
+import static java.lang.Math.*;
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Units.MM;
 
@@ -845,6 +846,26 @@ public class Bounds implements Cloneable {
         return fmt(fmt("%s %s, %s %s, %s %s; %s",format,format,format,format,format,format,format),
                    xmin/unit, xmax/unit, ymin/unit, ymax/unit, zmin/unit, zmax/unit, m_voxelSize/unit);
     }
+
+    public boolean equals(Object obj){
+
+        Bounds b = (Bounds)obj;
+        return 
+            abs(xmin - b.xmin) < EPS &&
+            abs(xmax - b.xmax) < EPS &&
+            abs(ymin - b.ymin) < EPS &&
+            abs(ymax - b.ymax) < EPS &&
+            abs(zmin - b.zmin) < EPS &&
+            abs(zmax - b.zmax) < EPS &&
+            abs(m_voxelSize - b.m_voxelSize) < EPS;
+        
+    }
+
+    public static boolean isInfinite(Bounds b){
+        return (b == null) || b.equals(INFINITE);
+    }
+    
+    static final double EPS = 1.e-8;
 
     public Bounds clone() {
 

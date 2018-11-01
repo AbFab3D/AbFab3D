@@ -44,6 +44,7 @@ import abfab3d.param.IntParameter;
 import abfab3d.param.StringParameter;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.StringListParameter;
+import abfab3d.param.EnumParameter;
 
 
 
@@ -108,11 +109,18 @@ public class PolyJetWriter extends BaseParameterizable {
     public static final String[] sm_smaterials = {S_WHITE,S_BLACK,S_CYAN,S_YELLOW,S_MAGENTA,S_CLEAR};
     public static final int[] sm_imaterials = {I_WHITE,I_BLACK,I_CYAN,I_YELLOW,I_MAGENTA,I_CLEAR};
 
-    int MAX_CHANNELS=7;
+    public static final String mappingNames[] = {"materials","color_rgb","color_rgba"};
+    public static final int MAPPING_MATERIALS = 0;
+    public static final int MAPPING_RGB = 1;
+    public static final int MAPPING_RGBA = 2;
 
-    static final double SLICE_THICKNESS_HR =0.014*MM;
-    static final double PIXEL_SIZE_X = IN/600;
-    static final double PIXEL_SIZE_Y = IN/300;
+    // maximal number of data channels to expect 
+    int MAX_CHANNELS = 6;
+
+    public static final double SLICE_THICKNESS =0.027*MM;
+    public static final double SLICE_THICKNESS_HR =0.014*MM;
+    public static final double PIXEL_SIZE_X = IN/600;
+    public static final double PIXEL_SIZE_Y = IN/300;
 
     static final Hashtable<String,Integer> sm_materialsTable = new Hashtable<String,Integer>();
     static {
@@ -135,6 +143,7 @@ public class PolyJetWriter extends BaseParameterizable {
     IntParameter mp_slicesCount = new IntParameter("slicesCount", -1);
     StringParameter mp_outFolder = new StringParameter("outFolder","/tmp/polyjet");
     StringParameter mp_outPrefix = new StringParameter("outPrefix","slice");
+    EnumParameter mp_mapping = new EnumParameter("mapping", "mapping mode of input value into materials", mappingNames, mappingNames[0]);
 
     
     Parameter m_aparam[] = new Parameter[]{
@@ -152,6 +161,7 @@ public class PolyJetWriter extends BaseParameterizable {
         mp_ditheringType,
         mp_firstSlice,
         mp_slicesCount,
+        mp_mapping,
     };
 
     public PolyJetWriter(){
@@ -195,7 +205,7 @@ public class PolyJetWriter extends BaseParameterizable {
     int m_materialColors[] = {I_WHITE};
     int m_materialCount = 1;
     double m_materialValues[][];
-     
+    int m_mapping;
 
     int m_ditheringType = DITHERING_FLOYD_STEINBERG;
 
@@ -214,9 +224,11 @@ public class PolyJetWriter extends BaseParameterizable {
         m_materialCount = m_materialColors.length;
         m_materialValues = getMaterialValues(m_materialCount);
         m_ditheringType = mp_ditheringType.getValue();
-        MathUtil.initialize(m_model);
+        m_mapping = mp_mapping.getSelectedIndex();
+
 
         m_bounds = getBounds();
+
         long t0 = time();
 
         m_sliceThickness = SLICE_THICKNESS_HR;
@@ -226,6 +238,7 @@ public class PolyJetWriter extends BaseParameterizable {
         m_nz = m_bounds.getGridDepth(m_sliceThickness);
         m_nx = m_bounds.getGridWidth(m_vsx);
         m_ny = m_bounds.getGridHeight(m_vsy);
+
         double sliceData[] = new double[m_nx*m_ny*m_materialCount];
 
         if(m_nx <=0 || m_ny <= 0 || m_nz <= 0){
@@ -244,9 +257,13 @@ public class PolyJetWriter extends BaseParameterizable {
         int firstSlice = mp_firstSlice.getValue();
         if(firstSlice < 0) firstSlice = 0;
         int slicesCount = mp_slicesCount.getValue();
-        if(slicesCount <= 0) slicesCount = m_nz;
-        
-        for(int iz = firstSlice; iz < slicesCount; iz++){
+        if(slicesCount <= 0) slicesCount = m_nz-firstSlice;
+
+        MathUtil.initialize(m_model);
+        if(DEBUG) {
+            printf("              writing: %d slices\n", slicesCount);
+        }
+        for(int iz = firstSlice; iz <  firstSlice+slicesCount; iz++){
             //for(int iz = 0; iz < m_nz; iz++){
             calculateSlice(iz, sliceData);
             makeImage(sliceData, imageData); 
@@ -286,6 +303,10 @@ public class PolyJetWriter extends BaseParameterizable {
         
     }
 
+    /**
+       convert slice data stored as single array of values 
+       into image data in RGBA format 
+     */
     protected void makeImage(double sliceData[], int imageData[]){
         
         Vec voxel = new Vec(m_materialCount);
@@ -396,14 +417,17 @@ public class PolyJetWriter extends BaseParameterizable {
 
         double maxDensity = 0;
         int maxIndex = 0;
+        double sum = 0;
+        double v[] = voxel.v;
         for(int c = 1; c < m_materialCount; c++){ 
-            double density = voxel.v[c];
+            double density = v[c];
+            sum += density;
             if(density > maxDensity ) {
                 maxDensity = density;
                 maxIndex = c;
             }
         }
-        if(maxDensity >= 0.5){
+        if(sum >= 0.5){
             // closest material 
             return maxIndex;
         } else {
@@ -431,12 +455,100 @@ public class PolyJetWriter extends BaseParameterizable {
         for(int i = 1; i < m_materialCount; i++){
             sliceData[offset + i] += error[i]*weight;
         }
+        // sometime it is harmful 
+        //normalizeVoxel(sliceData, offset);
+        
+    }
+
+    void normalizeVoxel(double slice[], int offset){
+        normalizeVoxelMM(slice, offset);
+    }
+    
+    void normalizeVoxel(Vec voxel){
+        switch(m_mapping){
+        default:
+        case MAPPING_MATERIALS:
+            normalizeVoxelMM(voxel.v);
+            break;
+        case MAPPING_RGB:
+            normalizeVoxelRGB(voxel.v);
+            break;
+        case MAPPING_RGBA:
+            normalizeVoxelRGB(voxel.v);
+            break;
+        }
+    }
+
+    void normalizeVoxelRGB(double v[]){
+        for(int i = 1; i < 4; i++){
+            v[i] = clamp(v[i],0, 1);
+        }        
+    }
+
+    void normalizeVoxelRGBA(double v[]){
+        for(int i = 1; i < 5; i++){
+            v[i] = clamp(v[i],0, 1);
+        }        
+    }
+
+    void normalizeVoxelRGBA(double v[], int offset){
+        for(int i = 1; i < 5; i++){
+            v[i+offset] = clamp(v[i+offset],0, 1);
+        }        
+    }
+
+    void normalizeVoxelRGB(double v[], int offset){
+        for(int i = 1; i < 4; i++){
+            v[i+offset] = clamp(v[i+offset],0, 1);
+        }        
+    }
+
+
+    /**
+       multi materials mapping 
+       makes sure that densities of materials are within interval[0,1]
+       
+       each materialChannel = clamp( materialChannel, 0, 1)
+       t = sum(all materialChannels)  
+       if(t > 1.) each materialChannels *= (1/t)
+     */
+    void normalizeVoxelMM(double v[]){
+
+        double t = 0;
+        for(int i = 1; i < m_materialCount; i++){
+            v[i] = clamp(v[i],0, 1);
+            t += v[i];
+        }
+        if(t > 1.) {
+            // total density exceeds 1 - normalize 
+            double t1 = 1./t;
+            for(int i = 1; i < m_materialCount; i++){
+                v[i] *= t1;
+            }            
+        }
+        
+    }
+    void normalizeVoxelMM(double v[], int offset){
+
+        double t = 0;
+        for(int i = 1; i < m_materialCount; i++){
+            v[i+offset] = clamp(v[i+offset],0, 1);
+            t += v[i+offset];
+        }
+        if(t > 1.) {
+            // total density exceeds 1 - normalize 
+            double t1 = 1./t;
+            for(int i = 1; i < m_materialCount; i++){
+                v[i+offset] *= t1;
+            }            
+        }
+        
     }
 
     /**
-       makes sure that densities of materials are withing interval[0,1]
+       makes sure that densities of materials are within interval[0,1]
      */
-    void normalizeVoxel(Vec voxel){
+    void normalizeVoxel_v0(Vec voxel){
 
         double remainingDensity = 1;
         double t = 0;
