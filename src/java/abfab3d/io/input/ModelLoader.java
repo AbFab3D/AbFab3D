@@ -97,6 +97,9 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
             mp_useCaching,
     };
 
+    Parameter m_meshParams[] = new Parameter[]{
+            mp_source
+    };
 
     public ModelLoader(String path) {
         initParams();
@@ -280,7 +283,7 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
      @return loaded mesh for this model
      */
     public AttributedMesh getMesh() {
-        String vhash = getValueHash();
+        String vhash = getValueHashForMesh();
         ModelCacheEntry co = (ModelCacheEntry) ParamCache.getInstance().get(vhash);
         AttributedMesh mesh = null;
         if (DEBUG) printf("ML.getMesh() Checking cache: %s\n", vhash);
@@ -551,6 +554,33 @@ public class ModelLoader extends BaseParameterizable implements GridProducer {
         return sb.toString();
     }
 
+    /**
+     * Mesh caching only requires a few of the params
+     * @return
+     */
+    protected String getValueHashForMesh() {
+
+        // TODO: transform should likely be a parameter but need to think through
+        // TODO: we need to get a value hash of trans not its default memory address
+        String trans = null;
+        if (m_transform instanceof Parameterizable) {
+            trans = ((Parameterizable) m_transform).getParamString();
+        } else {
+            if (m_transform == null) {
+                trans = "null";
+            } else {
+                trans = m_transform.toString();
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        getParamString(getClass().getSimpleName(),m_meshParams,sb);
+
+        sb.append(",");
+        sb.append(m_transform == null ? "trans=null" : "trans=" + trans);
+
+        return sb.toString();
+    }
 
     public void setTransform(VecTransform trans) {
         if (DEBUG) printf("Got a setTransform: %s\n", trans);
