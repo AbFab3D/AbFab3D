@@ -16,6 +16,8 @@ package abfab3d.param;
 import java.util.ArrayList;
 import java.util.List;
 
+import static abfab3d.core.Output.fmt;
+
 /**
  * A list of String
  *
@@ -36,11 +38,7 @@ public class StringListParameter extends ListParameter {
 
     public StringListParameter(String name, String values[]){
         super(name, name);
-        List list = new ArrayList();
-        for(int i = 0; i < values.length; i++){
-            list.add(values[i]);
-        }
-        setValue(list);
+        setValue(values);
         
     }
 
@@ -86,4 +84,35 @@ public class StringListParameter extends ListParameter {
             throw new IllegalArgumentException("Unsupported type for StringList: " + val + " in param: " + getName());
         }
     }
+
+
+    /**
+     * Set the parameters value
+     * @param value
+     */
+    public void setValue(Object value) {
+        
+        if(value instanceof List){
+
+            ArrayList list = new ArrayList();
+            list.addAll((List)value); 
+            this.value = list;
+
+        } else if(value instanceof String[]){
+
+            ArrayList list = new ArrayList();
+            String values[] = (String[])value;
+            for(int i = 0; i < values.length; i++){
+                list.add(values[i]);
+            }
+            this.value = list;
+
+        } else {
+            throw new RuntimeException(fmt("illegal parameter:%s",value));
+        }
+        
+        changed = true;
+        updateUI();
+    }
+
 }

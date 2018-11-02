@@ -93,7 +93,7 @@ public class DataSourceMixer extends TransformableDataSource {
     }
 
     /**
-     mixes four data sources
+       mixes four data sources
      */
     public DataSourceMixer(DataSource source1, DataSource source2, DataSource source3, DataSource source4) {
 
@@ -103,6 +103,38 @@ public class DataSourceMixer extends TransformableDataSource {
         add(source2);
         add(source3);
         add(source4);
+    }
+
+    /**
+       mixes five sources
+     */
+    public DataSourceMixer(DataSource source1, DataSource source2, DataSource source3, DataSource source4, DataSource source5 ) {
+
+        addParams(m_aparam);
+
+        add(source1);
+        add(source2);
+        add(source3);
+        add(source4);
+        add(source5);
+
+    }
+
+    /**
+       mixes six sources
+     */
+    public DataSourceMixer(DataSource source1, DataSource source2, DataSource source3, DataSource source4, 
+                           DataSource source5,DataSource source6 ) {
+
+        addParams(m_aparam);
+
+        add(source1);
+        add(source2);
+        add(source3);
+        add(source4);
+        add(source5);
+        add(source6);
+
     }
 
     public void add(DataSource source) {
