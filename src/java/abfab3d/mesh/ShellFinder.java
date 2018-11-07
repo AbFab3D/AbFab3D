@@ -104,17 +104,17 @@ public class ShellFinder {
             if(!e.hasMoreElements())
                 break;
             int shellFace = e.nextElement();
-            ShellInfo si = markShell(mesh, shellFace, hfaces);
-            vsi.add(si);
 
             if (!calcBounds) {
                 ac.reset();
-                getShell(mesh, si.startFace, ac, hfaces);
+                ShellInfo si = markShell(mesh, shellFace, ac,hfaces);
+                vsi.add(si);
                 si.volume = ac.getVolume();
             } else {
                 ac.reset();
                 bc.reset();
-                getShell(mesh, si.startFace, ac,bc, hfaces);
+                ShellInfo si = markShell(mesh, shellFace, ac,bc,hfaces);
+                vsi.add(si);
                 si.volume = ac.getVolume();
                 si.bounds = new double[6];
                 bc.getBounds(si.bounds);
@@ -264,7 +264,6 @@ public class ShellFinder {
         int currentFace = startFace;
 
         while(currentFace != -1){
-
             unmarkedFaces.remove(new Integer(currentFace));   // TODO: garbage
             sendFace(currentFace, mesh, tc1);
             sendFace(currentFace, mesh, tc2);
@@ -312,7 +311,6 @@ public class ShellFinder {
         int currentFace = startFace;
 
         while(currentFace != -1){
-
             unmarkedFaces.remove(new Integer(currentFace));   // TODO: garbage
             sendFace(currentFace, mesh, tc1);
             sendFace(currentFace, mesh, tc2);
@@ -411,6 +409,103 @@ public class ShellFinder {
             
         }    
         
+        return si;
+    }
+
+    ShellInfo markShell(WingedEdgeTriangleMesh mesh, int startFace, TriangleCollector tc1, Hashtable<Integer,Integer> unmarkedFaces){
+
+        ShellInfo si = new ShellInfo();
+        StackOfInt facesToCheck = new StackOfInt(100000);
+
+        si.startFace = startFace;
+        si.faceCount = 0;
+
+        StructMixedData faces = mesh.getFaces();
+        StructMixedData halfEdges = mesh.getHalfEdges();
+
+        int currentFace = startFace;
+        while(currentFace != -1){
+
+            unmarkedFaces.remove(new Integer(currentFace));
+            sendFace(currentFace, mesh, tc1);
+            si.faceCount++;
+
+            //printf("currentFace: %d\n", currentFace);
+
+            int he = Face.getHe(faces, currentFace);
+
+            // face as 3 adjacent faces linked via HalfEdges
+            int twin = HalfEdge.getTwin(halfEdges, he);
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            he = HalfEdge.getNext(halfEdges, he);
+            twin = HalfEdge.getTwin(halfEdges, he);
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            he = HalfEdge.getNext(halfEdges, he);
+            twin = HalfEdge.getTwin(halfEdges, he);
+
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            currentFace = findNextFace(unmarkedFaces,facesToCheck);
+
+        }
+
+        return si;
+    }
+
+    ShellInfo markShell(WingedEdgeTriangleMesh mesh, int startFace, TriangleCollector tc1, TriangleCollector tc2, Hashtable<Integer,Integer> unmarkedFaces){
+
+        ShellInfo si = new ShellInfo();
+        StackOfInt facesToCheck = new StackOfInt(100000);
+
+        si.startFace = startFace;
+        si.faceCount = 0;
+
+        StructMixedData faces = mesh.getFaces();
+        StructMixedData halfEdges = mesh.getHalfEdges();
+
+        int currentFace = startFace;
+        while(currentFace != -1){
+
+            unmarkedFaces.remove(new Integer(currentFace));
+            sendFace(currentFace, mesh, tc1);
+            sendFace(currentFace, mesh, tc2);
+            si.faceCount++;
+
+            //printf("currentFace: %d\n", currentFace);
+
+            int he = Face.getHe(faces, currentFace);
+
+            // face as 3 adjacent faces linked via HalfEdges
+            int twin = HalfEdge.getTwin(halfEdges, he);
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            he = HalfEdge.getNext(halfEdges, he);
+            twin = HalfEdge.getTwin(halfEdges, he);
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            he = HalfEdge.getNext(halfEdges, he);
+            twin = HalfEdge.getTwin(halfEdges, he);
+
+            if(twin != -1) {
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            currentFace = findNextFace(unmarkedFaces,facesToCheck);
+
+        }
+
         return si;
     }
 
