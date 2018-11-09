@@ -37,6 +37,9 @@ import abfab3d.core.Bounds;
 import abfab3d.core.Initializable;
 import abfab3d.core.MathUtil;
 
+import abfab3d.util.SliceCalculator;
+import abfab3d.util.SimpleSliceCalculator;
+
 import abfab3d.param.Parameter;
 import abfab3d.param.SNodeParameter;
 import abfab3d.param.DoubleParameter;
@@ -72,6 +75,8 @@ import static java.lang.Math.sqrt;
 public class PolyJetWriter extends BaseParameterizable {
 
     static final boolean DEBUG = true;
+
+    static final int MAX_DATA_DIMENSION = 8;
 
     // named PolyJet materials 
     public static final String S_WHITE = "VeroPureWht";
@@ -114,8 +119,6 @@ public class PolyJetWriter extends BaseParameterizable {
     public static final int MAPPING_RGB = 1;
     public static final int MAPPING_RGBA = 2;
 
-    // maximal number of data channels to expect 
-    int MAX_CHANNELS = 6;
 
     public static final double SLICE_THICKNESS =0.027*MM;
     public static final double SLICE_THICKNESS_HR =0.014*MM;
@@ -130,6 +133,7 @@ public class PolyJetWriter extends BaseParameterizable {
     }
 
     SNodeParameter mp_model = new SNodeParameter("model");
+    SNodeParameter mp_sliceCalculator = new SNodeParameter("sliceCalculator");
     DoubleParameter mp_xmin = new DoubleParameter("xmin", "xmin", 0);
     DoubleParameter mp_xmax = new DoubleParameter("xmax", "xmax", 0);
     DoubleParameter mp_ymin = new DoubleParameter("ymin", "ymin", 0);
@@ -149,6 +153,7 @@ public class PolyJetWriter extends BaseParameterizable {
     Parameter m_aparam[] = new Parameter[]{
 
         mp_model,
+        mp_sliceCalculator,
         mp_xmin, 
         mp_xmax, 
         mp_ymin, 
@@ -215,6 +220,19 @@ public class PolyJetWriter extends BaseParameterizable {
     static final int DITHERING_Y_AXIS = 2;
     static final int DITHERING_XY = 3;
 
+    SliceCalculator getSliceCalculator() {
+        
+        Object obj = mp_sliceCalculator.getValue();
+        printf("getSliceCalculator(): %s\n", obj);
+        SliceCalculator slicer = null;
+        if(obj != null && obj instanceof SliceCalculator) {
+            slicer = (SliceCalculator)obj;
+        } else {
+            slicer = new SimpleSliceCalculator(MAX_DATA_DIMENSION);                        
+        }
+        return slicer;
+    }
+
     public void write(){
         
         String outFolder = mp_outFolder.getValue();
@@ -263,9 +281,16 @@ public class PolyJetWriter extends BaseParameterizable {
         if(DEBUG) {
             printf("              writing: %d slices\n", slicesCount);
         }
+        Vector3d eu = new Vector3d(m_vsx, 0,0);
+        Vector3d ev = new Vector3d(0, m_vsy, 0);
+        Vector3d origin = new Vector3d(m_bounds.xmin + m_vsx/2, m_bounds.ymin + m_vsy/2, 0);
+        
+        SliceCalculator slicer = getSliceCalculator();
+
         for(int iz = firstSlice; iz <  firstSlice+slicesCount; iz++){
-            //for(int iz = 0; iz < m_nz; iz++){
-            calculateSlice(iz, sliceData);
+            origin.z = m_bounds.zmin + m_sliceThickness*(iz+0.5);
+             
+            slicer.getSliceData(m_model, origin, eu, ev, m_nx, m_ny, m_materialCount, sliceData);
             makeImage(sliceData, imageData); 
             String outPath = fmt("%s/%s_%d.png", outFolder, outPrefix, iz);
             try {
@@ -278,29 +303,14 @@ public class PolyJetWriter extends BaseParameterizable {
             printf("PolyJetWriter write() done %d ms\n", (time()-t0));
         }
     }
+    
 
-    protected void calculateSlice(int iz, double sliceData[]){
-        
-        //if(DEBUG)printf("calculateSlice(%d)\n", iz);
+    final int voxelOffset(int ix, int iy){
+        return (ix + iy*m_nx)*m_materialCount;
+    }
 
-        double z = m_bounds.zmin + m_sliceThickness*(iz+0.5);
-        double xmin = m_bounds.xmin + m_vsx/2;
-        double ymin = m_bounds.ymin + m_vsy/2;
-        Vec pnt = new Vec(3);
-        Vec data = new Vec(MAX_CHANNELS);
-        
-        for(int iy = 0; iy < m_ny; iy++){
-            double y = ymin + iy*m_vsy;
-            for(int ix = 0; ix < m_nx; ix++){
-                double x = xmin + ix*m_vsx;
-                pnt.set(x,y,z);
-                m_model.getDataValue(pnt, data);
-                normalizeVoxel(data);
-                data.get(sliceData, voxelOffset(ix, iy), m_materialCount);
-            }
-        }
-
-        
+    void getVoxel(double data[], int ix, int iy, Vec voxel){
+        voxel.set(data, voxelOffset(ix, iy));        
     }
 
     /**
@@ -366,15 +376,7 @@ public class PolyJetWriter extends BaseParameterizable {
             break;
         }
     }
-        
 
-    void getVoxel(double data[], int ix, int iy, Vec voxel){
-        voxel.set(data, voxelOffset(ix, iy));        
-    }
-
-    final int voxelOffset(int ix, int iy){
-        return (ix + iy*m_nx)*m_materialCount;
-    }
     static int[] getMaterialsColors(ArrayList materialNames){
         int colors[] = new int[materialNames.size()];
         for(int i = 0; i < materialNames.size(); i++){
@@ -569,6 +571,5 @@ public class PolyJetWriter extends BaseParameterizable {
             error[i] = requestedValue[i] - usedValue[i];
 
         }       
-    }
-    
+    }   
 }

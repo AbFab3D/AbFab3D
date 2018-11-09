@@ -36,6 +36,7 @@ import abfab3d.core.Vec;
 import abfab3d.core.Color;
 import abfab3d.core.DataSource;
 import abfab3d.util.ImageUtil;
+import abfab3d.util.SliceCalculator;
 
 
 import abfab3d.param.BaseParameterizable;
@@ -388,7 +389,7 @@ public class TestPolyJetWriter {
     void makeMaterialSamplesTest(){
 
         double sampleSize = 10*MM;
-        int quantization = 6;
+        int quantization = 2;
 
         DataSource model = makeMaterialsSample(sampleSize, quantization);
 
@@ -482,12 +483,60 @@ public class TestPolyJetWriter {
         
     }
 
+    void devTestSliceCalculator(){
+
+        double sampleSize = 10*MM;
+        int quantization = 2;
+
+        DataSource model = makeMaterialsSample(sampleSize, quantization);
+
+        Bounds bounds = model.getBounds();
+
+        PolyJetWriter writer = new PolyJetWriter();
+        
+        writer.setBounds(bounds);
+        writer.set("model", model);        
+        writer.set("ditheringType", 0);
+        writer.set("firstSlice",bounds.getDepthVoxels(PolyJetWriter.SLICE_THICKNESS_HR)/2);
+        writer.set("slicesCount", 1);
+        writer.set("outFolder","/tmp/polyjet");
+        //writer.set("mapping", "color_rgba");
+        writer.set("mapping", "materials");
+        //writer.set("sliceCalculator", new DumbSliceCalculator());
+
+        writer.set("materials",new String[]{PolyJetWriter.S_WHITE, 
+                                            PolyJetWriter.S_BLACK,
+                                            PolyJetWriter.S_CLEAR,
+                                            PolyJetWriter.S_YELLOW, 
+                                            PolyJetWriter.S_MAGENTA,
+                                            PolyJetWriter.S_CYAN,                                              
+                                            
+                                            
+                                            
+            });
+        writer.write();
+
+    }
+
+
+    /**
+       calculates nothing for test 
+     */
+    static class DumbSliceCalculator implements SliceCalculator {
+        
+        public void getSliceData(DataSource source, Vector3d origin, Vector3d u, Vector3d v, int nu, int nv, int dataDimension, double sliceData[]){
+            printf("getSliceData([%7.5f,%7.5f,%7.5f])\n", origin.x/MM, origin.y/MM, origin.z/MM);
+        }
+        
+    }
+
     public static void main(String[] args) throws Exception {
 
         //new TestPolyJetWriter().devTestSingleImage();
         //new TestPolyJetWriter().devTestWriter();
-        new TestPolyJetWriter().makeMaterialSamplesTest();
+        //new TestPolyJetWriter().makeMaterialSamplesTest();
         //makeMaterialsCombinations(1);
+        new TestPolyJetWriter().devTestSliceCalculator();
 
     }
 }

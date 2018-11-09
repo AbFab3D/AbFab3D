@@ -73,7 +73,6 @@ public class FullColorMaterial extends BasePrintableMaterial implements Material
     public static Material getInstance() {
         if (instance != null) return instance;
         instance = new FullColorMaterial();
-
         return instance;
     }
 }

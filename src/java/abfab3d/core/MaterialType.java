@@ -18,7 +18,7 @@ package abfab3d.core;
  */
 public enum MaterialType {
     SINGLE_MATERIAL(0),
-    MULTI_MATERIAL(1),
+    MIXED_MATERIAL(1),
     COLOR_MATERIAL(2),
     INDEXED_MATERIAL(3);
 

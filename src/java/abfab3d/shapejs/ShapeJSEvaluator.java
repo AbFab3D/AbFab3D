@@ -127,10 +127,11 @@ public class ShapeJSEvaluator implements MaterialMapper {
         errorRemap.put("Wrapped abfab3d.grid.util.ExecutionStoppedException", "Execution time exceeded.");
 
         materials = new LinkedHashMap<String, Material>();
-        materials.put(SingleColorMaterial.getInstance().getName(), SingleColorMaterial.getInstance());
-        materials.put(FullColorMaterial.getInstance().getName(), FullColorMaterial.getInstance());
-        Materials.add(SingleColorMaterial.getInstance().getName(), SingleColorMaterial.getInstance());
-        Materials.add(FullColorMaterial.getInstance().getName(), FullColorMaterial.getInstance());
+        // caching instance of single color material is wrong because it has color parameters 
+        //materials.put(SingleColorMaterial.getInstance().getName(), SingleColorMaterial.getInstance());
+        //materials.put(FullColorMaterial.getInstance().getName(), FullColorMaterial.getInstance());
+        //Materials.add(SingleColorMaterial.getInstance().getName(), SingleColorMaterial.getInstance());
+        //Materials.add(FullColorMaterial.getInstance().getName(), FullColorMaterial.getInstance());
 
         setupSecurity();
     }
@@ -196,6 +197,8 @@ public class ShapeJSEvaluator implements MaterialMapper {
         classImports.add("abfab3d.shapejs.Viewpoint");
         classImports.add("abfab3d.shapejs.Background");
         classImports.add("abfab3d.shapejs.Materials");
+        classImports.add("abfab3d.shapejs.MixedMaterial");
+        classImports.add("abfab3d.shapejs.ColorMaterial");
         classImports.add("abfab3d.shapejs.SingleColorMaterial");
         classImports.add("abfab3d.shapejs.FullColorMaterial");
         classImports.add("abfab3d.shapejs.TracingParams");

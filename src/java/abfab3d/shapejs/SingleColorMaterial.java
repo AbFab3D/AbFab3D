@@ -52,7 +52,7 @@ public class SingleColorMaterial extends BaseRenderableMaterial {
         return m_shader;
     }
 
-    public static Material getInstance() {
+    public static Material _getInstance() {
         if (instance != null) return instance;
         instance = new SingleColorMaterial();
 

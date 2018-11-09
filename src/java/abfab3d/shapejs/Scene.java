@@ -50,7 +50,7 @@ import static abfab3d.core.Output.fmt;
  */
 public class Scene extends BaseParameterizable implements Initializable {
 
-    final static boolean DEBUG = false;
+    final static boolean DEBUG = true;
 
     final public static double DEFAULT_VOXEL_SIZE = 0.1*MM;
     final public static Vector3d DEFAULT_SIZE = new Vector3d(0.1,0.1,0.1);
@@ -69,9 +69,6 @@ public class Scene extends BaseParameterizable implements Initializable {
     protected Bounds m_bounds = DEFAULT_BOUNDS;
     protected String m_name = "ShapeJS";
 
-    // we support up to 4 materials
-    // material[0] is base material
-    // material[1,2,3] correspond to material channels
     protected SceneMaterials m_materials = new SceneMaterials();
     protected ArrayList<Shape> m_shapes = new ArrayList<>();
     protected LightingRig m_lightingRig = DEFAULT_LIGHTING_RIG;
@@ -99,7 +96,7 @@ public class Scene extends BaseParameterizable implements Initializable {
     //SNodeParameter mp_renderingParams = new SNodeParameter("renderingParams", "Rendering params", new RenderingParams());
 
     ShapeList root = new ShapeList();
-    Material mats[] = new Material[SceneMaterials.MAX_MATERIALS];
+    //Material mats[] = new Material[SceneMaterials.MAX_MATERIALS];
 
     // local params 
     protected Parameter m_aparam[] = new Parameter[]{
@@ -291,15 +288,16 @@ public class Scene extends BaseParameterizable implements Initializable {
      * @return
      */
     public Parameterizable getRenderingSource(boolean draftMode) {
+        
+        if(DEBUG)printf("%s.getRenderingSource(%s)\n", this.getClass().getName(), draftMode); 
         if (root == null) {
             root = new ShapeList();
         } else {
             root.clear();
         }
 
-        for(int i=0; i < mats.length; i++) {
-            mats[i] = null;
-        }
+        m_materials.clear();
+
 
         int midx = 0;
         for(Shape shape : m_shapes) {
@@ -318,29 +316,9 @@ public class Scene extends BaseParameterizable implements Initializable {
             }
 
             Material dsm = ds.getMaterial();
-            boolean found = false;
-            for(int i=0; i < mats.length; i++) {
-                if (dsm == mats[i]) {
-                    ds.setMaterialID(i);
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) {
-                mats[midx] = ds.getMaterial();
-                ds.setMaterialID(midx);
-                midx++;
-            }
-
+            ds.setMaterialID(m_materials.addMaterial(dsm));
             root.add(ds);
         }
-
-        for(int i=midx; i < SceneMaterials.MAX_MATERIALS; i++) {
-            mats[i] = DefaultMaterial.getInstance();
-        }
-
-        m_materials.setMaterials(mats);
 
         root.initialize();
         return root;
@@ -349,8 +327,6 @@ public class Scene extends BaseParameterizable implements Initializable {
 
     public void addShape(Shape shape) {
         m_shapes.add(shape);
-
-        int matId = addMaterial(shape.getMaterial());
     }
 
     public Shape removeShape(Shape shape) {
@@ -386,9 +362,7 @@ public class Scene extends BaseParameterizable implements Initializable {
     public void setSource(DataSource source) {
         m_shapes.clear();
         m_lastMaterial = 0;
-        Shape shape = new Shape(source, DefaultMaterial.getInstance());
-        m_shapes.add(shape);
-        addMaterial(shape.getMaterial());
+        addShape(new Shape(source, DefaultMaterial.getInstance()));
     }
 
     public void setShape(Shape[] shapes) {
@@ -396,15 +370,13 @@ public class Scene extends BaseParameterizable implements Initializable {
         m_lastMaterial = 0;
 
         for(Shape s : shapes) {
-            m_shapes.add(s);
-            addMaterial(s.getMaterial());
+            addShape(s);
         }
     }
 
     public void setShape(int idx, Shape shape) {
 
         m_shapes.set(idx,shape);
-        addMaterial(shape.getMaterial());
     }
 
     public void setVoxelSize(double voxelSize) {
@@ -466,10 +438,7 @@ public class Scene extends BaseParameterizable implements Initializable {
        set rendering material for given index 
      */
     public void setMaterial(int index,Material mat) {
-        if (index > SceneMaterials.MAX_MATERIALS - 1) throw new IllegalArgumentException("Cannot exceed " + SceneMaterials.MAX_MATERIALS + " materials");
-        m_shapes.get(index).setMaterial(mat);
-        addMaterial(mat);
-        buildParams();
+        printf("*** scene.setMaterial(int index,Material mat) is obsolete *** \n Use Shape.setMaterial(Material) instead\n");
     }
 
     /**
@@ -477,7 +446,8 @@ public class Scene extends BaseParameterizable implements Initializable {
      * @param mat
      * @return
      */
-    private int addMaterial(Material mat) {
+    /*
+    private  int addMaterial(Material mat) {
         List<Material> mats = m_materials.getMaterials();
         int idx = 0;
         for(Material m : mats) {
@@ -494,7 +464,7 @@ public class Scene extends BaseParameterizable implements Initializable {
 
         return m_lastMaterial;
     }
-
+    */
     private void removeMaterial(Material mat) {
         m_materials.removeMaterial(mat);
         m_lastMaterial--;
