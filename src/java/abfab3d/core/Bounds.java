@@ -57,16 +57,12 @@ public class Bounds implements Cloneable {
     }
 
     public Bounds(double bounds[]){ 
-        this.xmin = bounds[0];
-        this.xmax = bounds[1];
-        this.ymin = bounds[2];
-        this.ymax = bounds[3];
-        this.zmin = bounds[4];
-        this.zmax = bounds[5];    
-        init();
+
+        setBounds(bounds);
     }
 
     public Bounds(double bounds[], double voxelSize){
+        
         this.xmin = bounds[0];
         this.xmax = bounds[1];
         this.ymin = bounds[2];
@@ -323,6 +319,27 @@ public class Bounds implements Cloneable {
         this.ymax = bounds.ymax;
         this.zmin = bounds.zmin;
         this.zmax = bounds.zmax;
+        init();
+    }
+
+    public void setBounds(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax) {
+        this.xmin = xmin;
+        this.xmax = xmax;
+        this.ymin = ymin;
+        this.ymax = ymax;
+        this.zmin = zmin;
+        this.zmax = zmax;
+        init();
+    }
+
+    public void setBounds(double bounds[]) {
+        this.xmin = bounds[0];
+        this.xmax = bounds[1];
+        this.ymin = bounds[2];
+        this.ymax = bounds[3];
+        this.zmin = bounds[4];
+        this.zmax = bounds[5];    
+        init();
     }
 
     public Vector3d[] getCorners(){
