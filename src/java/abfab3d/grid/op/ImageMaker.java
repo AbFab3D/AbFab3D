@@ -23,7 +23,19 @@ import abfab3d.core.Initializable;
 import abfab3d.core.Bounds;
 import abfab3d.core.DataSource;
 import abfab3d.core.Vec;
+import abfab3d.core.Color;
+import abfab3d.core.ImageProducer;
+import abfab3d.core.ResultCodes;
+
 import abfab3d.util.AbFab3DGlobals;
+
+import abfab3d.param.BaseParameterizable;
+import abfab3d.param.IntParameter;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.ColorParameter;
+import abfab3d.param.SNodeParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Parameterizable;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.util.ImageUtil.makeARGB;
@@ -41,19 +53,80 @@ import static abfab3d.util.ImageUtil.makeARGB;
    data.v[2] - BLUE
    data.v[3] - ALPHA 
  */
-public class ImageMaker {
+public class ImageMaker extends BaseParameterizable implements ImageProducer {
     
-    protected int m_threadCount = 0;
     protected int m_imgType = BufferedImage.TYPE_INT_ARGB;
 
     private Slice[] m_slices;
     private AtomicInteger m_slicesIdx;
+    
+    private BufferedImage m_image;
+
+    
+    IntParameter mp_width = new IntParameter("width", 100);
+    IntParameter mp_height = new IntParameter("height", 100);
+    IntParameter mp_threadCount = new IntParameter("threadCount", 0);
+    DoubleParameter mp_xmin = new DoubleParameter("xmin", -1.);
+    DoubleParameter mp_xmax = new DoubleParameter("xmax", 1.);
+    DoubleParameter mp_ymin = new DoubleParameter("ymin", -1.);
+    DoubleParameter mp_ymax = new DoubleParameter("ymax", 1.);
+    DoubleParameter mp_zmin = new DoubleParameter("zmin", -1.);
+    DoubleParameter mp_zmax = new DoubleParameter("zmax", 1.);
+
+    // image renderer, by default - solid red 
+    SNodeParameter mp_imgRenderer = new SNodeParameter("imgRenderer", new SolidColor(new Color(1,0,0,1)));
+    
+    Parameter m_params[] = new Parameter[]{
+        mp_width,
+        mp_height,
+        mp_threadCount,
+        mp_imgRenderer,
+        mp_xmin, 
+        mp_xmax, 
+        mp_ymin, 
+        mp_ymax, 
+        mp_zmin, 
+        mp_zmax, 
+        
+    };
 
     public ImageMaker(){        
+
+        addParams(m_params);
+        
     }
 
+
+    public BufferedImage getImage(){
+
+        prepareImage();
+        return m_image;
+    }
+
+
+    public void setBounds(Bounds bounds){
+
+        set("xmin",bounds.xmin);
+        set("xmax",bounds.xmax);
+        set("ymin",bounds.ymin);
+        set("ymax",bounds.ymax);
+        set("zmin",bounds.zmin);
+        set("zmax",bounds.zmax);
+
+    }
+
+    public Bounds getBounds(){
+
+        return new Bounds(mp_xmin.getValue(), mp_xmax.getValue(), 
+                          mp_ymin.getValue(), mp_ymax.getValue(), 
+                          mp_zmin.getValue(), mp_zmax.getValue());
+    }
+
+
     public void setThreadCount(int threadCount){        
-        m_threadCount = threadCount;
+
+        set("threadsCount", threadCount);
+
     }
 
 
@@ -65,32 +138,58 @@ public class ImageMaker {
         return m_slices[idx];
     }
 
+    
     /**
        creates and renders in default TYPE_INT_ARGB format 
+       backward compatibility methods        
+       new code should use getImage();
+
      */
     public BufferedImage renderImage(int width, int height, Bounds bounds, DataSource imgRenderer){
+
+        set("width", width);
+        set("height", height);        
+        set("imgRenderer", imgRenderer);
+        setBounds(bounds);
+
+        return getImage();
+
+    }
+    
+
+
+    protected void prepareImage(){
+                
+        int width = mp_width.getValue();
+        int height = mp_height.getValue();
+        DataSource imgRenderer = (DataSource)mp_imgRenderer.getValue();
+        Bounds bounds = getBounds();
 
         BufferedImage image =  new BufferedImage(width, height, m_imgType);
         DataBufferInt db = (DataBufferInt)image.getRaster().getDataBuffer();
         int[] imageData = db.getData();
-
-        if (m_threadCount == 0) {
-            m_threadCount = Runtime.getRuntime().availableProcessors();
+        
+        int threadCount = mp_threadCount.getValue();
+        if (threadCount == 0) {
+            threadCount = Runtime.getRuntime().availableProcessors();
         }
 
         int max = (int) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY);
-        if (m_threadCount > max) m_threadCount = max;
+        if (threadCount > max) threadCount = max;
 
-        if (m_threadCount == 1) {
+        if (threadCount == 1) {
             renderImage(width, height, bounds, imgRenderer, imageData);
         } else {
-            renderImageMT(width, height, bounds, imgRenderer, imageData);
+            renderImageMT(width, height, bounds, imgRenderer, imageData, threadCount);
         }
 
-        return image;
+
+        m_image = image;
     }
 
     public void renderImage(int width, int height, Bounds bounds, DataSource imgRenderer, int [] imageData){
+        
+
         if(imgRenderer instanceof Initializable) {
             ((Initializable)imgRenderer).initialize();
         }
@@ -102,7 +201,7 @@ public class ImageMaker {
 
         double umin = bounds.xmin + du/2; // half pixel shift 
         double vmin = bounds.ymin + dv/2;
-        // take w plane in the middle of bounds, or shall it be at zmin ? 
+        // take z plane in the middle of bounds, or shall it be at zmin ? 
         double wmin = (bounds.zmin + bounds.zmax)/2;
         
         int dataDim = imgRenderer.getChannelsCount();
@@ -131,7 +230,8 @@ public class ImageMaker {
         }
     }
 
-    public void renderImageMT(int width, int height, Bounds bounds, DataSource imgRenderer, int [] imageData){
+    protected void renderImageMT(int width, int height, Bounds bounds, DataSource imgRenderer, int [] imageData, int threadCount){
+
         if(imgRenderer instanceof Initializable) {
             ((Initializable)imgRenderer).initialize();
         }
@@ -143,8 +243,8 @@ public class ImageMaker {
 
         m_slicesIdx = new AtomicInteger(0);
 
-        ExecutorService executor = Executors.newFixedThreadPool(m_threadCount);
-        for(int i = 0; i < m_threadCount; i++){
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        for(int i = 0; i < threadCount; i++){
             Runnable runner = new ImageRunner(width,height,bounds,imgRenderer,imageData);
             executor.submit(runner);
         }
@@ -251,5 +351,65 @@ public class ImageMaker {
             return h;
         }
     }
+
+    static class SolidColor extends BaseParameterizable implements DataSource {
+        
+        double m_red, m_green, m_blue, m_alpha;
+
+        ColorParameter mp_color = new ColorParameter("color", new Color(1,0,0,1));
+        Parameter m_params[] = new Parameter[]{
+            mp_color
+        };
+
+        public SolidColor(Color color){
+            
+            addParams(m_params);
+            set("color", color);
+
+        }
+
+        public int initialize(){
+            Color color = mp_color.getValue();
+            m_red = color.getr();
+            m_green = color.getg();
+            m_blue = color.getb();
+            m_alpha = color.geta();
+            return ResultCodes.RESULT_OK;
+        }
+
+        /**
+           data value at the given point 
+           @param pnt Point where the data is calculated 
+           @param dataValue - storage for returned calculated data 
+           @return result code 
+        */
+        public int getDataValue(Vec pnt, Vec dataValue){
+
+            dataValue.v[0] = m_red;
+            dataValue.v[1] = m_green;
+            dataValue.v[2] = m_blue;
+            dataValue.v[3] = m_alpha;
+            return ResultCodes.RESULT_OK;
+        }
+        
+        /**
+           @returns count of data channels, 
+           it is the count of data values returned in  getDataValue()        
+        */
+        public int getChannelsCount(){
+            return 4;
+        }
+        
+        /**
+           @return bounds of this data source. It may be null for data sources without bounds 
+           
+        */
+        public Bounds getBounds(){
+            return null;
+        }
+        
+        
+    }
+    
 
 } // class ImageMaker
