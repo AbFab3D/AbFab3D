@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static abfab3d.core.MathUtil.blendMin;
+import static abfab3d.core.Output.printf;
 
 
 /**
@@ -119,7 +120,6 @@ public class ShapeList extends TransformableDataSource implements SNode {
         return ResultCodes.RESULT_OK;
     }
     
-    
     /**
      * calculates values of all data sources and return maximal value
      * can be used to make union of few shapes
@@ -144,6 +144,8 @@ public class ShapeList extends TransformableDataSource implements SNode {
         Shape dss[] = vShapes;
         
         double value = 0.;
+        int matIdx = 0;
+
         for(int i = 0; i < len; i++){
             
             DataSource ds = dss[i].getSource();
@@ -158,13 +160,19 @@ public class ShapeList extends TransformableDataSource implements SNode {
             double v = data.v[0];
             if(v >= 1.){
                 data.v[0] = 1;
+                data.materialIndex = i;                
                 return ResultCodes.RESULT_OK;
             }
             
-            if( v > value) value = v;
+            if( v > value) {
+                value = v;
+                matIdx = i;
+            }
         }
         
         data.v[0] = value;
+        // store material index 
+        data.materialIndex = matIdx;
         
         return ResultCodes.RESULT_OK;
     }
@@ -175,7 +183,7 @@ public class ShapeList extends TransformableDataSource implements SNode {
         Shape dss[] = vShapes;
         
         double value = Double.MAX_VALUE;
-        int matIdx;
+        int matIdx=0;
 
         //TODO garbage collecton 
         Vec pnt1 = new Vec(pnt);
@@ -186,7 +194,6 @@ public class ShapeList extends TransformableDataSource implements SNode {
             pnt1.set(pnt);
             ds.getDataValue(pnt1, data);
             double v = data.v[0];
-            value = blendMin(value, data.v[0], 0);
 
             if (data.v[0] < value) {
                 value = data.v[0];
@@ -196,7 +203,9 @@ public class ShapeList extends TransformableDataSource implements SNode {
         
         data.v[0] = value;
 
-        // TODO: Not sure how to pass back, add a matIdx = Vec?
+        // store material index 
+        data.materialIndex = dss[matIdx].getMaterialID();
+
         return ResultCodes.RESULT_OK;
     }   
 

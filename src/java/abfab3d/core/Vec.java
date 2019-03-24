@@ -33,6 +33,7 @@ public class Vec {
     public double v[];    
     public double voxelSize = 1; // size of voxel in the grid in physical units 
     public double scaleFactor = 1;   // accumulated scale factor of all applied transform 
+    public int materialIndex = 0;
 
     public Vec(int size){
         this.v = new double[size];

@@ -80,6 +80,10 @@ public class PhongParams extends RenderingParams {
         mp_materialType.setValue(type);
     }
 
+    public int getMaterialTypeIndex(){
+        return mp_materialType.getIndex();
+    }
+
     protected void initParams(){
         super.addParams(m_aparam);
     }

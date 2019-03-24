@@ -115,7 +115,7 @@ public class Scene extends BaseParameterizable implements Initializable {
     public Scene(String name){
         m_name = name;
         initParams();
-        initRendering();
+        initDefaults();
     }
 
     public Scene(Parameterizable source, Bounds bounds){
@@ -137,7 +137,7 @@ public class Scene extends BaseParameterizable implements Initializable {
         bounds.setVoxelSize(voxelSize);
 
         initParams();
-        initRendering();
+        initDefaults();
     }
 
     public Scene(Shape shape, Bounds bounds, double voxelSize){
@@ -147,7 +147,24 @@ public class Scene extends BaseParameterizable implements Initializable {
         bounds.setVoxelSize(voxelSize);
 
         initParams();
-        initRendering();
+        initDefaults();
+    }
+
+    public Scene(Bounds bounds, double voxelSize){
+
+        m_bounds = bounds;
+        bounds.setVoxelSize(voxelSize);
+
+        initParams();
+        initDefaults();
+    }
+
+    public Scene(Bounds bounds){
+
+        m_bounds = bounds;
+
+        initParams();
+        initDefaults();
     }
 
     private void initParams() {
@@ -181,7 +198,7 @@ public class Scene extends BaseParameterizable implements Initializable {
     /**
      * Setup a default rendering setup
      */
-    protected void initRendering() {
+    protected void initDefaults() {
         setLightingRig(m_lightingRig);
     }
 

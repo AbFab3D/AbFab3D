@@ -30,6 +30,7 @@ public class Light extends BaseParameterizable {
     private BooleanParameter mp_castShadows = new BooleanParameter("castShadows","CastShadows",false);
     private IntParameter mp_samples = new IntParameter("samples","Samples", 1);
     private DoubleParameter mp_radius = new DoubleParameter("radius","Radius", 0);
+    private DoubleParameter mp_angularSize = new DoubleParameter("angularSize", "relative size of light (in radians)", 0.5);
     private BooleanParameter mp_fixedPosition = new BooleanParameter("fixedPosition","Do not move with camera",false);
 
     private Parameter m_aparam[] = new Parameter[]{
@@ -40,7 +41,9 @@ public class Light extends BaseParameterizable {
             mp_castShadows,
             mp_samples,
             mp_radius,
-            mp_fixedPosition
+            mp_angularSize,
+            mp_fixedPosition,
+
     };
 
     public Light() {
@@ -113,6 +116,14 @@ public class Light extends BaseParameterizable {
 
     public double getRadius() {
         return mp_radius.getValue();
+    }
+
+    public void setAngularSize(double angularSize) {
+        mp_angularSize.setValue(angularSize);
+    }
+
+    public double getAngularSize() {
+        return mp_angularSize.getValue();
     }
 
     public boolean getFixedPosition() {

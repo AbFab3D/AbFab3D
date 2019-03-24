@@ -17,10 +17,18 @@ package abfab3d.core;
  * @author Alan Hudson
  */
 public enum MaterialType {
+    
     SINGLE_MATERIAL(0),
-    MIXED_MATERIAL(1),
-    COLOR_MATERIAL(2),
-    INDEXED_MATERIAL(3);
+        MIXED_MATERIAL(1),
+        COLOR_MATERIAL(2),
+        INDEXED_MATERIAL(3);
+    
+    public static final int 
+        SINGLE=0,
+        MIXED = 1,
+        COLOR = 2,
+        INDEXED = 3;
+        
 
     private int id;
 

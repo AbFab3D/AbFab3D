@@ -38,6 +38,7 @@ public class TestImageMaker extends TestCase {
 
         printf("devTestSolidColor()\n");
         ImageMaker im = new ImageMaker();
+        im.set("threadCount", 1);
         im.set("imgRenderer", new Constant(0,0,1., 0.5));
         im.set("width", 512);
         im.set("height", 512);
