@@ -193,7 +193,7 @@ public class ImageMaker extends BaseParameterizable implements ImageProducer {
         if(imgRenderer instanceof Initializable) {
             ((Initializable)imgRenderer).initialize();
         }
-
+        
         Vec pnt = new Vec(3);
         Vec data = new Vec(4); 
         double du = bounds.getSizeX()/width;
@@ -217,7 +217,7 @@ public class ImageMaker extends BaseParameterizable implements ImageProducer {
 
                 pnt.set(umin + u*du, vvalue, wmin);
                 data.set(0,0,0,0); // init data 
-
+                
                 imgRenderer.getDataValue(pnt, data);
                 switch(dataDim){
                 default:
@@ -336,7 +336,7 @@ public class ImageMaker extends BaseParameterizable implements ImageProducer {
                 System.out.flush();
             }
         }
-    } //class ShapeDilaterRunner
+    } //class ImageRunner
 
 
     static class Slice {
@@ -411,5 +411,24 @@ public class ImageMaker extends BaseParameterizable implements ImageProducer {
         
     }
     
+
+    static class AAWrapper implements DataSource {
+        DataSource source;
+        int aa;
+        AAWrapper(DataSource source, int aa){
+            this.source = source;
+            this.aa = aa;
+        }
+        public Bounds getBounds(){
+            return this.source.getBounds();
+        }
+        public int getDataValue(Vec pnt, Vec data){
+            return this.source.getDataValue(pnt, data);
+        }
+        
+        public int getChannelsCount(){
+            return this.source.getChannelsCount();
+        }
+    }
 
 } // class ImageMaker

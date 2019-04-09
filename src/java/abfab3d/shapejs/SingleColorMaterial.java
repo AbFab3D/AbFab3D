@@ -19,10 +19,11 @@ import abfab3d.core.MaterialType;
  * @author Alan Hudson
  */
 public class SingleColorMaterial extends BaseRenderableMaterial {
+
     private PhongShader m_shader;
     private static Material instance = null;
     static final String SINGLE_COLOR = "SingleColor";
-
+    
     public SingleColorMaterial() {
         this(SINGLE_COLOR);
     }
@@ -46,6 +47,10 @@ public class SingleColorMaterial extends BaseRenderableMaterial {
         super(name,label);
         m_shader = new PhongShader(0.1, diffuse, new Color(0, 0, 0), new Color(1, 1, 1), 0);
         mp_renderingParams.setValue(m_shader);
+    }
+
+    public void setShaderParam(String name, Object value){
+        m_shader.set(name, value);
     }
 
     public MaterialShader getShader() {

@@ -11,6 +11,8 @@ import abfab3d.param.BaseParameterizable;
  * @author Alan Hudson
  */
 public class PhongShader extends BaseParameterizable implements MaterialShader {
+
+
     private PhongParams sparams;
 
     public PhongShader() {
@@ -20,6 +22,7 @@ public class PhongShader extends BaseParameterizable implements MaterialShader {
     }
 
     public PhongShader(double ambientIntensity, Color diffuseColor, Color emissiveColor, Color specularColor, double shininess) {
+
         sparams = new PhongParams();
         sparams.setAmbientIntensity(ambientIntensity);
         sparams.setDiffuseColor(diffuseColor);
@@ -67,4 +70,6 @@ public class PhongShader extends BaseParameterizable implements MaterialShader {
     public void setAlbedo(Color albedo) {
         sparams.setAlbedo((Color) albedo.clone());
     }
+
+
 }

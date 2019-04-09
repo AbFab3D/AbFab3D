@@ -45,6 +45,7 @@ import abfab3d.param.Shape;
 import abfab3d.grid.op.ImageMaker;
 
 import abfab3d.transforms.Translation;
+import abfab3d.transforms.PeriodicWrap;
 
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Box;
@@ -74,10 +75,15 @@ public class TestSceneImageDataSource extends TestCase {
     public void testNothing() {
         
     }
-    
+
+
+    static double sm_raytracingDepth  = 4;
+
     public void devTestScene() throws IOException {
         
-        int imageWidth = 500, imageHeight = 500;
+        //int imageWidth = 500, imageHeight = 500;
+        int imageWidth = 4000, imageHeight = 4000;
+        //int imageWidth = 2000, imageHeight = 2000;
         
         SceneImageDataSource sids = makeSceneImageDataSource(makeScene3BallsMM(5*MM));
         //SceneImageDataSource sids = makeSceneImageDataSource(makeScene3Balls(5*MM));
@@ -108,15 +114,22 @@ public class TestSceneImageDataSource extends TestCase {
      */
     public void devTestDataSource() throws IOException {
         
+        printf("devTestDataSource()\n");
         int N = 25;
-        SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBall(7*MM));
+        SceneImageDataSource sids = makeSceneImageDataSource(makeScene3BallsMM(5*MM));
+        //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBall(7*MM));
         sids.set("shadowsQuality",10);
-        sids.initialize();
-        sids.setDebug(false);
+        //sids.initialize();
+        sids.setDebug(true);
         double vs = 2./N;
         Bounds bounds = new Bounds(-1,1,-1,1,-1,1,vs);
         Vec img = new Vec(4);
         
+        Vec pp = new Vec(0,0.45);
+        //printf("pnt: [%6.2f,%6.2f]\n", x, y);
+        sids.getDataValue(pp,img);
+        printf("(%7.3f,%7.3f) -> [%5.2f,%5.2f,%5.2f,%5.2f]\n",pp.v[0],pp.v[1], img.v[0],img.v[1],img.v[2],img.v[3]);
+        /*
         for(int j = 0; j < N; j++){
             //for(int j = 33; j < 34; j++){
             printf("%3d:",j);
@@ -131,6 +144,7 @@ public class TestSceneImageDataSource extends TestCase {
             }        
             printf("\n");
         }
+        */
     }
     
     static Scene makeSceneGyroid(){
@@ -181,6 +195,34 @@ public class TestSceneImageDataSource extends TestCase {
         union.add(sphere);
         union.add(sphere1);
         union.add(sphere2);
+        
+        double period = 2*MM;
+        double boxSize  = 0.8*period;
+        PeriodicWrap wrap = new PeriodicWrap(new Vector3d(period, 0,0),new Vector3d(0,period, 0));
+        wrap.setOrigin(new Vector3d(-period/2, -period/2,0));
+        Box box = new Box(boxSize, boxSize, boxSize);
+        
+        box.addTransform(wrap);
+        box.addTransform(new Translation(new Vector3d(0,0,-s*0.75)));
+        union.add(box);
+        
+        Scene scene = new Scene(union,new Bounds(-s,s,-s,s,-s,s));
+        return scene;
+    }
+
+    static Scene makeScene3Balls2(double radius){
+    
+        //double radius = 5*MM;
+        double s = 25.5*MM;
+        DataSource sphere = new Sphere(radius);
+        DataSource sphere1 = new Sphere(new Vector3d(2*radius, 0,0), radius);
+        DataSource sphere2 = new Sphere(new Vector3d(-2*radius, 0,0), radius);
+
+        Union union = new Union();
+
+        union.add(sphere);
+        union.add(sphere1);
+        union.add(sphere2);
 
         Box box = new Box(2*s, 2*s, 2*MM);
         box.addTransform(new Translation(new Vector3d(0,0,-s*0.75)));
@@ -195,18 +237,29 @@ public class TestSceneImageDataSource extends TestCase {
     
         //double radius = 5*MM;
         double s = 25.5*MM;
+        double period = 2*s/11;
+        double boxSize  = 0.9*period;
+        double boxDepth = 0.1*boxSize;
         DataSource sphere1 = new Sphere(radius);
+        //DataSource sphere2 = new Sphere(new Vector3d(2*radius+3*period, 2*radius,0), radius);
         DataSource sphere2 = new Sphere(new Vector3d(2*radius, 0,0), radius);
+
         DataSource sphere3 = new Sphere(new Vector3d(-2*radius, 0,0), radius);
         DataSource sphere4 = new Sphere(new Vector3d(0,2*radius,0), radius);
 
-        Box box = new Box(2*s, 2*s, 2*MM);
-        box.addTransform(new Translation(new Vector3d(0,0,-s*0.75)));
-        
+        PeriodicWrap wrap = new PeriodicWrap(new Vector3d(period, 0,0),new Vector3d(0,period, 0));
+        wrap.setOrigin(new Vector3d(-period/2, -period/2,0));
+        Box box = new Box(boxSize, boxSize, boxDepth);
+        box.set("rounding", 0.5*MM);
+        box.addTransform(wrap);
+        box.addTransform(new Translation(new Vector3d(0,0,-radius-boxDepth/2)));
+
         Scene scene = new Scene(new Bounds(-s,s,-s,s,-s,s));
         scene.addShape(new Shape(sphere1, new SingleColorMaterial(1,0.5,0.5)));
         scene.addShape(new Shape(sphere2, new SingleColorMaterial(0.5,1,0.5)));
-        Material blue = new SingleColorMaterial(0.5,0.5,1);
+        // semi transparent shere
+        SingleColorMaterial blue = new SingleColorMaterial(new Color(0.5,0.5,1, 0.1));
+        blue.setShaderParam("albedo", new Color(0.5, 0.5, 0.5));
         scene.addShape(new Shape(sphere3, blue));
         scene.addShape(new Shape(sphere4, blue));
 
@@ -217,32 +270,43 @@ public class TestSceneImageDataSource extends TestCase {
 
     static SceneImageDataSource makeSceneImageDataSource(Scene scene){
         
-        double intensity = 0.9;
-
-        Light[] lights = new Light[]{
-            //new Light(new Vector3d(10,0,20),new Color(1,0,0),0.1,intensity),
-            // new Light(new Vector3d(10,10,20),new Color(0,1,0),0,intensity),
-            //new Light(new Vector3d(0,10,20),new Color(0,0,1),0,intensity),
-            
-            new Light(new Vector3d(-10,10,20), new Color(1,1,1), 0.1, 1.),
-
-            //new Light(new Vector3d(-10,10,20), new Color(1,0,0), 0.1, 1.),
-            //new Light(new Vector3d(0,10,20), new Color(0,0,1),0, 1.),            
-            //new Light(new Vector3d(10,10,20),new Color(0,1,0), 0,  1.),
-        };
-
-        lights[0].set("angularSize", 0.2); 
-        //lights[0].set("angularSize", 0.05); lights[1].set("angularSize", 0.05);lights[2].set("angularSize", 0.05);
-        //lights[0].set("angularSize", 0.01); lights[1].set("angularSize", 0.1);lights[2].set("angularSize", 0.2);
-        //lights[0].set("angularSize", 0.2); lights[1].set("angularSize", 0.2);lights[2].set("angularSize", 0.2);
-        scene.setLights(lights);
+        scene.setLights(makeSingleWhiteLight());
 
         MatrixCamera camera = new MatrixCamera(getView());
 
         SceneImageDataSource sids = new SceneImageDataSource(scene,camera);
+        sids.set("raytracingDepth", sm_raytracingDepth);
         sids.initialize();
         return sids;
                 
+    }
+
+    static Light[] makeSingleWhiteLight(){
+
+        double intensity = 0.9;
+
+        Light[] lights = new Light[]{
+            new Light(new Vector3d(-10,10,20), new Color(1,1,1), 0.1, 1.),
+        };
+        lights[0].set("angularSize", 0.2); 
+        return lights;
+    }
+
+    static Light[] make3ColorLights(){
+
+        double intensity = 0.9;
+
+        Light[] lights = new Light[]{
+            new Light(new Vector3d(10,0,20),new Color(1,0,0),0.1,intensity),
+            new Light(new Vector3d(10,10,20),new Color(0,1,0),0,intensity),
+            new Light(new Vector3d(0,10,20),new Color(0,0,1),0,intensity),            
+        };
+        
+        lights[0].set("angularSize", 0.05); lights[1].set("angularSize", 0.05);lights[2].set("angularSize", 0.05);
+        //lights[0].set("angularSize", 0.01); lights[1].set("angularSize", 0.1);lights[2].set("angularSize", 0.2);
+        //lights[0].set("angularSize", 0.2); lights[1].set("angularSize", 0.2);lights[2].set("angularSize", 0.2);
+
+        return lights;
     }
 
 
