@@ -113,4 +113,16 @@ public class AbFab3DGlobals {
 
     }
 
+	public static int getThreadCount(int count){
+		
+        if(count < 1) {
+            count = Runtime.getRuntime().availableProcessors();
+        }
+        
+        int max_threads = ((Number) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        count = Math.min(count,max_threads);
+        return count;
+		
+	}
+	
 }

@@ -25,9 +25,14 @@ public class SliceManager {
     int nextSliceIndex=0;
 
     // padding at the end of slices array to be filled with null 
+    // used as stopping flag 
     int padding = 40;
 
     AtomicInteger aSliceIndex = new AtomicInteger(0);
+
+    public SliceManager(int gridWidth){
+        this(gridWidth,1);
+    }
 
     public SliceManager(int gridWidth, int sliceWidth){
         

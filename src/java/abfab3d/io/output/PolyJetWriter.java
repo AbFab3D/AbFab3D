@@ -25,6 +25,10 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors; 
+import java.util.concurrent.TimeUnit;
+
 
 // external imports
 
@@ -37,6 +41,7 @@ import abfab3d.core.Bounds;
 import abfab3d.core.Initializable;
 import abfab3d.core.MathUtil;
 
+import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.SliceCalculator;
 import abfab3d.util.SimpleSliceCalculator;
 
@@ -52,6 +57,8 @@ import abfab3d.param.EnumParameter;
 
 
 import abfab3d.util.ImageUtil;
+import abfab3d.util.SliceManager;
+import abfab3d.util.Slice;
 
 
 import abfab3d.grid.op.ImageLoader;
@@ -68,6 +75,8 @@ import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.util.ImageUtil.makeARGB;
 
 import static java.lang.Math.sqrt;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
    class to export DataSource into slices for PolyJet
@@ -142,6 +151,7 @@ public class PolyJetWriter extends BaseParameterizable {
     DoubleParameter mp_zmax = new DoubleParameter("zmax", "zmax", 0);
 
     StringListParameter mp_materials = new StringListParameter("materials",new String[]{S_WHITE});
+    IntParameter mp_threadCount = new IntParameter("threadCount", 0);
     IntParameter mp_ditheringType = new IntParameter("ditheringType", 0);
     IntParameter mp_firstSlice = new IntParameter("firstSlice", -1);
     IntParameter mp_slicesCount = new IntParameter("slicesCount", -1);
@@ -167,6 +177,7 @@ public class PolyJetWriter extends BaseParameterizable {
         mp_firstSlice,
         mp_slicesCount,
         mp_mapping,
+        mp_threadCount
     };
 
     public PolyJetWriter(){
@@ -204,6 +215,7 @@ public class PolyJetWriter extends BaseParameterizable {
     // local member initilized before writing 
     Bounds m_bounds;
     double m_sliceThickness, m_vsx, m_vsy;
+    Vector3d m_eu, m_ev;
     int m_nx, m_ny, m_nz;
     DataSource m_model;
     int m_outsideColor = 0xFF000000;
@@ -211,6 +223,9 @@ public class PolyJetWriter extends BaseParameterizable {
     int m_materialCount = 1;
     double m_materialValues[][];
     int m_mapping;
+    String m_outFolder, m_outPrefix;
+    SliceCalculator m_slicer;
+    int m_firstSlice = 0;
 
     int m_ditheringType = DITHERING_FLOYD_STEINBERG;
 
@@ -235,15 +250,14 @@ public class PolyJetWriter extends BaseParameterizable {
 
     public void write(){
         
-        String outFolder = mp_outFolder.getValue();
-        String outPrefix = mp_outPrefix.getValue();
+        m_outFolder = mp_outFolder.getValue();
+        m_outPrefix = mp_outPrefix.getValue();
         m_model = (DataSource)(mp_model.getValue());
         m_materialColors = getMaterialsColors(mp_materials.getList());
         m_materialCount = m_materialColors.length;
         m_materialValues = getMaterialValues(m_materialCount);
         m_ditheringType = mp_ditheringType.getValue();
         m_mapping = mp_mapping.getSelectedIndex();
-
 
         m_bounds = getBounds();
 
@@ -257,7 +271,6 @@ public class PolyJetWriter extends BaseParameterizable {
         m_nx = m_bounds.getGridWidth(m_vsx);
         m_ny = m_bounds.getGridHeight(m_vsy);
 
-        double sliceData[] = new double[m_nx*m_ny*m_materialCount];
 
         if(m_nx <=0 || m_ny <= 0 || m_nz <= 0){
             throw new RuntimeException(fmt("PolyJewtWriter: illegal output bounds:%s", m_bounds.toString()));
@@ -265,45 +278,85 @@ public class PolyJetWriter extends BaseParameterizable {
         
         if(DEBUG) {
             printf("PolyJetWriter write()\n");
-            printf("              outFolder: %s\n", outFolder);
+            printf("              outFolder: %s\n", m_outFolder);
             printf("              grid: [%d x %d x %d]\n", m_nx, m_ny, m_nz);
         }
-
-        BufferedImage image =  new BufferedImage(m_nx, m_ny, BufferedImage.TYPE_INT_ARGB);
-        DataBufferInt db = (DataBufferInt)image.getRaster().getDataBuffer();
-        int[] imageData = db.getData();
-        int firstSlice = mp_firstSlice.getValue();
-        if(firstSlice < 0) firstSlice = 0;
-        int slicesCount = mp_slicesCount.getValue();
-        if(slicesCount <= 0) slicesCount = m_nz-firstSlice;
-
         MathUtil.initialize(m_model);
-        if(DEBUG) {
-            printf("              writing: %d slices\n", slicesCount);
-        }
-        Vector3d eu = new Vector3d(m_vsx, 0,0);
-        Vector3d ev = new Vector3d(0, m_vsy, 0);
-        Vector3d origin = new Vector3d(m_bounds.xmin + m_vsx/2, m_bounds.ymin + m_vsy/2, 0);
-        
-        SliceCalculator slicer = getSliceCalculator();
 
-        for(int iz = firstSlice; iz <  firstSlice+slicesCount; iz++){
-            origin.z = m_bounds.zmin + m_sliceThickness*(iz+0.5);
-             
-            slicer.getSliceData(m_model, origin, eu, ev, m_nx, m_ny, m_materialCount, sliceData);
-            makeImage(sliceData, imageData); 
-            String outPath = fmt("%s/%s_%d.png", outFolder, outPrefix, iz);
-            try {
-                ImageIO.write(image, "png", new File(outPath));
-            } catch(Exception e){
-                throw new RuntimeException(fmt("exception while writing to %s", outPath));
+
+        m_firstSlice = max(0,mp_firstSlice.getValue());
+
+        int slicesCount = mp_slicesCount.getValue();
+        if(slicesCount <= 0) slicesCount = m_nz - m_firstSlice;
+
+        m_eu = new Vector3d(m_vsx, 0,0);
+        m_ev = new Vector3d(0, m_vsy, 0);        
+        m_slicer = getSliceCalculator();
+
+        
+
+        int threads = AbFab3DGlobals.getThreadCount(mp_threadCount.getValue());
+        if(DEBUG) printf(" PolyJetWriter  writing: %d slices threads:%d\n", slicesCount, threads);
+
+        if(threads == 1) {
+            
+            double sliceData[] = new double[m_nx*m_ny*m_materialCount];
+            BufferedImage image =  new BufferedImage(m_nx, m_ny, BufferedImage.TYPE_INT_ARGB);
+            DataBufferInt db = (DataBufferInt)image.getRaster().getDataBuffer();
+            int[] imageData = db.getData();
+            for(int iz = 0; iz <  slicesCount; iz++){            
+                processSlice(iz, sliceData, imageData, image);
             }
+        } else {
+            SliceManager manager = new SliceManager(slicesCount);            
+            ExecutorService executor = Executors.newFixedThreadPool(threads);
+            
+            for(int i = 0; i < threads; i++){
+                double sliceData[] = new double[m_nx*m_ny*m_materialCount];
+                BufferedImage image =  new BufferedImage(m_nx, m_ny, BufferedImage.TYPE_INT_ARGB);
+                DataBufferInt db = (DataBufferInt)image.getRaster().getDataBuffer();
+                int[] imageData = db.getData();
+                
+                SliceMaker sliceProcessor = new SliceMaker(manager,sliceData, imageData, image);
+                
+                executor.submit(sliceProcessor);
+            }
+            executor.shutdown();
+            
+            try {
+                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            
         }
-        if(DEBUG){
-            printf("PolyJetWriter write() done %d ms\n", (time()-t0));
-        }
+        printf("PolyJetWriter write() done %d ms\n", (time()-t0));
     }
+
     
+    protected void processSlice(int iz, double sliceData[], int imageData[], BufferedImage image){
+
+        iz += m_firstSlice;
+
+        Vector3d origin = new Vector3d(m_bounds.xmin,m_bounds.ymin,m_bounds.zmin + m_sliceThickness*(iz+0.5));
+        m_slicer.getSliceData(m_model, origin, m_eu, m_ev, m_nx, m_ny, m_materialCount, sliceData);
+        makeImage(sliceData, imageData); 
+        String outPath = fmt("%s/%s_%d.png", m_outFolder, m_outPrefix, iz);
+
+        try {
+            ImageIO.write(image, "png", new File(outPath));
+        } catch(Exception e){
+            throw new RuntimeException(fmt("exception while writing to %s", outPath));
+        }        
+    }
+
+    /*
+    protected void writeMT(){
+
+                
+        if(DEBUG_TIMING) printf("DT3sweep_MT(%d) done %d ms\n", direction, (time() - t0));
+    }
+    */
 
     final int voxelOffset(int ix, int iy){
         return (ix + iy*m_nx)*m_materialCount;
@@ -349,7 +402,7 @@ public class PolyJetWriter extends BaseParameterizable {
         }
         //if(DEBUG)printf("writeSlice(%s)\n", path);
         
-    }
+    } // make image 
 
     void distributeError(double sliceData[], int ix, int iy, double voxelError[]){
         
@@ -572,4 +625,30 @@ public class PolyJetWriter extends BaseParameterizable {
 
         }       
     }   
+
+    /**
+       MT runner which makes single slice
+     */
+    class SliceMaker implements Runnable{
+
+        SliceManager manager;
+        double sliceData[];
+        int imageData[];
+        BufferedImage image;
+        SliceMaker(SliceManager manager, double sliceData[], int imageData[], BufferedImage image){
+            this.manager = manager;
+            this.sliceData = sliceData;
+            this.imageData = imageData;
+            this.image = image;
+        }
+        
+        public void run(){
+            while(true){
+                Slice slice = manager.getNextSlice();
+                if(slice == null)
+                    break;
+                processSlice(slice.smin, sliceData, imageData, image);
+            } 
+        }       
+    }
 }

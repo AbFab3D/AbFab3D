@@ -37,6 +37,7 @@ import abfab3d.core.Color;
 import abfab3d.core.DataSource;
 import abfab3d.util.ImageUtil;
 import abfab3d.util.SliceCalculator;
+import abfab3d.util.AbFab3DGlobals;
 
 
 import abfab3d.param.BaseParameterizable;
@@ -252,21 +253,23 @@ public class TestPolyJetWriter {
 
         double s = 10*MM;
 
-        //DataSource model = makeTorus(20*MM);
-        DataSource model = makeSphere(20*MM);
+        DataSource model = makeTorus(20*MM);
+        //DataSource model = makeSphere(20*MM);
 
         Bounds bounds = model.getBounds();
         if(Bounds.isInfinite(bounds)) {
             bounds = new Bounds(-s,s,-s,s,-s,s);
         }
 
+        AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, 16);
+
         PolyJetWriter writer = new PolyJetWriter();
-        
+        writer.set("threadCount", 0);
         writer.setBounds(bounds);
         writer.set("model", model);        
         writer.set("ditheringType", 0);
-        writer.set("firstSlice",bounds.getDepthVoxels(PolyJetWriter.SLICE_THICKNESS_HR)/2);
-        writer.set("slicesCount", 6);
+        //writer.set("firstSlice",bounds.getDepthVoxels(PolyJetWriter.SLICE_THICKNESS_HR)/2);
+        //writer.set("slicesCount", 150);
         writer.set("outFolder","/tmp/polyjet");
         //writer.set("mapping", "color_rgba");
         writer.set("mapping", "materials");
@@ -533,10 +536,10 @@ public class TestPolyJetWriter {
     public static void main(String[] args) throws Exception {
 
         //new TestPolyJetWriter().devTestSingleImage();
-        //new TestPolyJetWriter().devTestWriter();
+        new TestPolyJetWriter().devTestWriter();
         //new TestPolyJetWriter().makeMaterialSamplesTest();
         //makeMaterialsCombinations(1);
-        new TestPolyJetWriter().devTestSliceCalculator();
+        //new TestPolyJetWriter().devTestSliceCalculator();
 
     }
 }
