@@ -123,7 +123,16 @@ public class PolyJetWriter extends BaseParameterizable {
     public static final String[] sm_smaterials = {S_WHITE,S_BLACK,S_CYAN,S_YELLOW,S_MAGENTA,S_CLEAR};
     public static final int[] sm_imaterials = {I_WHITE,I_BLACK,I_CYAN,I_YELLOW,I_MAGENTA,I_CLEAR};
 
-    public static final String mappingNames[] = {"materials","color_rgb","color_rgba"};
+    public static final String DEFAULT_MATERIAL0 = S_CLEAR;
+    public static final String DEFAULT_MATERIAL1 = S_CYAN;
+    public static final String DEFAULT_MATERIAL2 = S_MAGENTA;
+    public static final String DEFAULT_MATERIAL3= S_YELLOW;
+    public static final String DEFAULT_MATERIAL4 = S_BLACK;
+    public static final String DEFAULT_MATERIAL5 = S_WHITE;
+
+
+
+    public static final String sm_mappingNames[] = {"materials","color_rgb","color_rgba"};
     public static final int MAPPING_MATERIALS = 0;
     public static final int MAPPING_RGB = 1;
     public static final int MAPPING_RGBA = 2;
@@ -157,7 +166,7 @@ public class PolyJetWriter extends BaseParameterizable {
     IntParameter mp_slicesCount = new IntParameter("slicesCount", -1);
     StringParameter mp_outFolder = new StringParameter("outFolder","/tmp/polyjet");
     StringParameter mp_outPrefix = new StringParameter("outPrefix","slice");
-    EnumParameter mp_mapping = new EnumParameter("mapping", "mapping mode of input value into materials", mappingNames, mappingNames[0]);
+    EnumParameter mp_mapping = new EnumParameter("mapping", "mapping mode of input value into materials", sm_mappingNames, sm_mappingNames[0]);
 
     
     Parameter m_aparam[] = new Parameter[]{

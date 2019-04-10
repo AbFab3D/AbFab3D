@@ -16,6 +16,8 @@ import org.apache.commons.io.FilenameUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.FocusListener;
+import java.awt.event.FocusEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -27,7 +29,7 @@ import java.util.prefs.Preferences;
  *
  * @author Alan Hudson
  */
-public class URIEditor extends BaseEditor implements ActionListener {
+public class URIEditor extends BaseEditor implements ActionListener, FocusListener {
 
     static final int EDITOR_SIZE = 10;
 
@@ -55,6 +57,7 @@ public class URIEditor extends BaseEditor implements ActionListener {
         }
         m_textField.setText(sval);
         m_textField.addActionListener(this);
+        m_textField.addFocusListener(this);
 
         m_open = new JButton("...");
         m_open.setToolTipText("Open File");
@@ -108,8 +111,35 @@ public class URIEditor extends BaseEditor implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        informParamChangedListeners();
+        
+        String newText = m_textField.getText();
+        String oldText = (String)m_param.getValue();
+        if(!oldText.equals(newText)){
+            m_param.setValue(newText);
+            informParamChangedListeners();            
+        }
+
     }
+    
+    /**
+       @Override
+    */
+    public void focusGained(FocusEvent e){
+        // do nothing 
+    }
+    /**
+       @Override
+    */
+    public void focusLost(FocusEvent e){
+
+        String newText = m_textField.getText();
+        String oldText = (String)m_param.getValue();
+        if(!oldText.equals(newText)){
+            m_param.setValue(newText);
+            informParamChangedListeners();            
+        }
+    }
+
 
     /**
        

@@ -140,6 +140,18 @@ public class BaseParameterizable implements Parameterizable, SNode {
     }
 
     /**
+       return parameter value if parameter exists or default value otherwise
+     */
+    public Object get(String paramName, Object defaultValue){
+
+        Parameter par = m_paramMap.get(paramName);
+        if(par == null)
+            return defaultValue;
+        else 
+            return par.getValue();
+    }
+
+    /**
      * Get the children of this node.
      *
      * @noRefGuide
