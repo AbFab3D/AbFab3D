@@ -362,7 +362,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
         }
 
         if (DEBUG) printf("prepareScript(this: %s script, sandbox: %b)\n", this, m_sandboxed);
-        printf("Entering context in ShapeJSEval.  thread: %s\n",Thread.currentThread());
 
         Context cx = Context.enter();
         Object scene = null;
@@ -484,8 +483,6 @@ public class ShapeJSEvaluator implements MaterialMapper {
 
             updateParamMap(params);
         } finally {
-            printf("Exiting context\n");
-
             Context.exit();
         }
 

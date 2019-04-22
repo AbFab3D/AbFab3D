@@ -57,11 +57,14 @@ public class Materials {
      */
     public static String[] getAllNames() {
         if (allMaterialNames == null) {
-            allMaterialNames = new String[mats.size() + 1];
+            allMaterialNames = new String[mats.size() + 4];
 
-            allMaterialNames[0] = "None";
+            int idx =0;
+            allMaterialNames[idx++] = "None";
+            allMaterialNames[idx++] = "SingleColor";
+            allMaterialNames[idx++] = "FullColor";
+            allMaterialNames[idx++] = "MixedMaterial";
 
-            int idx = 1;
             for(String st : mats.keySet()) {
                 allMaterialNames[idx++] = st;
             }

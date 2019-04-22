@@ -52,7 +52,7 @@ import static abfab3d.core.Output.printf;
  */
 public class SlicesWriter {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static int debugCount = 100;
     public static final int 
         AXIS_X=0,

@@ -39,7 +39,7 @@ import static abfab3d.core.Output.fmt;
  */
 public class DistanceToTriangleSet implements Operation, AttributeOperation {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     static final int DEFAULT_SVR = 100;
 

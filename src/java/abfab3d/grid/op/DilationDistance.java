@@ -35,7 +35,7 @@ import static abfab3d.core.Output.time;
  * @author Alan Hudson
  */
 public class DilationDistance implements Operation, AttributeOperation {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /** The dilation distance in meters */
     private double distance;

@@ -83,7 +83,7 @@ import static abfab3d.core.Units.CM3;
 public class GridSaver {
 
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     protected double m_meshErrorFactor = 0.1;
     protected double m_meshSmoothingWidth = 0.2;

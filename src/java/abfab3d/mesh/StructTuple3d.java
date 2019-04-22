@@ -14,6 +14,8 @@ package abfab3d.mesh;
 import abfab3d.util.StructDataDefinition;
 import abfab3d.util.StructMixedData;
 
+import javax.vecmath.Tuple3d;
+
 import static abfab3d.core.Output.fmt;
 
 /**
@@ -22,7 +24,7 @@ import static abfab3d.core.Output.fmt;
  * @author Alan Hudson
  */
 public class StructTuple3d extends StructDataDefinition {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     public static final StructDataDefinition DEFINITION = new StructTuple3d();
 
@@ -48,6 +50,19 @@ public class StructTuple3d extends StructDataDefinition {
         double_data[double_pos + POS_X] = x;
         double_data[double_pos + POS_Y] = y;
         double_data[double_pos + POS_Z] = z;
+
+        return destIdx;
+    }
+
+    public static int create(Tuple3d vec, StructMixedData dest) {
+        int destIdx = dest.addItem();
+
+        int double_pos = destIdx * DOUBLE_DATA_SIZE;
+        double[] double_data = dest.getDoubleData();
+
+        double_data[double_pos + POS_X] = vec.x;
+        double_data[double_pos + POS_Y] = vec.y;
+        double_data[double_pos + POS_Z] = vec.z;
 
         return destIdx;
     }

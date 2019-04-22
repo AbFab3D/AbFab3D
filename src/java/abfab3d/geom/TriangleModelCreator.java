@@ -25,6 +25,10 @@ import abfab3d.grid.*;
 import abfab3d.grid.op.*;
 import abfab3d.util.MatrixUtil;
 
+import java.util.Random;
+
+import static abfab3d.core.Output.printf;
+
 /**
  * Creates a model from a 3D Triangle model.
  *
@@ -39,7 +43,7 @@ import abfab3d.util.MatrixUtil;
  * @author Alan Hudson
  */
 public class TriangleModelCreator extends GeometryCreator {
-    public static final boolean COLLECT_STATS = true;
+    public static final boolean COLLECT_STATS = false;
 
     /** The triangle data */
     protected GeometryData geom;
@@ -95,6 +99,18 @@ public class TriangleModelCreator extends GeometryCreator {
     double[] minGridWorldCoord = new double[3];
     double[] maxGridWorldCoord = new double[3];
 
+    float skipChance = 0;
+    long voxCount = 0;
+    long skipped = 0;
+    Random rand = new Random(42);
+
+
+    public TriangleModelCreator(GeometryData geom,
+                                double x, double y, double z, double rx, double ry, double rz, double rangle,
+                                long innerMaterial, boolean fill) {
+        this(geom,x,y,z,rx,ry,rz,rangle,innerMaterial,fill,0);
+    }
+
     /**
      * Constructor.
      *
@@ -111,7 +127,7 @@ public class TriangleModelCreator extends GeometryCreator {
      */
     public TriangleModelCreator(GeometryData geom,
         double x, double y, double z, double rx, double ry, double rz, double rangle,
-        long innerMaterial, boolean fill) {
+        long innerMaterial, boolean fill, float skipChance) {
 
         this.geom = geom;
         this.x = x;
@@ -123,6 +139,7 @@ public class TriangleModelCreator extends GeometryCreator {
         this.rz = rz;
         this.rangle = rangle;
         this.fill = fill;
+        this.skipChance = skipChance;
 
         minBounds = new double[3];
         maxBounds = new double[3];
@@ -657,6 +674,12 @@ System.out.flush();
 
                     grid.getWorldCoords(i,j,k,vcoords);
                     if (intersectsTriangle(v0,v1,v2, vcoords)) {
+                        voxCount++;
+                        if (rand.nextFloat() < skipChance) {
+                            skipped++;
+                            continue;
+                        }
+
 //System.out.println("Set data: " + i + " " + j + " " + k);
                         grid.setData(i,j,k,Grid.INSIDE,material);
 
@@ -683,9 +706,9 @@ System.out.flush();
 
         int i,j,k;
 
-        v0.x =  tri.coords[0];
-        v0.y =  tri.coords[1];
-        v0.z =  tri.coords[2];
+        v0.x = tri.coords[0];
+        v0.y = tri.coords[1];
+        v0.z = tri.coords[2];
         v1.x = tri.coords[3];
         v1.y = tri.coords[4];
         v1.z = tri.coords[5];
@@ -704,6 +727,12 @@ System.out.flush();
 
                     grid.getWorldCoords(i,j,k,vcoords);
                     if (intersectsTriangle(v0,v1,v2, vcoords)) {
+                        voxCount++;
+
+                        if (rand.nextFloat() < skipChance) {
+                            skipped++;
+                            continue;
+                        }
 //System.out.println("Set data: " + i + " " + j + " " + k);
                         grid.setState(i,j,k,Grid.INSIDE);
 

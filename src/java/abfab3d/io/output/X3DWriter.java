@@ -51,7 +51,7 @@ import static abfab3d.core.Output.printf;
  */
 public class X3DWriter implements TriangleCollector, AttributedTriangleCollector {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     static final String DEFAULT_TEX_NAME = "texture.png";
     int m_triCount = 0;

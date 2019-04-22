@@ -68,7 +68,7 @@ import static java.lang.System.currentTimeMillis;
 public class ImagePopperKernel extends HostedKernel {
     public enum ImagePlace {TOP, BOTTOM, BOTH};
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final boolean USE_MIP_MAPPING = false;
     private final boolean USE_MESH_MAKER_MT = true;
     private static final boolean USE_FAST_MATH = true;

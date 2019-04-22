@@ -27,7 +27,7 @@ import static abfab3d.core.Output.fmt;
  */
 public class Vec {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     
     // holder for data
     public double v[];    

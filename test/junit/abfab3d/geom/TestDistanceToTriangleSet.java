@@ -58,7 +58,7 @@ import static abfab3d.core.MathUtil.L2S;
  */
 public class TestDistanceToTriangleSet extends TestCase {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     static final double INF = ClosestPointIndexer.INF;
 
     int subvoxelResolution = 100;

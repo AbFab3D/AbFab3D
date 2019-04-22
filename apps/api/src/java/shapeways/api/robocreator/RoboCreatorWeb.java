@@ -40,7 +40,7 @@ import javax.servlet.http.*;
  * @author Alan Hudson
  */
 public class RoboCreatorWeb extends HttpServlet implements SQSQueueListener {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final String QUEUE_PREPEND = "RoboCreator_";
 
     // What AWS instanceType are we on

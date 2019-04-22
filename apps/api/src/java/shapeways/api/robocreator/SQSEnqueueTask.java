@@ -9,7 +9,7 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
  * @author Alan Hudson
  */
 public class SQSEnqueueTask implements Runnable {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private String queueUrl;
     private String msg;

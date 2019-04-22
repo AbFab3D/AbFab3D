@@ -28,7 +28,7 @@ import static abfab3d.util.ImageUtil.us2i;
  */
 public class ImageMipMapGray16 {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static int debugCount = 0;
     public static double SHORT_NORM = 1./0xFFFF;
 

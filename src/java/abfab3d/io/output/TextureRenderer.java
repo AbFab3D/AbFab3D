@@ -29,7 +29,7 @@ import static abfab3d.core.MathUtil.extendTriangle;
  */
 public class TextureRenderer {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static int debugCount = 100;
     
     static final double EPS = 1.e-9;

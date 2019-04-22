@@ -16,7 +16,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class GridPackingUtils {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     static final int BYTE_BITS = 8;  // bits in byte
     static final int BYTE_MASK = 0xFF;

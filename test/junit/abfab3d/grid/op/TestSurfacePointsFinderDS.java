@@ -46,7 +46,7 @@ import static abfab3d.core.MathUtil.L2S;
  */
 public class TestSurfacePointsFinderDS extends TestCase {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     int subvoxelResolution = 100;
 

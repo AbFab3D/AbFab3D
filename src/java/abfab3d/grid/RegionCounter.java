@@ -34,7 +34,7 @@ import static abfab3d.core.Output.printf;
  */
 public class RegionCounter {
 
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     /**
        components counting via various algoritms

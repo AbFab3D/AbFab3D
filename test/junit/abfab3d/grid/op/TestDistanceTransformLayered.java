@@ -39,7 +39,7 @@ import static abfab3d.core.Units.MM;
  */
 public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final boolean DEBUG_TIMING = true;
     private static final boolean DEBUG_SLICES = false;
 

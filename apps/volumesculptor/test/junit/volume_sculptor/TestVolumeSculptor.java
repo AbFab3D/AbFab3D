@@ -38,7 +38,7 @@ import static abfab3d.core.Output.fmt;
  * @author Alan Hudson
  */
 public class TestVolumeSculptor extends TestCase {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final String IMGS_DIR =  "images/";
     private static final String MODELS_DIR =  "models/";
     private static final String SCRIPTS_DIR =  "scripts/";

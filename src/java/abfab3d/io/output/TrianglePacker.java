@@ -40,7 +40,7 @@ import static abfab3d.core.Output.time;
  */
 public class TrianglePacker implements TriangleCollector, TriangleProducer {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     // 3D triangles ordered according to canonical triangles
     Vector<Vector3d> m_tri = new Vector<Vector3d>();
