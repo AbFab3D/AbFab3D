@@ -167,7 +167,8 @@ public class PolyJetWriter extends BaseParameterizable {
     StringParameter mp_outFolder = new StringParameter("outFolder","/tmp/polyjet");
     StringParameter mp_outPrefix = new StringParameter("outPrefix","slice");
     EnumParameter mp_mapping = new EnumParameter("mapping", "mapping mode of input value into materials", sm_mappingNames, sm_mappingNames[0]);
-
+    EnumParameter mp_layerThickness = new EnumParameter("sliceingMode", "mapping mode of input value into materials", sm_mappingNames, sm_mappingNames[0]);
+    
     
     Parameter m_aparam[] = new Parameter[]{
 
@@ -227,7 +228,10 @@ public class PolyJetWriter extends BaseParameterizable {
     Vector3d m_eu, m_ev;
     int m_nx, m_ny, m_nz;
     DataSource m_model;
-    int m_outsideColor = 0xFF000000;
+    
+    //int m_outsideColor = 0xFF000000; // color of exterior pixels 
+    int m_outsideColor = 0x00000000; // color of exterior pixels 
+
     int m_materialColors[] = {I_WHITE};
     int m_materialCount = 1;
     double m_materialValues[][];
@@ -273,6 +277,7 @@ public class PolyJetWriter extends BaseParameterizable {
         long t0 = time();
 
         m_sliceThickness = SLICE_THICKNESS_HR;
+        //m_sliceThickness = SLICE_THICKNESS;
         m_vsx = PIXEL_SIZE_X;
         m_vsy = PIXEL_SIZE_Y;
 
