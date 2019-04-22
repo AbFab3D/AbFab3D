@@ -30,7 +30,7 @@ import abfab3d.grid.*;
  * @author Alan Hudson
  */
 public class TransformPosition implements Operation, ClassTraverser {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /** The matrix to use */
     private Matrix4d matrix;

@@ -33,7 +33,7 @@ import static abfab3d.core.Output.printf;
  */
 public class TestMathUtil extends BaseTestCase  {
     
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     public void testNothing(){        
     }

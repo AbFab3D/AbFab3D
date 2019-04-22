@@ -50,7 +50,7 @@ import static abfab3d.core.Units.MM;
  */
 public class TestPointSetShellBuilder extends TestCase {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     int subvoxelResolution = 100;
 

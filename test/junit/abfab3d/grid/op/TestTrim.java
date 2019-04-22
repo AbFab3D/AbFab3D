@@ -22,7 +22,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class TestTrim extends TestCase {
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".

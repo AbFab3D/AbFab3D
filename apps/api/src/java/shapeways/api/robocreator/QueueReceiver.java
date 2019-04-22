@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Alan Hudson
  */
 public class QueueReceiver extends Thread {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /** Polling frequency to SQS.  A per message cost is incurred so don't make too small */
     private int pollFrequency;

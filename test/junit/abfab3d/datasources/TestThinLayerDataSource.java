@@ -72,6 +72,7 @@ public class TestThinLayerDataSource extends TestCase {
         Sphere sphere3 = new Sphere(-R, 0, 0, -(R - 0.5 * MM));
 
         Union union = new Union(sphere1, sphere2);
+
         Intersection inter = new Intersection(union, sphere3);
         union.set("blend", 0.3 * MM);
         //DataSource source = union;
@@ -106,6 +107,7 @@ public class TestThinLayerDataSource extends TestCase {
         }
 
         ImageMaker im = new ImageMaker();
+        //im.setThreadCount(1);
 
         ColorMapper colorMapper = new ColorMapperDistance(0.1 * MM);
         ColorMapper colorMapperHR = new ColorMapperDistance(0.1 * MM);
@@ -116,6 +118,7 @@ public class TestThinLayerDataSource extends TestCase {
 
         ImageIO.write(img1, "png", new File("/tmp/00_sphere_dist.png"));
 
+        /*
         thinLayer.setDataType(0);
 
         t0 = time();
@@ -137,7 +140,7 @@ public class TestThinLayerDataSource extends TestCase {
         t0 = time();
         ImageIO.write(img4, "png", new File("/tmp/03_fullGrid.png"));
         printf("image written: %d ms\n", time() - t0);
-
+*/
     }
 
     public static void main(String[] args) throws Exception {

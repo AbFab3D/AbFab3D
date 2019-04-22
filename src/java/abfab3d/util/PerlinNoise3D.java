@@ -32,7 +32,7 @@ import static abfab3d.core.MathUtil.toInterval;
  */
 public class PerlinNoise3D { 
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     int nx, ny, nz;
     int nxy;

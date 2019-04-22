@@ -38,7 +38,7 @@ import static abfab3d.core.Output.fmt;
  */
 public class TestDilationDistance extends BaseTestAttributeGrid {
     
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".

@@ -12,7 +12,7 @@ import java.util.Map;
  * @author Alan Hudson
  */
 public class ModelGeneratorRunner implements Runnable {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private ModelGenerator modelGenerator;
     private Map params;

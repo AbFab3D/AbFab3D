@@ -38,7 +38,7 @@ import static abfab3d.core.Units.CM;
  */
 public class TestVolumeCalculator extends TestCase {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".

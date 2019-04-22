@@ -32,7 +32,7 @@ import static abfab3d.core.Output.fmt;
  */
 public class ProgramLoader {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     public static CLProgram load(CLContext context, String filename) throws IOException {
 

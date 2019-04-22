@@ -51,7 +51,7 @@ import static abfab3d.util.ImageUtil.lerpColors;
  */
 public class TestDistanceTransform2D extends BaseTestDistanceTransform {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final boolean DEBUG_TIMING = true;
     private static final boolean DEBUG_SLICES = false;
 

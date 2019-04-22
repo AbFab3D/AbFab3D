@@ -59,7 +59,7 @@ import static java.lang.Math.*;
  */
 public class SurfacePointsFinderDS extends BaseParameterizable {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize",0.1*MM);
     IntParameter mp_blockSize = new IntParameter("blockSize",20);

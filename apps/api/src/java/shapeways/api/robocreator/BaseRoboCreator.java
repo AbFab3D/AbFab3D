@@ -46,7 +46,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author Alan Hudson
  */
 public abstract class BaseRoboCreator extends HttpServlet implements ModelGenerator, SQSQueueListener {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private static final int DEFAULT_POLL_FREQUENCY = 5000;
     private static final String QUEUE_PREPEND = "RoboCreator_";

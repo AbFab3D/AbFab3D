@@ -48,7 +48,7 @@ import static abfab3d.core.Output.printf;
  */
 public class TriangleMeshShellBuilder implements TriangleCollector {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static final double TOL = 1.e-2;
     static final double HALF = 0.5; // half voxel offset to the center of voxel
 

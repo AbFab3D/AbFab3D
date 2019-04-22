@@ -47,7 +47,7 @@ import static abfab3d.core.Units.MM;
  */
 public class TestTriangleMeshShellBuilder extends TestCase {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     static final double INF = ClosestPointIndexer.INF;
 
     int subvoxelResolution = 100;

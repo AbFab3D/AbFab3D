@@ -16,6 +16,7 @@ import abfab3d.core.ResultCodes;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.io.input.STLReader;
+import abfab3d.io.input.X3DReader;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.STLWriter;
 import abfab3d.core.Bounds;
@@ -111,6 +112,37 @@ public class TestShellFinder extends TestCase {
             printf("face: %7d count: %7d  vol: %f cm^3\n", si[i].startFace, si[i].faceCount, ac.getVolume() * 1e6);
         }
 
+    }
+
+    public void testLargeTriCount() throws Exception {
+
+        long t0 = time();
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+
+//        STLReader sr = new STLReader();
+//        sr.read("test/models/sphere_10cm_400K_tri.stl", its);
+
+        X3DReader sr = new X3DReader("test/models/gyroid_2M_10mm_am.x3db");
+        sr.getTriangles(its);
+
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        ShellFinder sf = new ShellFinder();
+
+        ShellFinder.ShellInfo si[] = sf.findShells(mesh);
+
+        printf("shells count: %d\n", si.length);
+
+        assertEquals("Detect 1 shells", 1,si.length);
+
+        for (int i = 0; i < si.length; i++) {
+
+            AreaCalculator ac = new AreaCalculator();
+            sf.getShell(mesh, si[i].startFace, ac);
+            printf("face: %7d count: %7d  vol: %f cm^3\n", si[i].startFace, si[i].faceCount, ac.getVolume() * 1e6);
+        }
+
+        printf("Time: %d\n",(time()-t0)/1000);
     }
 
     public void testSorting() throws Exception {

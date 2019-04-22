@@ -27,7 +27,7 @@ import static java.lang.Math.round;
  * @author Alan Hudson
  */
 public class TestDensityGridExtractor extends BaseTestDistanceTransform {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     double surfaceThickness = Math.sqrt(3)/2;
     //int maxAttribute = 100;
     double voxelSize = 0.1*MM;

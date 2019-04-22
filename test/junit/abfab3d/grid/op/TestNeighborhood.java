@@ -29,7 +29,7 @@ import static abfab3d.core.Output.printf;
  */
 public class TestNeighborhood extends TestCase {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     int subvoxelResolution = 100;
 

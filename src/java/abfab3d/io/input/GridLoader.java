@@ -21,6 +21,7 @@ import abfab3d.core.Initializable;
 
 import abfab3d.mesh.AreaCalculator;
 
+import abfab3d.param.LongParameter;
 import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.util.AttributedTriangleProducerConverter;
@@ -48,7 +49,6 @@ import static abfab3d.core.MathUtil.getMaxValue;
    @author Vladimir Bulatov
  */
 public class GridLoader {
-
     static final boolean DEBUG = false;
     static final boolean DEBUG_TIMING = false;
     
@@ -59,12 +59,11 @@ public class GridLoader {
     protected int m_colorBitCount = 5;
     protected double m_margins = 1*MM;
 
-    protected long m_maxGridSize = 1000L*1000L*1000L;
-    protected long m_minGridSize = 1000L;
-
     protected AttributeGrid m_densityGridTemplate = new ArrayAttributeGridByte(1,1,1, 10*MM, 10*MM);
     protected AttributeGrid m_distanceGridTemplate = new ArrayAttributeGridShort(1,1,1, 10*MM, 10*MM);
     protected AttributeGrid m_distRGBGridTemplate = new ArrayAttributeGridInt(1,1,1, 10*MM, 10*MM);
+    protected LongParameter m_maxGridSize = new LongParameter("maxGridSize", "Max grid size", 1000L * 1000 * 1000);
+    protected LongParameter m_minGridSize = new LongParameter("minGridSize", "Min grid size", 0);
 
     public static final int 
         RASTERIZER_WAVELET = 1,   // makes antialised density and makes distance from density 
@@ -155,11 +154,11 @@ public class GridLoader {
 
 
     public void setMaxGridSize(long maxGridSize){
-        m_maxGridSize = maxGridSize;
+        m_maxGridSize.setValue(maxGridSize);
     }
 
     public void setMinGridSize(long minGridSize){
-        m_minGridSize = minGridSize;
+        m_minGridSize.setValue(minGridSize);
     }
 
     public void setPreferredVoxelSize(double voxelSize){
@@ -510,12 +509,12 @@ public class GridLoader {
         
         int ng[] = gridBounds.getGridSize();
         long voxels = (long) ng[0] * ng[1]*ng[2];
-        if(voxels > m_maxGridSize) {
-            voxelSize = Math.pow(gridBounds.getVolume()/m_maxGridSize, 1./3);
+        if(voxels > m_maxGridSize.getValue()) {
+            voxelSize = Math.pow(gridBounds.getVolume()/m_maxGridSize.getValue(), 1./3);
             gridBounds.setVoxelSize(voxelSize);
             gridBounds.roundBounds();
-        } else if (voxels < m_minGridSize){
-            voxelSize = Math.pow(gridBounds.getVolume()/m_minGridSize, 1./3);
+        } else if (voxels < m_minGridSize.getValue()){
+            voxelSize = Math.pow(gridBounds.getVolume()/m_minGridSize.getValue(), 1./3);
             gridBounds.setVoxelSize(voxelSize);
             gridBounds.roundBounds();
         }
@@ -536,10 +535,30 @@ public class GridLoader {
 
     protected AttributeGrid createDistanceGrid(Bounds bounds){
         
-        int nx = bounds.getGridWidth();
-        int ny = bounds.getGridHeight();
-        int nz = bounds.getGridDepth();
         double voxelSize = bounds.getVoxelSize();
+        Bounds gridBounds = bounds.clone();
+        int nx = gridBounds.getGridWidth();
+        int ny = gridBounds.getGridHeight();
+        int nz = gridBounds.getGridDepth();
+
+        long voxels = (long) nx * ny * nz;
+        if(voxels > m_maxGridSize.getValue()) {
+            voxelSize = Math.pow(gridBounds.getVolume()/m_maxGridSize.getValue(), 1./3);
+            gridBounds.setVoxelSize(voxelSize);
+            gridBounds.roundBounds();
+
+            if (DEBUG) printf("GridLoader, grid too large.  new voxelSize: %6.2f mm\n",voxelSize/MM);
+        } else if (voxels < m_minGridSize.getValue()){
+            voxelSize = Math.pow(gridBounds.getVolume()/m_minGridSize.getValue(), 1./3);
+            gridBounds.setVoxelSize(voxelSize);
+            gridBounds.roundBounds();
+            if (DEBUG) printf("GridLoader, grid too small.  new voxelSize: %6.2f mm\n",voxelSize/MM);
+        }
+
+        nx = gridBounds.getGridWidth();
+        ny = gridBounds.getGridHeight();
+        nz = gridBounds.getGridDepth();
+
         AttributeGrid distanceGrid = (AttributeGrid)m_distanceGridTemplate.createEmpty(nx, ny, nz, voxelSize, voxelSize);
         distanceGrid.setGridBounds(bounds);
         GridDataChannel distanceChannel = new GridDataChannel(GridDataChannel.DISTANCE, "dist", m_distanceBitCount, 0, -m_maxInDistance, m_maxOutDistance);
@@ -550,10 +569,26 @@ public class GridLoader {
 
     protected AttributeGrid createDensityGrid(Bounds bounds){
 
-        int nx = bounds.getGridWidth();
-        int ny = bounds.getGridHeight();
-        int nz = bounds.getGridDepth();
         double voxelSize = bounds.getVoxelSize();
+        Bounds gridBounds = bounds.clone();
+        int nx = gridBounds.getGridWidth();
+        int ny = gridBounds.getGridHeight();
+        int nz = gridBounds.getGridDepth();
+
+        long voxels = (long) nx * ny * nz;
+        if(voxels > m_maxGridSize.getValue()) {
+            voxelSize = Math.pow(gridBounds.getVolume()/m_maxGridSize.getValue(), 1./3);
+            gridBounds.setVoxelSize(voxelSize);
+            gridBounds.roundBounds();
+        } else if (voxels < m_minGridSize.getValue()){
+            voxelSize = Math.pow(gridBounds.getVolume()/m_minGridSize.getValue(), 1./3);
+            gridBounds.setVoxelSize(voxelSize);
+            gridBounds.roundBounds();
+        }
+
+        nx = gridBounds.getGridWidth();
+        ny = gridBounds.getGridHeight();
+        nz = gridBounds.getGridDepth();
 
         AttributeGrid densityGrid = (AttributeGrid)m_densityGridTemplate.createEmpty(nx, ny, nz, voxelSize, voxelSize);
         densityGrid.setGridBounds(bounds);
@@ -568,10 +603,26 @@ public class GridLoader {
      */
     protected AttributeGrid createDistRGBGrid(Bounds bounds){
 
-        int nx = bounds.getGridWidth();
-        int ny = bounds.getGridHeight();
-        int nz = bounds.getGridDepth();
         double voxelSize = bounds.getVoxelSize();
+        Bounds gridBounds = bounds.clone();
+        int nx = gridBounds.getGridWidth();
+        int ny = gridBounds.getGridHeight();
+        int nz = gridBounds.getGridDepth();
+
+        long voxels = (long) nx * ny * nz;
+        if(voxels > m_maxGridSize.getValue()) {
+            voxelSize = Math.pow(gridBounds.getVolume()/m_maxGridSize.getValue(), 1./3);
+            gridBounds.setVoxelSize(voxelSize);
+            gridBounds.roundBounds();
+        } else if (voxels < m_minGridSize.getValue()){
+            voxelSize = Math.pow(gridBounds.getVolume()/m_minGridSize.getValue(), 1./3);
+            gridBounds.setVoxelSize(voxelSize);
+            gridBounds.roundBounds();
+        }
+
+        nx = gridBounds.getGridWidth();
+        ny = gridBounds.getGridHeight();
+        nz = gridBounds.getGridDepth();
 
         AttributeGrid grid = (AttributeGrid)m_distRGBGridTemplate.createEmpty(nx, ny, nz, voxelSize, voxelSize);
         grid.setGridBounds(bounds);  

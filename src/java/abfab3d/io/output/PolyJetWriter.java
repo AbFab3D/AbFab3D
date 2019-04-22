@@ -83,7 +83,7 @@ import static java.lang.Math.min;
 */
 public class PolyJetWriter extends BaseParameterizable {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     static final int MAX_DATA_DIMENSION = 8;
 
