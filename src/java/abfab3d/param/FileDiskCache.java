@@ -1,5 +1,6 @@
 package abfab3d.param;
 
+import abfab3d.util.URIUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -189,6 +190,7 @@ public class FileDiskCache {
         if (!md.delete()) printf("Delete failed: %s\n",md);
 
         File df = new File(ce.path);
+        printf("Removing this file: %s\n",ce.path);
         FileUtils.deleteQuietly(df);
 
         if (df.exists()) return false;
@@ -364,8 +366,14 @@ public class FileDiskCache {
 
             if (DEBUG) printf("add Entry.  key: %s\n",key);
             if (!dest.exists()) {
-                if (DEBUG) printf("Moving: %s to: %s\n", path, dest);
-                FileUtils.moveFile(path, dest);
+                if (path.getName().startsWith(URIUtils.DOWNLOAD_PREFIX)) {
+                    // Only move downloaded files
+                    if (DEBUG) printf("Moving: %s to: %s\n", path, dest);
+                    FileUtils.moveFile(path, dest);
+                } else {
+                    if (DEBUG) printf("Copying: %s to: %s\n", path, dest);
+                    FileUtils.copyFile(path,dest);
+                }
             }
 
             String ret_val = dest.getAbsolutePath();
