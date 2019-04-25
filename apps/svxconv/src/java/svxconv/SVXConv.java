@@ -17,16 +17,26 @@ import abfab3d.core.Units;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.core.AttributeGrid;
 import abfab3d.grid.GridShortIntervals;
-import abfab3d.io.input.*;
+
+import abfab3d.io.input.SVXReader;
+import abfab3d.io.input.SVXManifest;
+import abfab3d.io.input.X3DReader;
+import abfab3d.io.input.STLReader;
+import abfab3d.io.input.WaveletRasterizer;
+
 import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.ShellResults;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
 import abfab3d.io.output.SVXWriter;
+
 import abfab3d.mesh.IndexedTriangleSetBuilder;
+
 import abfab3d.util.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
-import abfab3d.util.*;
+import abfab3d.util.AbFab3DGlobals;
+import abfab3d.util.BoundingBoxCalculator;
+
 import org.apache.commons.io.FilenameUtils;
 import javax.imageio.ImageIO;
 import java.io.IOException;
@@ -221,7 +231,7 @@ public class SVXConv {
             grid.setGridBounds(bounds);
 
             WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
-            //rasterizer.setMaxAttributeValue(subvoxelResolution);
+            rasterizer.setMaxAttributeValue(subvoxelResolution);
 
             tp.getTriangles(rasterizer);
 

@@ -125,9 +125,9 @@
             <jvmarg line="${jvmrunargs}"/>
             <arg value="-input" />
 <!--            <arg value="/tmp/voxelsize/original-3000075_v0.stl" /> -->
-            <arg value="original-4680953_v0.stl" />
+            <arg value="/tmp/sphere_10cm_400K_tri.stl" />
             <arg value="-output" />
-            <arg value="droid1.svx" />
+            <arg value="/tmp/sphere_10cm_400K_tri.svx" />
 <!--
             <arg value="-input" />
             <arg value="cf6_1024.svx" />
