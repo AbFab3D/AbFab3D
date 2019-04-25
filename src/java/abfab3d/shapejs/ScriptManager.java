@@ -168,8 +168,11 @@ public class ScriptManager {
      * @throws NotCachedException
      */
     public ScriptResources prepareScript(String jobID, String libDir,String script, Map<String, Object> params) {
-        ArrayList<String> libDirs = new ArrayList<String>();
-        libDirs.add(libDir);
+        ArrayList<String> libDirs = null;
+        if (libDir != null && libDir.length() > 0) {
+            libDirs = new ArrayList<String>();
+            libDirs.add(libDir);
+        }
         return prepareScript(jobID, libDirs, script, params, true);
     }
 
@@ -184,8 +187,11 @@ public class ScriptManager {
      * @throws NotCachedException
      */
     public ScriptResources prepareScript(String jobID, String libDir,String script, Map<String, Object> params, boolean sandboxed) {
-        ArrayList<String> libDirs = new ArrayList<String>();
-        libDirs.add(libDir);
+        ArrayList<String> libDirs = null;
+        if (libDir != null && libDir.length() > 0) {
+            libDirs = new ArrayList<String>();
+            libDirs.add(libDir);
+        }
         return prepareScript(jobID, libDirs, script, params, sandboxed);
     }
 
@@ -202,7 +208,7 @@ public class ScriptManager {
     public ScriptResources prepareScript(String jobID, List<String> libDirs, String script, Map<String, Object> params, boolean sandboxed) {
         ScriptResources sr = null;
 
-        if (libDirs == null || libDirs.size() == 0) {
+        if ( !sandboxed && (libDirs == null || libDirs.size() == 0) ) {
             printf("No lib dir provided.  Using user dir: %s\n",System.getProperty("user.dir"));
             // Make the current directory be the lib dir
             libDirs = new ArrayList<>();
