@@ -33,7 +33,7 @@ import static abfab3d.core.Output.printf;
  */
 public class URIUtils {
     private static final boolean DEBUG = false;
-
+    public static final String DOWNLOAD_PREFIX = "downloadURI";
 	public static final Map<String, String> mimeTypeMapper;
 	static {
 		Map<String, String> tmpMap = new HashMap<String, String>();
@@ -59,7 +59,7 @@ public class URIUtils {
      * @throws IOException
      */
     public static String downloadURI(String paramName, String urlStr) throws URISyntaxException, IOException {
-        String workingDirPath = Files.createTempDirectory("downloadURI").toString();
+        String workingDirPath = Files.createTempDirectory(DOWNLOAD_PREFIX).toString();
         return writeUrlToFile(paramName, urlStr, workingDirPath, false);
     }
 
