@@ -50,6 +50,7 @@ import abfab3d.param.SNodeParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.StringParameter;
+import abfab3d.param.BooleanParameter;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.StringListParameter;
 import abfab3d.param.EnumParameter;
@@ -87,6 +88,8 @@ public class PolyJetWriter extends BaseParameterizable {
 
     static final int MAX_DATA_DIMENSION = 8;
 
+    public static double DEFAULT_SLICE_THICKNESS = 0.027*MM;
+
     // named PolyJet materials 
     public static final String S_WHITE = "VeroPureWht";
     public static final String S_BLACK = "VeroBlack";
@@ -101,6 +104,14 @@ public class PolyJetWriter extends BaseParameterizable {
     public static final int C_MAGENTA[] = {166,  33,  98, 255};
     public static final int C_YELLOW[] = {200, 189,   3, 255};
     public static final int C_CLEAR[] = {227, 233, 253,  50};
+
+    public static final int C_FULL_CURE_720[] = {255,255,170,255};
+    public static final int C_TANGO_PLUS[] = {50,50,50,255};
+    public static final int C_AGILUS_30_CLR[] = {255,255,100,255};
+    public static final int C_AGILUS_30_BLK[]  = {40,77,108,255};
+    public static final int C_VERO_VLEX_WT[] = {255,255,255};
+    public static final int C_VERO_BLUE[] = {156,208,237,255};
+    public static final int C_VERO_GRAY[] = {185,185,185,255};
 
     static int icolors_phys[][] = new int[][]{
         C_CYAN, 
@@ -138,7 +149,7 @@ public class PolyJetWriter extends BaseParameterizable {
     public static final int MAPPING_RGBA = 2;
 
 
-    public static final double SLICE_THICKNESS =0.027*MM;
+    public static final double SLICE_THICKNESS =DEFAULT_SLICE_THICKNESS;
     public static final double SLICE_THICKNESS_HR =0.014*MM;
     public static final double PIXEL_SIZE_X = IN/600;
     public static final double PIXEL_SIZE_Y = IN/300;
@@ -167,7 +178,8 @@ public class PolyJetWriter extends BaseParameterizable {
     StringParameter mp_outFolder = new StringParameter("outFolder","/tmp/polyjet");
     StringParameter mp_outPrefix = new StringParameter("outPrefix","slice");
     EnumParameter mp_mapping = new EnumParameter("mapping", "mapping mode of input value into materials", sm_mappingNames, sm_mappingNames[0]);
-    EnumParameter mp_layerThickness = new EnumParameter("sliceingMode", "mapping mode of input value into materials", sm_mappingNames, sm_mappingNames[0]);
+    DoubleParameter mp_sliceThickness = new DoubleParameter("sliceThickness", DEFAULT_SLICE_THICKNESS);
+    BooleanParameter mp_makeMaterialsMarker = new BooleanParameter("materialsMarker",true);
     
     
     Parameter m_aparam[] = new Parameter[]{
@@ -187,7 +199,9 @@ public class PolyJetWriter extends BaseParameterizable {
         mp_firstSlice,
         mp_slicesCount,
         mp_mapping,
-        mp_threadCount
+        mp_threadCount,
+        mp_makeMaterialsMarker,
+        mp_sliceThickness
     };
 
     public PolyJetWriter(){
@@ -229,8 +243,9 @@ public class PolyJetWriter extends BaseParameterizable {
     int m_nx, m_ny, m_nz;
     DataSource m_model;
     
-    //int m_outsideColor = 0xFF000000; // color of exterior pixels 
-    int m_outsideColor = 0x00000000; // color of exterior pixels 
+    int m_backgroundColor = 0xFF000000; // color of exterior pixels 
+
+    static int m_materialMarker[] = new int[]{I_WHITE,I_BLACK,I_CYAN,I_MAGENTA,I_YELLOW,I_CLEAR};
 
     int m_materialColors[] = {I_WHITE};
     int m_materialCount = 1;
@@ -276,7 +291,7 @@ public class PolyJetWriter extends BaseParameterizable {
 
         long t0 = time();
 
-        m_sliceThickness = SLICE_THICKNESS_HR;
+        m_sliceThickness = mp_sliceThickness.getValue();
         //m_sliceThickness = SLICE_THICKNESS;
         m_vsx = PIXEL_SIZE_X;
         m_vsy = PIXEL_SIZE_Y;
@@ -351,10 +366,15 @@ public class PolyJetWriter extends BaseParameterizable {
     protected void processSlice(int iz, double sliceData[], int imageData[], BufferedImage image){
 
         iz += m_firstSlice;
-
+        
         Vector3d origin = new Vector3d(m_bounds.xmin,m_bounds.ymin,m_bounds.zmin + m_sliceThickness*(iz+0.5));
         m_slicer.getSliceData(m_model, origin, m_eu, m_ev, m_nx, m_ny, m_materialCount, sliceData);
         makeImage(sliceData, imageData); 
+        if((iz == 0) && mp_makeMaterialsMarker.getValue()){
+            for(int i = 0; i < m_materialMarker.length; i++){
+                imageData[i] = m_materialMarker[i];
+            }
+        }
         String outPath = fmt("%s/%s_%d.png", m_outFolder, m_outPrefix, iz);
 
         try {
@@ -401,7 +421,7 @@ public class PolyJetWriter extends BaseParameterizable {
                 
                 if(voxel.v[0] > 0) {
                     // outside 
-                    imageData[imgOffset] = m_outsideColor;
+                    imageData[imgOffset] = m_backgroundColor;
                     
                 } else {      
                     // interior 
@@ -525,7 +545,7 @@ public class PolyJetWriter extends BaseParameterizable {
             sliceData[offset + i] += error[i]*weight;
         }
         // sometime it is harmful 
-        //normalizeVoxel(sliceData, offset);
+        normalizeVoxel(sliceData, offset);
         
     }
 

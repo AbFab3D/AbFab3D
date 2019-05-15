@@ -249,6 +249,9 @@ public class TestPolyJetWriter {
         return x*x*coeff[0] + y*y*coeff[1] + z*z*coeff[2];   
     }
 
+    /**
+       wrinte simple file 
+     */
     void devTestWriter(){
 
         double s = 10*MM;
@@ -267,6 +270,7 @@ public class TestPolyJetWriter {
         writer.set("threadCount", 0);
         writer.setBounds(bounds);
         writer.set("model", model);        
+        writer.set("sliceThickness", 1*MM);
         writer.set("ditheringType", 0);
         //writer.set("firstSlice",bounds.getDepthVoxels(PolyJetWriter.SLICE_THICKNESS_HR)/2);
         //writer.set("slicesCount", 150);
