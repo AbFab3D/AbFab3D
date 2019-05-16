@@ -84,7 +84,7 @@ import static java.lang.Math.min;
 */
 public class PolyJetWriter extends BaseParameterizable {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     static final int MAX_DATA_DIMENSION = 8;
 
@@ -366,9 +366,13 @@ public class PolyJetWriter extends BaseParameterizable {
     protected void processSlice(int iz, double sliceData[], int imageData[], BufferedImage image){
 
         iz += m_firstSlice;
-        
+        if(DEBUG) printf("slice:%d\n",iz);
         Vector3d origin = new Vector3d(m_bounds.xmin,m_bounds.ymin,m_bounds.zmin + m_sliceThickness*(iz+0.5));
-        m_slicer.getSliceData(m_model, origin, m_eu, m_ev, m_nx, m_ny, m_materialCount, sliceData);
+        try {
+            m_slicer.getSliceData(m_model, origin, m_eu, m_ev, m_nx, m_ny, m_materialCount, sliceData);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
         makeImage(sliceData, imageData); 
         if((iz == 0) && mp_makeMaterialsMarker.getValue()){
             for(int i = 0; i < m_materialMarker.length; i++){
