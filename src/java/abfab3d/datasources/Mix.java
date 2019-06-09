@@ -31,6 +31,7 @@ import static abfab3d.core.Output.printf;
 
 import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.core.MathUtil.step10;
+import static java.lang.Math.min;
 
 
 /**
@@ -195,22 +196,41 @@ public class Mix extends TransformableDataSource{
      * calculates values of all data sources and return maximal value
      * can be used to make union of few shapes
      */
-    public int getBaseValue(Vec pnt, Vec data) {
+    public int getBaseValue(Vec pnt, Vec data){
 
-        //
-        //TODO deal with different dimension of data 
-        //
-        m_mixer.getDataValue(pnt, data);
-        double t = data.v[0];
+        if(m_channelsCount == 1){
+            // single channel case 
+            m_mixer.getDataValue(new Vec(pnt), data);
+            double t = data.v[0];
+            
+            m_dataSource2.getDataValue(new Vec(pnt), data);
+            double d2 = data.v[0];
+            
+            m_dataSource1.getDataValue(new Vec(pnt), data);
+            double d1 = data.v[0];
+            
+            data.v[0] = d1 + (d2-d1)*t;
+            
+        } else {
 
-        m_dataSource2.getDataValue(new Vec(pnt), data);
-        double d2 = data.v[0];
+            // general channel count case 
+            Vec data1 = new Vec(m_dimSource1);
+            Vec data2 = new Vec(m_dimSource2);
+            Vec dMix = new Vec(m_dimMix);
+            
+            m_mixer.getDataValue(new Vec(pnt), dMix);
+            m_dataSource1.getDataValue(new Vec(pnt), data1);
+            m_dataSource2.getDataValue(new Vec(pnt), data2);
 
-        m_dataSource1.getDataValue(new Vec(pnt), data);
-        double d1 = data.v[0];
+            for(int i = 0; i < m_channelsCount; i++){
+                int imix = min(i,m_dimMix);
+                double t = dMix.v[imix];
+                double d1 = (i < m_dimSource1)? data1.v[i]: 0.;
+                double d2 = (i < m_dimSource2)? data2.v[i]: 0.;
+                data.v[i] = d1 + (d2-d1)*t;
+            }
+        }
         
-        data.v[0] *= d1 + (d2-d1)*t;
-
         return ResultCodes.RESULT_OK;
 
     }

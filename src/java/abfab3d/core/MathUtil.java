@@ -1296,16 +1296,30 @@ public class MathUtil {
        
        @param u first array 
        @param v second array 
-       @param t interpolation parameter (if t = 0, result will be first array, if t == 1 result will be second array, linear interpoation for other values )
+       @param t interpolation parameter (if t = 0, result will be first array, if t == 1 result will be second array, 
+       linear interpoation for other values )
        @param res array to store result
      */
     public static final void lerp(double u[], double v[], double t, double res[]){
+        lerp(u,v,t,0,res);
+    }
+
+    /**
+       makes linear interpolation between two arrays of double values 
+       
+       @param u first array 
+       @param v second array 
+       @param t interpolation parameter (if t = 0, result will be first array, if t == 1 result will be second array, 
+       linear interpoation for other values )
+       @param offset array index to start 
+       @param res array to store result
+     */
+    public static final void lerp(double u[], double v[], double t, int offset, double res[]){
         int dim = Math.min(u.length, v.length);
         for(int i = 0; i < dim; i++){
             res[i] = lerp(u[i], v[i], t);
         }
     }
-
 
     /**
        bi-linear interpolation between 4 values 

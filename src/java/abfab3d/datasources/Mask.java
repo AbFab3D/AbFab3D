@@ -34,7 +34,7 @@ import static abfab3d.core.Units.MM;
  return 1;
  else if(v > threshold + thickness/2)
  return 0;
- else // inside of the transition area
+ else // linear interpolation inside of the transition area
  return (threshold + thickness/2 - v)/thickness;
  </pre>
 
