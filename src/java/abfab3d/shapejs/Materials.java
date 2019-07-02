@@ -33,6 +33,13 @@ public class Materials {
     private static String[] allMaterialNames;
     private static String[] allMaterialLabels;
 
+    static {
+
+        // TODO: Discuss this with Vlad
+        mats.put("FullColor", new FullColorMaterial());
+        mats.put("SingleColor", new SingleColorMaterial());
+    }
+
     public static void add(String name, Material mat) {
         if (mats.containsKey(name)) {
             throw new IllegalArgumentException("Cannot redefine existing materials");
@@ -57,12 +64,12 @@ public class Materials {
      */
     public static String[] getAllNames() {
         if (allMaterialNames == null) {
-            allMaterialNames = new String[mats.size() + 4];
+            allMaterialNames = new String[mats.size() + 2];
 
             int idx =0;
             allMaterialNames[idx++] = "None";
-            allMaterialNames[idx++] = "SingleColor";
-            allMaterialNames[idx++] = "FullColor";
+            //allMaterialNames[idx++] = "SingleColor";
+            //allMaterialNames[idx++] = "FullColor";
             allMaterialNames[idx++] = "MixedMaterial";
 
             for(String st : mats.keySet()) {

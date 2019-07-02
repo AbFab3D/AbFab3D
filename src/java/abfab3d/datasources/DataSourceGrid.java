@@ -166,35 +166,38 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     private void loadGrid() {
         if (m_grid != null) return;
 
-        Object src = mp_grid.getValue();
+        synchronized (this) {
+            if (m_grid != null) return;  // Recheck after sync point incase another thread got it
 
-        if (src instanceof GridProducer) {
-            m_grid = ((GridProducer) src).getGrid();
-        } else if (src instanceof AttributeGrid) {
-            m_grid = (AttributeGrid) src;
-        } else {
-            throw new IllegalArgumentException("Unknown type for Grid source: " + src);
+            Object src = mp_grid.getValue();
+
+            if (src instanceof GridProducer) {
+                m_grid = ((GridProducer) src).getGrid();
+            } else if (src instanceof AttributeGrid) {
+                m_grid = (AttributeGrid) src;
+            } else {
+                throw new IllegalArgumentException("Unknown type for Grid source: " + src);
+            }
+
+            Bounds bounds = m_grid.getGridBounds();
+            m_channelsCount = m_grid.getDataDesc().size();
+
+            m_nx = m_grid.getWidth();
+            m_ny = m_grid.getHeight();
+            m_nz = m_grid.getDepth();
+
+            m_nx1 = m_nx - 1;
+            m_ny1 = m_ny - 1;
+            m_nz1 = m_nz - 1;
+
+            m_xmin = bounds.xmin;
+            m_ymin = bounds.ymin;
+            m_zmin = bounds.zmin;
+
+            m_xscale = m_nx / bounds.getSizeX();
+            m_yscale = m_ny / bounds.getSizeY();
+            m_zscale = m_nz / bounds.getSizeZ();
         }
-
-        Bounds bounds = m_grid.getGridBounds();
-        m_channelsCount = m_grid.getDataDesc().size();
-
-        m_nx = m_grid.getWidth();
-        m_ny = m_grid.getHeight();
-        m_nz = m_grid.getDepth();
-
-        m_nx1 = m_nx - 1;
-        m_ny1 = m_ny - 1;
-        m_nz1 = m_nz - 1;
-
-        m_xmin = bounds.xmin;
-        m_ymin = bounds.ymin;
-        m_zmin = bounds.zmin;
-
-        m_xscale = m_nx / bounds.getSizeX();
-        m_yscale = m_ny / bounds.getSizeY();
-        m_zscale = m_nz / bounds.getSizeZ();
-
     }
 
     /**
@@ -476,7 +479,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     /**
      * Real initialization when we have too, this uses lazy init.
      */
-    private void realInitialize() {
+    private synchronized void realInitialize() {
         if (m_initialized) return;
 
         loadGrid();
@@ -491,6 +494,7 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
             if (DEBUG) printf("m_dataChannels[%d]:%s\n", i, m_dataChannels[i]);
         }
 
+        m_initialized = true;
     }
 
     @Override
@@ -596,6 +600,10 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
         for (int ch = 0; ch < m_channelsCount; ch++) {
 
             GridDataChannel channel = m_dataChannels[ch];
+            if (channel == null) {
+                throw new IllegalArgumentException(fmt("Must have a GridDataChannel.  channel: %d",ch));
+            }
+
             double
                     v000 = channel.getValue(a000),
                     v100 = channel.getValue(a100),

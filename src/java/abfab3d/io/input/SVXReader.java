@@ -12,10 +12,14 @@
 
 package abfab3d.io.input;
 
+import abfab3d.core.GridDataChannel;
+import abfab3d.core.GridDataDesc;
 import abfab3d.grid.ArrayAttributeGridByte;
+import abfab3d.grid.ArrayAttributeGridByteIndexLong;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.Bounds;
+import abfab3d.grid.GridShortIntervals;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -41,6 +45,8 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class SVXReader {
+    private static final boolean DEBUG = true;
+
     /** The manifest for the last load call */
     private SVXManifest mf;
 
@@ -49,7 +55,6 @@ public class SVXReader {
      *
      * @param file The zip file
      * @return
-     * @throws IOException
      */
     public AttributeGrid load(String file) throws IOException {
 
@@ -72,11 +77,20 @@ public class SVXReader {
             int nx = mf.getGridSizeX();
             int ny = mf.getGridSizeY();
             int nz = mf.getGridSizeZ();
+            long voxels = (long) nx * ny * nz;
             double vs = mf.getVoxelSize();
-            //TODO - select right grid 
-            AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz,vs, vs);
-            //AttributeGrid grid = new ArrayAttributeGridInt(nx, ny, nz,vs, vs);
 
+            AttributeGrid grid = null;
+
+            if (voxels < (long)Integer.MAX_VALUE)
+                grid = new ArrayAttributeGridByte(nx,ny,nz,vs,vs);
+            else {
+                if (DEBUG) printf("SVXReader using large grid\n");
+
+                // TODO: The second seems faster, need to figure out what best to use or allow caller to template
+                //grid = new GridShortIntervals(nx, ny, nz, vs, vs);
+                grid = new ArrayAttributeGridByteIndexLong(nx,ny,nz,vs,vs);
+            }
             double 
                 xmin = mf.getOriginX(),
                 ymin = mf.getOriginY(),
@@ -101,6 +115,12 @@ public class SVXReader {
                     sr.readSlices(grid,zip,chan.getSlicesPath(),0,0,mf.getGridSizeY());
                 }
             }
+
+            if (DEBUG) printf("*** Channels: %d\n",channels.size());
+            GridDataDesc gdd = new GridDataDesc();
+            gdd.addChannel(new GridDataChannel(GridDataChannel.DENSITY,     "0_density", 8,  0,  0., 1.));
+            grid.setDataDesc(gdd);
+
             return grid;
         } finally {
             if (zip != null) zip.close();

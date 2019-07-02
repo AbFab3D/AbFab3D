@@ -20,13 +20,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.text.NumberFormat;
 
-import javax.vecmath.Vector3f;
 
 import org.j3d.util.ErrorReporter;
-import org.j3d.geom.GeometryData;
 
 // Internal Imports
 import abfab3d.io.soap.SOAPException;
