@@ -170,6 +170,21 @@ public class Vec {
         }
     }
 
+    public void subSet(double a[]){
+        int n  = Math.min(v.length, a.length);
+        for(int i = 0; i < n; i++){
+            v[i] -= a[i];
+        }
+    }
+
+    public void addSet(Vec a){
+        addSet(a.v);
+    }
+
+    public void subSet(Vec a){
+        subSet(a.v);
+    }
+
     public void clamp(double x0, double x1){
 
         double n = v.length;
