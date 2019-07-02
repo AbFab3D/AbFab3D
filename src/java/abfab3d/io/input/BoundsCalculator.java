@@ -16,6 +16,7 @@ package abfab3d.io.input;
 import javax.vecmath.Vector3d;
 
 import abfab3d.core.AttributedTriangleCollector;
+import abfab3d.core.Bounds;
 import abfab3d.core.TriangleCollector;
 
 import abfab3d.core.Vec;
@@ -97,6 +98,12 @@ public class BoundsCalculator implements TriangleCollector, AttributedTriangleCo
         bounds[4] = zmin;
         bounds[5] = zmax;
 
+    }
+
+    public Bounds getBoundsObject() {
+        Bounds bounds = new Bounds(xmin,xmax,ymin,ymax,zmin,zmax);
+
+        return bounds;
     }
 
     /**

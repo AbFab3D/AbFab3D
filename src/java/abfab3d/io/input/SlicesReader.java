@@ -33,7 +33,7 @@ import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.time;
 
 /**
- * Slces Reader.
+ * Slices Reader.
  *
  * Reads the a bunch of slices images into a grid
  *

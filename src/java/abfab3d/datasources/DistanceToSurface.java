@@ -73,7 +73,7 @@ import static abfab3d.core.Output.time;
    
    calculates distance to surface represented by given DataSource 
    during initialization it does 
-   1) calculates oints on the surface giveb by impoleicit equation f(x,y,z) = 0 
+   1) calculates points on the surface given by implicit equation f(x,y,z) = 0
    2) generates interior/exterior grid from sign of data values
    3) initialises thin layer of voxel around surface to index closest point on surface 
    4) sweeps thin layer to the whole grid of closest point indices
@@ -89,18 +89,12 @@ public class DistanceToSurface extends TransformableDataSource {
     static final boolean DEBUG = false;
     static final boolean DEBUG_TIMING = true;
     static final double DEFAULT_VOXEL_SIZE = 0.2*MM;
-    static final double DEFAULT_SURFACE_VOXEL_SIZE  = 0.5;
-    static final double DEFAULT_SHELL_HALF_THICKNESS = 2.6;
 
-    static final long INTERIOR_MASK = IndexedDistanceInterpolator.INTERIOR_MASK;
-
-    static final int INTERIOR_VALUE = 1; // interior value for interior grid 
-        
     static final double MAX_DISTANCE_UNDEFINED = 1.e10;
     
     SNodeParameter mp_source = new SNodeParameter("source", "data source", null);
     DoubleParameter mp_voxelSize = new DoubleParameter("voxelSize", "size of rasterization voxel", DEFAULT_VOXEL_SIZE);
-    DoubleParameter mp_surfaceVoxelSize = new DoubleParameter("surfaceVoxelSize", "relative size of voxel used for sureface calculatrions", 1);
+    DoubleParameter mp_surfaceVoxelSize = new DoubleParameter("surfaceVoxelSize", "relative size of voxel used for surface calculations", 1);
     DoubleParameter mp_maxDistance = new DoubleParameter("maxDistance", "max distance to calculate", MAX_DISTANCE_UNDEFINED);
     DoubleParameter mp_shellHalfThickness = new DoubleParameter("shellHalfThickness", "shell half thickness (in voxels)", 1);
     BooleanParameter mp_useMultiPass = new BooleanParameter("useMultiPass", "use Multi Pass algorithm in distance sweeping",false);
@@ -114,12 +108,12 @@ public class DistanceToSurface extends TransformableDataSource {
 
     protected long m_maxGridSize = 1000L*1000L*1000L;
     protected long m_minGridSize = 1000L;
-    protected double m_maxDistance;
 
     Parameter[] m_aparams = new Parameter[]{
         mp_source,
         mp_voxelSize,
-        mp_maxDistance, 
+        mp_maxDistance,
+        mp_surfaceVoxelSize,
         mp_shellHalfThickness,
         mp_useMultiPass,
         mp_extendDistance,
@@ -135,7 +129,8 @@ public class DistanceToSurface extends TransformableDataSource {
     protected String m_currentParamString = "";
     
     // interpolator used to calculate distances 
-    IndexedDistanceInterpolator m_distCalc;    
+    IndexedDistanceInterpolator m_distCalc;
+
     /**
        constructor with plain mesh producer 
      */
@@ -180,7 +175,7 @@ public class DistanceToSurface extends TransformableDataSource {
      */
     public int initialize(){
         
-        if(DEBUG) printf("%s.initialize()\n",this);
+        if(DEBUG) printf("%s.initialize()  vs: %6.2f mm\n",this,mp_voxelSize.getValue()/MM);
         super.initialize();
 
         
@@ -237,7 +232,10 @@ public class DistanceToSurface extends TransformableDataSource {
     protected PointSet getSurfacePoints(){
 
         SurfacePointsFinderDS finder = new SurfacePointsFinderDS();
-        finder.set("voxelSize", mp_voxelSize.getValue()*mp_surfaceVoxelSize.getValue());
+
+        double vs = mp_voxelSize.getValue()*mp_surfaceVoxelSize.getValue();
+        if (DEBUG) printf("DistanceToSurface.getSurfacePoints vs: %6.2f mm\n",vs);
+        finder.set("voxelSize",vs);
         DataSource source = (DataSource)mp_source.getValue();
         Bounds bounds  = makeBounds();
 

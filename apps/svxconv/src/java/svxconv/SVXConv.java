@@ -16,6 +16,7 @@ import abfab3d.core.TriangleProducer;
 import abfab3d.core.Units;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.core.AttributeGrid;
+import abfab3d.grid.ArrayAttributeGridByteIndexLong;
 import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.io.input.SVXReader;
@@ -264,7 +265,7 @@ public class SVXConv {
 
         long MAX_MEMORY = Integer.MAX_VALUE;
         if (voxels > MAX_MEMORY) {
-            grid = new GridShortIntervals(gs[0], gs[1], gs[2], vs, vs);
+            grid = new ArrayAttributeGridByteIndexLong(gs[0], gs[1], gs[2], vs, vs);
         } else {
             grid = new ArrayAttributeGridByte(gs[0], gs[1], gs[2], vs, vs);
         }

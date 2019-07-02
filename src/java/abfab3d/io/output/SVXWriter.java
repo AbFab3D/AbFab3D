@@ -30,7 +30,7 @@ import static abfab3d.core.Output.printf;
  */
 public class SVXWriter {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     public static final String m_orientationNames[] = {"X","Y","Z"};
 
@@ -79,6 +79,7 @@ public class SVXWriter {
     public void write(AttributeGrid grid, OutputStream os) {
         ZipOutputStream zos = null;
 
+        printf("here1\n");
         try {
 
             zos = new ZipOutputStream(os);
@@ -95,6 +96,8 @@ public class SVXWriter {
 
                 GridDataChannel channel = attDesc.getChannel(i);
                 String channelPattern = channel.getName() + "/" + "slice%04d.png";
+
+                printf("Writing channel.  channel: %s\n",channel);
                 sw.writeSlices(grid,zos,channelPattern,0,0,getSlicesCount(grid), m_orientation, channel.getBitCount(), channel);
             }
         } catch(IOException ioe) {

@@ -52,7 +52,7 @@ import static abfab3d.core.Output.printf;
  */
 public class SlicesWriter {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     static int debugCount = 100;
     public static final int 
         AXIS_X=0,
@@ -249,6 +249,8 @@ public class SlicesWriter {
         int voxelByteCount = getVoxelByteCount(voxelBitCount);
         int dataBitCount = getDataBitCount(voxelBitCount);
         BufferedImage outImage = makeImage(imgSize[0], imgSize[1], voxelBitCount);
+
+        printf("Write Slices.  voxelBitCount: %d  dataBitCount: %d\n",voxelBitCount,dataBitCount);
 
         DataBuffer db = outImage.getRaster().getDataBuffer();
         if(DEBUG) printf("DataBuffer: %s\n", db);

@@ -124,21 +124,14 @@
         <java classname="svxconv.SVXConv" fork="true">
             <jvmarg line="${jvmrunargs}"/>
             <arg value="-input" />
-<!--            <arg value="/tmp/voxelsize/original-3000075_v0.stl" /> -->
-            <arg value="/tmp/sphere_10cm_400K_tri.stl" />
+            <arg value="heroforge1.am.x3db" />
             <arg value="-output" />
-            <arg value="/tmp/sphere_10cm_400K_tri.svx" />
+            <arg value="heroforge1.svx" />
 <!--
             <arg value="-input" />
-            <arg value="cf6_1024.svx" />
+            <arg value="sphere.stl" />
             <arg value="-output" />
-            <arg value="v6_1024_ef0.85_sw_0.4.x3db" />
--->
-<!--
-            <arg value="-meshErrorFactor" />
-            <arg value="0.1" />
-            <arg value="-meshSmoothingWidth" />
-            <arg value="0.5" />
+            <arg value="sphere.svx" />
 -->
             <arg value="-maxTriangles" />
             <arg value="50000000" />

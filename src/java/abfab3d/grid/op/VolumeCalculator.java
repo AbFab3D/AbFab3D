@@ -15,55 +15,48 @@ package abfab3d.grid.op;
 // External Imports
 
 // Internal Imports
+
 import abfab3d.core.AttributeGrid;
 import abfab3d.core.GridDataChannel;
-import abfab3d.core.GridDataDesc;
-import abfab3d.grid.*;
 
 /**
- * Calculates aproximate volume of shapes on the density grid
- *
+ * Calculates the approximate volume of shapes on the density grid
+ * <p>
  * uses density value as weight of voxel contribution to the total volume
  *
  * @author Vladimir Bulatov
  */
-public class VolumeCalculator  {
-
-    DensityMaker m_densityMaker = new DensityMakerSubvoxel(255);
+public class VolumeCalculator {
 
     public VolumeCalculator() {
-
     }
-
 
     /**
      * calculates grid volume
-     * 
      *
-     * @param dest The grid to use for grid A.
+     * @param grid The grid to use for grid A.
      * @return The null
      */
-    public double getVolume(AttributeGrid grid){
+    public double getVolume(AttributeGrid grid) {
 
         GridDataChannel dm = grid.getDataDesc().getDensityChannel();
-        if(dm == null) 
+        if (dm == null)
             throw new RuntimeException("grid has no density channel");
-        int 
-            nx = grid.getWidth(), 
-            ny = grid.getHeight(),
-            nz = grid.getDepth();
+        int
+                nx = grid.getWidth(),
+                ny = grid.getHeight(),
+                nz = grid.getDepth();
         double sh = grid.getSliceHeight();
         double vs = grid.getVoxelSize();
-        GridDataDesc ad = grid.getDataDesc();
-        
+
         double volume = 0;
-        for(int y=0; y < ny; y++) {
-            for(int x=0; x < nx; x++) {
-                for(int z=0; z < nz; z++) {
-                    volume += dm.getValue(grid.getAttribute(x,y,z));
+        for (int y = 0; y < ny; y++) {
+            for (int x = 0; x < nx; x++) {
+                for (int z = 0; z < nz; z++) {
+                    volume += dm.getValue(grid.getAttribute(x, y, z));
                 }
             }
         }
-        return volume*vs*vs*sh;
+        return volume * vs * vs * sh;
     }
 }

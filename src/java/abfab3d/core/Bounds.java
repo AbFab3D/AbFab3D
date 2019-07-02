@@ -128,6 +128,15 @@ public class Bounds implements Cloneable {
     }
 
 
+    public void getBounds(double[] bounds) {
+        bounds[0] = xmin;
+        bounds[1] = ymin;
+        bounds[2] = zmin;
+        bounds[3] = xmax;
+        bounds[4] = ymax;
+        bounds[5] = zmax;
+    }
+
     public int getGridWidth(){
         return round((xmax-xmin)/m_voxelSize);
     }
@@ -211,6 +220,12 @@ public class Bounds implements Cloneable {
     public Vector3d getCenter(){
         return new Vector3d((xmax+xmin)/2.,(ymax+ymin)/2.,(zmax+zmin)/2.);
     }
+    public void getCenter(double[] center) {
+        center[0] = (xmax+xmin)/2.;
+        center[1] = (ymax+ymin)/2.;
+        center[2] = (zmax+zmin)/2.;
+    }
+
     public void getCenter(Vector3d center){
         center.x = (xmax+xmin)/2.;
         center.y = (ymax+ymin)/2.;
