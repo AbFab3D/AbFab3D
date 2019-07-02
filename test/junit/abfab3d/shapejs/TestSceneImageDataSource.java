@@ -14,6 +14,7 @@ package abfab3d.shapejs;
 // External Imports
 
 
+import abfab3d.util.AbFab3DGlobals;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -29,7 +30,9 @@ import javax.vecmath.Vector3f;
 import java.awt.image.BufferedImage;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.UUID;
@@ -52,6 +55,7 @@ import abfab3d.datasources.Box;
 import abfab3d.datasources.VolumePatterns;
 import abfab3d.datasources.Intersection;
 import abfab3d.datasources.Union;
+import org.apache.commons.io.IOUtils;
 
 
 import static abfab3d.core.Units.MM;
@@ -80,21 +84,21 @@ public class TestSceneImageDataSource extends TestCase {
     static double sm_raytracingDepth  = 4;
 
     public void devTestScene() throws IOException {
-        
-        //int imageWidth = 500, imageHeight = 500;
-        int imageWidth = 4000, imageHeight = 4000;
+
+        int imageWidth = 512, imageHeight = 512;
+        //int imageWidth = 4000, imageHeight = 4000;
         //int imageWidth = 2000, imageHeight = 2000;
-        
-        SceneImageDataSource sids = makeSceneImageDataSource(makeScene3BallsMM(5*MM));
+
+        //SceneImageDataSource sids = makeSceneImageDataSource(makeScene3BallsMM(5*MM));
         //SceneImageDataSource sids = makeSceneImageDataSource(makeScene3Balls(5*MM));
         //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBall(5*MM));
-        //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroid());
-        
+        SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroid());
+
         //sids.set("shadowsQuality",5);
         sids.set("shadowsQuality",10);
 
         ImageMaker im = new ImageMaker();
-        
+
         im.set("imgRenderer",sids);
         im.set("threadCount",8);
         im.set("width", imageWidth);
@@ -105,8 +109,39 @@ public class TestSceneImageDataSource extends TestCase {
         BufferedImage image = im.getImage();
         printf("render time: %dms\n", (time()-t0));
 
-        ImageIO.write(image, "png", new File("/tmp/renderedScene.png")); 
-        
+        ImageIO.write(image, "png", new File("/tmp/renderedScene.png"));
+
+    }
+
+    public void devTestPeformance() throws IOException {
+        AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, Runtime.getRuntime().availableProcessors());
+        for(int i=0; i < 3; i++) {
+            int imageWidth = 512, imageHeight = 512;
+            //int imageWidth = 4000, imageHeight = 4000;
+            //int imageWidth = 2000, imageHeight = 2000;
+
+            //SceneImageDataSource sids = makeSceneImageDataSource(makeScene3BallsMM(5*MM));
+            //SceneImageDataSource sids = makeSceneImageDataSource(makeScene3Balls(5*MM));
+            //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBall(5*MM));
+            SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroid());
+
+            //sids.set("shadowsQuality",5);
+            sids.set("shadowsQuality", 10);
+
+            ImageMaker im = new ImageMaker();
+
+            im.set("imgRenderer", sids);
+            im.set("threadCount", 0);
+            im.set("width", imageWidth);
+            im.set("height", imageWidth);
+            im.setBounds(new Bounds(-1, 1, -1, 1, -1, 1));
+            long t0 = time();
+            printf("image[%d x %d]\n", imageWidth, imageHeight);
+            BufferedImage image = im.getImage();
+            printf("render time: %dms\n", (time() - t0));
+
+            ImageIO.write(image, "png", new File("/tmp/renderedScene.png"));
+        }
     }
 
     /**
@@ -315,8 +350,8 @@ public class TestSceneImageDataSource extends TestCase {
      */
     public void devTestScript() throws IOException {
 
-        int width = 100;
-        int height = 100;
+        int width = 256;
+        int height = 256;
         String scriptPath = "test/scripts/gyrosphere_params.js";
         String baseDir = null;
         //URI uri = new File().toURI();
@@ -326,7 +361,8 @@ public class TestSceneImageDataSource extends TestCase {
         String jobID = UUID.randomUUID().toString();
         HashMap<String, Object> params = new HashMap<String, Object>();
 
-        ScriptResources sr = sm.prepareScript(jobID, baseDir, scriptPath, params, true);
+        String script = IOUtils.toString(new FileInputStream(scriptPath));
+        ScriptResources sr = sm.prepareScript(jobID, baseDir, script, params, false);
         sm.executeScript(sr);
         assertTrue("Eval failed", sr.evaluatedScript.isSuccess());
 
@@ -381,8 +417,8 @@ public class TestSceneImageDataSource extends TestCase {
 
     public static void main(String arg[])throws Exception{
         
-        new TestSceneImageDataSource().devTestScene();
-        //new TestSceneImageDataSource().devTestDataSource();
+        //new TestSceneImageDataSource().devTestScript();
+        new TestSceneImageDataSource().devTestPeformance();
 
     }
 
