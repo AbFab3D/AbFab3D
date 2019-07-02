@@ -238,7 +238,7 @@ public class Union  extends TransformableDataSource implements SNode {
         
         double value = Double.MAX_VALUE;
 
-        //TODO garbage collecton 
+        //TODO garbage collection  
         Vec pnt1 = new Vec(pnt);
 
         for(int i = 0; i < len; i++){

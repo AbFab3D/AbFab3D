@@ -165,18 +165,16 @@ public class Add extends TransformableDataSource {
                 
         dataSource2.getDataValue(new Vec(pnt), data);
         double d0 = data.v[0];
-        double d1 = data.v[1];
-        double d2 = data.v[2];
-        double d3 = data.v[3];
+        //double d1 = data.v[1];
+        //double d2 = data.v[2];
+        //double d3 = data.v[3];
 
         dataSource1.getDataValue(pnt, data);
         
-        //if(DEBUG && debugCount-- > 0 )printf("d1: %7.5f d2: %7.5f\n",data.v[0], d2);
-
-        data.v[0] += d0;
-        data.v[1] += d1;
-        data.v[2] += d2;
-        data.v[3] += d3;
+        //if(DEBUG && debugCount-- > 0 )printf("d1: %7.5f d2: %7.5f\n",data.v[0], d2);        data.v[0] += d0;
+        //data.v[1] += d1;
+        //data.v[2] += d2;
+        //data.v[3] += d3;
         return ResultCodes.RESULT_OK;
 
     }

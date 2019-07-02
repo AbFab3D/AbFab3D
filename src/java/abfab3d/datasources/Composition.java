@@ -19,6 +19,11 @@ import abfab3d.core.Initializable;
 import abfab3d.core.Vec;
 
 import java.util.List;
+import static java.lang.Math.max;
+import static abfab3d.core.MathUtil.lerp;
+import static abfab3d.core.MathUtil.blendMin;
+import static abfab3d.core.MathUtil.blendMax;
+import static abfab3d.core.MathUtil.step10;
 
 /**
 
@@ -90,17 +95,18 @@ public class Composition extends TransformableDataSource {
 
 
     IntParameter mp_type = new IntParameter("type", "type of composition", BoverA);
-    DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
+    DoubleParameter mp_blend = new DoubleParameter("blend", "blend width", 0.);
     SNodeListParameter mp_sources = new SNodeListParameter("sources");
 
     Parameter m_aparam[] = new Parameter[]{
-            mp_blendWidth,
+            mp_blend,
             mp_type,
             mp_sources
     };
 
     protected int m_type = 0;
     protected int m_count = 0;
+    protected double m_blend;
 
     // fixed vector of data components (to speed up the calculations) 
     DataSource vDataSources[];
@@ -195,7 +201,7 @@ public class Composition extends TransformableDataSource {
      * @param val The value in meters
      */
     public void setBlend(double val) {
-        mp_blendWidth.setValue(val);
+        mp_blend.setValue(val);
     }
 
     /**
@@ -203,7 +209,7 @@ public class Composition extends TransformableDataSource {
      * @return
      */
     public double getBlend() {
-        return mp_blendWidth.getValue();
+        return mp_blend.getValue();
     }
 
     /**
@@ -240,6 +246,7 @@ public class Composition extends TransformableDataSource {
         m_type = mp_type.getValue();
 
         m_channelsCounts = new int[m_count];
+        m_blend = mp_blend.getValue();
 
         int ccnt = 0;
 
@@ -250,12 +257,10 @@ public class Composition extends TransformableDataSource {
                 ((Initializable) ds).initialize();
             }
             m_channelsCounts[i] = vDataSources[i].getChannelsCount();
-            if (m_channelsCounts[i] > ccnt) {
-                ccnt = m_channelsCounts[i];
-            }
+            ccnt = max(ccnt, m_channelsCounts[i]);
         }
 
-        // all channels after first are treated as material channels 
+        // all channels after first are considered material channels 
         m_materialChannelsCount = ccnt - 1;
         // density channel 
         m_channelsCount = 1;
@@ -265,12 +270,126 @@ public class Composition extends TransformableDataSource {
 
 
     /**
-     *  calculates values of all data sources and does digital composition of the input data 
-     *  using 
-     * can be used to make union of few shapes
+     *  
+     *  
      @noRefGuide
      */
     public int getBaseValue(Vec pnt, Vec data) {
+
+        //return getDdensityData(pnt, data);
+        return getDistanceData(pnt, data);
+    }
+
+    /**
+     *  
+     *  
+     @noRefGuide
+     */
+    public int getDistanceData(Vec pnt, Vec data) {
+        
+        
+        int count = vDataSources.length;
+        DataSource dss[] = vDataSources;
+
+        Vec pnt1 = new Vec(pnt);
+        Vec data1 = new Vec(data);
+        Vec data2 = new Vec(data);
+        Vec data3 = new Vec(data);
+
+        dss[0].getDataValue(pnt1, data1);
+
+        for(int k = 1; k < count; k++){
+
+            Vec pnt2 = new Vec(pnt);
+            dss[k].getDataValue(pnt2, data2);
+            composeDistanceData(data1,data2, data3);
+            // transfer result back to data1 
+            data1.set(data3);
+        }
+
+        // transfer result to output 
+        data.set(data1);
+        
+        return ResultCodes.RESULT_OK;
+    }
+    
+    
+    /**
+       compose distance data from two data values and store result into dataResult
+     */
+    private void composeDistanceData(Vec inA,Vec inB, Vec out){
+        
+        double a = inA.v[0];
+        double b = inB.v[0];
+        double ca[] = inA.v;
+        double cb[] = inB.v;
+        
+        switch(m_type){
+        default:
+        case A: 
+            out.set(inA);
+            break;
+        case B:     
+            out.set(inB);
+            break;        
+        case BoverA:
+            out.v[0] = blendMin(a, b, m_blend);
+            lerp(ca, cb, max(step10(b,a,m_blend), step10(b,0,m_blend)), 1, out.v);
+            break;
+            /*   
+        case COMP_AoverB:
+        out->v.x = blendMin(a, b, blend);
+        //out->v.yzw = mix(ca, cb, max(step01(a,b,blend),step01(a,0,blend)));
+        out->v.yzw = mix(ca, cb, min(step01(a,b,blend),step01(a,0,blend)));
+        return;
+
+    case COMP_AinB:
+        out->v.x = blendMax(a, b, blend);
+        out->v.yzw = inA->v.yzw;
+        return;
+
+    case COMP_BinA:
+        out->v.x = blendMax(a, b, blend);
+        out->v.yzw = cb;
+        return;
+
+    case COMP_AoutB:
+        out->v.x = blendMax(a,-b, blend);
+        out->v.yzw = ca;
+        return;
+
+    case COMP_BoutA:
+        out->v.x = blendMax(-a, b, blend);
+        out->v.yzw = cb;
+        return;
+        
+    case COMP_AatopB:
+        out->v.x = b;
+        out->v.yzw = mix(cb, ca, step10(a,0,blend));
+        return;
+
+    case COMP_BatopA:
+        out->v.x = a;
+        out->v.yzw = mix(ca, cb, step10(b,0,blend));
+        return;
+
+    case COMP_AxorB:
+        out->v.x = min(blendMax(a,-b, blend), blendMax(-a, b, blend));
+        out->v.yzw = mix(ca, cb, step01(a,b,blend));
+        return;
+    }
+
+            */
+        }
+    }
+
+    /**
+     *  
+     *  
+     *  obsolete 
+     @noRefGuide
+     */
+    public int getDensityData(Vec pnt, Vec data) {
 
         int dataCount = vDataSources.length;
         DataSource dss[] = vDataSources;
@@ -326,7 +445,7 @@ public class Composition extends TransformableDataSource {
 
     //
     // make premult values 
-    // all components are multiplied by fist 
+    // all components are multiplied by first 
     static final void premult(double v[], int ccnt) {
         double d = v[0];
         for (int c = 1; c < ccnt; c++) {
@@ -350,7 +469,7 @@ public class Composition extends TransformableDataSource {
     }
 
     /**
-     do the composition of premult values and store reslt in first vector
+     do the composition of premult values and store result in the first vector
      */
     static final void compose(double va[], double vb[], int cnt, int type) {
 
