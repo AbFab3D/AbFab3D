@@ -153,12 +153,12 @@ public class Sub extends TransformableDataSource {
      */
     public int getBaseValue(Vec pnt, Vec data) {
                 
-        dataSource2.getDataValue(new Vec(pnt), data);
-        double d2 = data.v[0];
+        Vec data2 = new Vec(data);
 
+        dataSource2.getDataValue(new Vec(pnt), data2);
         dataSource1.getDataValue(pnt, data);
         
-        data.v[0] -= d2;
+        data.subSet(data2);
 
         return ResultCodes.RESULT_OK;
 
