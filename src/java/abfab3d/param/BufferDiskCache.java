@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -215,8 +216,8 @@ public class BufferDiskCache implements Runnable {
     public void run() {
         while(!terminate) {
             try {
-                LabeledBuffer buff = writeQueue.take();
-                putDirect(buff);
+                LabeledBuffer buff = writeQueue.poll(1, TimeUnit.SECONDS);
+                if (buff != null) putDirect(buff);
             } catch(InterruptedException ie) {
                 // ignore
             }

@@ -28,7 +28,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class Materials {
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     private static LinkedHashMap<String, Material> mats = new LinkedHashMap<>();
     private static String[] allMaterialNames;
     private static String[] allMaterialLabels;

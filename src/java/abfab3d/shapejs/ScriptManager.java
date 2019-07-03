@@ -14,10 +14,7 @@ import java.util.*;
 
 import abfab3d.core.Initializable;
 import abfab3d.io.input.URIMapper;
-import abfab3d.param.Parameter;
-import abfab3d.param.ParameterType;
-import abfab3d.param.Parameterizable;
-import abfab3d.param.URIParameter;
+import abfab3d.param.*;
 
 import abfab3d.util.URIUtils;
 
@@ -117,6 +114,13 @@ public class ScriptManager {
 
     }
 
+    /**
+     * Shuts down any running threads
+     */
+    public void shutdown() {
+        BufferDiskCache cache = BufferDiskCache.getInstance();
+        cache.shutdown();
+    }
 
     /**
        sets cache timeout in milliseconds

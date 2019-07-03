@@ -222,4 +222,104 @@ public class ImageSetup implements Cloneable {
         return fmt("ImageSetup  w: %d h: %d quality: %4.2f aa: %d bumpMaps: %b shadows: %4.2f maxRay: %d",
                 setup.width,setup.height,setup.quality,setup.aa,setup.bumpMaps,setup.shadowQuality,setup.maxRayBounces);
     }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public void setView(Matrix4f view) {
+        this.view = view;
+    }
+
+    public void setObjTrans(Matrix4f objTrans) {
+        this.objTrans = objTrans;
+    }
+
+    public void setImgType(int imgType) {
+        this.imgType = imgType;
+    }
+
+    public void setQuality(float quality) {
+        this.quality = quality;
+    }
+
+    public void setAa(int aa) {
+        this.aa = aa;
+    }
+
+    public void setBumpMaps(boolean bumpMaps) {
+        this.bumpMaps = bumpMaps;
+    }
+
+    public void setShadowQuality(float shadowQuality) {
+        this.shadowQuality = shadowQuality;
+    }
+
+    public void setLightSamples(int lightSamples) {
+        this.lightSamples = lightSamples;
+    }
+
+    public void setMaxRayBounces(int maxRayBounces) {
+        this.maxRayBounces = maxRayBounces;
+    }
+
+    public void setRenderingStyle(RenderingStyle renderingStyle) {
+        this.renderingStyle = renderingStyle;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public Matrix4f getView() {
+        return view;
+    }
+
+    public Matrix4f getObjTrans() {
+        return objTrans;
+    }
+
+    public int getImgType() {
+        return imgType;
+    }
+
+    public float getQuality() {
+        return quality;
+    }
+
+    public int getAa() {
+        return aa;
+    }
+
+    public boolean isBumpMaps() {
+        return bumpMaps;
+    }
+
+    public float getShadowQuality() {
+        return shadowQuality;
+    }
+
+    public int getLightSamples() {
+        return lightSamples;
+    }
+
+    public int getMaxRayBounces() {
+        return maxRayBounces;
+    }
+
+    public RenderingStyle getRenderingStyle() {
+        return renderingStyle;
+    }
+
+    public boolean isFlipImage() {
+        return flipImage;
+    }
 }

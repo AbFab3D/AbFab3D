@@ -417,8 +417,8 @@ public class TestSceneImageDataSource extends TestCase {
 
     public static void main(String arg[])throws Exception{
         
-        //new TestSceneImageDataSource().devTestScript();
-        new TestSceneImageDataSource().devTestPeformance();
+        new TestSceneImageDataSource().devTestScript();
+        //new TestSceneImageDataSource().devTestPeformance();
 
     }
 
