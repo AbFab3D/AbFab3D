@@ -1,6 +1,7 @@
 package shapejs;
 
 import abfab3d.shapejs.ImageSetup;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedOutputStream;
@@ -13,7 +14,7 @@ import static abfab3d.core.Output.printf;
  *
  * Usage patterns
  *
- * shapejs renderImage -project prj.zip -variant variants/foo.zip -output foo.png -width 256 -height 256
+ * shapejs renderImage -project prj.zip -variant variants/foo.zip -output foo.png -width 256 -height 256 -backend viewer.ShapeJSBackend
  * shapejs renderTriangle -project prj.zip -variant variants/foo.zip -output foo.stl -meshErrorFactor 0.1
  * shapejs renderPolyjet -project prj.zip -variant variants/foo.zip -output foo.stl
  * shapejs exec -project prj.zip -variant variants/foo.zip
@@ -21,21 +22,30 @@ import static abfab3d.core.Output.printf;
 public class ShapeJS {
 
     public void execute(ParamContainer params) {
-        CommandBackend backend = new CPUBackend();
+        CommandBackend backend = null;
+
+        if (params.getBackend() == null) {
+            backend = new CPUBackend();
+        } else {
+            backend = new NamedBackend(params.getBackend());
+        }
 
         String out = params.getOutput();
+        String format = FilenameUtils.getExtension(out);
 
-
-        try(
+        try (
             FileOutputStream fos = new FileOutputStream(out);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
         ) {
             switch (params.getCommand()) {
                 case renderImage:
-                    backend.renderImage(params, bos);
+                    backend.renderImage(params, bos, format);
+                    break;
+                case renderTriangle:
+                    backend.renderTriangle(params);
                     break;
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -67,8 +77,10 @@ public class ShapeJS {
                     params.setOutput(args[++i]);
                 } else if(arg.equals("-width")){
                     imageSetup.setWidth(Integer.parseInt(args[++i]));
-                } else if(arg.equals("-height")){
+                } else if(arg.equals("-height")) {
                     imageSetup.setHeight(Integer.parseInt(args[++i]));
+                } else if(arg.equals("-backend")) {
+                        params.setBackend(args[++i]);
                 } else {
 
                     System.out.println("Unknown parameter: " + arg);

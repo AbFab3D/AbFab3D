@@ -69,20 +69,11 @@
     </target>
 
     <target name="jar" depends="compile">
-        <createjar name="abfab3d_apps_volumesculptor" 
+        <createjar name="abfab3d_apps_shapejs"
             version="${version}"
-            manifest="abfab3d_apps_volumesculptor.mf"
-            includes="volumesculptor/VolumeSculptorKernel*
-                volumesculptor/shell/*
-            "
+            manifest="abfab3d_apps_shapejs.mf"
+            includes="**"
         />
-        <createjar name="shapejs" 
-            version="${version}"
-            manifest="shapejs.mf"
-            includes="volumesculptor/VolumeSculptorKernel*
-                volumesculptor/shell/*
-            "
-        />		
     </target>
     <target name="shapejs" depends="jar">
         <copy todir="${shapejs.dir}/bin">

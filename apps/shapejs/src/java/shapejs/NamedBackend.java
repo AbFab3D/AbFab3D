@@ -23,13 +23,12 @@ import java.io.OutputStream;
  *
  * @author Alan Hudson
  */
-public class OpenCLBackend implements CommandBackend {
+public class NamedBackend implements CommandBackend {
     private CommandBackend impl;
 
-    public OpenCLBackend() {
+    public NamedBackend(String className) {
         try {
-            // TODO: Still need to create this class
-            Class backend = Class.forName("viewer.ShapeJSBackend");
+            Class backend = Class.forName(className);
             impl = (CommandBackend) backend.newInstance();
         } catch(Exception cnfe) {
             cnfe.printStackTrace();
@@ -37,8 +36,8 @@ public class OpenCLBackend implements CommandBackend {
     }
 
     @Override
-    public void renderImage(ParamContainer params, OutputStream os) {
-        impl.renderImage(params,os);
+    public void renderImage(ParamContainer params, OutputStream os, String format) {
+        impl.renderImage(params,os, format);
     }
 
     @Override

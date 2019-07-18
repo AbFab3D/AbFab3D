@@ -14,20 +14,35 @@
 
 package shapejs;
 
-import abfab3d.core.Bounds;
+import abfab3d.core.*;
+import abfab3d.grid.ArrayAttributeGridByte;
+import abfab3d.grid.ArrayAttributeGridInt;
+import abfab3d.grid.GridIntIntervals;
+import abfab3d.grid.GridShortIntervals;
+import abfab3d.grid.op.GridMaker;
 import abfab3d.grid.op.ImageMaker;
+import abfab3d.io.output.GridSaver;
+import abfab3d.io.output.IsosurfaceMaker;
+import abfab3d.io.output.STLWriter;
+import abfab3d.param.Parameterizable;
+import abfab3d.param.Shape;
 import abfab3d.shapejs.*;
 import abfab3d.util.AbFab3DGlobals;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.FileInputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
+import java.util.zip.ZipOutputStream;
 
-import static abfab3d.core.Output.printf;
+import static abfab3d.core.MaterialType.COLOR_MATERIAL;
+import static abfab3d.core.Output.*;
+import static abfab3d.core.Output.time;
 import static abfab3d.core.Units.MM;
 
 /**
@@ -35,29 +50,24 @@ import static abfab3d.core.Units.MM;
  *
  * @author Alan Hudson
  */
-public class CPUBackend implements CommandBackend {
+public class CPUBackend extends BaseCommandBackend implements CommandBackend {
+    private static final boolean DEBUG = true;
+
+    private List<String> libDirs = new ArrayList<>();
+
     public CPUBackend() {
         AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, Runtime.getRuntime().availableProcessors());
     }
 
+    public void setLibDirs(List<String> libs) {
+        libDirs.clear();
+        libDirs.addAll(libs);
+    }
+
     @Override
-    public void renderImage(ParamContainer params, OutputStream os) {
+    public void renderImage(ParamContainer params, OutputStream os, String format) {
         try {
-            String scriptPath = params.getScript();
-            String baseDir = null;
-
-            ScriptManager sm = ScriptManager.getInstance();
-
-            String jobID = UUID.randomUUID().toString();
-            HashMap<String, Object> sparams = new HashMap<String, Object>();
-
-            String script = IOUtils.toString(new FileInputStream(scriptPath));
-
-            ScriptResources sr = sm.prepareScript(jobID, baseDir, script, sparams, false);
-
-            sm.executeScript(sr);
-
-            Scene scene = (Scene) sr.evaluatedScript.getResult();
+            Scene scene = loadContent(params);
 
             ImageSetup setup = params.getImageSetup();
             Camera camera = params.getCamera();
@@ -76,8 +86,7 @@ public class CPUBackend implements CommandBackend {
 
             BufferedImage image = im.getImage();
 
-            ImageIO.write(image, "png", os);
-
+            ImageIO.write(image, format, os);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -87,12 +96,21 @@ public class CPUBackend implements CommandBackend {
 
     @Override
     public void renderImage(ParamContainer params, BufferedImage img) {
-
     }
 
     @Override
     public void renderTriangle(ParamContainer params) {
+        try {
+            Scene scene = loadContent(params);
 
+            File file = new File(params.getOutput());
+
+            saveModel(scene, file);
+        } catch(Exception e) {
+            e.printStackTrace();
+        } finally {
+            ScriptManager.getInstance().shutdown();
+        }
     }
 
     @Override
