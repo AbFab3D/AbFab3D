@@ -41,6 +41,7 @@ import java.util.UUID;
 import java.util.zip.ZipOutputStream;
 
 import static abfab3d.core.MaterialType.COLOR_MATERIAL;
+import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.time;
 
@@ -207,7 +208,7 @@ public abstract class BaseCommandBackend implements CommandBackend {
 
                 //WingedEdgeTriangleMesh mesh = saver.writeAsMesh(grid, filePath);
                 saver.write(grid, os, GridSaver.getOutputType("." + FilenameUtils.getExtension(filePath)));
-                printf(" file saved %d ms\n", (time() - t0));
+                printf(" %s file saved %d ms\n", file.getCanonicalPath(), (time() - t0));
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
@@ -248,11 +249,34 @@ public abstract class BaseCommandBackend implements CommandBackend {
 
             default:
             case SINGLE_MATERIAL:
-                return createDensityGrid(bounds);
+                //return createDensityGrid(bounds);
+                return createDistanceGrid(bounds);
 
             case COLOR_MATERIAL:
-                return createDBGRGrid(bounds);
+                //return createDBGRGrid(bounds);
+                return createDistBGRGrid(bounds);
+
         }
+    }
+
+    public AttributeGrid createDistanceGrid(Bounds bounds) {
+
+        if(DEBUG)printf("BaseCommandBackend.createDistanceGrid(Bounds bounds)\n");
+        double vs = bounds.getVoxelSize();
+        long nx = bounds.getWidthVoxels(vs);
+        long ny = bounds.getHeightVoxels(vs);
+        long nz = bounds.getDepthVoxels(vs);
+
+        AttributeGrid grid = null;
+        if (nx * ny * nz < Integer.MAX_VALUE)
+            grid = new ArrayAttributeGridByte(bounds, vs, vs);
+        else
+            grid = new GridShortIntervals(bounds, vs, vs);
+        double maxDist = 1*MM;
+
+        grid.setDataDesc(new GridDataDesc(new GridDataChannel(GridDataChannel.DISTANCE, "dist", 8, 0, -maxDist, maxDist)));
+
+        return grid;
     }
 
     public AttributeGrid createDensityGrid(Bounds bounds) {
@@ -272,6 +296,34 @@ public abstract class BaseCommandBackend implements CommandBackend {
 
         return grid;
     }
+
+    public AttributeGrid createDistBGRGrid(Bounds bounds) {
+
+        double vs = bounds.getVoxelSize();
+        long nx = bounds.getWidthVoxels(vs);
+        long ny = bounds.getHeightVoxels(vs);
+        long nz = bounds.getDepthVoxels(vs);
+        AttributeGrid grid;
+
+        if (nx * ny * nz * 4 < Integer.MAX_VALUE)
+            grid = new ArrayAttributeGridInt(bounds, vs, vs);
+        else
+            grid = new GridIntIntervals(bounds, vs, vs);
+
+        // make data description for the grid 
+        GridDataDesc at = new GridDataDesc();
+
+        int bitCount = 8;
+        double maxDist = 1*MM;
+
+        at.addChannel(new GridDataChannel(GridDataChannel.DISTANCE,    "0_distance", bitCount,  0,  -maxDist, maxDist));
+        at.addChannel(new GridDataChannel(GridDataChannel.COLOR_RED,   "1_red",     bitCount,  24, 0., 1.));
+        at.addChannel(new GridDataChannel(GridDataChannel.COLOR_GREEN, "2_green",   bitCount,  16, 0., 1.));
+        at.addChannel(new GridDataChannel(GridDataChannel.COLOR_BLUE,  "3_blue",    bitCount,   8, 0., 1.));
+        
+        return grid;
+    }
+
 
     public AttributeGrid createDBGRGrid(Bounds bounds) {
 
