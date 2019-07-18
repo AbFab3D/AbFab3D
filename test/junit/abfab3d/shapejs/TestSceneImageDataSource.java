@@ -86,13 +86,14 @@ public class TestSceneImageDataSource extends TestCase {
     public void devTestScene() throws IOException {
 
         int imageWidth = 512, imageHeight = 512;
+        String outPath = "/tmp/renderedScene.png";
         //int imageWidth = 4000, imageHeight = 4000;
         //int imageWidth = 2000, imageHeight = 2000;
 
-        //SceneImageDataSource sids = makeSceneImageDataSource(makeScene3BallsMM(5*MM));
+        SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBallsMM(5*MM));
         //SceneImageDataSource sids = makeSceneImageDataSource(makeScene3Balls(5*MM));
         //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBall(5*MM));
-        SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroid());
+        //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroid());
 
         //sids.set("shadowsQuality",5);
         sids.set("shadowsQuality",10);
@@ -108,19 +109,23 @@ public class TestSceneImageDataSource extends TestCase {
         printf("image[%d x %d]\n", imageWidth, imageHeight);
         BufferedImage image = im.getImage();
         printf("render time: %dms\n", (time()-t0));
-
-        ImageIO.write(image, "png", new File("/tmp/renderedScene.png"));
+        printf("writng image: %s\n", outPath); 
+        ImageIO.write(image, "png", new File(outPath));
+        
 
     }
 
-    public void devTestPeformance() throws IOException {
+    public void devTestPerformance() throws IOException {
+
+        printf("devTestPerformance()\n");
+        int count = 4;
         AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, Runtime.getRuntime().availableProcessors());
-        for(int i=0; i < 3; i++) {
+        for(int i=0; i < count; i++) {
             int imageWidth = 512, imageHeight = 512;
             //int imageWidth = 4000, imageHeight = 4000;
             //int imageWidth = 2000, imageHeight = 2000;
 
-            //SceneImageDataSource sids = makeSceneImageDataSource(makeScene3BallsMM(5*MM));
+            //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBallsMM(5*MM));
             //SceneImageDataSource sids = makeSceneImageDataSource(makeScene3Balls(5*MM));
             //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBall(5*MM));
             SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroid());
@@ -140,7 +145,7 @@ public class TestSceneImageDataSource extends TestCase {
             BufferedImage image = im.getImage();
             printf("render time: %dms\n", (time() - t0));
 
-            ImageIO.write(image, "png", new File("/tmp/renderedScene.png"));
+            // ImageIO.write(image, "png", new File("/tmp/renderedScene.png"));
         }
     }
 
@@ -150,20 +155,23 @@ public class TestSceneImageDataSource extends TestCase {
     public void devTestDataSource() throws IOException {
         
         printf("devTestDataSource()\n");
-        int N = 25;
-        SceneImageDataSource sids = makeSceneImageDataSource(makeScene3BallsMM(5*MM));
+        int N = 1;
+        SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBallsMM(5*MM));
         //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBall(7*MM));
         sids.set("shadowsQuality",10);
         //sids.initialize();
-        sids.setDebug(true);
+        sids.setDebug(false);
         double vs = 2./N;
         Bounds bounds = new Bounds(-1,1,-1,1,-1,1,vs);
         Vec img = new Vec(4);
         
-        Vec pp = new Vec(0,0.45);
+        for(int i = 0; i < N; i++){
+            double x = 0.02 + i*0.01,y = 0.0;
+            Vec pp = new Vec(x,y);
         //printf("pnt: [%6.2f,%6.2f]\n", x, y);
-        sids.getDataValue(pp,img);
-        printf("(%7.3f,%7.3f) -> [%5.2f,%5.2f,%5.2f,%5.2f]\n",pp.v[0],pp.v[1], img.v[0],img.v[1],img.v[2],img.v[3]);
+            sids.getDataValue(pp,img);
+            printf("(%7.3f,%7.3f) -> [%5.2f,%5.2f,%5.2f,%5.2f]\n",pp.v[0],pp.v[1], img.v[0],img.v[1],img.v[2],img.v[3]);
+        }
         /*
         for(int j = 0; j < N; j++){
             //for(int j = 33; j < 34; j++){
@@ -267,8 +275,10 @@ public class TestSceneImageDataSource extends TestCase {
         return scene;
     }
 
-
-    static Scene makeScene3BallsMM(double radius){
+    /**
+       Spheres made of different materials 
+     */
+    static Scene makeSceneBallsMM(double radius){
     
         //double radius = 5*MM;
         double s = 25.5*MM;
@@ -281,6 +291,7 @@ public class TestSceneImageDataSource extends TestCase {
 
         DataSource sphere3 = new Sphere(new Vector3d(-2*radius, 0,0), radius);
         DataSource sphere4 = new Sphere(new Vector3d(0,2*radius,0), radius);
+        DataSource sphere5 = new Sphere(new Vector3d(0,0,2*radius), radius/2);
 
         PeriodicWrap wrap = new PeriodicWrap(new Vector3d(period, 0,0),new Vector3d(0,period, 0));
         wrap.setOrigin(new Vector3d(-period/2, -period/2,0));
@@ -292,11 +303,15 @@ public class TestSceneImageDataSource extends TestCase {
         Scene scene = new Scene(new Bounds(-s,s,-s,s,-s,s));
         scene.addShape(new Shape(sphere1, new SingleColorMaterial(1,0.5,0.5)));
         scene.addShape(new Shape(sphere2, new SingleColorMaterial(0.5,1,0.5)));
-        // semi transparent shere
+
+        // semi transparent sphere
         SingleColorMaterial blue = new SingleColorMaterial(new Color(0.5,0.5,1, 0.1));
-        blue.setShaderParam("albedo", new Color(0.5, 0.5, 0.5));
+        //blue.setShaderParam("albedo", new Color(0.01, 0.01, 0.01));
+        blue.setShaderParam("transmittanceCoeff", new Vector3d(0.01,0,0));
+
         scene.addShape(new Shape(sphere3, blue));
         scene.addShape(new Shape(sphere4, blue));
+        scene.addShape(new Shape(sphere5, blue));
 
         scene.addShape(new Shape(box, new SingleColorMaterial(0.7,0.7,0.7)));
 
@@ -417,8 +432,10 @@ public class TestSceneImageDataSource extends TestCase {
 
     public static void main(String arg[])throws Exception{
         
-        new TestSceneImageDataSource().devTestScript();
-        //new TestSceneImageDataSource().devTestPeformance();
+        //new TestSceneImageDataSource().devTestScript();
+        //new TestSceneImageDataSource().devTestPerformance();
+        //new TestSceneImageDataSource().devTestScene();
+        new TestSceneImageDataSource().devTestDataSource();
 
     }
 

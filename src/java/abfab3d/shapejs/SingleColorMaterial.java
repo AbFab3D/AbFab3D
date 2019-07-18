@@ -23,16 +23,22 @@ public class SingleColorMaterial extends BaseRenderableMaterial {
     private PhongShader m_shader;
     private static Material instance = null;
     static final String SINGLE_COLOR = "SingleColor";
-    
+
+    static final double DEF_AMBIENT_INTENSITY  = 0.1;
+    static final Color DEF_DIFFUSE_COLOR = new Color(0.97,0.97,0.97);
+    static final Color DEF_EMISSIVE_COLOR = new Color(0, 0, 0);
+    static final Color DEF_SPECULAR_COLOR = new Color(1, 1, 1);
+    static final double DEF_SHININESS = 0;
+
     public SingleColorMaterial() {
         this(SINGLE_COLOR);
     }
 
     public SingleColorMaterial(String name) {
-        this(name, SINGLE_COLOR,new Color(0.97,0.97,0.97));
+        this(name, SINGLE_COLOR,DEF_DIFFUSE_COLOR);
     }
     public SingleColorMaterial(String name,String label) {
-        this(name, label,new Color(0.97,0.97,0.97));
+        this(name, label,DEF_DIFFUSE_COLOR);
     }
 
     public SingleColorMaterial(double red, double green, double blue) {
@@ -45,7 +51,7 @@ public class SingleColorMaterial extends BaseRenderableMaterial {
 
     public SingleColorMaterial(String name, String label, Color diffuse) {
         super(name,label);
-        m_shader = new PhongShader(0.1, diffuse, new Color(0, 0, 0), new Color(1, 1, 1), 0);
+        m_shader = new PhongShader(DEF_AMBIENT_INTENSITY, diffuse, DEF_EMISSIVE_COLOR, DEF_SPECULAR_COLOR, DEF_SHININESS);
         mp_renderingParams.setValue(m_shader);
     }
 
@@ -58,7 +64,7 @@ public class SingleColorMaterial extends BaseRenderableMaterial {
     }
 
     public static Material getInstance() {
-//        if (instance != null) return instance;
+
         // Change to return new SingleColorMaterial
         instance = new SingleColorMaterial();
 

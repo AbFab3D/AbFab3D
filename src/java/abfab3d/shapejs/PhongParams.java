@@ -11,8 +11,11 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
+import javax.vecmath.Vector3d;
+
 import abfab3d.core.Color;
 import abfab3d.core.MaterialType;
+
 import abfab3d.param.*;
 import static abfab3d.core.Output.printf;
 
@@ -34,10 +37,18 @@ public class PhongParams extends RenderingParams {
     private DoubleParameter mp_shininess = new DoubleParameter("shininess","How reflective", 0.2);
     private DoubleParameter mp_ambientIntensity = new DoubleParameter("ambientIntensity","Ambient light", 0.2);
 
-    // TODO: These are really metal stuff, need to separate
+    // metals params 
     private ColorParameter mp_albedo = new ColorParameter("albedo","albedo",new Color(0,0,0));
     private DoubleParameter mp_roughness = new DoubleParameter("roughness","How rough", 0,0,1);
     private DoubleParameter mp_gradientFactor = new DoubleParameter("gradientFactor","Factor to underlying gradientStep",1);
+
+    // 
+    // vector of light transmittance coefficients for R, G, B channels  
+    // transmittanceFactor units are meters 
+    // amount of ligth of color [R,G,B] passing throug layer of material of thickness W and transmittanceCoeff Tc
+    //[R,G,B] -> [R*exp(-W/Tc.x), G*exp(-W/Tc.y),B*exp(-W/Tc.z)];
+    // 
+    private Vector3dParameter mp_transmittanceCoeff = new Vector3dParameter("transmittanceCoeff", new Vector3d(0,0,0));
 
     private Parameter m_aparam[] = new Parameter[]{
         mp_materialType,
@@ -48,7 +59,8 @@ public class PhongParams extends RenderingParams {
         mp_shininess,
         mp_ambientIntensity,
         mp_roughness,
-        mp_gradientFactor
+        mp_gradientFactor,
+        mp_transmittanceCoeff
     };
 
     public PhongParams() {

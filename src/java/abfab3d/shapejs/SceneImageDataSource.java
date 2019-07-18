@@ -40,6 +40,21 @@ import abfab3d.core.MathUtil;
 
 import static abfab3d.core.MathUtil.step01;
 import static java.lang.Math.*;
+
+import static abfab3d.shapejs.VecUtils.interpolate;
+import static abfab3d.shapejs.VecUtils.normalize;
+import static abfab3d.shapejs.VecUtils.reflect;
+import static abfab3d.shapejs.VecUtils.str;
+import static abfab3d.shapejs.VecUtils.addSet;
+import static abfab3d.shapejs.VecUtils.mul;
+import static abfab3d.shapejs.VecUtils.sub;
+import static abfab3d.shapejs.VecUtils.dot;
+import static abfab3d.shapejs.VecUtils.clamp;
+import static abfab3d.shapejs.VecUtils.mulVV;
+import static abfab3d.shapejs.VecUtils.minVV;
+import static abfab3d.shapejs.VecUtils.maxVV;
+import static abfab3d.shapejs.VecUtils.exp;
+
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
 
@@ -569,70 +584,6 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         return new Vector3d(1, 1, 1);
     }
 
-
-    Vector4d mul(Vector4d u, Vector4d v){
-        return new Vector4d(u.x*v.x, u.y*v.y,u.z*v.z,u.w*v.w);  
-    }
-
-    Vector4d mul(Vector4d u, double s){
-        return new Vector4d(u.x*s, u.y*s,u.z*s,u.w*s);  
-    }
-
-    Vector3d mul(Vector3d u, double s){
-        return new Vector3d(u.x*s, u.y*s,u.z*s);  
-    }
-
-    Vector3d mul(Matrix4f m, Vector3d v){
-        return new Vector3d(
-                            m.m00*v.x + m.m01*v.y + m.m02*v.z,
-                            m.m10*v.x + m.m11*v.y + m.m12*v.z,
-                            m.m20*v.x + m.m21*v.y + m.m22*v.z);
-    }
-
-    static Vector3d minVV(Vector3d u, Vector3d v){
-        return new Vector3d(min(u.x, v.x), min(u.y, v.y), min(u.z, v.z));
-    }
-    static Vector3d maxVV(Vector3d u, Vector3d v){
-        return new Vector3d(max(u.x, v.x), max(u.y, v.y), max(u.z, v.z));
-    }
-
-    static Vector3d sub(Vector3d u, Vector3d v){
-        return new Vector3d(u.x-v.x, u.y-v.y, u.z-v.z);
-    }
-
-    static void clamp(Vector4d v, double vmin, double vmax){
-
-        v.x = MathUtil.clamp(v.x,vmin, vmax);
-        v.y = MathUtil.clamp(v.y,vmin, vmax);
-        v.z = MathUtil.clamp(v.z,vmin, vmax);
-        v.w = MathUtil.clamp(v.w,vmin, vmax);
-    }
-
-    static Vector4d addSet(Vector4d u, Vector4d v){
-        u.x += v.x;
-        u.y += v.y;
-        u.z += v.z;
-        u.w += v.w;
-        return u;
-    }
-
-    static double dot(Vector3d u,Vector3d v){
-        return u.x*v.x+ u.y*v.y + u.z*v.z;
-    }
-
-    //
-    // Calculate the reflection of vector v in plane with normal n
-    //
-    Vector3d reflect(Vector3d v, Vector3d n) {
-        
-        return sub(v, mul(n,2*dot(v,n)));        
-
-    }
-    
-    static Vector3d mulVV(Vector3d u, Vector3d v){
-        return new Vector3d(u.x*v.x,u.y*v.y,u.z*v.z);
-    }
-
     Vector4d m_intersectionColor = new Vector4d(1,0,0,1);
     Vector4d m_backgroundColor = new Vector4d(0.5,0.5,1,1);
 
@@ -641,29 +592,6 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         return m_backgroundColor;
     }
 
-    /**
-       calculates vector result = u + t*v;
-     */
-    static void interpolate(Vector3d u, Vector3d v, double t, Vector3d result){
-        result.x = u.x + v.x*t;
-        result.y = u.y + v.y*t;
-        result.z = u.z + v.z*t;
-    }
-
-    static Vector3d normalize(Vector3d v){
-        //double s = 1./sqrt(v.lengthSquared());
-        //v.scale(s);
-        v.normalize();
-        return v;
-    }
-
-    static String str(String format, Vector3d v){
-        return fmt("["+format+","+format+","+format+"]", v.x,v.y,v.z);
-    }
-
-    static String str(String format, Vector4d v){
-        return fmt("["+format+","+format+","+format+","+format+"]", v.x,v.y,v.z,v.w);
-    }
 
 
     /**
@@ -799,18 +727,21 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         double shininess;
         double ambientIntensity;
         double roughness;
-        
+        Vector3d transmittanceFactor;
+
+
         MaterialData(PhongParams ppar){
             
-            materialType = ppar.getMaterialTypeIndex();
-            diffuseColor = vec4(ppar.getDiffuseColor());
-            emissiveColor = vec4(ppar.getEmissiveColor());
-            specularColor = vec4(ppar.getSpecularColor());
-            albedo = vec4(ppar.getAlbedo());
-            roughness = ppar.getRoughness();
-            shininess = ppar.getShininess();
-            ambientIntensity = ppar.getAmbientIntensity();
-            
+            this.materialType = ppar.getMaterialTypeIndex();
+            this.diffuseColor = vec4(ppar.getDiffuseColor());
+            this.emissiveColor = vec4(ppar.getEmissiveColor());
+            this.specularColor = vec4(ppar.getSpecularColor());
+            this.albedo = vec4(ppar.getAlbedo());
+            this.roughness = ppar.getRoughness();
+            this.shininess = ppar.getShininess();
+            this.ambientIntensity = ppar.getAmbientIntensity();
+            Vector3d tf = (Vector3d)(ppar.getParam("transmittanceCoeff").getValue());
+            this.transmittanceFactor = exp(tf);
         }
         
         public String toString(){
