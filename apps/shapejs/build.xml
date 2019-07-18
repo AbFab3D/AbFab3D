@@ -165,6 +165,24 @@
             </classpath>
         </java>
     </target>
+    <target name="runRenderTriangle" depends="compile" description="Run the application">
+        <java classname="shapejs.ShapeJS" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <arg value="renderTriangle" />
+            <arg value="-script" />
+            <arg value="test/scripts/gyrosphere.js" />
+            <arg value="-output" />
+            <arg value="gyrosphere.stl" />
+            <classpath>
+                <pathelement path="${classes.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+                <pathelement path="${app.common.dir}/classes"/>
+                <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+            </classpath>
+        </java>
+    </target>
 
     <target name="runShell" depends="compile" description="Run the application">
         <echo message="jvmargs: ${jvmrunargs}"/>
