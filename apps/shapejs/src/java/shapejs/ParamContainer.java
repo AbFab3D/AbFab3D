@@ -16,6 +16,7 @@ public class ParamContainer {
     private String variant;
     private String script;
     private String output;
+    private String backend;
 
     // RenderImage params
     private ImageSetup imageSetup;
@@ -126,6 +127,14 @@ public class ParamContainer {
 
     public void setObjectMatrix(Matrix4d objectMatrix) {
         this.objectMatrix = objectMatrix;
+    }
+
+    public String getBackend() {
+        return backend;
+    }
+
+    public void setBackend(String backend) {
+        this.backend = backend;
     }
 
     public static Matrix4f getView() {

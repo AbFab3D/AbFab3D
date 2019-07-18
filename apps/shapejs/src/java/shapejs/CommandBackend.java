@@ -28,7 +28,7 @@ public interface CommandBackend {
      * Render a ShapeJS project into a raster image
      * @param params
      */
-    public void renderImage(ParamContainer params, OutputStream os);
+    public void renderImage(ParamContainer params, OutputStream os, String format);
 
     /**
      * Render a ShapeJS project into a buffered image

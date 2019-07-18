@@ -50,9 +50,9 @@ import static abfab3d.core.Output.fmt;
 
    For each Grid voxel the cordinates of the voxel are transformed using inverse of VecTransform 
    The data value is calculated in the transformed point using DataSource 
-   All the channels of the DataSource are converted into voxel attibutes using AttributePacker.
+   All the channels of the DataSource are converted into voxel attributes using AttributePacker.
    This allows calculation of multi color and multimaterial grids with custom meaning and 
-   resolutiuon of each AttributeChannel. 
+   resolution of each AttributeChannel.
 
    @author Vladimir Bulatov
    
@@ -62,7 +62,7 @@ public class GridMaker implements Operation, AttributeOperation {
     
     static final int POINT_DIMENSION = 3;
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     static int debugCount = 0;
     static final int MAX_DATA_CHANNELS_COUNT = 4;
 
@@ -89,13 +89,13 @@ public class GridMaker implements Operation, AttributeOperation {
 
     //
     AttributeGrid m_grid; 
-    // diimensions of the grid 
+    // dimensions of the grid
     int m_nx, m_ny, m_nz;
 
     // actual voxel size of the grid 
     double voxelSize = 0;
     private boolean boundsSet = false;
-    // this is thickness of surface transitional layer (relastive to the voxel size) 
+    // this is thickness of surface transitional layer (relative to the voxel size)
     // data sources are expected to return transitional value inside of that layer
     private double voxelScale = Math.sqrt(3) / 2.0;
 

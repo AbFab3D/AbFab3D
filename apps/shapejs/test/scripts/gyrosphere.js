@@ -30,5 +30,5 @@ function main(args) {
     intersect.add(gyroid);
 
     var s = 25*MM;
-    return new Scene(intersect,new Bounds(-s,s,-s,s,-s,s));
+    return new Scene(intersect,new Bounds(-s,s,-s,s,-s,s),0.1*MM);
 }
