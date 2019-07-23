@@ -1,3 +1,0 @@
-grid = load("models/sphere.stl.gz")
-show(grid)
-

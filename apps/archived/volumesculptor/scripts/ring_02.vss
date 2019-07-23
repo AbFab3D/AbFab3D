@@ -1,0 +1,42 @@
+function makePart(length, width){
+
+	var part = new Cylinder(new Vector3d(-length,0,0), new Vector3d(length,0,0), width);
+	return part;
+}
+
+function makeRing(count, outRadius, inRadius){
+
+	var alpha = Math.PI/count;
+	var h = outRadius * Math.tan(alpha);
+	var d = h/Math.sqrt(2);
+	
+	var union = new Union();
+	for(var i = 0; i < count; i++){
+		var part = makePart(outRadius, h);
+		part.setTransform(new Rotation(new Vector3d(0,0,1), i*alpha));
+		union.add(part);
+	}
+	
+	var hole = new Cylinder(new Vector3d(0,0,-1.1*h), new Vector3d(0,0,1.1*h),inRadius);
+	var diff = new Subtraction(union, hole);
+	
+	return diff;
+	
+	
+}
+
+function main(){
+
+	var b = 14*MM;
+	var voxelSize = 0.1*MM;
+	
+	dest = createGrid(-b,b,-b,b,-b,b,voxelSize);
+	
+	var part = makeRing(7, 12*MM, 10.5*MM);
+    var maker = new GridMaker();
+	maker.setSource(part);
+	maker.makeGrid(dest);
+		
+	return dest;
+	
+}

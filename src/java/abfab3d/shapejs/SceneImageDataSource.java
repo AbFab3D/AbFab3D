@@ -118,6 +118,8 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         super.addParams(aparam);
         mp_scene.setValue(scene);
         mp_camera.setValue(camera);
+
+        m_cameraDepth = 1.0 / Math.tan(camera.getCameraAngle());
     }
 
     void setDebug(boolean value){

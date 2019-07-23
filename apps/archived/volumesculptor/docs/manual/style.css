@@ -1,0 +1,455 @@
+/* LAYOUT */
+  div.figure {
+  float: left;  
+  border: none;//thin solid;
+  margin: 0.5em;
+  padding: 0.5em;
+}
+
+div.figure p {
+  text-align: center;
+  text-indent: 0;
+}
+
+div.clear {
+  clear: both;
+}
+
+p.framed {
+	border-style:dotted;
+	border-color:blue;
+	border-width:1px; 
+	padding:5px;
+}
+
+body {
+  /*text-align: center;*/
+  padding: 0px; margin: 32px; border: 0px;
+  background-color: white;
+  border-collapse: collapse;
+  font-family: arial, sans-serif; font-size: 8pt;
+}
+div { font-family: arial, sans-serif; font-size: 8pt; }
+#main {
+  margin: 0px; padding: 0px;
+  margin-left: auto; margin-right: auto;
+  width: 940px;
+  text-align: left;
+  /* background-image: url(/images/page-center.png); */
+}
+#top {
+  clear: both;
+  padding: 8px; margin: 0px; padding-top: 0px; border: none;
+}
+#bottom {
+  clear: both; height: 8px;
+  padding: 0px; margin: 0px;border: none;
+}
+#top0 {
+  margin: 0px; padding: 0px;
+  margin-left: auto; margin-right: auto;
+  width: 816px;
+  height: 8px; font-size: 0pt;
+  /* background-image: url(/images/page-top.png); */
+}
+#bottom0 {
+  margin: 0px; padding: 0px;
+  margin-left: auto; margin-right: auto;
+  width: 816px;
+  height: 16px; font-size: 0pt;
+  /* background-image: url(/images/page-bottom.png); */
+}
+#content {
+  width: 700px;
+  float: left;
+  padding: 0px; margin: 0px;
+
+  font-family: calibri,tahoma,arial; font-weight: normal; font-size: 11pt; color: black; line-height:130%;
+  border: none;
+}
+#content_pad { padding: 32px; }
+#menu {
+  width: 200px;
+  float: right; height: auto;
+  padding: 0px; margin: 0px; border: none;
+
+  font-size: 8pt;
+}
+#menu_pad { padding:0px; margin:0px; padding-left: 12px; border:none; border-left: #AAA solid 2px; }
+
+/* MENU */
+table.menu {
+  width: 160px;
+  margin: 0px; padding: 0px; border-width: 0px; border-collapse: collapse;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  border-top: solid #CCC 1px;
+}
+td.menu {
+  vertical-align: top; font-size: 8pt;
+  margin: 0px; padding: 0px; border-width: 0px; padding-bottom: 1px;
+  border-color: #CCC;
+  border-style: solid;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+}
+td.menusep {
+  vertical-align: top; font-size: 8pt; font-weight: bold;
+  margin: 0px; padding: 0px; border-width: 0px; padding-bottom: 1px;
+  border-color: #CCC;
+  border-style: solid;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+  padding-top: 16px;
+}
+td.restrictedmenu {
+  vertical-align: top; font-size: 8pt;
+  margin: 0px; padding: 0px; border-width: 0px; padding-bottom: 1px;
+  border-color: #CCC;
+  border-style: solid;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+  background: #FFFF80;
+}
+a.menu {
+  font-style:normal; font-weight: normal; text-decoration:none;
+}
+a.restrictedmenu {
+  font-style:normal; font-weight: normal; text-decoration:none;
+}
+span.menu { color: #666666; }
+span.restrictedmenu { color: #666666; }
+
+img { border: 0px; padding: 0px; }
+
+/* NAVBAR */
+table.navbar {
+  margin: 0px; padding: 0px; border-collapse: collapse;
+  margin-top: 6px;
+}
+td.navbar {
+  width: 560px;
+  font-family: tahoma, sans-serif;  font-weight: normal; font-size: 9pt; color: black;
+  vertical-align: top;
+  border: none; border-top: solid 1px; border-color: #CCCCCC;
+  margin: 0px; padding: 0px; padding-top: 6px;
+}
+a.navbar {
+  font-style:normal; font-weight: normal; text-decoration:none;
+}
+
+/* STATS */
+td.statsheader {
+  width: 520px;
+  font-family: tahoma, sans-serif;  font-weight: bold; font-size: 9pt; color: black; background: #CCFFCC;
+  vertical-align: top;
+  border: solid 1px; border-color: black;
+  margin: 0px; padding: 2px; padding-left: 6px;
+}
+td.statsheader_restricted {
+  width: 520px;
+  font-family: tahoma, sans-serif;  font-weight: bold; font-size: 9pt; color: black; background: #FFFF00;
+  vertical-align: top;
+  border: solid 1px; border-color: black;
+  margin: 0px; padding: 2px; padding-left: 6px;
+}
+td.statsheader_robot {
+  width: 520px;
+  font-family: tahoma, sans-serif;  font-weight: bold; font-size: 9pt; color: black; background: #CCCCCC;
+  vertical-align: top;
+  border: solid 1px; border-color: black;
+  margin: 0px; padding: 2px; padding-left: 6px;
+}
+td.statsheader_knownip {
+  width: 520px;
+  font-family: tahoma, sans-serif;  font-weight: bold; font-size: 9pt; color: black; background: #00FFFF;
+  vertical-align: top;
+  border: solid 1px; border-color: black;
+  margin: 0px; padding: 2px; padding-left: 6px;
+}
+td.statsdata {
+  width: 520px;
+  font-family: tahoma, sans-serif;  font-weight: normal; font-size: 8pt; color: black;
+  vertical-align: top;
+  border: solid 1px; border-color: black;
+  margin: 0px; padding: 2px;
+}
+div.statsrobot {
+  font-family: tahoma, sans-serif;  font-weight: normal; font-size: 8pt; color: black;
+}
+
+/* CONTENTS */
+
+div.figure {
+  text-align: center;
+  margin: 0px; padding: 0px; margin-top: 12px; margin-bottom: 3px;
+}
+
+div.caption {
+  text-align: center; font-size: 10pt;
+  font-style: italic; color: #000080;
+  margin: 0px; padding: 0px; margin-bottom: 12px; margin-top: 3px;
+}
+
+span.admin {
+  background-color: yellow;
+}
+
+table {
+  padding: 0px; margin: 0px; border-collapse: collapse;
+  border: none;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+td {
+  padding:4px; border: solid 1px; border-color: #CCCCCC;
+  font-family: arial, sans-serif;  font-weight: normal; font-size: 9pt; color: black;
+}
+th {
+  padding:4px; border: solid 1px; border-color: black;  background-color: #CCC;
+  font-family: arial, sans-serif;  font-weight: bold; font-size: 9pt; color: black;
+}
+
+td.header {
+  background-color: #CCC;
+  color: black; font-weight: bold;
+  }
+td.green { background-color: #CFC; }
+td.red { background-color: #FCC; }
+td.blue { background-color: #CCF; }
+td.code {
+  font-family: monospace; font-weight: bold; font-size: 9pt; color: #3333AA; 
+  width:20%;
+}
+td.empty {  border: solid 0px; }
+
+a.sitemap {
+  font-style:normal; font-weight: normal; text-decoration:none;
+}
+input {
+  font-family: tahoma, sans-serif; font-weight: normal; font-size: 7pt; color: #666666;
+  padding-left:0; padding-right: 0; padding-top: 0; padding-bottom: 0;
+  text-align: left; background-color: white;
+}
+h1 {
+  text-align: center;
+  font-weight: bold; font-size: 14pt; color: #24A;
+  padding-bottom: 8px;
+  clear:both;
+}
+h2 {
+  font-weight: bold; font-size: 12pt; color: #24A;
+  padding-top: 2px; padding-bottom: 2px; padding-left: 0px;
+  border-bottom: solid #AAA 2px;
+  clear:both;
+}
+h3 {
+  font-weight: bold; font-size: 11pt; color: #24A;
+  padding-top: 2px; padding-bottom: 2px; padding-left: 0px;
+  margin-top: 12px; margin-bottom: 0px;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+}
+h4 {
+  font-weight: bold; font-size: 11pt; font-style: italic; color: #24A;
+  padding-top: 2px; padding-bottom: 2px; padding-left: 0px;
+  margin-top: 8px; margin-bottom: 0px;
+  text-decoration: none;
+}
+address.subtitle {
+  text-align: center;
+  font-family: tahoma, sans-serif; font-weight: normal; font-style:normal; font-size: 10pt; color: #24A;
+}
+a {
+  font-style:normal; font-weight: normal; color: #24A;
+}
+a:hover { text-decoration:underline; }
+em {
+  font-style:normal; font-weight: bold;
+}
+p {
+  margin: 0pt; padding: 0pt; margin-top: 6pt; margin-bottom: 6pt; border: none 0pt;
+  line-height:130%;
+}
+p.important {
+  font-size: 10pt;
+  font-weight: bold; color: black; background-color: #FFCC80;
+  padding: 8pt; border: solid 1px black;
+}
+ul.important {
+  font-size: 10pt;
+  font-weight: bold; color: black; background-color: #FFCC80;
+  padding: 8pt; border: solid 1px black; padding-left: 32px;
+}
+address {
+  margin: 0pt; padding-bottom: 12px;
+  font-family: tahoma, sans-serif; font-weight: normal; font-size: 9pt; font-style:italic; color: #808080;
+}
+span.math {
+  font-family: sans-serif; font-weight: bold; font-size: 10pt; color: black;
+}
+span.mathvector {
+  font-family: sans-serif; font-weight: bold; font-size: 9pt; color: #66F;
+}
+span.mathline {
+  font-family: sans-serif; font-weight: bold; font-size: 10pt; color: black; padding-left:32px; line-height:250%;
+}
+span.code {
+  font-family: monospace; font-weight: bold; font-size: 10pt; color: #008; border: 0px solid #CCC; background-color: ivory; padding: 1px;
+}
+
+p.cva {
+  margin-top: 4pt; margin-bottom: 0pt; color: black;
+}
+p.cvb {
+  margin-bottom: 8px;
+  margin-left: 20px;
+  margin-right: 20px;
+  margin-top: 0px;
+  padding: 4px;
+
+  font-size: 10pt;
+  color: #666;
+}
+div.code {
+  font-family: monospace; font-weight: normal; font-size: 8pt; color: black; line-height: 120%;
+  background-color: ivory;
+  margin: 0px; padding: 4px;
+  margin-top: 8px; margin-bottom: 8px;
+  border: solid; border-width: 1px; border-color: black;
+}
+
+pre {
+  font-family: monospace; font-weight: normal; font-size: 8pt; color: black; line-height: 120%;
+  background-color: #FFFFF8;
+  margin: 0px; padding: 4px;
+  margin-top: 8px; margin-bottom: 8px;
+  border: solid; border-width: 1px; border-color: black;
+}
+pre.code {
+  font-family: monospace; font-weight: normal; font-size: 8pt; color: black; line-height: 120%;
+  background-color: #FFFFF8;
+  margin: 0px; padding: 4px;
+  margin-top: 8px; margin-bottom: 8px;
+  border: solid; border-width: 1px; border-color: black;
+}
+/* C code is post-processed by the script (comments, keywords, etc) */
+pre.ccode {
+  font-family: monospace; font-weight: normal; font-size: 8pt; color: black; line-height: 120%;
+  background-color: #FFFFF8;
+  margin: 0px; padding: 4px;
+  margin-top: 8px; margin-bottom: 8px;
+  border: solid; border-width: 1px; border-color: black;
+}
+/* Corresponding styles */
+span.ccomment { color:#394; font-weight: bold; font-style:italic; }
+span.ckeyword { color:#00C; font-weight: bold; }
+span.cfunction { color:#800; font-weight: bold; }
+
+pre.exec {
+  font-family: monospace; font-weight: normal; font-size: 8pt; color: black;
+  background-color: #FFDDCC;
+  margin: 0pt; padding: 4pt;
+  border: solid; border-width: 1px; border-color: black;
+}
+pre.important {
+  font-family: monospace; font-weight: bold; font-size: 9pt; color: black;
+  background-color: #FAFAFA;
+  margin: 0px; padding: 4px;
+  margin-top: 8px; margin-bottom: 8px;
+  border: solid; border-width: 1px; border-color: black;
+}
+span.modif { background: yellow; }
+hr {
+  color: #666666; background-color: #666666;
+  width: 100%;
+  height: 1px;
+  border: 0;
+}
+
+/*****************************************************/
+
+body.example {
+  color: #4b4a49;
+  background: url(http://www.shapeways.com/rrstatic/img/sw-bg.jpg) top left repeat #eceae8;
+  font-family: calibri,tahoma,arial;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 300;
+  text-shadow: 0px 1px 0 white;
+  -webkit-text-size-adjust: none; 
+}
+
+h1.example {
+  text-align: left;
+  font-weight: bold; font-size: 16pt; color: #24A;
+  padding: 2px 0px 8px 0px;//; padding-bottom: 8px; padding-left: 0px;
+  margin-bottom: 30px;
+  border-bottom: solid #777 1px;
+  clear:both;
+}
+
+a.example-title, a.example-title:visited, a.example-title:active {
+  cursor: pointer;
+  color: #2c9dd2;
+  text-decoration: none; }
+
+a.example-title:hover {
+  color: #0b70a5; }
+
+div.example-text {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 300;
+  text-shadow: 0px 1px 0 white;
+}
+
+.container {
+  width: 740px;
+  margin: 20px auto 20px auto; 
+}
+
+.example-title {
+  font-size: 16px;
+  font-weight: 300;
+  height: 20px;
+  margin-bottom: 8px;
+  color: #444;
+  text-align: left;
+}
+	
+.example-container {
+  float: left;
+  width: 700px;
+  margin-bottom: 20px;
+  text-align: left;
+  position: relative;
+}
+
+.image-container {
+  float: left;
+  width: 150px;
+  height: 150px;
+  padding: 5px;
+  margin-right: 20px;
+  text-align: center;
+  background-color: white;
+  border-radius: 10px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border: 1px solid #CCC;
+  -moz-box-shadow: 0 0 5px #eee;
+  -webkit-box-shadow: 0 0 5px #eee;
+  box-shadow: 0 0 5px #eee;
+  position: relative;
+}
+
+.image-container:hover {
+  border: 1px solid #74c2e8;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-box-shadow: 0 1px 0 #74c2e8, 0 0 7px #74c2e8;
+  -moz-box-shadow: 0 1px 0 #74c2e8, 0 0 7px #74c2e8;
+  box-shadow: 0 1px 0 #74c2e8, 0 0 7px #74c2e8;
+}

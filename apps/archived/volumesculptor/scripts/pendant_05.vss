@@ -1,0 +1,68 @@
+
+var voxelSize = 0.075*MM;
+
+function makePart(path, width, height, thickness){
+  var img = new Image3D(path, width, height, thickness);
+  img.setBaseThickness(0.0);
+  img.setVoxelSize(voxelSize);
+  img.setBlurWidth(2*voxelSize);
+  img.setUseGrayscale(false);
+  return img;
+}
+
+function makeBail(x0,y0,z0,R,r) {
+  var torus = new Torus(x0,y0,z0,R,r);
+
+  var s = 2*R;
+  var box = new Box(x0,y0-R,z0,3*R,s,s);
+
+  var subtract = new Subtraction(torus,box);
+
+  subtract.setTransform(new Rotation(Vector3d(0,1,0),1.5708));
+  return subtract;
+
+}
+
+function makeText(str, x0,y0,z0,width,height,depth) {
+    var text = new Text(str, "Arial Black", width, height, depth, voxelSize);
+    var trans = new CompositeTransform();
+    trans.add(new Rotation(new Vector3d(0,0,1),Math.PI/2));
+    trans.add(new Rotation(new Vector3d(0,1,0),-Math.PI/2));
+    trans.add(new Translation(x0,y0,z0));
+
+    text.setTransform(trans);
+
+    return text;
+
+}
+
+function main(args) {
+
+  var image = "../imagepopper/images/CoolChip.jpg"; //ringpopper/'//args[0];
+
+  var x = 13*MM;
+  var y = 25*MM;
+  var z = 4*MM;
+  var textDepth = 2*MM;
+  dest = createGrid(-x,x,-y,y,-z,z,voxelSize);
+
+  var th = 4*MM;
+  var width = 25*MM;
+  var height = 43*MM;
+  var img = makePart(image, width, height, th);
+  var bail = makeBail(0,21.5*MM,0,1.5*MM,0.5*MM);
+  var text = makeText("AbFab3D",-12*MM,0,0, width/2,height, textDepth);
+  var maker = new GridMaker();
+
+  var union = new Union();
+  union.add(img);
+  union.add(bail);
+  //union.add(text);
+  
+  var diff = new Subtraction(union, text);
+  
+  maker.setSource(diff);
+
+  maker.makeGrid(dest);
+  return dest;
+}

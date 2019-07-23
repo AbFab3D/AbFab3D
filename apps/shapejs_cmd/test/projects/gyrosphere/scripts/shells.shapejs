@@ -1,0 +1,113 @@
+var uiParams = [
+  {
+    name: "sradius",
+    desc: "sradius",
+    type: "double",
+    rangeMin: 5,
+    rangeMax: 50,
+    step: 1,
+    defaultVal: 25
+  },
+  {
+    name: "cradius",
+    desc: "cradius",
+    type: "double",
+    rangeMin: 1,
+    rangeMax: 10,
+    step: 0.5,
+    defaultVal: 1
+  },
+  {
+    name: "clength",
+    desc: "clength",
+    type: "double",
+    rangeMin: 1,
+    rangeMax: 15,
+    step: 0.5,
+    defaultVal: 2
+  },
+  {
+    name: "numCyl",
+    desc: "numCyl",
+    type: "integer",
+    rangeMin: 2,
+    rangeMax: 18,
+    step: 1,
+    defaultVal: 4
+  },
+  {
+    name: "material",
+    desc: "Material",
+    type: "enum",
+    values: Materials.getAllNames(),
+    defaultVal: "SingleColor",
+    group: "Main"
+  }
+
+];
+function main(args) {
+  var vs = 0.1 * MM;
+  var sradius = args.sradius * MM;
+  var cradius = args.cradius * MM;
+  var clength = args.clength * MM;
+  var hclength = clength / 2;
+  
+  var numCyl = args.numCyl;
+  var rad = 2 * Math.PI / numCyl;
+  print("rad: " + rad + "\n");
+  
+  var v1 = new Vector3d(0,0,hclength);
+  var v2 = new Vector3d(0,0,-hclength);
+  
+  var sphere = new Sphere(sradius);
+  var union = new Union();
+  union.setBlend(1 * MM);
+  //union.add(sphere);
+/*
+  for (var i=0; i<numCyl; i++) {
+    var cyl = new Cylinder(v1, v2, cradius, cradius);
+    var ct = new CompositeTransform();
+    ct.add(new Translation(0,0,sradius));
+    ct.add(new Rotation(0,1,0,rad*i));
+    cyl.setTransform(ct);
+    //union.add(cyl);
+  }
+*/
+  //union.setTransform(new Rotation(0,1,0,rad/2));
+  
+  for (var i=0; i<numCyl; i++) {
+    var cyl = new Cylinder(v1, v2, cradius, cradius);
+    var ct = new CompositeTransform();
+    ct.add(new Translation(0,0,sradius));
+    ct.add(new Rotation(1,0,0,rad*i));
+    cyl.setTransform(ct);
+    union.add(cyl);
+  }
+
+  for (var i=0; i<numCyl; i++) {
+    var cyl = new Cylinder(v1, v2, cradius, cradius);
+    var ct = new CompositeTransform();
+    ct.add(new Translation(0,0,sradius));
+    ct.add(new Rotation(0,1,0,rad));
+    ct.add(new Rotation(1,0,0,rad*i));
+    cyl.setTransform(ct);
+    union.add(cyl);
+  }
+  
+  for (var i=0; i<numCyl; i++) {
+    var cyl = new Cylinder(v1, v2, cradius, cradius);
+    var ct = new CompositeTransform();
+    ct.add(new Translation(0,0,sradius));
+    ct.add(new Rotation(0,1,0,-rad));
+    ct.add(new Rotation(1,0,0,rad*i));
+    cyl.setTransform(ct);
+    union.add(cyl);
+  }
+  
+  var s = sradius + clength + 1 * MM;
+  print("s: " + s + "\n");
+
+  var shape = new Shape(union, Materials.get(args.material));
+
+  return new Scene(shape, new Bounds(-s, s, -s, s, -s, s), vs);
+}

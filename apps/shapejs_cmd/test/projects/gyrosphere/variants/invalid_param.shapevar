@@ -1,0 +1,8 @@
+{
+  "scriptPath": "../scripts/gyrosphere.shapejs",
+  "scriptParams": {
+    "material": "SingleColor",
+    "period": "a",
+    "thickness": 4.0
+  }
+}

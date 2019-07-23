@@ -1,0 +1,8 @@
+{
+  "scriptPath": "../scripts/invalid_script.shapejs",
+  "scriptParams": {
+    "material": "SingleColor",
+    "period": 4.0,
+    "thickness": 1.5
+  }
+}

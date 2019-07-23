@@ -1,0 +1,41 @@
+var voxelSize = 0.05*MM;
+
+function makeLayer(path, x0,y0,z0,width, height, thickness, placement, useGray){
+  var img = new Image3D(path, width, height, thickness);
+  img.setBaseThickness(0.0);
+  img.setVoxelSize(voxelSize);
+  img.setBlurWidth(2*voxelSize);
+  img.setImagePlace(placement);
+  img.setUseGrayscale(useGray);
+  img.setTransform(new Translation(x0,y0,z0));
+  
+  return img;  
+}
+
+function main(args) {
+  var layerHeight = args[0];
+  var width = 38*MM;
+  var height = 38*MM;
+  var union = new Union();
+  var x = 20*MM;
+  var y = 20*MM;
+//  var z = layerHeight * (args.length - 1);
+  var z = layerHeight * 3;
+  var dest = createGrid(-x,x,-y,y,-z,z,voxelSize);
+  
+  var top = args[1];
+  var middle = args[2];
+  var bottom = args[3];
+
+  var topImg = makeLayer(top, 0,0,2 * layerHeight,width, height, layerHeight, Image3D.IMAGE_PLACE_TOP, true);     
+  union.add(topImg);
+  var middleImg = makeLayer(middle, 0,0,1 * layerHeight,width, height, layerHeight, Image3D.IMAGE_PLACE_TOP, false);     
+  union.add(middleImg);
+  var bottomImg = makeLayer(bottom, 0,0,0 * layerHeight,width, height, layerHeight, Image3D.IMAGE_PLACE_BOTTOM, true);     
+  union.add(bottomImg);
+  
+  var maker = new GridMaker();
+  maker.setSource(union);
+  maker.makeGrid(dest);
+  return dest;
+}

@@ -1,0 +1,48 @@
+function cross3D(size, thickeness){
+
+  var union = new Union();
+  var boxX = new Box(0,0,0,size,thickeness, thickeness);
+  var boxY = new Box(0,0,0, thickeness, size, thickeness);
+  var boxZ = new Box(0,0,0,thickeness, thickeness,size);
+  union.add(boxX);
+  union.add(boxY);
+  union.add(boxZ);
+  
+  return union;
+}
+
+
+function main(){
+
+	var a = 25*MM;
+	
+	var voxelSize = 0.2*MM;
+	
+	dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+	var cz = 20.*MM;
+	var cx = 5.*MM;
+	var cy = 5.*MM;
+	
+	var c1 = Cylinder(new Vector3d(-cx, cy, cz),new Vector3d(cx, cy, cz), 2*MM);
+	var c2 = Cylinder(new Vector3d(cx, -cy, cz),new Vector3d(cx, cy, cz), 2*MM);
+	var part1 = new Union();
+	part1.add(c1);
+	part1.add(c2);	
+	
+	part1.setTransform(new Translation(0*MM, 0*MM,0*MM));
+	
+	var dt = new DataTransformer();
+	dt.setSource(part1);	
+	var sym = new ReflectionSymmetry();
+    sym.setGroup(ReflectionSymmetries.getIcosahedralKaleidoscope());
+
+	sym.setIterations(20);
+	dt.setTransform(sym);
+	
+    var maker = new GridMaker();
+	maker.setSource(dt);
+	maker.makeGrid(dest);
+	
+	return dest;
+	
+}

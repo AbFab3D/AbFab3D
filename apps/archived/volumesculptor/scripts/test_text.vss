@@ -1,0 +1,22 @@
+
+function main(){
+
+	var voxelSize = 0.1*MM;
+	var width = 50*MM;
+	var height = 50*MM;
+	var depth = 50*MM;
+	var s = width/2;
+	
+	var grid = createGrid(-s, s, -s, s, -s, s,voxelSize);
+	
+	var text = new Text( "3D text", "Arial", 45*MM, 15*MM, 15*MM, voxelSize);
+	
+	var maker = new GridMaker();	
+	
+	maker.setSource(text);	
+	
+	maker.makeGrid(grid);
+	
+	return grid;
+	
+}
