@@ -15,6 +15,7 @@ import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
 
 import abfab3d.core.MathUtil;
+import abfab3d.core.Color;
 
 import static java.lang.Math.*;
 import static abfab3d.core.Output.fmt;
@@ -24,6 +25,7 @@ import static abfab3d.core.Output.fmt;
 */
 public class VecUtils {
 
+    static final double EPS = 1.e-8;
 
     public static Vector4d mul(Vector4d u, Vector4d v){
         return new Vector4d(u.x*v.x, u.y*v.y,u.z*v.z,u.w*v.w);  
@@ -35,6 +37,20 @@ public class VecUtils {
 
     public static Vector3d mul(Vector3d u, double s){
         return new Vector3d(u.x*s, u.y*s,u.z*s);  
+    }
+
+    //
+    // return component wise product of 2 vectors 
+    //
+    public static Vector3d mul(Vector3d u, Vector3d v){
+        return new Vector3d(u.x*v.x, u.y*v.y, u.z*v.z);  
+    }
+
+    //
+    // return component wise product of 3 vectors 
+    //
+    public static Vector3d mul(Vector3d u, Vector3d v, Vector3d w){
+        return new Vector3d(u.x * v.x * w.x, u.y * v.y * w.y, u.z * v.z * w.z);  
     }
 
     public static Vector3d mul(Matrix4f m, Vector3d v){
@@ -68,6 +84,13 @@ public class VecUtils {
         u.y += v.y;
         u.z += v.z;
         u.w += v.w;
+        return u;
+    }
+
+    public static Vector3d addSet(Vector3d u, Vector3d v){
+        u.x += v.x;
+        u.y += v.y;
+        u.z += v.z;
         return u;
     }
 
@@ -116,6 +139,67 @@ public class VecUtils {
         return fmt("["+format+","+format+","+format+","+format+"]", v.x,v.y,v.z,v.w);
     }
 
+    /**
+       return transmittance of layer of material 
+       transmittanceFactor - vector of transmittance factors for R,G,B light 
+       transmittanceFactor.x - thickness of layer of material which refuces transmitted light by factor e
+     */
+    public static Vector3d getLayerTransmittance(Vector3d transmittanceFactor,double layerThickness){
+
+        Vector3d tr = new Vector3d();
+        tr.x = getLayerTransmittanceComponent(transmittanceFactor.x, layerThickness);
+        tr.y = getLayerTransmittanceComponent(transmittanceFactor.y, layerThickness);
+        tr.z = getLayerTransmittanceComponent(transmittanceFactor.z, layerThickness);
+
+        return tr;
+    }
     
+    /**
+       return transmittance for single component
+     */
+    public static double getLayerTransmittanceComponent(double transmittanceFactor,double layerThickness){
+
+        if(transmittanceFactor <= EPS){ 
+            // material is opaque 
+            return 0;
+        }
+        return Math.exp(-layerThickness/transmittanceFactor);        
+    }
+
+    public static boolean isZero(Vector3d v){
+
+        return (abs(v.x) < EPS) && (abs(v.y) < EPS) && (abs(v.z) < EPS);
+
+    }
+
+    static Vector3d vec3(Vector4d v){
+        return new Vector3d(v.x, v.y, v.z);
+    }
+
+    /**
+       conversion of Color into vec4
+     */
+    static Vector4d vec4(Color c){
+        return new Vector4d(c.getr(),c.getg(), c.getb(), c.geta());
+    }
+
+    /**
+       adding component to Vector3d 
+     */
+    static Vector4d vec4(Vector3d v, double w){
+        return new Vector4d(v.x,v.y,v.z, w);
+    }
+
+    /**
+       conversiomn of scalar into Vector4d 
+     */
+    static Vector4d vec4(double v){
+        return new Vector4d(v,v,v, v);
+    }
+
+    static Vector4d vec4(double x,double y,double z,double w){
+        return new Vector4d(x,y,z,w);
+    }
+
 
 } // class VecUtil 
