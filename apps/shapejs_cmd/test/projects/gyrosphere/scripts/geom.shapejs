@@ -1,0 +1,29 @@
+// Style 1
+function createGyrosphere(radius,period,thickness,rounding) {
+  var sphere = new Sphere(radius);
+  var period = period;
+  var gyroid = new VolumePatterns.Gyroid(period, thickness);
+  var intersect = new Intersection();
+  intersect.setBlend(rounding);
+  intersect.add(sphere);
+  intersect.add(gyroid);
+
+  return intersect;
+}
+
+exports.createGyrosphere = createGyrosphere;
+
+// Style 2.8
+function MySphere(r) {
+    var ds = new Sphere(r);
+
+    this.r= r;
+
+    this.toString= function() {
+        return 'MySphere';
+    };
+
+    return ds;
+};
+
+exports.MySphere = MySphere;

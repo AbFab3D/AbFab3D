@@ -1,0 +1,35 @@
+# ShapeJS Commandline Utilities
+
+This application provides command line operations on ShapeJS files.  This includes tasks such as rendering an image and
+generating triangle mesh.
+
+## Building
+
+From the apps/shapejs directory type:  ant build
+
+## Running
+
+### Ant
+Ant does not support command line options very nicely.  These are provided mostly as examples of how to launch these
+
+ant -Dcmd=renderTriangle -Dscript=test/scripts/gyrosphere.js -Doutput=out.stl run
+
+Valid Commands and Parameters
+* renderImage
+  * variant - The variant to run
+  * script - The script to run
+  * width - Number of pixels in width, defaults to 512
+  * height - Number of pixels in height, defaults to 512
+* renderTriangle
+  * variant - The variant to run
+  * script - The script to run
+  * meshErrorFactor - Maximal error allowed during mesh decimation (reducing mesh complexity). It is given relative to voxel size.  Defaults to 0.1
+
+### Jar
+java -Xmx12000M -jar <PathToAbFab3D>/apps/shapejs_cmd/jars/abfab3d_apps_shapejs_1.0.0.jar"
+
+## Testing
+ant test
+
+## GPU
+Shapeways offers a GPU accelerated version of these utilities that is 10-100X times faster.  Contact alan@shapeways.com for licensing options.

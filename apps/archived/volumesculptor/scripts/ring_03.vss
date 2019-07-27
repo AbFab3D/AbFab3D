@@ -1,0 +1,47 @@
+function makePart(length, rad1, rad2){
+
+	
+	var cyl1 = new Cylinder(new Vector3d(-length,0,0), new Vector3d(length,0,0), rad1);
+	var cyl2 = new Cylinder(new Vector3d(-length,0,0), new Vector3d(length,0,0), rad2);
+	
+	var diff = new Subtraction(cyl1, cyl2);
+	
+	return diff;
+}
+
+function makeRing(count, outRadius, inRadius){
+
+	var alpha = Math.PI/count;
+	var h = outRadius * Math.tan(alpha);
+	
+	var union = new Union();
+	for(var i = 0; i < count; i++){
+		var part = makePart(outRadius, h, h-(outRadius - inRadius));
+		
+		part.setTransform(new Rotation(new Vector3d(0,0,1), i*alpha));
+		union.add(part);
+	}
+	
+	var hole = new Cylinder(new Vector3d(0,0,-1.1*h), new Vector3d(0,0,1.1*h),inRadius);
+	var diff = new Subtraction(union, hole);
+	
+	return diff;
+	
+	
+}
+
+function main(){
+
+	var b = 14*MM;
+	var voxelSize = 0.1*MM;
+	
+	dest = createGrid(-b,b,-b,b,-b,b,voxelSize);
+	
+	var part = makeRing(7, 12*MM, 10.5*MM);
+    var maker = new GridMaker();
+	maker.setSource(part);
+	maker.makeGrid(dest);
+		
+	return dest;
+	
+}

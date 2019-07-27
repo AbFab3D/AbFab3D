@@ -1,0 +1,61 @@
+
+
+function makePart(size){
+
+  var s = new Sphere(new Vector3d(size/2, size/2,0), size*0.6);
+  return s;
+  
+}
+
+
+function main(){
+
+	var voxelSize = 0.2*MM;
+	var width = 50*MM;
+	var height = 50*MM;
+	var period = width/8;
+	var radius = period * 0.55;
+
+	var thickness = 4*period;	
+	
+	
+	var grid = createGrid(-width/2,width/2,-height/2,height/2,-thickness/2,thickness/2,voxelSize);
+	var symm = new ReflectionSymmetry();
+	var splanes = new Array();
+	var count = 0;
+	splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(1,0,0),0);
+	
+	var p = period;
+	var R = width*0.4; 
+	
+	var sr = (R*R - p*p)/(2*p);
+	var cx = sr + p;
+		
+	splanes[count++] = new ReflectionSymmetry.getSphere(new Vector3d(cx,0,0),-sr);
+	splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(0,1,0),0);
+	splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(-1,1,0),0);
+	
+	var p2 = p*1.05;
+	var r2 = (R*R + p2*p2)/(2*p2);
+	var y2 = r2-p2;
+		
+	var s = Sphere(new Vector3d(0,y2,0),r2);
+	
+	splanes[count++] = new ReflectionSymmetry.getSphere(new Vector3d(0,-y2,0),r2);
+	
+	symm.setGroup(splanes);
+	
+	var part = makePart(period);
+	
+	var maker = new GridMaker();
+	var trans = new CompositeTransform();
+	trans.add(symm);
+	
+	maker.setSource(part);
+	maker.setTransform(trans);
+	
+	maker.makeGrid(grid);
+	
+	return grid;
+	
+}

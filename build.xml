@@ -1,372 +1,372 @@
 <?xml version="1.0" standalone="yes"?>
 
 <project basedir="." default="build" name="AbFab3D">
-    <import file="build_common.xml" />
+  <import file="build_common.xml"/>
 
-    <description>AbFab3D Project</description>
+  <description>AbFab3D Project</description>
 
-    <property name="version" value="1.0.0" />
+  <property name="version" value="1.0.0"/>
 
-    <property name="src.dir" value="${basedir}/src"/>
-    <property name="apps.dir" value="${basedir}/apps"/>
-    <property name="release.dir" value="${basedir}/release"/>
-    <property name="test.dir" value="${basedir}/test/junit"/>
-    <property name="japex.dir" value="${basedir}/test/japex"/>
-    <property name="classes.dir" value="${basedir}/classes" />
-    <property name="test.classes.dir" value="${classes.dir}/test" />
-    <property name="japex.classes.dir" value="${classes.dir}/japex" />
-    <property name="jar.dir" value="${basedir}/jars" />
-    <property name="lib.dir" value="${basedir}/lib"/>
-    <property name="manifest.dir" value="${basedir}/manifest"/>
-    <property name="javadocs.dir" value="${basedir}/docs/javadoc"/>
-    <property name="refguide.dir" value="${basedir}/docs/refguide"/>
-    <property name="xj3d.dir" value="..\..\..\xj3d\code\trunk" />
-    <property name="av3d.dir" value="..\..\..\j3d.org\aviatrix3d-2\aviatrix3d" />
+  <property name="src.dir" value="${basedir}/src"/>
+  <property name="apps.dir" value="${basedir}/apps"/>
+  <property name="release.dir" value="${basedir}/release"/>
+  <property name="test.dir" value="${basedir}/test/junit"/>
+  <property name="japex.dir" value="${basedir}/test/japex"/>
+  <property name="classes.dir" value="${basedir}/classes"/>
+  <property name="test.classes.dir" value="${classes.dir}/test"/>
+  <property name="japex.classes.dir" value="${classes.dir}/japex"/>
+  <property name="jar.dir" value="${basedir}/jars"/>
+  <property name="lib.dir" value="${basedir}/lib"/>
+  <property name="manifest.dir" value="${basedir}/manifest"/>
+  <property name="javadocs.dir" value="${basedir}/docs/javadoc"/>
+  <property name="refguide.dir" value="${basedir}/docs/refguide"/>
+  <property name="xj3d.dir" value="..\..\..\xj3d\code\trunk"/>
+  <property name="av3d.dir" value="..\..\..\j3d.org\aviatrix3d-2\aviatrix3d"/>
+  <property name="shapeways.dir" value="../../../shapeways/git/3dtools/abfab3d/apps/gpu"/>
 
-    <property name="entrypoint" value="abfab3d.Creator" />
-    <property name="runarg0" value="-Xmx16000M"/>
-<!--    <property name="runarg0" value="-Xmx7000M"/> -->
-<!--     <property name="runarg0" value="-Xmx1200M -Xprof"/> -->
-<!--
-    <property name="runarg1" value="-Dsun.java2d.noddraw=true"/>
-    <property name="runarg2" value="-Djava.library.path=&quot;./natives/${os.name}/${os.arch}&quot;" />
--->
-    <property name="jvmrunargs" value="${runarg0}"/>
+  <property name="runarg0" value="-Xmx16000M"/>
+  <!--    <property name="runarg0" value="-Xmx7000M"/> -->
+  <!--     <property name="runarg0" value="-Xmx1200M -Xprof"/> -->
+  <!--
+      <property name="runarg1" value="-Dsun.java2d.noddraw=true"/>
+      <property name="runarg2" value="-Djava.library.path=&quot;./natives/${os.name}/${os.arch}&quot;" />
+  -->
+  <property name="jvmrunargs" value="${runarg0}"/>
 
-    <property name="test.coverage.dir" value="${basedir}/tmp/coverage" />
+  <property name="test.coverage.dir" value="${basedir}/tmp/coverage"/>
 
-<!-- Emma code coverage properties -->
-    <property name="emma.dir" value="${basedir}/lib/support/emma" />
-    <property name="emma.out.dir" value="${basedir}/emma" />
-    <property name="emma.coverage.dir" location="${emma.out.dir}/coverage" />
-    <property name="emma.instr.dir" location="${emma.out.dir}/instrumented" />
+  <!-- Emma code coverage properties -->
+  <property name="emma.dir" value="${basedir}/lib/support/emma"/>
+  <property name="emma.out.dir" value="${basedir}/emma"/>
+  <property name="emma.coverage.dir" location="${emma.out.dir}/coverage"/>
+  <property name="emma.instr.dir" location="${emma.out.dir}/instrumented"/>
 
-    <property name="env.JAPEX_HOME" value="lib/support/japex" />
-    <path id="run.classpath" >
-      <pathelement location="${classes.dir}" />
-    </path>
+  <property name="env.JAPEX_HOME" value="lib/support/japex"/>
+  <path id="run.classpath">
+    <pathelement location="${classes.dir}"/>
+  </path>
 
-    <!-- path element used by EMMA taskdef below: -->
-    <path id="emma.lib" >
-        <pathelement location="${emma.dir}/emma.jar" />
-        <pathelement location="${emma.dir}/emma_ant.jar" />
-    </path>
+  <!-- path element used by EMMA taskdef below: -->
+  <path id="emma.lib">
+    <pathelement location="${emma.dir}/emma.jar"/>
+    <pathelement location="${emma.dir}/emma_ant.jar"/>
+  </path>
 
-    <!-- this loads <emma> and <emmajava> custom tasks: -->
-    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
-<!-- End Emma code coverage properties -->
+  <!-- this loads <emma> and <emmajava> custom tasks: -->
+  <taskdef resource="emma_ant.properties" classpathref="emma.lib"/>
+  <!-- End Emma code coverage properties -->
 
-<!-- Cobertura code coverage properties -->
-    <property name="cobertura.dir" value="${basedir}/lib/support/cobertura" />
-    <property name="cobertura.out.dir" value="${basedir}/cobertura" />
-    <property name="cobertura.reports.dir" value="${cobertura.out.dir}/reports" />
-    <property name="cobertura.reports.xml.dir" value="${cobertura.reports.dir}/junit-xml" />
-    <property name="cobertura.reports.html.dir" value="${cobertura.reports.dir}/junit-html" />
-    <property name="cobertura.instrumented.dir" value="${cobertura.out.dir}/instrumented" />
-    <property name="cobertura.coverage.xml.dir" value="${cobertura.out.dir}/coverage/xml" />
-    <property name="cobertura.coverage.summaryxml.dir" value="${cobertura.out.dir}/coverage/summaryxml" />
-    <property name="cobertura.coverage.html.dir" value="${cobertura.out.dir}/coverage/html" />
+  <!-- Cobertura code coverage properties -->
+  <property name="cobertura.dir" value="${basedir}/lib/support/cobertura"/>
+  <property name="cobertura.out.dir" value="${basedir}/cobertura"/>
+  <property name="cobertura.reports.dir" value="${cobertura.out.dir}/reports"/>
+  <property name="cobertura.reports.xml.dir" value="${cobertura.reports.dir}/junit-xml"/>
+  <property name="cobertura.reports.html.dir" value="${cobertura.reports.dir}/junit-html"/>
+  <property name="cobertura.instrumented.dir" value="${cobertura.out.dir}/instrumented"/>
+  <property name="cobertura.coverage.xml.dir" value="${cobertura.out.dir}/coverage/xml"/>
+  <property name="cobertura.coverage.summaryxml.dir" value="${cobertura.out.dir}/coverage/summaryxml"/>
+  <property name="cobertura.coverage.html.dir" value="${cobertura.out.dir}/coverage/html"/>
 
-    <path id="cobertura.classpath">
-	<fileset dir="${cobertura.dir}">
-		<include name="cobertura.jar" />
-		<include name="lib/**/*.jar" />
-	</fileset>
-    </path>
+  <path id="cobertura.classpath">
+    <fileset dir="${cobertura.dir}">
+      <include name="cobertura.jar"/>
+      <include name="lib/**/*.jar"/>
+    </fileset>
+  </path>
 
-    <taskdef classpathref="cobertura.classpath" resource="tasks.properties"/>
-<!-- End Cobertura code coverage properties -->
+  <taskdef classpathref="cobertura.classpath" resource="tasks.properties"/>
+  <!-- End Cobertura code coverage properties -->
 
-<!-- jacoco code coverage properties -->
-    <property name="jacoco.dir" value="${basedir}/lib/support/jacoco" />
-    <property name="jacoco.out.dir" value="${test.coverage.dir}/jacoco" />
-    <property name="jacoco.reports.dir" value="${jacoco.out.dir}/jacoco" />
+  <!-- jacoco code coverage properties -->
+  <property name="jacoco.dir" value="${basedir}/lib/support/jacoco"/>
+  <property name="jacoco.out.dir" value="${test.coverage.dir}/jacoco"/>
+  <property name="jacoco.reports.dir" value="${jacoco.out.dir}/jacoco"/>
 
-    <path id="jacoco.classpath">
-	<fileset dir="${jacoco.dir}">
-		<include name="jacocoant.jar" />
-		<include name="lib/**/*.jar" />
-	</fileset>
-    </path>
-<!-- End jacoco code coverage properties -->
+  <path id="jacoco.classpath">
+    <fileset dir="${jacoco.dir}">
+      <include name="jacocoant.jar"/>
+      <include name="lib/**/*.jar"/>
+    </fileset>
+  </path>
+  <!-- End jacoco code coverage properties -->
 
-    <target name="build"
-        description="Complete clean, setup, compilation, run"
-        depends="clean,init,compile,compileApps,jar" />
+  <target name="build"
+          description="Complete clean, setup, compilation, run"
+          depends="clean,init,compile,compileApps,jar"/>
 
-    <!-- Create destination directories -->
-    <target name="init" description="Create destination directories">
-        <mkdir dir="${classes.dir}"/>
-        <mkdir dir="${javadocs.dir}"/>
-	<mkdir dir="${test.classes.dir}" />
-    </target>
+  <!-- Create destination directories -->
+  <target name="init" description="Create destination directories">
+    <mkdir dir="${classes.dir}"/>
+    <mkdir dir="${javadocs.dir}"/>
+    <mkdir dir="${test.classes.dir}"/>
+  </target>
 
-    <target name="compile" depends="init" description="Compile all Java source files">
-        <compilejava package="abfab3d/core"
-                     jars=""
-                />
-        <compilejava package="abfab3d/util"
-                     jars="gson-2.1.jar commons-io-2.6.jar commons-codec-1.7.jar commons-compress-1.9.jar xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar"
-                />
-        <compilejava package="abfab3d/param"
-                     jars=""
-                />
-        <compilejava package="abfab3d/spatial"
-                   jars=""
-        />
-        <compilejava package="abfab3d/symmetry"
-                     jars=""
-                />
-        <compilejava package="abfab3d/opencl"
-                     jars="jocl.jar commons-io-2.6.jar"
-                />
-        <compilejava package="abfab3d/random"
-                     jars=""
-                />
-        <compilejava package="abfab3d/sample"
-                     jars=""
-                />
-        <compilejava package="abfab3d/geomutil"
-            jars=""
-        />
-        <compilejava package="abfab3d/param/editor"
-                     jars=""
-                />
-        <compilejava package="abfab3d/transforms"
-            jars="jafama.jar vecmath.jar"
-        />
-        <compilejava package="abfab3d/intersect"
-                     jars=""
-                            />
-        <compilejava package="abfab3d/distance"
-                     jars=""
-                            />
-        <compilejava package="abfab3d/path"
-            jars=""
-        />
-        <compilejava package="abfab3d/grid"
-            jars=""
-        />
-        <compilejava package="abfab3d/grid/util"
-            jars=""
-        />
-        <compilejava package="abfab3d/grid/op"
-            jars="jafama.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_2.0.0.jar vecmath.jar batik-all-1.9.jar commons-io-2.6.jar js.jar"
-        />
-        <compilejava package="abfab3d/grid/query"
-            jars=""
-        />
-        <compilejava package="abfab3d/datasources"
-            jars="jafama.jar vecmath.jar core-renderer.jar js.jar"
-        />
-        <compilejava package="abfab3d/mesh"
-                     jars=""
-                />
-        <compilejava package="abfab3d/geom"
-            jars=""
-        />
+  <target name="compile" depends="init" description="Compile all Java source files">
+    <compilejava package="abfab3d/core"
+                 jars=""
+    />
+    <compilejava package="abfab3d/util"
+                 jars="gson-2.1.jar commons-io-2.6.jar commons-codec-1.7.jar commons-compress-1.9.jar xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar"
+    />
+    <compilejava package="abfab3d/param"
+                 jars=""
+    />
+    <compilejava package="abfab3d/spatial"
+                 jars=""
+    />
+    <compilejava package="abfab3d/symmetry"
+                 jars=""
+    />
+    <compilejava package="abfab3d/opencl"
+                 jars="jocl.jar commons-io-2.6.jar"
+    />
+    <compilejava package="abfab3d/random"
+                 jars=""
+    />
+    <compilejava package="abfab3d/sample"
+                 jars=""
+    />
+    <compilejava package="abfab3d/geomutil"
+                 jars=""
+    />
+    <compilejava package="abfab3d/param/editor"
+                 jars=""
+    />
+    <compilejava package="abfab3d/transforms"
+                 jars="jafama.jar vecmath.jar"
+    />
+    <compilejava package="abfab3d/intersect"
+                 jars=""
+    />
+    <compilejava package="abfab3d/distance"
+                 jars=""
+    />
+    <compilejava package="abfab3d/path"
+                 jars=""
+    />
+    <compilejava package="abfab3d/grid"
+                 jars=""
+    />
+    <compilejava package="abfab3d/grid/util"
+                 jars=""
+    />
+    <compilejava package="abfab3d/grid/op"
+                 jars="jafama.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_2.0.0.jar vecmath.jar batik-all-1.9.jar commons-io-2.6.jar js.jar"
+    />
+    <compilejava package="abfab3d/grid/query"
+                 jars=""
+    />
+    <compilejava package="abfab3d/datasources"
+                 jars="jafama.jar vecmath.jar core-renderer.jar js.jar"
+    />
+    <compilejava package="abfab3d/mesh"
+                 jars=""
+    />
+    <compilejava package="abfab3d/geom"
+                 jars=""
+    />
 
-        <compilejava package="abfab3d/io/input"
-            jars="guava-18.0.jar commons-codec-1.7.jar commons-compress-1.9.jar vecmath.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar commons-io-2.6.jar"
-        />
-        <compilejava package="abfab3d/io/output"
-            jars="vecmath.jar toxiclibscore.jar volumeutils.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar commons-io-2.6.jar"
-        />
-        <compilejava package="abfab3d/shapejs"
-                     jars=""
-                />
+    <compilejava package="abfab3d/io/input"
+                 jars="guava-18.0.jar commons-codec-1.7.jar commons-compress-1.9.jar vecmath.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar commons-io-2.6.jar"
+    />
+    <compilejava package="abfab3d/io/output"
+                 jars="vecmath.jar toxiclibscore.jar volumeutils.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar commons-io-2.6.jar"
+    />
+    <compilejava package="abfab3d/shapejs"
+                 jars=""
+    />
 
-        <compilejava package="abfab3d/io/soap"
-            jars=""
-        />
-	<compilejava package="abfab3d/io/soap/transport"
-	    jars="" />
-        <compilejava package="abfab3d/io/soap/encoders"
-            jars="" />
-        <compilejava package="abfab3d/io/soap/envelope"
-            jars="" />
-        <compilejava package="shapeways/api"
-                     jars="" />
-        <compilejava package="shapeways/api/models"
-                     jars="" />
-        <compilejava package="shapeways/api/models/reservation"
-                     jars="" />
-        <compilejava package="shapeways/api/price"
-                     jars="" />
+    <compilejava package="abfab3d/io/soap"
+                 jars=""
+    />
+    <compilejava package="abfab3d/io/soap/transport"
+                 jars=""/>
+    <compilejava package="abfab3d/io/soap/encoders"
+                 jars=""/>
+    <compilejava package="abfab3d/io/soap/envelope"
+                 jars=""/>
+    <compilejava package="shapeways/api"
+                 jars=""/>
+    <compilejava package="shapeways/api/models"
+                 jars=""/>
+    <compilejava package="shapeways/api/models/reservation"
+                 jars=""/>
+    <compilejava package="shapeways/api/price"
+                 jars=""/>
 
-        <compilejava package="abfab3d/io/shapeways"
-            jars="vecmath.jar xj3d-core_2.0.0.jar j3d-org-all_2.0.0.jar"
-        />
+    <compilejava package="abfab3d/io/shapeways"
+                 jars="vecmath.jar xj3d-core_2.0.0.jar j3d-org-all_2.0.0.jar"
+    />
 
-        <compilejava package="abfab3d/validate"
-            jars=""
-        />
-        <compilejava package="abfab3d/creator"
-            jars=""
-        />
-        <compilejava package="abfab3d/creator/util"
-            jars=""
-        />
-        <compilejava package="abfab3d/creator/shapeways"
-            jars=""
-        />
-        <compilejava package="abfab3d/creator/ui"
-            jars=""
-        />
-    </target>
+    <compilejava package="abfab3d/validate"
+                 jars=""
+    />
+    <compilejava package="abfab3d/creator"
+                 jars=""
+    />
+    <compilejava package="abfab3d/creator/util"
+                 jars=""
+    />
+    <compilejava package="abfab3d/creator/shapeways"
+                 jars=""
+    />
+    <compilejava package="abfab3d/creator/ui"
+                 jars=""
+    />
+  </target>
 
-    <target name="compileApps" depends="init" description="Compile all applications">
-       <echo message="Compiling Common Apps" />
-       <ant dir="apps/common" inheritAll="false" />
-       <echo message="Compiling Volume Sculptor" />
-       <ant dir="apps/volumesculptor" inheritAll="false" />
-    </target>
+  <target name="compileApps" depends="init" description="Compile all applications">
+    <echo message="Compiling Common Apps"/>
+    <ant dir="apps/common" inheritAll="false"/>
+    <echo message="Compiling Volume Sculptor"/>
+    <ant dir="apps/volumesculptor" inheritAll="false"/>
+  </target>
 
-    <target name="run" depends="compile" description="Run the application">
-        <echo message="jvmargs: ${jvmrunargs}" />
-        <java classname="${entrypoint}" fork="true">
-            <jvmarg line="${jvmrunargs}"/>
-            <classpath>
-                <pathelement path="${classes.dir}" />
-                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />
-<!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
-            </classpath>
-        </java>
-    </target>
+  <target name="run" depends="compile" description="Run the application">
+    <echo message="jvmargs: ${jvmrunargs}"/>
+    <java classname="${entrypoint}" fork="true">
+      <jvmarg line="${jvmrunargs}"/>
+      <classpath>
+        <pathelement path="${classes.dir}"/>
+        <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+        <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+      </classpath>
+    </java>
+  </target>
 
-    <target name="javadoc" description="Generates javadoc" depends="compile">
-        <echo message="Generating javadoc..." />
-        <javadoc sourcepath="${src.dir}/java"
-            destdir="${javadocs.dir}"
-            packagenames="*"
-            version="true"
-            author="yes">
-        </javadoc>
-    </target>
-    <target name="makeRef" description="Generates VolumeSculptor Reference Guide" depends="compile">
-        <echo message="Generating reference guide..." />
-        <mkdir dir="${classes.dir}/build" />
-        <compilejava srcdir="src/build/java" package="doclet" destdir="${classes.dir}/build"
-                     jars=""
-                />
+  <target name="javadoc" description="Generates javadoc" depends="compile">
+    <echo message="Generating javadoc..."/>
+    <javadoc sourcepath="${src.dir}/java"
+             destdir="${javadocs.dir}"
+             packagenames="*"
+             version="true"
+             author="yes">
+    </javadoc>
+  </target>
+  <target name="makeRef" description="Generates VolumeSculptor Reference Guide" depends="compile">
+    <echo message="Generating reference guide..."/>
+    <mkdir dir="${classes.dir}/build"/>
+    <compilejava srcdir="src/build/java" package="doclet" destdir="${classes.dir}/build"
+                 jars=""
+    />
 
-        <!-- TODO: remove index* -->
+    <!-- TODO: remove index* -->
 
-        <javadoc sourcepath=""
-                 destdir="${refguide.dir}"
-                 version="true"
-                 author="yes" >
-            <fileset dir="${src.dir}" defaultexcludes="yes">
-                <include name="java/abfab3d/datasources/TransformableDataSource.java" />
-                <include name="java/abfab3d/datasources/Abs.java" />
-                <include name="java/abfab3d/datasources/Add.java" />
-                <include name="java/abfab3d/datasources/Box.java" />
-                <include name="java/abfab3d/datasources/Complement.java" />
-                <include name="java/abfab3d/datasources/Constant.java" />
-                <include name="java/abfab3d/datasources/Cone.java" />
-                <include name="java/abfab3d/datasources/Cylinder.java" />
-                <include name="java/abfab3d/datasources/DataSourceGrid.java" />
-                <include name="java/abfab3d/datasources/DataTransformer.java" />
-                <include name="java/abfab3d/datasources/Embossing.java" />
-                <include name="java/abfab3d/datasources/Image3D.java" />
-                <include name="java/abfab3d/datasources/ImageMap.java" />
-                <include name="java/abfab3d/datasources/Intersection.java" />
-                <include name="java/abfab3d/datasources/Mad.java" />
-                <include name="java/abfab3d/datasources/Mask.java" />
-                <include name="java/abfab3d/datasources/Max.java" />
-                <include name="java/abfab3d/datasources/Min.java" />
-                <include name="java/abfab3d/datasources/Mix.java" />
-                <include name="java/abfab3d/datasources/Mul.java" />
-                <include name="java/abfab3d/datasources/Plane.java" />
-<!--                <include name="java/abfab3d/datasources/Ring.java" /> -->
-                <include name="java/abfab3d/datasources/Sphere.java" />
-                <include name="java/abfab3d/datasources/Sub.java" />
-                <include name="java/abfab3d/datasources/Subtraction.java" />
-                <include name="java/abfab3d/datasources/Text.java" />
-                <include name="java/abfab3d/datasources/Text2D.java" />
-                <include name="java/abfab3d/datasources/Torus.java" />
-                <include name="java/abfab3d/datasources/Union.java" />
-                <include name="java/abfab3d/datasources/VolumePatterns.java" />
+    <javadoc sourcepath=""
+             destdir="${refguide.dir}"
+             version="true"
+             author="yes">
+      <fileset dir="${src.dir}" defaultexcludes="yes">
+        <include name="java/abfab3d/datasources/TransformableDataSource.java"/>
+        <include name="java/abfab3d/datasources/Abs.java"/>
+        <include name="java/abfab3d/datasources/Add.java"/>
+        <include name="java/abfab3d/datasources/Box.java"/>
+        <include name="java/abfab3d/datasources/Complement.java"/>
+        <include name="java/abfab3d/datasources/Constant.java"/>
+        <include name="java/abfab3d/datasources/Cone.java"/>
+        <include name="java/abfab3d/datasources/Cylinder.java"/>
+        <include name="java/abfab3d/datasources/DataSourceGrid.java"/>
+        <include name="java/abfab3d/datasources/DataTransformer.java"/>
+        <include name="java/abfab3d/datasources/Embossing.java"/>
+        <include name="java/abfab3d/datasources/Image3D.java"/>
+        <include name="java/abfab3d/datasources/ImageMap.java"/>
+        <include name="java/abfab3d/datasources/Intersection.java"/>
+        <include name="java/abfab3d/datasources/Mad.java"/>
+        <include name="java/abfab3d/datasources/Mask.java"/>
+        <include name="java/abfab3d/datasources/Max.java"/>
+        <include name="java/abfab3d/datasources/Min.java"/>
+        <include name="java/abfab3d/datasources/Mix.java"/>
+        <include name="java/abfab3d/datasources/Mul.java"/>
+        <include name="java/abfab3d/datasources/Plane.java"/>
+        <!--                <include name="java/abfab3d/datasources/Ring.java" /> -->
+        <include name="java/abfab3d/datasources/Sphere.java"/>
+        <include name="java/abfab3d/datasources/Sub.java"/>
+        <include name="java/abfab3d/datasources/Subtraction.java"/>
+        <include name="java/abfab3d/datasources/Text.java"/>
+        <include name="java/abfab3d/datasources/Text2D.java"/>
+        <include name="java/abfab3d/datasources/Torus.java"/>
+        <include name="java/abfab3d/datasources/Union.java"/>
+        <include name="java/abfab3d/datasources/VolumePatterns.java"/>
 
-                <include name="java/abfab3d/transforms/CompositeTransform.java" />
-                <include name="java/abfab3d/transforms/FriezeSymmetry.java" />
-                <include name="java/abfab3d/transforms/ReflectionSymmetry.java" />
-                <include name="java/abfab3d/transforms/WallpaperSymmetry.java" />
-                <include name="java/abfab3d/transforms/PlaneReflection.java" />
-                <include name="java/abfab3d/transforms/SphereInversion.java" />
-                <include name="java/abfab3d/transforms/CompositeTransform.java" />
-                <include name="java/abfab3d/transforms/Scale.java" />
-                <include name="java/abfab3d/transforms/Translation.java" />
-                <include name="java/abfab3d/transforms/Rotation.java" />
-                <include name="java/abfab3d/transforms/RingWrap.java" />
-                <include name="java/abfab3d/transforms/PeriodicWrap.java" />
-            </fileset>
-            <doclet name="doclet.RefGuideDoclet" path="${classes.dir}/build;${lib.dir}/commons-io-2.6.jar">
-                <param name="-generateParts" value="true" />
-            </doclet>
-            <!-- Copy items from Javadoc to refguide directory for easy packaging -->
-        </javadoc>
+        <include name="java/abfab3d/transforms/CompositeTransform.java"/>
+        <include name="java/abfab3d/transforms/FriezeSymmetry.java"/>
+        <include name="java/abfab3d/transforms/ReflectionSymmetry.java"/>
+        <include name="java/abfab3d/transforms/WallpaperSymmetry.java"/>
+        <include name="java/abfab3d/transforms/PlaneReflection.java"/>
+        <include name="java/abfab3d/transforms/SphereInversion.java"/>
+        <include name="java/abfab3d/transforms/CompositeTransform.java"/>
+        <include name="java/abfab3d/transforms/Scale.java"/>
+        <include name="java/abfab3d/transforms/Translation.java"/>
+        <include name="java/abfab3d/transforms/Rotation.java"/>
+        <include name="java/abfab3d/transforms/RingWrap.java"/>
+        <include name="java/abfab3d/transforms/PeriodicWrap.java"/>
+      </fileset>
+      <doclet name="doclet.RefGuideDoclet" path="${classes.dir}/build;${lib.dir}/commons-io-2.6.jar">
+        <param name="-generateParts" value="true"/>
+      </doclet>
+      <!-- Copy items from Javadoc to refguide directory for easy packaging -->
+    </javadoc>
 
-        <javadoc sourcepath=""
-                 destdir="${refguide.dir}"
-                 version="true"
-                 author="yes" >
-            <fileset dir="${src.dir}" defaultexcludes="yes">
-                <include name="java/abfab3d/datasources/TransformableDataSource.java" />
-                <include name="java/abfab3d/datasources/Abs.java" />
-                <include name="java/abfab3d/datasources/Add.java" />
-                <include name="java/abfab3d/datasources/Box.java" />
-                <include name="java/abfab3d/datasources/Complement.java" />
-                <include name="java/abfab3d/datasources/Constant.java" />
-                <include name="java/abfab3d/datasources/Cone.java" />
-                <include name="java/abfab3d/datasources/Cylinder.java" />
-                <include name="java/abfab3d/datasources/DataSourceGrid.java" />
-                <include name="java/abfab3d/datasources/DataTransformer.java" />
-                <include name="java/abfab3d/datasources/Embossing.java" />
-                <include name="java/abfab3d/datasources/Image3D.java" />
-                <include name="java/abfab3d/datasources/ImageMap.java" />
-                <include name="java/abfab3d/datasources/Intersection.java" />
-                <include name="java/abfab3d/datasources/Mad.java" />
-                <include name="java/abfab3d/datasources/Mask.java" />
-                <include name="java/abfab3d/datasources/Max.java" />
-                <include name="java/abfab3d/datasources/Min.java" />
-                <include name="java/abfab3d/datasources/Mix.java" />
-                <include name="java/abfab3d/datasources/Mul.java" />
-                <include name="java/abfab3d/datasources/Plane.java" />
-                <include name="java/abfab3d/datasources/Sphere.java" />
-                <include name="java/abfab3d/datasources/Sub.java" />
-                <include name="java/abfab3d/datasources/Subtraction.java" />
-                <include name="java/abfab3d/datasources/Text.java" />
-                <include name="java/abfab3d/datasources/Text2D.java" />
-                <include name="java/abfab3d/datasources/Torus.java" />
-                <include name="java/abfab3d/datasources/Union.java" />
-                <include name="java/abfab3d/datasources/VolumePatterns.java" />
+    <javadoc sourcepath=""
+             destdir="${refguide.dir}"
+             version="true"
+             author="yes">
+      <fileset dir="${src.dir}" defaultexcludes="yes">
+        <include name="java/abfab3d/datasources/TransformableDataSource.java"/>
+        <include name="java/abfab3d/datasources/Abs.java"/>
+        <include name="java/abfab3d/datasources/Add.java"/>
+        <include name="java/abfab3d/datasources/Box.java"/>
+        <include name="java/abfab3d/datasources/Complement.java"/>
+        <include name="java/abfab3d/datasources/Constant.java"/>
+        <include name="java/abfab3d/datasources/Cone.java"/>
+        <include name="java/abfab3d/datasources/Cylinder.java"/>
+        <include name="java/abfab3d/datasources/DataSourceGrid.java"/>
+        <include name="java/abfab3d/datasources/DataTransformer.java"/>
+        <include name="java/abfab3d/datasources/Embossing.java"/>
+        <include name="java/abfab3d/datasources/Image3D.java"/>
+        <include name="java/abfab3d/datasources/ImageMap.java"/>
+        <include name="java/abfab3d/datasources/Intersection.java"/>
+        <include name="java/abfab3d/datasources/Mad.java"/>
+        <include name="java/abfab3d/datasources/Mask.java"/>
+        <include name="java/abfab3d/datasources/Max.java"/>
+        <include name="java/abfab3d/datasources/Min.java"/>
+        <include name="java/abfab3d/datasources/Mix.java"/>
+        <include name="java/abfab3d/datasources/Mul.java"/>
+        <include name="java/abfab3d/datasources/Plane.java"/>
+        <include name="java/abfab3d/datasources/Sphere.java"/>
+        <include name="java/abfab3d/datasources/Sub.java"/>
+        <include name="java/abfab3d/datasources/Subtraction.java"/>
+        <include name="java/abfab3d/datasources/Text.java"/>
+        <include name="java/abfab3d/datasources/Text2D.java"/>
+        <include name="java/abfab3d/datasources/Torus.java"/>
+        <include name="java/abfab3d/datasources/Union.java"/>
+        <include name="java/abfab3d/datasources/VolumePatterns.java"/>
 
-                <include name="java/abfab3d/transforms/CompositeTransform.java" />
-                <include name="java/abfab3d/transforms/FriezeSymmetry.java" />
-                <include name="java/abfab3d/transforms/ReflectionSymmetry.java" />
-                <include name="java/abfab3d/transforms/WallpaperSymmetry.java" />
-                <include name="java/abfab3d/transforms/PlaneReflection.java" />
-                <include name="java/abfab3d/transforms/SphereInversion.java" />
-                <include name="java/abfab3d/transforms/CompositeTransform.java" />
-                <include name="java/abfab3d/transforms/Scale.java" />
-                <include name="java/abfab3d/transforms/Translation.java" />
-                <include name="java/abfab3d/transforms/Rotation.java" />
-                <include name="java/abfab3d/transforms/RingWrap.java" />
-                <include name="java/abfab3d/transforms/PeriodicWrap.java" />
-            </fileset>
-            <doclet name="doclet.RefGuideDoclet" path="${classes.dir}/build;${lib.dir}/commons-io-2.6.jar">
-                <param name="-generateParts" value="false" />
-            </doclet>
-        </javadoc>
+        <include name="java/abfab3d/transforms/CompositeTransform.java"/>
+        <include name="java/abfab3d/transforms/FriezeSymmetry.java"/>
+        <include name="java/abfab3d/transforms/ReflectionSymmetry.java"/>
+        <include name="java/abfab3d/transforms/WallpaperSymmetry.java"/>
+        <include name="java/abfab3d/transforms/PlaneReflection.java"/>
+        <include name="java/abfab3d/transforms/SphereInversion.java"/>
+        <include name="java/abfab3d/transforms/CompositeTransform.java"/>
+        <include name="java/abfab3d/transforms/Scale.java"/>
+        <include name="java/abfab3d/transforms/Translation.java"/>
+        <include name="java/abfab3d/transforms/Rotation.java"/>
+        <include name="java/abfab3d/transforms/RingWrap.java"/>
+        <include name="java/abfab3d/transforms/PeriodicWrap.java"/>
+      </fileset>
+      <doclet name="doclet.RefGuideDoclet" path="${classes.dir}/build;${lib.dir}/commons-io-2.6.jar">
+        <param name="-generateParts" value="false"/>
+      </doclet>
+    </javadoc>
 
-    </target>
+  </target>
 
-    <target name="jar" depends="compile">
-        <createjar name="abfab3d_core"
-            version="${version}"
-            manifest="abfab3d_core.mf"
-            includes="
+  <target name="jar" depends="compile">
+    <createjar name="abfab3d_core"
+               version="${version}"
+               manifest="abfab3d_core.mf"
+               includes="
                 abfab3d/core/*
                 abfab3d/math/*
                 abfab3d/symmetry/*
@@ -394,11 +394,11 @@
                 abfab3d/geomutil/*
                 abfab3d/spatial/*
                 "
-        />
-        <createjar name="abfab3d_upload"
-            version="${version}"
-            manifest="abfab3d_upload.mf"
-            includes="abfab3d/io/soap/*
+    />
+    <createjar name="abfab3d_upload"
+               version="${version}"
+               manifest="abfab3d_upload.mf"
+               includes="abfab3d/io/soap/*
                 abfab3d/io/soap/transport/*
                 abfab3d/io/soap/encoders/*
                 abfab3d/io/soap/envelope/*
@@ -407,100 +407,100 @@
                 abfab3d/util/*
                 abfab3d/geomutil/*
                 "
-        />
-        <createjar name="abfab3d_creator"
-            version="${version}"
-            manifest="abfab3d_creator.mf"
-            includes="abfab3d/creator/*
+    />
+    <createjar name="abfab3d_creator"
+               version="${version}"
+               manifest="abfab3d_creator.mf"
+               includes="abfab3d/creator/*
                 abfab3d/creator/ui/*
                 abfab3d/creator/util/*
                 abfab3d/creator/geomutil/*
                 abfab3d/creator/shapeways/*
                 "
-        />
-        <createjar name="abfab3d_creator_server"
-            version="${version}"
-            manifest="abfab3d_creator.mf"
-            includes="abfab3d/creator/*
+    />
+    <createjar name="abfab3d_creator_server"
+               version="${version}"
+               manifest="abfab3d_creator.mf"
+               includes="abfab3d/creator/*
                 abfab3d/creator/ui/*
                 abfab3d/creator/util/*
                 abfab3d/creator/geomutil/*
                 abfab3d/creator/shapeways/*
                 "
-            excludes="abfab3d/creator/shapeways/HostedKernel.class"
-        />
-        <createjar name="abfab3d_shapeways_api"
-                   version="${version}"
-                   manifest="abfab3d_shapeways_api.mf"
-                   includes="shapeways/api/*
+               excludes="abfab3d/creator/shapeways/HostedKernel.class"
+    />
+    <createjar name="abfab3d_shapeways_api"
+               version="${version}"
+               manifest="abfab3d_shapeways_api.mf"
+               includes="shapeways/api/*
                 shapeways/api/models/*
                 shapeways/api/models/reservation/*
                 shapeways/api/price/*
                 "
-                />
+    />
 
-    </target>
+  </target>
 
-<!-- Normal test without any code coverage -->
+  <!-- Normal test without any code coverage -->
   <target name="test" depends="compileTest">
-      <junit printsummary="yes" haltonerror="no" haltonfailure="no" fork="yes" showoutput="true">
+    <junit printsummary="yes" haltonerror="no" haltonfailure="no" fork="yes" showoutput="true">
       <jvmarg line="${jvmrunargs}"/>
       <formatter type="plain" usefile="false"/>
-      <batchtest fork="yes" >
+      <batchtest fork="yes">
         <fileset dir="${test.dir}">
-            <include name="**/Test*.java"/>
-            <exclude name="**/*Performance*.java"/>
-            <exclude name="**/*Suite*.java"/>
+          <include name="**/Test*.java"/>
+          <exclude name="**/*Performance*.java"/>
+          <exclude name="**/*Suite*.java"/>
 
-            <!-- Non working ones -->
-<!--            <exclude name="**/TestTriangleModelCreator.java"/> -->
-            <exclude name="**/TestCanMoveMaterialTargetedBoundsMT.java" />
-            <!--
-            <exclude name="**/TestParametricSurfaceMaker.java" />
-            <exclude name="**/TestTriangulatedModels.java" />
-            -->
-            <exclude name="**/TestRegionFinder.java" />
-            <!--            <exclude name="**/TestDilationShapeMT.java" /> -->
-            <exclude name="**/TestShellFinder.java" />
+          <!-- Non working ones -->
+          <!--            <exclude name="**/TestTriangleModelCreator.java"/> -->
+          <exclude name="**/TestCanMoveMaterialTargetedBoundsMT.java"/>
+          <!--
+          <exclude name="**/TestParametricSurfaceMaker.java" />
+          <exclude name="**/TestTriangulatedModels.java" />
+          -->
+          <exclude name="**/TestRegionFinder.java"/>
+          <!--            <exclude name="**/TestDilationShapeMT.java" /> -->
+          <exclude name="**/TestShellFinder.java"/>
         </fileset>
-     </batchtest>
+      </batchtest>
 
       <classpath>
-         <pathelement path="${classes.dir}" />
-         <pathelement path="${test.classes.dir}" />
-         <fileset dir="${lib.dir}" includes="**/*.jar" />
+        <pathelement path="${classes.dir}"/>
+        <pathelement path="${test.classes.dir}"/>
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
       </classpath>
     </junit>
 
   </target>
 
-<!-- Begin Emma code coverage tasks -->
-<!-- Call:  ant emma runEmma -->
+  <!-- Begin Emma code coverage tasks -->
+  <!-- Call:  ant emma runEmma -->
   <target name="emma">
     <property name="emma.enabled" value="true"/>
-    <mkdir dir="${emma.coverage.dir}" />
+    <mkdir dir="${emma.coverage.dir}"/>
     <!-- EMMA instr class output directory (it is important to create
          this property only when EMMA is enabled:
     -->
-    <property name="out.emma.instr.dir" value="${emma.instr.dir}" />
-    <mkdir dir="${out.emma.instr.dir}" />
+    <property name="out.emma.instr.dir" value="${emma.instr.dir}"/>
+    <mkdir dir="${out.emma.instr.dir}"/>
 
     <!-- this property, if overriden via -Demma.filter=<list of filter specs>
 	 on ANT's command line, will set the coverage filter; by default,
          all classes found in 'run.classpath' pathref will be instrumented:
     -->
-    <property name="emma.filter" value="" />
+    <property name="emma.filter" value=""/>
   </target>
 
   <target name="runEmma" depends="compileTest">
-    <emma enabled="${emma.enabled}" >
+    <emma enabled="${emma.enabled}">
       <instr instrpathref="run.classpath"
              destdir="${out.emma.instr.dir}"
              metadatafile="${emma.coverage.dir}/metadata.emma"
              merge="true"
       >
         <!-- always exclude every class with a "Test" in the name -->
-        <filter excludes="*Test*" />
+        <filter excludes="*Test*"/>
 
         <!-- note that coverage filters can be set through nested <filter>
              elements as well: many of EMMA setting are 'mergeable' in the
@@ -508,7 +508,7 @@
              is a union of all such values. Here we are not merging several
              filters together but merely demonstrating that it is possible:
         -->
-        <filter value="${emma.filter}" />
+        <filter value="${emma.filter}"/>
       </instr>
     </emma>
 
@@ -517,36 +517,36 @@
 
       <formatter type="plain" usefile="false"/>
 
-      <batchtest fork="yes" >
+      <batchtest fork="yes">
         <fileset dir="${test.dir}">
-<!--          <include name="**/*Test.java"/> -->
-<!--
-          <include name="**/Test*Suite.java"/>
-          <exclude name="**/Test*PerformanceSuite.java"/>
-          -->
-            <include name="**/Test*.java"/>
-            <exclude name="**/*Performance*.java"/>
-            <exclude name="**/*Suite*.java"/>
+          <!--          <include name="**/*Test.java"/> -->
+          <!--
+                    <include name="**/Test*Suite.java"/>
+                    <exclude name="**/Test*PerformanceSuite.java"/>
+                    -->
+          <include name="**/Test*.java"/>
+          <exclude name="**/*Performance*.java"/>
+          <exclude name="**/*Suite*.java"/>
 
-            <!-- Non working ones -->
-            <exclude name="**/TestTriangleModelCreator.java"/>
-            <exclude name="**/TestCanMoveMaterialTargetedBoundsMT.java" />
-            <exclude name="**/TestRegionFinder.java" />
-<!--            <exclude name="**/TestDilationShapeMT.java" /> -->
-            <exclude name="**/TestShellFinder.java" />
+          <!-- Non working ones -->
+          <exclude name="**/TestTriangleModelCreator.java"/>
+          <exclude name="**/TestCanMoveMaterialTargetedBoundsMT.java"/>
+          <exclude name="**/TestRegionFinder.java"/>
+          <!--            <exclude name="**/TestDilationShapeMT.java" /> -->
+          <exclude name="**/TestShellFinder.java"/>
         </fileset>
-     </batchtest>
+      </batchtest>
 
       <classpath>
-         <!-- instrumented classes must be first in the classpath: -->
-         <pathelement location="${out.emma.instr.dir}" />
+        <!-- instrumented classes must be first in the classpath: -->
+        <pathelement location="${out.emma.instr.dir}"/>
 
-         <pathelement path="${classes.dir}" />
-         <pathelement path="${test.classes.dir}" />
-         <fileset dir="${lib.dir}" includes="**/*.jar" />
+        <pathelement path="${classes.dir}"/>
+        <pathelement path="${test.classes.dir}"/>
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
 
-         <!-- the forked JVM must have jact.jar in the classpath: -->
-         <path refid="emma.lib" />
+        <!-- the forked JVM must have jact.jar in the classpath: -->
+        <path refid="emma.lib"/>
       </classpath>
 
       <!-- to be certain, tell EMMA runtime where to dump the runtime
@@ -554,12 +554,12 @@
            current directory and it is easy to get confused about what
            that is):
       -->
-      <jvmarg value="-Demma.coverage.out.file=${emma.coverage.dir}/coverage.emma" />
-      <jvmarg value="-Demma.coverage.out.merge=true" />
+      <jvmarg value="-Demma.coverage.out.file=${emma.coverage.dir}/coverage.emma"/>
+      <jvmarg value="-Demma.coverage.out.merge=true"/>
     </junit>
 
     <!-- if enabled, generate coverage report(s): -->
-    <emma enabled="${emma.enabled}" >
+    <emma enabled="${emma.enabled}">
       <report sourcepath="${src.dir}/java"
               sort="+block,+name,+method,+class"
               metrics="method:70,block:80,line:80,class:100"
@@ -568,8 +568,8 @@
              [this can be done via nested <fileset> fileset elements
              or <file> elements pointing to a single file]:
         -->
-        <fileset dir="${emma.coverage.dir}" >
-          <include name="*.emma" />
+        <fileset dir="${emma.coverage.dir}">
+          <include name="*.emma"/>
         </fileset>
 
         <!-- for every type of report desired, configure a nested
@@ -585,28 +585,28 @@
              depth="package"
         />
         <html outfile="${emma.coverage.dir}/coverage.html"
-             depth="method"
-             columns="name,class,method,block,line"
+              depth="method"
+              columns="name,class,method,block,line"
         />
       </report>
     </emma>
   </target>
 
-<!-- Begin Cobertura code coverage tasks -->
-<!-- Call:  ant runCobertura -->
+  <!-- Begin Cobertura code coverage tasks -->
+  <!-- Call:  ant runCobertura -->
   <target name="-cobertura">
-    <mkdir dir="${cobertura.instrumented.dir}" />
-    <mkdir dir="${cobertura.reports.xml.dir}" />
-    <mkdir dir="${cobertura.reports.html.dir}" />
-    <mkdir dir="${cobertura.coverage.xml.dir}" />
-    <mkdir dir="${cobertura.coverage.summaryxml.dir}" />
-    <mkdir dir="${cobertura.coverage.html.dir}" />
+    <mkdir dir="${cobertura.instrumented.dir}"/>
+    <mkdir dir="${cobertura.reports.xml.dir}"/>
+    <mkdir dir="${cobertura.reports.html.dir}"/>
+    <mkdir dir="${cobertura.coverage.xml.dir}"/>
+    <mkdir dir="${cobertura.coverage.summaryxml.dir}"/>
+    <mkdir dir="${cobertura.coverage.html.dir}"/>
   </target>
 
   <target name="-coberturaInstr">
     <!-- Remove the coverage data file and any old instrumentation. -->
     <delete file="cobertura.ser"/>
-    <delete dir="${cobertura.instrumented.dir}" />
+    <delete dir="${cobertura.instrumented.dir}"/>
 
     <!--
 	 Instrument the application classes, writing the
@@ -618,339 +618,350 @@
 	   source line containing a reference to log4j, for the
 	   purposes of coverage reporting.
       -->
-      <ignore regex="org.apache.log4j.*" />
+      <ignore regex="org.apache.log4j.*"/>
 
       <fileset dir="${classes.dir}">
         <!--
              Instrument all the application classes, but
 	     don't instrument the test classes.
         -->
-        <include name="**/*.class" />
-        <exclude name="**/*Test.class" />
-        <exclude name="**/Test*.class" />
+        <include name="**/*.class"/>
+        <exclude name="**/*Test.class"/>
+        <exclude name="**/Test*.class"/>
       </fileset>
     </cobertura-instrument>
   </target>
 
   <target name="runCobertura" depends="compileTest">
-    <antcall target="-cobertura" />
-    <antcall target="-coberturaInstr" />
+    <antcall target="-cobertura"/>
+    <antcall target="-coberturaInstr"/>
 
     <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
       <jvmarg line="${jvmrunargs}"/>
 
       <formatter type="plain" usefile="false"/>
-      <batchtest fork="yes" todir="${cobertura.reports.xml.dir}" >
+      <batchtest fork="yes" todir="${cobertura.reports.xml.dir}">
         <fileset dir="${test.dir}">
-<!--          <include name="**/*Test.java"/> -->
+          <!--          <include name="**/*Test.java"/> -->
           <include name="**/Test*Suite.java"/>
         </fileset>
-     </batchtest>
+      </batchtest>
 
       <classpath>
-         <pathelement path="${cobertura.instrumented.dir}" />
-         <pathelement path="${classes.dir}" />
-         <pathelement path="${test.classes.dir}" />
-         <fileset dir="${lib.dir}" includes="**/*.jar" />
+        <pathelement path="${cobertura.instrumented.dir}"/>
+        <pathelement path="${classes.dir}"/>
+        <pathelement path="${test.classes.dir}"/>
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
       </classpath>
-      <classpath refid="cobertura.classpath" />
+      <classpath refid="cobertura.classpath"/>
     </junit>
 
     <junitreport todir="${cobertura.reports.xml.dir}">
-	<fileset dir="${cobertura.reports.xml.dir}">
-		<include name="TEST-*.xml" />
-	</fileset>
-	<report format="frames" todir="${cobertura.reports.html.dir}" />
+      <fileset dir="${cobertura.reports.xml.dir}">
+        <include name="TEST-*.xml"/>
+      </fileset>
+      <report format="frames" todir="${cobertura.reports.html.dir}"/>
     </junitreport>
 
-    <antcall target="-coverage" />
+    <antcall target="-coverage"/>
   </target>
 
   <target name="coverage-check">
-	<cobertura-check branchrate="34" totallinerate="100" />
+    <cobertura-check branchrate="34" totallinerate="100"/>
   </target>
 
   <target name="-coverage">
-	<!--
-		Generate a series of HTML files containing the coverage
-		data in a user-readable form using nested source filesets.
-	-->
-	<cobertura-report destdir="${cobertura.coverage.html.dir}">
-		<fileset dir="${src.dir}/java">
-			<include name="**/*.java"/>
-		</fileset>
-	</cobertura-report>
+    <!--
+      Generate a series of HTML files containing the coverage
+      data in a user-readable form using nested source filesets.
+    -->
+    <cobertura-report destdir="${cobertura.coverage.html.dir}">
+      <fileset dir="${src.dir}/java">
+        <include name="**/*.java"/>
+      </fileset>
+    </cobertura-report>
   </target>
 
   <target name="-xmlCoverage">
-	<!--
-		Generate an XML file containing the coverage data using
-		the "srcdir" attribute.
-	-->
-	<cobertura-report srcdir="${src.dir}" destdir="${cobertura.coverage.xml.dir}" format="xml" />
+    <!--
+      Generate an XML file containing the coverage data using
+      the "srcdir" attribute.
+    -->
+    <cobertura-report srcdir="${src.dir}" destdir="${cobertura.coverage.xml.dir}" format="xml"/>
   </target>
 
   <target name="-xmlSummaryCoverage">
-	<!--
-		Generate an summary XML file containing the coverage data using
-		the "srcdir" attribute.
-	-->
-	<cobertura-report srcdir="${src.dir}" destdir="${cobertura.coverage.summaryxml.dir}" format="summaryXml" />
+    <!--
+      Generate an summary XML file containing the coverage data using
+      the "srcdir" attribute.
+    -->
+    <cobertura-report srcdir="${src.dir}" destdir="${cobertura.coverage.summaryxml.dir}" format="summaryXml"/>
   </target>
-<!-- End code coverage tasks -->
+  <!-- End code coverage tasks -->
 
-<!-- Begin Jacoco code coverage tasks -->
-    <target name="jacoco" depends="compileTest">
-        <mkdir dir="${jacoco.reports.dir}" />
+  <!-- Begin Jacoco code coverage tasks -->
+  <target name="jacoco" depends="compileTest">
+    <mkdir dir="${jacoco.reports.dir}"/>
 
-        <!-- Import the JaCoCo Ant Task -->
-        <taskdef uri="org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
-            <classpath>
-                <path refid="jacoco.classpath"/>
-            </classpath>
-        </taskdef>
+    <!-- Import the JaCoCo Ant Task -->
+    <taskdef uri="org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+      <classpath>
+        <path refid="jacoco.classpath"/>
+      </classpath>
+    </taskdef>
 
-        <!-- Run your unit tests, adding the JaCoCo agent -->
-        <jacoco:coverage destfile="${test.coverage.dir}/jacoco.exec" xmlns:jacoco="org.jacoco.ant">
-          <junit printsummary="yes" haltonerror="no" haltonfailure="no" fork="yes" showoutput="true">
-            <jvmarg line="${jvmrunargs}"/>
+    <!-- Run your unit tests, adding the JaCoCo agent -->
+    <jacoco:coverage destfile="${test.coverage.dir}/jacoco.exec" xmlns:jacoco="org.jacoco.ant">
+      <junit printsummary="yes" haltonerror="no" haltonfailure="no" fork="yes" showoutput="true">
+        <jvmarg line="${jvmrunargs}"/>
 
-			<classpath>
-				<pathelement path="${classes.dir}" />
-				<pathelement path="${test.classes.dir}" />
-				<fileset dir="${lib.dir}" includes="**/*.jar" excludes="support/japex/*.jar"/>
-			</classpath>
-			<classpath refid="jacoco.classpath" />
+        <classpath>
+          <pathelement path="${classes.dir}"/>
+          <pathelement path="${test.classes.dir}"/>
+          <fileset dir="${lib.dir}" includes="**/*.jar" excludes="support/japex/*.jar"/>
+        </classpath>
+        <classpath refid="jacoco.classpath"/>
 
-            <formatter type="xml" />
-            <batchtest todir="${jacoco.reports.dir}">
-				<fileset dir="${test.dir}">
-            		<include name="**/Test*.java"/>
-            		<exclude name="**/*Performance*.java"/>
-            		<exclude name="**/*Suite*.java"/>
+        <formatter type="xml"/>
+        <batchtest todir="${jacoco.reports.dir}">
+          <fileset dir="${test.dir}">
+            <include name="**/Test*.java"/>
+            <exclude name="**/*Performance*.java"/>
+            <exclude name="**/*Suite*.java"/>
 
-            		<!-- Non working ones -->
-<!--            	<exclude name="**/TestTriangleModelCreator.java"/> -->
-            		<exclude name="**/TestCanMoveMaterialTargetedBoundsMT.java" />
-<!--
-					<exclude name="**/TestParametricSurfaceMaker.java" />
-					<exclude name="**/TestTriangulatedModels.java" />
--->
-					<exclude name="**/TestRegionFinder.java" />
-<!--            	<exclude name="**/TestDilationShapeMT.java" /> -->
-					<exclude name="**/TestShellFinder.java" />
-				</fileset>
-            </batchtest>
-          </junit>
-        </jacoco:coverage>
+            <!-- Non working ones -->
+            <!--            	<exclude name="**/TestTriangleModelCreator.java"/> -->
+            <exclude name="**/TestCanMoveMaterialTargetedBoundsMT.java"/>
+            <!--
+                      <exclude name="**/TestParametricSurfaceMaker.java" />
+                      <exclude name="**/TestTriangulatedModels.java" />
+            -->
+            <exclude name="**/TestRegionFinder.java"/>
+            <!--            	<exclude name="**/TestDilationShapeMT.java" /> -->
+            <exclude name="**/TestShellFinder.java"/>
+          </fileset>
+        </batchtest>
+      </junit>
+    </jacoco:coverage>
 
-		<jacoco:report xmlns:jacoco="org.jacoco.ant">
-			<executiondata>
-				<file file="${test.coverage.dir}/jacoco.exec" />
-			</executiondata>
+    <jacoco:report xmlns:jacoco="org.jacoco.ant">
+      <executiondata>
+        <file file="${test.coverage.dir}/jacoco.exec"/>
+      </executiondata>
 
-			<structure name="Jacoco">
-				<classfiles>
-					<fileset dir="${classes.dir}">
-						<include name="**/*.class" />
-						<!-- Exclude classes necessary for testing only from the code coverage report-->
-						<exclude name="test/**/*.class" />
-						<!-- Exclude inner classes -->
-						<exclude name="**/*$*.class" />
-					</fileset>
-				</classfiles>
-				<sourcefiles encoding="UTF-8">
-					<fileset dir="${src.dir}/java" />
-				</sourcefiles>
-			</structure>
+      <structure name="Jacoco">
+        <classfiles>
+          <fileset dir="${classes.dir}">
+            <include name="**/*.class"/>
+            <!-- Exclude classes necessary for testing only from the code coverage report-->
+            <exclude name="test/**/*.class"/>
+            <!-- Exclude inner classes -->
+            <exclude name="**/*$*.class"/>
+          </fileset>
+        </classfiles>
+        <sourcefiles encoding="UTF-8">
+          <fileset dir="${src.dir}/java"/>
+        </sourcefiles>
+      </structure>
 
-			<html destdir="${jacoco.out.dir}" />
-		</jacoco:report>
-    </target>
-<!-- End Jacoco code coverage tasks -->
+      <html destdir="${jacoco.out.dir}"/>
+    </jacoco:report>
+  </target>
+  <!-- End Jacoco code coverage tasks -->
 
   <target name="compileTest" depends="init" description="Compile all Test source files">
-     <mkdir dir="${test.classes.dir}" />
+    <mkdir dir="${test.classes.dir}"/>
 
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/opencl" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/random" jars="**/*.jar" />
-      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/param" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/param/editor" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/path" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/util" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/op" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/output" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/input" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/util" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/symmetry" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/random" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geomutil" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geom" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/datasources" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/transforms" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/mesh" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/shapejs" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/core" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/intersect" jars="**/*.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="" jars="**/*.jar" />
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/opencl" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/random" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/param" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/param/editor" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/path" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/util" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/op" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/output" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/input" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/util" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/symmetry" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/random" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geomutil" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geom" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/datasources" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/transforms" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/mesh" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/shapejs" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/core" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/intersect" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="" jars="**/*.jar"/>
 
   </target>
 
   <target name="testSpecific" depends="compile,compileTest">
-    <echo message="running testSpecific ${test} jvmargs: ${jvmrunargs}" />
+    <echo message="running testSpecific ${test} jvmargs: ${jvmrunargs}"/>
     <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="yes">
       <jvmarg line="${jvmrunargs}"/>
       <formatter type="plain" usefile="false"/>
-      <batchtest fork="yes" >
+      <batchtest fork="yes">
         <fileset dir="${test.dir}">
           <include name="**/${test}.java"/>
         </fileset>
-     </batchtest>
+      </batchtest>
 
       <classpath>
-         <pathelement path="${classes.dir}" />
-         <pathelement path="${test.classes.dir}" />
-         <fileset dir="${lib.dir}" includes="**/*.jar" />
+        <pathelement path="${classes.dir}"/>
+        <pathelement path="${test.classes.dir}"/>
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
       </classpath>
     </junit>
   </target>
 
-    <target name="runMain" depends="compile,compileTest" description="Run the application">
-        <echo message="jvmargs: ${jvmrunargs}" />
-        <java classname="${class}" fork="true">
-            <jvmarg line="${jvmrunargs}"/>
-            <classpath>
-                <pathelement path="${classes.dir}" />
-                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />
-                <pathelement path="${test.classes.dir}" />
-                <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
-            </classpath>
-        </java>
-    </target>
-
-    <target name="runEditors" depends="compile" description="Run the editors">
-        <echo message="jvmargs: ${jvmrunargs}"/>
-        <java classname="abfab3d.param.editor.DevTestEditors" fork="true">
-          <jvmarg line="${jvmrunargs}"/>
-          <classpath>
-            <pathelement path="${classes.dir}"/>
-            <pathelement path="${test.classes.dir}" />
-            <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
-          </classpath>
-        </java>
-    </target>
-
-    <!-- Begin Japex Tasks -->
-    <target name="runJapex" depends="compile,compileJapex">
-        <java dir="." fork="true" classname="com.sun.japex.Japex">
-            <classpath>
-                <pathelement path="${classes.dir}" />
-                <pathelement path="${japex.classes.dir}" />
-                <fileset dir="${lib.dir}" includes="**/*.jar" />
-            </classpath>
-            <arg line="test/japex/speed-config.xml"/>
-            <jvmarg value="-Xmx4000M" />
-        </java>
-    </target>
-    <target name="runJapexMemory" depends="compile,compileJapex">
-        <java dir="." fork="true" classname="com.sun.japex.Japex">
-            <classpath>
-                <pathelement path="${classes.dir}" />
-                <pathelement path="${japex.classes.dir}" />
-                <fileset dir="${lib.dir}" includes="**/*.jar" />
-            </classpath>
-            <arg line="test/japex/memory-config.xml"/>
-            <jvmarg value="-Xmx5000M" />
-        </java>
-    </target>
-
-    <target name="compileJapex" depends="init" description="Compile all Japex source files">
-        <mkdir dir="${japex.classes.dir}" />
-        <compilejava destdir="${japex.classes.dir}" srcdir="${japex.dir}" package="abfab3d/grid" jars="j3d-org-all_2.0.0.jar support/japex/*.jar" />
-    </target>
-
-    <!-- End Japex Tests -->
-
-
-    <target name="clean" description="Deletes all the generated artifacts.">
-        <delete dir="${jar.dir}" />
-        <delete dir="${javadocs.dir}" />
-        <delete dir="${classes.dir}" />
-	<delete dir="${emma.out.dir}"/>
-    	<delete dir="${cobertura.out.dir}"/>
-    </target>
-
-    <target name="updateXj3D">
-      <copy todir="${lib.dir}" includeEmptyDirs="false">
-         <fileset dir="${xj3d.dir}/jars" excludes="org.* xj3d-all*.jar xj3d-imm*.jar xj3d-int*.jar">
-            <depth max="0" />
-         </fileset>
-      </copy>
-    </target>
-
-  <target name="stageSource" >
-    <tstamp>
-        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />
-    </tstamp>
-
-      <tar destfile="release/abfab3d_source_${version}_${DATE}.tar.gz"  compression="gzip" basedir="${basedir}" includes="**" excludes="release/** **/*.war **/wttest/*"/>
+  <target name="runMain" depends="compile,compileTest" description="Run the application">
+    <echo message="jvmargs: ${jvmrunargs}"/>
+    <java classname="${class}" fork="true">
+      <jvmarg line="${jvmrunargs}"/>
+      <classpath>
+        <pathelement path="${classes.dir}"/>
+        <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+        <pathelement path="${test.classes.dir}"/>
+        <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+      </classpath>
+    </java>
   </target>
 
-  <target name="stageApps" >
+  <target name="runEditors" depends="compile" description="Run the editors">
+    <echo message="jvmargs: ${jvmrunargs}"/>
+    <java classname="abfab3d.param.editor.DevTestEditors" fork="true">
+      <jvmarg line="${jvmrunargs}"/>
+      <classpath>
+        <pathelement path="${classes.dir}"/>
+        <pathelement path="${test.classes.dir}"/>
+        <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+      </classpath>
+    </java>
+  </target>
+
+  <!-- Begin Japex Tasks -->
+  <target name="runJapex" depends="compile,compileJapex">
+    <java dir="." fork="true" classname="com.sun.japex.Japex">
+      <classpath>
+        <pathelement path="${classes.dir}"/>
+        <pathelement path="${japex.classes.dir}"/>
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+      </classpath>
+      <arg line="test/japex/speed-config.xml"/>
+      <jvmarg value="-Xmx4000M"/>
+    </java>
+  </target>
+  <target name="runJapexMemory" depends="compile,compileJapex">
+    <java dir="." fork="true" classname="com.sun.japex.Japex">
+      <classpath>
+        <pathelement path="${classes.dir}"/>
+        <pathelement path="${japex.classes.dir}"/>
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+      </classpath>
+      <arg line="test/japex/memory-config.xml"/>
+      <jvmarg value="-Xmx5000M"/>
+    </java>
+  </target>
+
+  <target name="compileJapex" depends="init" description="Compile all Japex source files">
+    <mkdir dir="${japex.classes.dir}"/>
+    <compilejava destdir="${japex.classes.dir}" srcdir="${japex.dir}" package="abfab3d/grid"
+                 jars="j3d-org-all_2.0.0.jar support/japex/*.jar"/>
+  </target>
+
+  <!-- End Japex Tests -->
+
+
+  <target name="clean" description="Deletes all the generated artifacts.">
+    <delete dir="${jar.dir}"/>
+    <delete dir="${javadocs.dir}"/>
+    <delete dir="${classes.dir}"/>
+    <delete dir="${emma.out.dir}"/>
+    <delete dir="${cobertura.out.dir}"/>
+  </target>
+
+  <target name="updateXj3D">
+    <copy todir="${lib.dir}" includeEmptyDirs="false">
+      <fileset dir="${xj3d.dir}/jars" excludes="org.* xj3d-all*.jar xj3d-imm*.jar xj3d-int*.jar">
+        <depth max="0"/>
+      </fileset>
+    </copy>
+  </target>
+  <target name="updateShapeways">
+    <copy todir="apps/shapeways_licensed/lib" includeEmptyDirs="false">
+      <fileset dir="${shapeways.dir}/jars" excludes="">
+        <depth max="0"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="stageSource">
     <tstamp>
-        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />
+      <format property="DATE" pattern="yyyy-MM-dd" locale="en,US"/>
     </tstamp>
 
-      <tar destfile="release/abfab3d_source_${version}_${DATE}.tar.gz"  compression="gzip" basedir="${basedir}" includes="**" excludes="release/**"/>
+    <tar destfile="release/abfab3d_source_${version}_${DATE}.tar.gz" compression="gzip" basedir="${basedir}"
+         includes="**" excludes="release/** **/*.war **/wttest/*"/>
+  </target>
+
+  <target name="stageApps">
+    <tstamp>
+      <format property="DATE" pattern="yyyy-MM-dd" locale="en,US"/>
+    </tstamp>
+
+    <tar destfile="release/abfab3d_source_${version}_${DATE}.tar.gz" compression="gzip" basedir="${basedir}"
+         includes="**" excludes="release/**"/>
   </target>
 
   <target name="stageLib">
     <tstamp>
-        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />
+      <format property="DATE" pattern="yyyy-MM-dd" locale="en,US"/>
     </tstamp>
 
     <mkdir dir="${release.dir}/bin"/>
 
     <copy todir="${release.dir}/bin">
-        <fileset dir="${jar.dir}" includes="**.jar" />
-        <fileset dir="${lib.dir}" includes="**.jar" />
+      <fileset dir="${jar.dir}" includes="**.jar"/>
+      <fileset dir="${lib.dir}" includes="**.jar"/>
     </copy>
-    <tar destfile="release/abfab3d_lib_${version}_${DATE}.tar.gz"  compression="gzip" basedir="${release.dir}/bin" includes="**" />
+    <tar destfile="release/abfab3d_lib_${version}_${DATE}.tar.gz" compression="gzip" basedir="${release.dir}/bin"
+         includes="**"/>
   </target>
 
   <target name="release" depends="build">
     <tstamp>
-        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />
+      <format property="DATE" pattern="yyyy-MM-dd" locale="en,US"/>
     </tstamp>
 
-    <delete dir="${release.dir}" failonerror="false" />
+    <delete dir="${release.dir}" failonerror="false"/>
     <mkdir dir="${release.dir}"/>
 
-    <ant target="stageLib" />
-    <ant target="stageSource" />
+    <ant target="stageLib"/>
+    <ant target="stageSource"/>
   </target>
 
-    <target name="runSpeed" depends="" description="Run the application">
-        <java classname="abfab3d.grid.TestMultiThreaded" fork="true">
-            <jvmarg line="${jvmrunargs}"/>
-            <classpath>
-                <pathelement path="${classes.dir}" />
-                <pathelement path="${test.classes.dir}" />
+  <target name="runSpeed" depends="" description="Run the application">
+    <java classname="abfab3d.grid.TestMultiThreaded" fork="true">
+      <jvmarg line="${jvmrunargs}"/>
+      <classpath>
+        <pathelement path="${classes.dir}"/>
+        <pathelement path="${test.classes.dir}"/>
 
-                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />
-            </classpath>
-        </java>
-    </target>
+        <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+      </classpath>
+    </java>
+  </target>
 
-    <target name="kernels" >
-        <!-- <delete dir="/tmp/openCL_cache" /> -->
-        <copy todir="${classes.dir}">
-            <fileset dir="${src.dir}/opencl"/>
-        </copy>
-    </target>
+  <target name="kernels">
+    <!-- <delete dir="/tmp/openCL_cache" /> -->
+    <copy todir="${classes.dir}">
+      <fileset dir="${src.dir}/opencl"/>
+    </copy>
+  </target>
 
 </project>
 

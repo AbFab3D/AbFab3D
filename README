@@ -1,12 +1,12 @@
 AbFab3D is a library to help develop 3D printing editors and tools.
 
-Buidling AbFab3D:
+Building AbFab3D:
 
 We use Apache Ant as the build system.  You can download ant here: http://ant.apache.org/bindownload.cgi
 
 From the main directory type:  ant build
 
-This will build the library.  All external dependecies besides Ant are 
+This will build the library.  All external dependencies besides Ant are
 checked into the project.  Voxels programs can use a lot of ram so I'd recommend
 a 64 bit Java JVM.  If your running with a 32 bit JVM you will likely need to
 lower the ram specifications for programs

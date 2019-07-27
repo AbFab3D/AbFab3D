@@ -155,6 +155,10 @@ public class ImageMaker extends BaseParameterizable implements ImageProducer {
         return getImage();
 
     }
+
+    public void renderImage(int[] imageData) {
+        renderImage(mp_width.getValue(),mp_height.getValue(),getBounds(),(DataSource)mp_imgRenderer.getValue(),imageData);
+    }
     
 
 

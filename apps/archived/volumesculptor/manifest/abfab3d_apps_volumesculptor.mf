@@ -1,0 +1,7 @@
+Class-Path: 
+Extension-Name: AbFab3D Volume Sculptor
+Specification-Vendor: Shapeways, Inc
+Specification-Version: 1.0
+Implementation-Vendor-Id: com.shapeways
+Implementation-Vendor: Shapeways, Inc
+Implementation-Version: 1.0

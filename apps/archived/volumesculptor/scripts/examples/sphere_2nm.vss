@@ -1,0 +1,192 @@
+//
+// creates general triangular kaleidoscope with angles (pi/2, pi/m, pi/n)
+// angle pi/2 is at origin  
+// angle pi/m is at x axis 
+// angle pi/n is at y axis 
+//
+// author Vladimir Bulatov
+// Shapeways November 5, 2013.
+//
+var PI = Math.PI; 
+var EPS = 1.e-7; // small epsilon to compare fp numbers 
+var triangleX = 1; // dimension of fundamental domain triangle
+var triangleY = 1;
+ 
+var voxelSize = 0.1*MM;
+
+// angle at x-axis vertex is pi/m
+// angle at y-axis vertex is pi/n
+// radius - radius of inversion sphere
+// escale - relative size of triangle in euclidean case 
+function getSymmetry(m,n, radius, escale ){
+	
+	var ax = PI/m;  // angle at vertex on x axis 
+	var ay = PI/n;  // angle at vertex on y axis 
+	var a0 = PI/2; // angle at origin 
+	
+    var splanes = new Array();
+	var count = 0;
+	splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(-1,0,0), 0.);
+    splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(0,-1,0), 0.);
+	
+	var gfactor = (ax + ay + a0); // sum of angles of triangle 
+	if(gfactor > PI + EPS){  // spherical geometry 
+		
+		var xc = -Math.cos(ay);
+		var yc = -Math.cos(ax);
+		//
+		// the sphere is scaled to make it incident with the inversion point (0,0,radius)
+		// (r*xc)^2 + (r*yc)^2 + radius^2 = r^2
+		var r = radius / Math.sqrt(1-(xc*xc + yc*yc));
+		triangleX = r*(xc + Math.sqrt(1-yc*yc)); // tri vertex on x axis 
+		triangleY = r*(yc + Math.sqrt(1-xc*xc)); // tri vertex on y axis 
+		
+		splanes[count++] = new ReflectionSymmetry.getSphere(new Vector3d(r*xc,r*yc,0), r);	
+		
+	} else if(gfactor < PI-EPS){ // hyperbolic geometry 
+			
+		var xc = Math.cos(ay);
+		var yc = Math.cos(ax);
+		// the sphere is scaled to make it orthogonal to the sphere of given radius
+		// xc^2 + yc^2 = r^2 + 1
+		var r = radius / Math.sqrt(xc*xc + yc*yc - 1);
+		triangleX = r*(xc - Math.sqrt(1-yc*yc)); // tri vertex on x axis 
+		triangleY = r*(yc - Math.sqrt(1-xc*xc)); // tri vertex on y axis 
+		
+		splanes[count++] = new ReflectionSymmetry.getSphere(new Vector3d(r*xc,r*yc,0), -r);		
+		
+	} else {  // euclidean geometry 	
+		
+		var nx = Math.cos(ay);
+		var ny = Math.cos(ax);
+		// third plane is at given distance from origin times escale 
+		var dist = radius*escale; 
+		triangleX = dist/ Math.sin(ax); // tri vertex on x axis 
+		triangleY = dist/ Math.sin(ay); // tri vertex on y axis 
+		
+		splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(nx,ny,0), dist);
+		
+	}
+			
+	return new ReflectionSymmetry(splanes);
+	
+}
+
+function getBareImage(sizeX, sizeY, sizeZ, path){
+
+	var image = new Image3D(path, sizeX, sizeY, sizeZ, voxelSize);
+	image.setBaseThickness(0);
+	image.setUseGrayscale(true);
+	image.setBlurWidth(voxelSize);
+	image.setImagePlace(Image3D.IMAGE_PLACE_BOTH);
+	return image;
+}
+
+function getBareImage_mm(sizeX, sizeY, sizeZ, path){
+
+  var sx = sizeX/2 + voxelSize;
+  var sy = sizeY/2 + voxelSize;
+  var sz = sizeZ/2 + voxelSize;
+  
+  var g = createGrid(-sx, sx, -sy, sy, -sz, sz,voxelSize);
+    
+  var mm = new GridMaker();
+  mm.setSource(getBareImage(sizeX, sizeY, sizeZ, path));
+  mm.makeGrid(g);
+  
+  var gmm = new GridMipMap(g);  
+  //gmm.setScalingType(GridMipMap.SCALING_AVERAGE);  
+  gmm.setScalingType(GridMipMap.SCALING_MAX);  
+
+  return gmm;
+  
+}
+
+function getImage(sizeX, sizeY, sizeZ, path){
+
+	var union = new Union();	
+	var image = getBareImage_mm(sizeX, sizeY, sizeZ, path); 	
+	union.add(image);	
+	union.setTransform(new Translation(sizeX/2, sizeY/2, 0));	
+	var dt = new DataTransformer();
+	dt.setSource(union);
+	return dt;
+}
+
+
+//
+// bend - relative size of bend 
+// bend = 1 will bend to complete sphere
+// 
+function getSphereBend(radius, bend){
+
+	if(Math.abs(bend) < EPS){
+		return new Identity();
+	}
+	var center = (radius/bend);
+	var r = Math.sqrt(center*center + radius*radius);
+	
+	return new SphereInversion(new Vector3d(0,0,-center), r);
+}	
+	
+function main(arg){
+
+	var radius = 20*MM;	
+	var thickness = 3*MM;	
+	var a = radius + 2*thickness;
+		
+	var path = arg[0];
+	var escale = 0.1; // relative size of fundamental domain in the euclidean case 
+	var bendAmount = 1; // 1 - sphere, 0 plane and anything in between. May be negative or positive. 
+	// the geometry is determined by the factor = (1/angleX + 1/angleY)
+	// if factor > 1/2 we have spherical kaleidoscope (2,2) (3,3), (4,3), (5,3), (3,4), (3,5), (2, n) n >=2
+	// if factor == 1/2 we have euclidean kaleidoscope (3,6), (6,3), (4,4) 
+	// if factor < 1/2 we have hyperbolic kaleidoscope (3,7), (3,8)..., (4,5), (4,6), ... 
+
+	// spherical cases
+	var angleX = 2; var angleY = 2;
+	//var angleX = 3; var angleY = 3;
+	//var angleX = 3; var angleY = 4;
+	//var angleX = 3; var angleY = 5;
+	//var angleX = 6; var angleY = 2;
+
+	// euclidean cases 
+	//var angleX = 4; var angleY = 4;
+	//var angleX = 6; var angleY = 3;
+	//var angleX = 3; var angleY = 6;
+
+	// hyperbolic cases 
+	//var angleX = 4; var angleY = 6;
+	//var angleX = 4; var angleY = 5;
+	//var angleX = 3; var angleY = 7;
+	
+	var trans;
+	var part;
+	var symmetry = getSymmetry(angleX,angleY, radius, escale);
+	//print("triX:" + triangleX);
+	//print("triY:" + triangleY);
+	var isize = triangleX;
+	if(triangleY > isize)
+		isize = triangleY;
+	var image = getImage(isize, isize, thickness, path);
+	
+	var union = new Union();
+	
+	union.add(image);
+	
+	var totalTrans = new CompositeTransform();
+	totalTrans.add(symmetry);
+	totalTrans.add(getSphereBend(radius, bendAmount));
+	
+	union.setTransform(totalTrans);
+    var maker = new GridMaker();
+	
+	maker.setSource(union);
+	
+	var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+	
+	maker.makeGrid(dest);
+	
+	return dest;
+	
+}

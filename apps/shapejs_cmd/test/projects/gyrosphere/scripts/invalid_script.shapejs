@@ -1,0 +1,44 @@
+var uiParams = [
+  {
+    name: "period",
+    desc: "Period",
+    type: "double",
+    rangeMin: 1,
+    rangeMax: 25,
+    step: 1,
+    defaultVal: 18
+  },
+  {
+    name: "thickness",
+    desc: "Thickness",
+    type: "double",
+    rangeMin: 1,
+    rangeMax: 5,
+    step: 0.5,
+    defaultVal: 2
+  },
+  {
+    name: "material",
+    desc: "Material",
+    type: "enum",
+    values: Materials.getAllNames(),
+    defaultVal: "SingleColor",
+    group: "Main"
+  }
+
+];
+function main(args) {
+  var radius = 25 * MM;
+  var sphere = new SphereZ(radius);  // Invalid SphereZ
+  var gyroid = new VolumePatterns.Gyroid(args['period'] * MM, args['thickness'] * MM);
+  var intersect = new Intersection();
+  intersect.setBlend(2 * MM);
+  intersect.add(sphere);
+  intersect.add(gyroid);
+
+  var s = 26 * MM;
+
+  var shape = new Shape(intersect, Materials.get(args.material));
+
+  return new Scene(shape, new Bounds(-s, s, -s, s, -s, s));
+}

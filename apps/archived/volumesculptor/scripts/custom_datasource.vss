@@ -1,0 +1,32 @@
+importPackage(Packages.abfab3d.util);
+
+var radius;
+
+var Sphere = {
+   getDataValue : function(pnt, data) {
+       var x = pnt.v[0];
+       var y = pnt.v[1];
+       var z = pnt.v[2];
+
+       var vs = pnt.getScaledVoxelSize();
+
+       var r = r = Math.sqrt(x*x + y*y + z*z);
+       data.v[0] = MathUtil.step10(r, radius, vs);
+
+       return DataSource.RESULT_OK;
+   }
+}
+
+function main(args){
+    radius = 5*MM
+    var a = radius*1.1;
+    var voxelSize = 0.1*MM;
+
+    var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+
+    var maker = new GridMaker();
+    maker.setSource(Sphere);
+    maker.makeGrid(dest);
+    
+    return dest;
+}
