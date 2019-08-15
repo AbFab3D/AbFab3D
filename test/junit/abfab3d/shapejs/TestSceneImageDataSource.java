@@ -87,31 +87,41 @@ public class TestSceneImageDataSource extends TestCase {
     }
 
 
-    static double sm_raytracingDepth  = 4;
+    static int sm_raytracingDepth  = 4;
+    static int sm_maxIntersections  = 10;
+    static double sm_surfaceJump  = 0.001;
+    
 
     public void devTestScene() throws IOException {
 
-        int imageWidth = 512, imageHeight = 512;
+        //int imageWidth = 512, imageHeight = 512;
         String outPath = "/tmp/renderedScene.png";
         //int imageWidth = 4000, imageHeight = 4000;
         //int imageWidth = 2000, imageHeight = 2000;
+        int imageWidth = 960, imageHeight = 540;
 
         //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBallsLatticeMM(5*MM));
         //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBallsMM(5*MM));
+        //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBallsMM2(5*MM));
         //SceneImageDataSource sids = makeSceneImageDataSource(makeScene3Balls(5*MM));
         //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBall(5*MM));
-        SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroid());
+        //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroid());
+        //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroidRotated(new Rotation(0,1,0,20*TORADIANS)));
+        SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroidRotated2(new Rotation(0,1,0,20*TORADIANS)));
 
         //sids.set("shadowsQuality",5);
-        sids.set("shadowsQuality",10);
+        sids.set("shadowsQuality",0);
+        sids.set("volumeRendererLayerThickness",0.1*MM);
+        
 
         ImageMaker im = new ImageMaker();
 
         im.set("imgRenderer",sids);
         im.set("threadCount",8);
         im.set("width", imageWidth);
-        im.set("height", imageWidth);
-        im.setBounds(new Bounds(-1,1,-1,1,-1,1));
+        im.set("height", imageHeight);
+        double s = (double)imageWidth/imageHeight;
+        im.setBounds(new Bounds(-s,s,-1,1,-1,1));
         long t0 = time();
         printf("image[%d x %d]\n", imageWidth, imageHeight);
         BufferedImage image = im.getImage();
@@ -124,8 +134,8 @@ public class TestSceneImageDataSource extends TestCase {
 
     public void devTestRotation() throws IOException {
 
-        //int imageWidth = 960, imageHeight = 540;
-        int imageWidth = 1920, imageHeight = 1080;
+        int imageWidth = 960, imageHeight = 540;
+        //int imageWidth = 1920, imageHeight = 1080;
         //int imageWidth = 4000, imageHeight = 4000;
         //int imageWidth = 2000, imageHeight = 2000;
 
@@ -134,20 +144,21 @@ public class TestSceneImageDataSource extends TestCase {
         //SceneImageDataSource sids = makeSceneImageDataSource(makeScene3Balls(5*MM));
         //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneBall(5*MM));
         //SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroid());
+
         int frames = 360;
-        for(int i = 176; i < frames; i+=1){
+        for(int i = 0; i < frames; i+=1){
 
             double alpha = (i)*TORADIANS;
 
-            SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroidRotated(alpha));
+            SceneImageDataSource sids = makeSceneImageDataSource(makeSceneGyroidRotated2(new Rotation(1,1,1,alpha)));
             
-            sids.set("shadowsQuality",10);            
+            sids.set("shadowsQuality",10);
             ImageMaker im = new ImageMaker();
-            double s = 16/9.;
             im.set("imgRenderer",sids);
-            im.set("threadCount",4);
+            im.set("threadCount",8);
             im.set("width", imageWidth);
             im.set("height", imageHeight);
+            double s = (double)imageWidth/imageHeight;
             im.setBounds(new Bounds(-s,s,-1,1,-1,1));
             long t0 = time();
             printf("image[%d x %d]\n", imageWidth, imageHeight);
@@ -259,7 +270,7 @@ public class TestSceneImageDataSource extends TestCase {
         return scene;
     }
 
-    static Scene makeSceneGyroidRotated(double angle){
+    static Scene makeSceneGyroidRotated(Rotation rotation){
     
         double radius = 25*MM;
         double s = 25.5*MM;
@@ -272,7 +283,7 @@ public class TestSceneImageDataSource extends TestCase {
         intersect.setBlend(thickness);
         intersect.add(sphere);
         intersect.add(gyroid);
-        intersect.setTransform(new Rotation(0,1,0,angle));
+        intersect.setTransform(rotation);
         //Shape shape = new Shape(intersect, new SingleColorMaterial(0.5,0.5,0.5));
         //Scene scene = new Scene(shape,new Bounds(-s,s,-s,s,-s,s));
 
@@ -281,6 +292,47 @@ public class TestSceneImageDataSource extends TestCase {
         blue.setShaderParam("shininess", 0.5);
 
         Scene scene = new Scene(new Shape(intersect, blue),new Bounds(-s,s,-s,s,-s,s));
+        return scene;
+    }
+
+    static Scene makeSceneGyroidRotated2(Rotation rotation){
+    
+        double radius = 25*MM;
+        double s = 25.5*MM;
+        double period = 18*MM;
+        double thickness = 0.4*MM;
+        DataSource sphere = new Sphere(radius);
+        VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(period, thickness);
+        VolumePatterns.Gyroid gyroid2 = new VolumePatterns.Gyroid(period, thickness);
+        gyroid.set("period", 25*MM);
+        gyroid.set("level", 1.);
+        gyroid2.set("period", 25*MM);
+        gyroid2.set("level", -1.);
+
+        Intersection intersect = new Intersection(sphere, gyroid);
+        intersect.setBlend(thickness);
+        intersect.setTransform(rotation);
+
+        Intersection intersect2 = new Intersection(sphere, gyroid2);
+        intersect2.setBlend(thickness);
+        intersect2.setTransform(rotation);
+
+        SingleColorMaterial blue = new SingleColorMaterial(new Color(0.2,0.2,0.9));
+        // blue.setShaderParam("transmittanceCoeff", new Vector3d(0.001,0.001,0.001));
+        //blue.setShaderParam("transmittanceCoeff", new Vector3d(0.001,0.001,0.1));
+        //blue.setShaderParam("transmittanceCoeff", new Vector3d(0.001,0.001,0.1));
+        blue.setShaderParam("shininess", 0.5);
+        blue.setShaderParam("surfaceAlpha", 0.3);
+
+        SingleColorMaterial red = new SingleColorMaterial(new Color(0.9,0.2,0.2));
+        //red.setShaderParam("transmittanceCoeff", new Vector3d(0.1,0.001,0.001));
+        red.setShaderParam("shininess", 0.5);
+        red.setShaderParam("surfaceAlpha", 0.3);
+
+        Scene scene = new Scene(new Bounds(-s,s,-s,s,-s,s));
+        scene.addShape(new Shape(intersect, blue));
+        scene.addShape(new Shape(intersect2, red));
+        
         return scene;
     }
 
@@ -358,16 +410,19 @@ public class TestSceneImageDataSource extends TestCase {
         //double radius = 5*MM;
         double s = 25.5*MM;
         double period = 2*s/11;
-        double boxSize  = 0.9*period;
+        double boxSize  = 0.7*period;
         double boxDepth = 0.1*boxSize;
-        DataSource sphere1 = new Sphere(radius);
+
+        //DataSource sphere1 = new Sphere(radius);
+        DataSource sphere1 = new Sub(new Abs(new Sphere(new Vector3d(0,0,0), radius)),0.05*MM);
         //DataSource sphere2 = new Sphere(new Vector3d(2*radius+3*period, 2*radius,0), radius);
-        DataSource sphere2 = new Sphere(new Vector3d(2*radius, 0,0), radius);
+        DataSource sphere2 = new Sub(new Abs(new Sphere(new Vector3d(2*radius,0,0), radius)),0.1*MM);
+        //DataSource sphere2 = new Sphere(new Vector3d(2*radius, 0,0), radius);
 
         DataSource sphere3 = new Sphere(new Vector3d(-2*radius, 0,0), radius);
         DataSource sphere4 = new Sphere(new Vector3d(0,2*radius,0), radius);
         //DataSource sphere5 = new Sphere(new Vector3d(radius,0,2*radius), radius);
-        DataSource sphere5 = new Sub(new Abs(new Sphere(new Vector3d(radius,0,2*radius), radius)),0.3*MM);
+        DataSource sphere5 = new Sub(new Abs(new Sphere(new Vector3d(radius,0,2*radius), radius)),0.05*MM);
 
         PeriodicWrap wrap = new PeriodicWrap(new Vector3d(period, 0,0),new Vector3d(0,period, 0));
         wrap.setOrigin(new Vector3d(-period/2, -period/2,0));
@@ -377,13 +432,25 @@ public class TestSceneImageDataSource extends TestCase {
         box.addTransform(new Translation(new Vector3d(0,0,-radius-boxDepth)));
 
         Scene scene = new Scene(new Bounds(-s,s,-s,s,-s,s));
-        scene.addShape(new Shape(sphere1, new SingleColorMaterial(1,0.5,0.5)));
-        scene.addShape(new Shape(sphere2, new SingleColorMaterial(0.5,1,0.5)));
 
+
+        SingleColorMaterial green = new SingleColorMaterial(0.,0.9,0.);
+
+        //green.setShaderParam("transmittanceCoeff", new Vector3d(0.03,0.03,0.03));
+        green.setShaderParam("transmittanceCoeff", new Vector3d(0.001,0.01,0.001));
+        green.setShaderParam("shininess", 0.5);
+
+        SingleColorMaterial pink = new SingleColorMaterial(1,0.,0.3);
+        pink.setShaderParam("transmittanceCoeff", new Vector3d(0.01,0.001,0.01));
+        pink.setShaderParam("shininess", 0.5);
+        
+        scene.addShape(new Shape(sphere1, pink));
+        scene.addShape(new Shape(sphere2, green));
+        
         // semi transparent sphere
-        SingleColorMaterial blue = new SingleColorMaterial(new Color(0.5,0.5,1, 0.1));
+        SingleColorMaterial blue = new SingleColorMaterial(new Color(0.0,0.,1));
         //blue.setShaderParam("albedo", new Color(0.01, 0.01, 0.01));
-        blue.setShaderParam("transmittanceCoeff", new Vector3d(0.01,0,0));
+        blue.setShaderParam("transmittanceCoeff", new Vector3d(0.001,0.001,0.01));
         blue.setShaderParam("shininess", 0.5);
 
         scene.addShape(new Shape(sphere3, blue));
@@ -391,6 +458,79 @@ public class TestSceneImageDataSource extends TestCase {
         scene.addShape(new Shape(sphere5, blue));
 
         scene.addShape(new Shape(box, new SingleColorMaterial(0.7,0.7,0.7)));
+
+        return scene;
+    }
+
+
+    static Scene makeSceneBallsMM2(double radius){
+    
+        //double radius = 5*MM;
+        double s = 25.5*MM;
+        double period = 2*s/11;
+        double boxSize  = 0.7*period;
+        double boxDepth = 0.1*boxSize;
+
+        DataSource sphere0 = new Sphere(new Vector3d(-4*radius,radius,0), radius);
+        DataSource sphere0a = new Sub(new Abs(new Sphere(new Vector3d(-4*radius,-radius,0), radius)),0.05*MM);
+        DataSource sphere1 = new Sphere(new Vector3d(-2*radius,radius,0), radius);
+        DataSource sphere1a = new Sub(new Abs(new Sphere(new Vector3d(-2*radius,-radius,0), radius)),0.05*MM);
+        DataSource sphere2 = new Sphere(new Vector3d( 0*radius,radius,0), radius);
+        DataSource sphere2a = new Sub(new Abs(new Sphere(new Vector3d(0*radius,-radius,0), radius)),0.05*MM);
+        DataSource sphere3 = new Sphere(new Vector3d( 2*radius,radius,0), radius);
+        DataSource sphere3a = new Sub(new Abs(new Sphere(new Vector3d(2*radius,-radius,0), radius)),0.05*MM);
+        DataSource sphere4 = new Sphere(new Vector3d( 4*radius,radius,0), radius);
+        DataSource sphere4a = new Sub(new Abs(new Sphere(new Vector3d(4*radius,-radius,0), radius)),0.05*MM);
+
+        PeriodicWrap wrap = new PeriodicWrap(new Vector3d(period, 0,0),new Vector3d(0,period, 0));
+        wrap.setOrigin(new Vector3d(-period/2, -period/2,0));
+        Box box = new Box(boxSize, boxSize, boxDepth);
+        box.set("rounding", 0.5*MM);
+        box.addTransform(wrap);
+        box.addTransform(new Translation(new Vector3d(0,0,-radius-boxDepth)));
+
+        Scene scene = new Scene(new Bounds(-s,s,-s,s,-s,s));
+        scene.addShape(new Shape(box, new SingleColorMaterial(0.7,0.7,0.7)));
+
+        SingleColorMaterial green = new SingleColorMaterial(0.,0.9,0.);
+        green.setShaderParam("transmittanceCoeff", new Vector3d(0.001,0.01,0.001));
+        green.setShaderParam("shininess", 0.5);
+
+        SingleColorMaterial yellow = new SingleColorMaterial(0.9,0.9,0.);
+        yellow.setShaderParam("transmittanceCoeff", new Vector3d(0.01,0.01,0.001));
+        yellow.setShaderParam("shininess", 0.5);
+
+        SingleColorMaterial pink = new SingleColorMaterial(1,0.,0.3);
+        pink.setShaderParam("transmittanceCoeff", new Vector3d(0.01,0.001,0.01));
+        pink.setShaderParam("shininess", 0.5);
+        
+        SingleColorMaterial blue = new SingleColorMaterial(new Color(0.0,0.,1));
+        blue.setShaderParam("transmittanceCoeff", new Vector3d(0.001,0.001,0.01));
+        blue.setShaderParam("shininess", 0.5);
+
+        SingleColorMaterial cyan = new SingleColorMaterial(new Color(0,0.2,0.5));
+        cyan.setShaderParam("transmittanceCoeff", new Vector3d(0.001,0.01,0.01));
+        cyan.setShaderParam("shininess", 0.5);
+
+        SingleColorMaterial white = new SingleColorMaterial(new Color(0.9,0.9,0.9));
+        white.setShaderParam("transmittanceCoeff", new Vector3d(0.001,0.001,0.001));
+        white.setShaderParam("shininess", 0.5);
+
+        SingleColorMaterial black = new SingleColorMaterial(new Color(0.05,0.05,0.05));
+        black.setShaderParam("transmittanceCoeff", new Vector3d(0.001,0.001,0.001));
+        black.setShaderParam("shininess", 0.5);
+
+
+        scene.addShape(new Shape(sphere1, cyan));
+        scene.addShape(new Shape(sphere1a, cyan));
+        scene.addShape(new Shape(sphere2, pink));
+        scene.addShape(new Shape(sphere2a, pink));
+        scene.addShape(new Shape(sphere3, yellow));
+        scene.addShape(new Shape(sphere3a, yellow));
+        scene.addShape(new Shape(sphere4, white));
+        scene.addShape(new Shape(sphere4a, white));
+        scene.addShape(new Shape(sphere0, black));
+        scene.addShape(new Shape(sphere0a, black));
 
         return scene;
     }
@@ -428,10 +568,13 @@ public class TestSceneImageDataSource extends TestCase {
         
         scene.setLights(makeSingleWhiteLight());
 
-        MatrixCamera camera = new MatrixCamera(getView());
+        MatrixCamera camera = new MatrixCamera(getView(), Math.atan(0.25));
 
         SceneImageDataSource sids = new SceneImageDataSource(scene,camera);
         sids.set("raytracingDepth", sm_raytracingDepth);
+        sids.set("maxIntersections", sm_maxIntersections);
+        sids.set("surfaceJump", sm_surfaceJump);
+
         sids.initialize();
         return sids;
                 
@@ -489,8 +632,6 @@ public class TestSceneImageDataSource extends TestCase {
 
         Scene scene = (Scene)sr.evaluatedScript.getResult();
 
-        ImageSetup setup = new ImageSetup(width, height, getView(), ImageSetup.IMAGE_JPEG, 0.5f, AntiAliasingType.NONE, false, 0f, 1);
-
         MatrixCamera camera = new MatrixCamera(getView());
 
         SceneImageDataSource sids = new SceneImageDataSource(scene,camera);
@@ -543,7 +684,5 @@ public class TestSceneImageDataSource extends TestCase {
         //new TestSceneImageDataSource().devTestScene();
         new TestSceneImageDataSource().devTestRotation();
         //new TestSceneImageDataSource().devTestDataSource();
-
     }
-
 }

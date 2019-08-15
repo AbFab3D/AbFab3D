@@ -139,10 +139,24 @@ public class VecUtils {
         return fmt("["+format+","+format+","+format+","+format+"]", v.x,v.y,v.z,v.w);
     }
 
+    public static String str(String format, Matrix4f m){
+
+        String f = "["+format+","+format+","+format+","+format+"]\n";
+        StringBuffer sb = new StringBuffer();
+        sb.append(fmt(f, m.m00,m.m01,m.m02,m.m03));
+        sb.append(fmt(f, m.m10,m.m11,m.m12,m.m13));
+        sb.append(fmt(f, m.m20,m.m21,m.m22,m.m23));
+        sb.append(fmt(f, m.m30,m.m31,m.m32,m.m33));
+        return sb.toString();
+
+    }
+
     /**
        return transmittance of layer of material 
-       transmittanceFactor - vector of transmittance factors for R,G,B light 
-       transmittanceFactor.x - thickness of layer of material which refuces transmitted light by factor e
+       transmittanceFactor - vector of transmittance factors for R,G,B light component
+
+       transmittanceFactor.x - thickness of layer of material which refuces transmitted light by factor E 
+
      */
     public static Vector3d getLayerTransmittance(Vector3d transmittanceFactor,double layerThickness){
 
@@ -159,7 +173,7 @@ public class VecUtils {
      */
     public static double getLayerTransmittanceComponent(double transmittanceFactor,double layerThickness){
 
-        if(transmittanceFactor <= EPS){ 
+        if(transmittanceFactor <= 1.e-10){ 
             // material is opaque 
             return 0;
         }

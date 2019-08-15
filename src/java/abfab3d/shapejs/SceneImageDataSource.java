@@ -85,7 +85,10 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
     SNodeParameter mp_camera = new SNodeParameter("camera");
     IntParameter mp_shadowsQuality = new IntParameter("shadowsQuality", 0);
     IntParameter mp_raytracingDepth = new IntParameter("raytracingDepth", 0);
-    DoubleParameter mp_volumeRendererLayerThickness = new DoubleParameter("volumeRendererLayerThickness", 0.5*MM);
+    IntParameter mp_maxIntersections = new IntParameter("maxIntersections", 1);
+    DoubleParameter mp_surfaceJump = new DoubleParameter("surfaceJump", 0.005);
+
+    DoubleParameter mp_volumeRendererLayerThickness = new DoubleParameter("volumeRendererLayerThickness", 0.1*MM);
     Parameter aparam[]= {
 
         mp_scene,
@@ -93,6 +96,9 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         mp_draftMode,
         mp_shadowsQuality,
         mp_raytracingDepth,
+        mp_maxIntersections,
+        mp_surfaceJump,
+        mp_volumeRendererLayerThickness,
     };
 
     private Scene m_scene;
@@ -113,6 +119,8 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
     LightData m_lights[];
     int m_shadowsQuality = 0;
     int m_raytracingDepth = 0;
+    int m_maxIntersections = 1;
+    double m_surfaceJump = 0.01;
     
 
     // size of playbox [-1,1;-1,1;-1,1]
@@ -122,7 +130,6 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
 
     static Vector4d BAD_COLOR = new Vector4d(00,1,1,1);
 
-    double m_surfaceJump = 0.01;
 
     public SceneImageDataSource(Scene scene, Camera camera) {
 
@@ -153,14 +160,7 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         m_camera.getViewMatrix(m_viewMatrix);
         m_eyeOrigin = getEyeOrigin();
        
-        if(DEBUG){ 
-            Matrix4f m = m_viewMatrix;
-            printf("view Matrix:\n");
-            printf("[%7.3f %7.3f %7.3f %7.3f]\n", m.m00,m.m01,m.m02,m.m03);
-            printf("[%7.3f %7.3f %7.3f %7.3f]\n", m.m10,m.m11,m.m12,m.m13);
-            printf("[%7.3f %7.3f %7.3f %7.3f]\n", m.m20,m.m21,m.m22,m.m23);
-            printf("[%7.3f %7.3f %7.3f %7.3f]\n", m.m30,m.m31,m.m32,m.m33);
-        }
+        if(DEBUG) printf("view Matrix:\n%s",str("%7.3f",m_viewMatrix));        
 
         m_sceneBounds = m_scene.getBounds();
         m_sceneCenter = m_sceneBounds.getCenter();
@@ -170,6 +170,8 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         m_materials = getMaterialsData(m_scene,m_volumeRendererLayerThickness);
         m_lights = getLightData(m_scene);
         m_raytracingDepth = mp_raytracingDepth.getValue();
+        m_maxIntersections = mp_maxIntersections.getValue();
+        m_surfaceJump = mp_surfaceJump.getValue();
 
         return ResultCodes.RESULT_OK;
 
@@ -183,10 +185,10 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         List<Material> mats = scene.getMaterials().getMaterials();
         MaterialData materials[] = new MaterialData[mats.size()];        
 
-        if(DEBUG)printf("materialsCount: %d\n",materials.length);
+        if(DEBUG) printf("materialsCount: %d\n",materials.length);
         for(int i = 0; i < materials.length; i++){
             materials[i] = new MaterialData((PhongParams)mats.get(i).getShader().getShaderParams(), layerThickness);
-            if(DEBUG)printf("material[%d]:%s\n",i, materials[i].toString());
+            if(DEBUG)printf("material[%d]:%s\n",i, materials[i].toString());        
         }
         return materials;
     }
@@ -293,8 +295,9 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         Vector3d normal = new Vector3d();  // surface normal at the intersection
         Vector3d pos_box = new Vector3d(); // position in box units
         Vec data = new Vec(4);    // data value at the intersection point 
-           
-        int m_maxIntersections = 10;
+        
+        int maxIntersections = m_maxIntersections;
+
         //
         // accumulated color (initally transparent) 
         //
@@ -302,18 +305,30 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         Vector3d color = new Vector3d(0,0,0); 
         Vector3d alpha = new Vector3d(0,0,0); 
 
-        for(int i = 0; i < m_maxIntersections; i++){
+        for(int i = 0; i < maxIntersections; i++){
+
             if(DEBUG)printf("step:%d tStart: %7.4f\n", i, td.tStart); 
+
             int res = getIntersection(td, pos_box,pos_world,normal,data);  
+
             if (res == INSIDE){
                 if(DEBUG)printf("got INSIDE\n"); 
                 // this is bad on first step only 
                 if(i == 0) {
                     return m_intersectionColor; 
                 } else {
-                    // what ? 
+                    //color = color + env_color * env_alpha*(1-alpha)
+                    //alpha = alpha  + (1-alpha) * env_alpha
+                    Vector4d ecolor = new Vector4d(0,0,0,0);
+                    Vector3d alpha1 = sub(UNIT3, alpha);
+                    addSet(color, mul(alpha1, mul(vec3(ecolor),ecolor.w)));
+                    addSet(alpha, mul(alpha1, ecolor.w));                
+                    break;
+                    // this should not happen  
+                    //return new Vector4d(0,0,0,1);
                 }
             } else if(res == NO_INTERSECTION) { 
+
                 if(DEBUG)printf("got NO_INTERSECTION\n"); 
                 // nothing found on this step 
                 Vector4d ecolor = getEnviroMapColor(td.rayDirection);  
@@ -324,6 +339,7 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
                 addSet(color, mul(alpha1, mul(vec3(ecolor),ecolor.w)));
                 addSet(alpha, mul(alpha1, ecolor.w));                
                 break;
+
             }
             
             if(DEBUG)printf("got INTERSECTION  t:%7.4f\n", td.tCurrent); 
@@ -344,9 +360,9 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
                        
             } else {
                 
-                // compose accumulated color over layer color 
+                // compose accumulated color over the layer color 
                 Vector3d alpha1 = sub(UNIT3,alpha);
-                double surfaceAlpha = 0.3; 
+                double surfaceAlpha = mat.surfaceAlpha; 
                 addSet(color, mul(mul(vec3(scolor),surfaceAlpha),alpha1));
                 addSet(alpha,mul(alpha1, surfaceAlpha));
                 
@@ -385,8 +401,9 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
     void renderVolume(TracingData td, Vector3d color, Vector3d alpha, Vec data){
         
         int iter = 1000;
-        double dt = 0.001; // step in box units 
-       
+
+        double dt = m_volumeRendererLayerThickness / m_sceneScale; // 0.001; // step in box units 
+        //if(debugCount-- > 0)printf("dt:%8.5f\n", dt);
         double tStart = td.tStart;
         double tEnd = td.tEnd;
 
@@ -396,13 +413,16 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         interpolate(td.rayOrigin, td.rayDirection, t0, pos);
         double dist0 = getDistance(pos, data);
 
-        
-        
+                
+        MaterialData material = getMaterial(data);
         // diffuse color of the layer 
-        Vector3d c_pnt = new Vector3d(0,0,1);
+        Vector3d c_pnt = vec3(material.diffuseColor);
         // alpha of the the layer 
         //Vector3d a_pnt = new Vector3d(0.005,0.005,0.005);
-        Vector3d a_pnt = new Vector3d(0.0025,0.0025,0.0025);
+        //Vector3d a_pnt = new Vector3d(0.0025,0.0025,0.0025);
+        //Vector3d a_pnt = new Vector3d(1,1,1);
+        Vector3d a_pnt = material.getLayerAlpha();
+
         Vector3d unit = new Vector3d(1,1,1);
 
         int hit = 0;
@@ -885,7 +905,9 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         double shininess;
         double ambientIntensity;
         double roughness;
-        Vector3d transmittance;
+        double surfaceAlpha;
+        Vector3d layerTransmittance;
+        Vector3d layerAlpha;
         boolean isOpaque = true;
 
         MaterialData(PhongParams ppar, double layerThickness){
@@ -898,12 +920,20 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
             this.roughness = ppar.getRoughness();
             this.shininess = ppar.getShininess();
             this.ambientIntensity = ppar.getAmbientIntensity();
+            this.surfaceAlpha = (Double)ppar.getParam("surfaceAlpha").getValue();
+            this.layerTransmittance = getLayerTransmittance((Vector3d)(ppar.getParam("transmittanceCoeff").getValue()),layerThickness);
+            this.layerAlpha = sub(new Vector3d(1,1,1), this.layerTransmittance);
 
-            this.transmittance = getLayerTransmittance((Vector3d)(ppar.getParam("transmittanceCoeff").getValue()),layerThickness);
-            this.isOpaque = isZero(this.transmittance);
+            this.isOpaque = isZero(this.layerTransmittance);
 
         }
-        
+
+        Vector3d getLayerAlpha(){
+
+            return layerAlpha;
+
+        }
+
         public String toString(){
             String f = "%4.2f";
             return fmt("MaterialData:{type:%d,diffuse:%s,emissive:%s,specular:%s,albedo:%s,shininess:%4.2f,ambient:%4.2f,roughness:%4.2f}\n",
