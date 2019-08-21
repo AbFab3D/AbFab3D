@@ -88,7 +88,6 @@ public class PolyJetWriter extends BaseParameterizable {
 
     static final int MAX_DATA_DIMENSION = 8;
 
-    public static double DEFAULT_SLICE_THICKNESS = 0.027*MM;
 
     // named PolyJet materials 
     public static final String S_WHITE = "VeroPureWht";
@@ -149,10 +148,14 @@ public class PolyJetWriter extends BaseParameterizable {
     public static final int MAPPING_RGBA = 2;
 
 
-    public static final double SLICE_THICKNESS =DEFAULT_SLICE_THICKNESS;
-    public static final double SLICE_THICKNESS_HR =0.014*MM;
-    public static final double PIXEL_SIZE_X = IN/600;
-    public static final double PIXEL_SIZE_Y = IN/300;
+
+    public static final double SLICE_THICKNESS_LR =0.027*MM; // IN/900
+    public static final double SLICE_THICKNESS_HR =0.014*MM; // IN/1800
+    public static final double PIXEL_SIZE_X = IN/600; // 0.0423*MM
+    public static final double PIXEL_SIZE_Y = IN/300; // 0.0846*MM 
+
+    public static double DEFAULT_SLICE_THICKNESS = SLICE_THICKNESS_LR;
+    //public static final double SLICE_THICKNESS = DEFAULT_SLICE_THICKNESS;
 
     static final Hashtable<String,Integer> sm_materialsTable = new Hashtable<String,Integer>();
     static {
@@ -400,8 +403,15 @@ public class PolyJetWriter extends BaseParameterizable {
         return (ix + iy*m_nx)*m_materialCount;
     }
 
+
+    /**
+       return value of voxel data from raw data array into voxel 
+       
+     */
     void getVoxel(double data[], int ix, int iy, Vec voxel){
+
         voxel.set(data, voxelOffset(ix, iy));        
+
     }
 
     /**
@@ -557,7 +567,7 @@ public class PolyJetWriter extends BaseParameterizable {
         normalizeVoxelMM(slice, offset);
     }
     
-    void normalizeVoxel(Vec voxel){
+    void _normalizeVoxel(Vec voxel){
         switch(m_mapping){
         default:
         case MAPPING_MATERIALS:
