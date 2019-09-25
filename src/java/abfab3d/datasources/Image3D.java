@@ -25,13 +25,8 @@ import abfab3d.core.Vec;
 import abfab3d.grid.Grid2DShort;
 import abfab3d.grid.Grid2DSourceWrapper;
 import abfab3d.grid.Operation2D;
-import abfab3d.grid.op.Copy;
-import abfab3d.grid.op.DistanceTransform2DOp;
-import abfab3d.grid.op.GaussianBlur;
-import abfab3d.grid.op.GridValueTransformer;
-import abfab3d.grid.op.ImageLoader;
-import abfab3d.grid.op.ImageToGrid2D;
-import abfab3d.grid.op.ResampleOp;
+import abfab3d.grid.op.*;
+import abfab3d.grid.util.GridUtil;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.BooleanParameter;
 import abfab3d.param.DoubleParameter;
@@ -42,8 +37,11 @@ import abfab3d.param.SNodeParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.util.ImageMipMapGray16;
 
+import javax.imageio.ImageIO;
 import javax.vecmath.Vector3d;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.Vector;
 
 import static abfab3d.core.MathUtil.lerp2;
@@ -815,10 +813,28 @@ public class Image3D extends TransformableDataSource {
         Grid2D grid = producer.getGrid2D();
 
         if (mp_useImageProcessing.getValue()) {
-            // need copy grid to preserve the original for future use 
+            if (DEBUG_VIZ) {
+                // TODO: This doesnt seem to work right, fix if we need to viz again.  It was all transparent
+                try {
+                    BufferedImage bi = Grid2DtoImage.getARGBImage(grid);
+                    ImageIO.write(bi, "png", new File("/tmp/image3d_before.png"));
+                } catch(IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+            // need copy grid to preserve the original for future use
             grid = Copy.createCopy(grid);
             grid.setGridBounds(getBounds());
             grid = executeOps(grid, createOps(grid));
+
+            if (DEBUG_VIZ) {
+                try {
+                    BufferedImage bi = Grid2DtoImage.getARGBImage(grid);
+                    ImageIO.write(bi, "png", new File("/tmp/image3d_after.png"));
+                } catch(IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
         }
         if (DEBUG) {
             printf("Image3D.prepareImage() grid:%s [%d x %d] ready %d ms\n", grid, grid.getWidth(), grid.getHeight(), (time() - t0));

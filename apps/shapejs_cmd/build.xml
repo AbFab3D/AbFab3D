@@ -124,7 +124,7 @@
             <jvmarg line="${jvmrunargs}"/>
             <arg value="${cmd}" />
 
-            <arg value="-backend" />
+            <arg value="-impl" />
             <arg value="viewer.ShapeJSBackend" />
 
             <arg value="-script" />

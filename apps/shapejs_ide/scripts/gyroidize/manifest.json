@@ -1,0 +1,14 @@
+{
+  "name": "Gyroidize",
+  "author": "Alan Hudson",
+  "license": "",
+  "scripts": [
+    "scripts/gyroidize.shapejs",
+    "scripts/details.shapejs"
+  ],
+  "variants": [
+    "variants/test.shapevar",
+    "variants/details.shapevar"
+  ],
+  "resources": []
+}

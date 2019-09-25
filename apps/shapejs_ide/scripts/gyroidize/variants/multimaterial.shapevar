@@ -1,0 +1,21 @@
+{
+  "scriptPath": "../scripts/multimaterial.shapejs",
+  "scriptParams": {
+    "boxSizeX": 50.0,
+    "boxSizeY": 50.0,
+    "boxSizeZ": 50.0,
+    "centerX": 0.0,
+    "centerY": 0.0,
+    "centerZ": 0.0,
+    "level": 0.0,
+    "model": "urn:shapeways:stockModel:sphere",
+    "period": 2.0,
+    "radius": 25.0,
+    "rounding": 0.0,
+    "sceneSize": 51.0,
+    "stepFactor": 0.9,
+    "surfacePrecision": 1.0E-4,
+    "thickness": 0.2,
+    "voxelSize": 0.1
+  }
+}

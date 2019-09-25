@@ -37,7 +37,7 @@ public class CacheConfig {
         GPU_CACHE = parseProperty(GPU_CACHE_PROPERTY,true);
         DISK_CACHE = parseProperty(DISK_CACHE_PROPERTY,true);
 
-        printf("Cache Control.  CPU: %b  GPU: %b  Disk: %b\n",CPU_CACHE,GPU_CACHE,DISK_CACHE);
+        printf("Cache Config.  CPU: %b  GPU: %b  Disk: %b\n",CPU_CACHE,GPU_CACHE,DISK_CACHE);
     }
 
     private static boolean parseProperty(String prop, boolean defVal) {
@@ -45,7 +45,6 @@ public class CacheConfig {
 
         String propVal = System.getProperty(prop);
 
-        printf("Prop: %s  val: %s\n",prop,propVal);
         if (propVal == null) return ret;
 
         try {

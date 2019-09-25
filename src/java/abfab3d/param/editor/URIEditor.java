@@ -114,7 +114,7 @@ public class URIEditor extends BaseEditor implements ActionListener, FocusListen
         
         String newText = m_textField.getText();
         String oldText = (String)m_param.getValue();
-        if(!oldText.equals(newText)){
+        if(oldText == null || !oldText.equals(newText)){
             m_param.setValue(newText);
             informParamChangedListeners();            
         }
@@ -134,7 +134,7 @@ public class URIEditor extends BaseEditor implements ActionListener, FocusListen
 
         String newText = m_textField.getText();
         String oldText = (String)m_param.getValue();
-        if(!oldText.equals(newText)){
+        if(oldText == null || !oldText.equals(newText)){
             m_param.setValue(newText);
             informParamChangedListeners();            
         }

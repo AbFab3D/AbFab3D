@@ -211,9 +211,12 @@ public class ScriptManager {
      */
     public ScriptResources prepareScript(String jobID, List<String> libDirs, String script, Map<String, Object> params, boolean sandboxed) {
         ScriptResources sr = null;
-        libDirs = new ArrayList<>();
 
-        if ( !sandboxed && (libDirs == null || libDirs.size() == 0) ) {
+        if (libDirs == null)
+            libDirs = new ArrayList<>();
+
+        printf("LibDirs: %s\n",libDirs);
+        if ( !sandboxed && (libDirs.size() == 0) ) {
             printf("No lib dir provided.  Using user dir: %s\n",System.getProperty("user.dir"));
             // Make the current directory be the lib dir
             libDirs.add(System.getProperty("user.dir"));

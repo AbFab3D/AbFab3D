@@ -1,0 +1,395 @@
+<?xml version="1.0" standalone="yes"?>
+
+<project basedir="." default="build" name="ShapeJS IDE">
+    <import file="build_common.xml"/>
+
+    <description>ShapeJS IDE</description>
+
+    <property name="version" value="1.0.0"/>
+    <property name="src.dir" value="${basedir}/src"/>
+    <property name="apps.dir" value="${basedir}/apps"/>
+    <property name="apps.common.dir" value="../common"/>
+    <property name="shapejs.dir" value="../shapejs"/>
+    <property name="release.dir" value="${basedir}/release"/>
+    <property name="test.dir" value="${basedir}/test/junit"/>
+    <property name="classes.dir" value="${basedir}/classes"/>
+    <property name="test.classes.dir" value="${classes.dir}/test" />
+    <property name="jar.dir" value="${basedir}/jars"/>
+    <property name="lib.dir" value="${basedir}/lib"/>
+    <property name="abfab3d.lib.dir" value="../../lib"/>
+    <property name="abfab3d.jars.dir" value="../../jars"/>
+    <property name="abfab3d.classes.dir" value="../../classes"/>
+    <property name="manifest.dir" value="${basedir}/manifest"/>
+    <property name="javadocs.dir" value="${basedir}/docs/javadoc"/>
+    <property name="app.common.dir" value="../common"/>
+    <property name="xj3d.dir" value="../../../../../xj3d/code/trunk"/>
+
+    <property name="runarg0" value="-Xmx8800m"/>
+    <property name="runarg1" value="-Djava.library.path=&quot;../shapeways_licensed/natives/${os.name}/${os.arch}&quot;" />
+
+    <property name="jvmrunargs" value="${runarg0} ${runarg1}"/>
+
+    <target name="build"
+            description="Complete clean, setup, compilation, run"
+            depends="clean,init,compile,ideBuild,media,jar"/>
+
+    <!-- Create destination directories -->
+    <target name="init" description="Create destination directories">
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${javadocs.dir}"/>
+    </target>
+
+    <target name="media">
+        <extras srcdir="src/images" package="" todir="${classes.dir}/images"/>
+        <extras srcdir="src/images/navigation" package="" todir="${classes.dir}/images/navigation"/>
+    </target>
+
+    <target name="compileCommon">
+        <ant antfile="${apps.common.dir}/build.xml" target="build" inheritall="false"/>
+    </target>
+
+    <target name="compileTest" depends="init" description="Compile all Test source files">
+        <mkdir dir="${test.classes.dir}" />
+
+        <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="" jars="**/*.jar" >
+            <classpath-elements>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
+    </target>
+
+    <target name="compile" depends="init" description="Compile all Java source files">
+        <!-- This code has circular package dependecies -->
+        <compilejava package="ide/**" jars="" >
+            <classpath-elements>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <pathelement path="../shapejs_viewer/classes"/>
+                <fileset dir="${lib.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
+    </target>
+
+    <target name="jar" depends="compile">
+        <!--
+        <createjar name="abfab3d_apps_shapejs_ide"
+            version="${version}"
+            manifest="abfab3d_apps_shapejs_ide.mf"
+            includes="**"
+        />
+        -->
+    </target>
+
+    <target name="test" depends="compileTest">
+        <junit dir="${basedir}" printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <formatter type="plain" usefile="false"/>
+            <batchtest fork="yes" >
+                <fileset dir="${test.dir}">
+                    <include name="**/Test*.java"/>
+                    <exclude name="**/*Performance*.java"/>
+                    <exclude name="**/*Suite*.java"/>
+                </fileset>
+            </batchtest>
+
+            <classpath>
+                <pathelement path="${abfab3d.classes.dir}" />
+                <pathelement path="${classes.dir}" />
+                <pathelement path="${test.classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" />
+                <fileset dir="${abfab3d.lib.dir}" includes="**/*.jar" />
+            </classpath>
+        </junit>
+    </target>
+    <target name="testSpecific" depends="compileTest">
+        <echo message="running testSpecific ${test} jvmargs: ${jvmrunargs}" />
+        <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="yes">
+            <jvmarg line="${jvmrunargs}"/>
+            <formatter type="plain" usefile="false"/>
+            <batchtest fork="yes" >
+                <fileset dir="${test.dir}">
+                    <include name="**/${test}.java"/>
+                </fileset>
+            </batchtest>
+
+            <classpath>
+                <pathelement path="${abfab3d.classes.dir}" />
+                <pathelement path="${classes.dir}" />
+                <pathelement path="${test.classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" />
+                <fileset dir="${abfab3d.lib.dir}" includes="**/*.jar" />
+            </classpath>
+        </junit>
+    </target>
+
+    <target name="ideBuild" depends="compile" >
+        <delete dir="${lib.dir}/plugins" />
+        <extras srcdir="src" package="ide" todir="${classes.dir}" maxdepth="3"/>
+
+        <!-- ProjectNav plugin. -->
+        <jar destfile="${lib.dir}/plugins/ProjectNav.jar">
+            <fileset dir="${classes.dir}">
+                <include name="ide/plugins/projectnav/**"/>
+            </fileset>
+            <fileset dir="${src.dir}">
+                <include name="ide/plugins/projectnav/*.png"/>
+            </fileset>
+            <!--
+            <fileset dir="i18n">
+                <include name="ide/console/**"/>
+            </fileset>
+            -->
+            <manifest>
+                <attribute name="Fife-Plugin-Class" value="ide.plugins.projectnav.Plugin"/>
+                <attribute name="Fife-Plugin-Load-Priority" value="high"/>
+            </manifest>
+        </jar>
+
+        <!-- GPU Renderer plugin. -->
+        <jar destfile="${lib.dir}/plugins/RendererGPU.jar">
+            <fileset dir="${classes.dir}">
+                <include name="ide/plugins/renderer/gpu/**"/>
+            </fileset>
+            <fileset dir="${src.dir}">
+                <include name="ide/plugins/renderer/gpu/*.png"/>
+            </fileset>
+            <!--
+            <fileset dir="i18n">
+                <include name="ide/console/**"/>
+            </fileset>
+            -->
+            <manifest>
+                <attribute name="Fife-Plugin-Class" value="ide.plugins.renderer.gpu.Plugin"/>
+                <attribute name="Fife-Plugin-Load-Priority" value="normal"/>
+            </manifest>
+        </jar>
+
+        <!-- Console plugin. -->
+        <jar destfile="${lib.dir}/plugins/Console.jar">
+            <fileset dir="${classes.dir}">
+                <include name="ide/plugins/console/**"/>
+            </fileset>
+            <fileset dir="${src.dir}">
+                <include name="ide/plugins/console/*.png"/>
+            </fileset>
+            <!--
+            <fileset dir="i18n">
+                <include name="ide/console/**"/>
+            </fileset>
+            -->
+            <manifest>
+                <attribute name="Fife-Plugin-Class" value="ide.plugins.console.Plugin"/>
+                <attribute name="Fife-Plugin-Load-Priority" value="normal"/>
+            </manifest>
+        </jar>
+        <!-- Source Browser plugin. -->
+        <jar destfile="${lib.dir}/plugins/SourceBrowser.jar">
+            <fileset dir="${classes.dir}">
+                <include name="ide/plugins/sourcebrowser/**"/>
+            </fileset>
+            <fileset dir="${src.dir}">
+                <include name="ide/plugins/sourcebrowser/**/*.gif"/>
+                <include name="ide/plugins/sourcebrowser/**/*.png"/>
+            </fileset>
+            <!--
+            <fileset dir="i18n">
+                <include name="ide/plugins/sourcebrowser/**"/>
+            </fileset>
+            -->
+            <manifest>
+                <attribute name="Fife-Plugin-Class" value="ide.plugins.sourcebrowser.SourceBrowserPlugin"/>
+                <attribute name="Fife-Plugin-Load-Priority" value="high"/>
+            </manifest>
+        </jar>
+
+        <!-- "File System View" plugin. -->
+        <jar destfile="${lib.dir}/plugins/FileSystemTree.jar">
+            <fileset dir="${classes.dir}">
+                <include name="ide/plugins/filesystemtree/**"/>
+            </fileset>
+            <fileset dir="${src.dir}">
+                <include name="ide/plugins/filesystemtree/*.gif"/>
+                <include name="ide/plugins/filesystemtree/*.png"/>
+            </fileset>
+            <!--
+            <fileset dir="i18n">
+                <include name="ide/plugins/filesystemtree/**"/>
+            </fileset>
+            -->
+            <manifest>
+                <attribute name="Fife-Plugin-Class" value="ide.plugins.filesystemtree.FileSystemTreePlugin"/>
+                <attribute name="Fife-Plugin-Load-Priority" value="normal"/>
+            </manifest>
+        </jar>
+
+        <!-- HeapIndicator plugin. -->
+        <jar destfile="${lib.dir}/plugins/HeapIndicator.jar">
+            <fileset dir="${classes.dir}">
+                <include name="ide/plugins/heapindicator/**"/>
+            </fileset>
+            <fileset dir="${src.dir}">
+                <include name="ide/plugins/heapindicator/*.png"/>
+            </fileset>
+            <!--
+            <fileset dir="i18n">
+                <include name="ide/plugins/heapindicator/**"/>
+            </fileset>
+            -->
+            <manifest>
+                <attribute name="Fife-Plugin-Class" value="ide.plugins.heapindicator.HeapIndicatorPlugin"/>
+                <attribute name="Fife-Plugin-Load-Priority" value="low"/>
+            </manifest>
+        </jar>
+
+        <!-- Tasks support plugin. -->
+        <jar destfile="${lib.dir}/plugins/TaskList.jar">
+            <fileset dir="${classes.dir}">
+                <include name="ide/plugins/tasks/**"/>
+            </fileset>
+            <fileset dir="${src.dir}">
+                <include name="ide/plugins/tasks/*.png"/>
+            </fileset>
+            <!--
+            <fileset dir="i18n">
+                <include name="ide/plugins/tasks/**"/>
+            </fileset>
+            -->
+            <manifest>
+                <attribute name="Fife-Plugin-Class" value="ide.plugins.tasks.TasksPlugin"/>
+                <attribute name="Fife-Plugin-Load-Priority" value="normal"/>
+            </manifest>
+        </jar>
+
+        <!-- Tool support plugin. -->
+        <jar destfile="${lib.dir}/plugins/ToolSupport.jar">
+            <fileset dir="${classes.dir}">
+                <include name="ide/plugins/tools/**"/>
+            </fileset>
+            <fileset dir="${src.dir}">
+                <include name="ide/plugins/tools/*.png"/>
+            </fileset>
+            <!--
+            <fileset dir="i18n">
+                <include name="ide/plugins/tools/**"/>
+            </fileset>
+            -->
+            <manifest>
+                <attribute name="Fife-Plugin-Class" value="ide.plugins.tools.ToolPlugin"/>
+                <attribute name="Fife-Plugin-Load-Priority" value="normal"/>
+            </manifest>
+        </jar>
+
+        <!-- Macros plugin. -->
+        <!--
+        <jar destfile="${lib.dir}/ide/plugins/MacroSupport.jar">
+            <fileset dir="${classes.dir}">
+                <include name="ide/plugins/macros/**"/>
+            </fileset>
+            <fileset dir="${src.dir}">
+                <include name="ide/plugins/macros/*.png"/>
+                <include name="ide/plugins/macros/*.gif"/>
+                <include name="ide/plugins/macros/*.txt"/>
+            </fileset>
+            <fileset dir="i18n">
+                <include name="ide/plugins/macros/**"/>
+            </fileset>
+
+            <manifest>
+                <attribute name="Class-Path" value="plugins/groovy-all-2.3.3.jar"/>
+                <attribute name="Fife-Plugin-Class" value="ide.plugins.macros.MacroPlugin"/>
+                <attribute name="Fife-Plugin-Load-Priority" value="normal"/>
+            </manifest>
+        </jar>
+
+        <copy file="lib/groovy-all-2.3.3.jar"  todir="${lib.dir}/ide/plugins"/>
+        <copy file="lib/groovy.LICENSE.txt"    todir="${lib.dir}/ide/plugins"/>
+-->
+
+        <!-- Language support plugin. -->
+        <jar destfile="${lib.dir}/plugins/RTextLanguageSupport.jar">
+            <fileset dir="${classes.dir}">
+                <include name="ide/plugins/langsupport/**"/>
+            </fileset>
+            <fileset dir="${src.dir}">
+                <include name="ide/plugins/langsupport/*.gif"/>
+                <include name="ide/plugins/langsupport/*.png"/>
+            </fileset>
+            <!--
+            <fileset dir="i18n">
+                <include name="ide/plugins/langsupport/**"/>
+            </fileset>
+            -->
+            <manifest>
+                <attribute name="Class-Path" value="plugins/language_support.jar"/>
+                <attribute name="Fife-Plugin-Class" value="ide.plugins.langsupport.Plugin"/>
+                <attribute name="Fife-Plugin-Load-Priority" value="normal"/>
+            </manifest>
+        </jar>
+        <!-- Needed by RTextLanguageSupport -->
+        <!--
+        <copy file="lib/RSTALanguageSupport.License.txt" todir="${lib.dir}/ide/plugins"/>
+        <copy file="lib/language_support.jar"            todir="${lib.dir}/ide/plugins"/>
+        <copy file="lib/Rhino.build-date"                todir="${lib.dir}/ide/plugins"/>
+        <copy file="lib/Rhino.LICENSE.txt"               todir="${lib.dir}/ide/plugins"/>
+        <copy file="lib/js-14.jar"                       todir="${lib.dir}/ide/plugins"/>
+-->
+
+        <!-- Project plugin. -->
+        <!--
+        <jar destfile="${lib.dir}/ide/plugins/ProjectSupport.jar">
+            <fileset dir="${classes.dir}">
+                <include name="ide/plugins/project/**"/>
+            </fileset>
+            <fileset dir="${src.dir}">
+                <include name="ide/plugins/project/**/*.gif"/>
+                <include name="ide/plugins/project/**/*.png"/>
+                <include name="ide/plugins/project/**/*.dtd"/>
+            </fileset>
+            <fileset dir="i18n">
+                <include name="ide/plugins/project/**"/>
+            </fileset>
+            <manifest>
+                <attribute name="Fife-Plugin-Class" value="ide.plugins.project.ProjectPlugin"/>
+                <attribute name="Fife-Plugin-Load-Priority" value="normal"/>
+            </manifest>
+        </jar>
+-->
+    </target>
+
+
+    <target name="run" depends="compile" description="Run the ide">
+        <echo message="jvmargs: ${jvmrunargs}"/>
+        <java classname="ide.RText" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <classpath>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+                <pathelement path="${classes.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="../shapejs_viewer/classes"/>
+                <!-- <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+            </classpath>
+        </java>
+    </target>
+
+    <target name="javadoc" description="Generates javadoc" depends="compile">
+        <echo message="Generating javadoc..."/>
+        <javadoc sourcepath="${src.dir}/java"
+                 destdir="${javadocs.dir}"
+                 packagenames="*"
+                 version="true"
+                 author="yes">
+        </javadoc>
+    </target>
+
+    <target name="clean" description="Deletes all the generated artifacts.">
+        <delete dir="${javadocs.dir}"/>
+        <delete dir="${classes.dir}"/>
+        <delete file="src/java/volumesculptor/ui/Editor.java" />
+    </target>
+</project>
+

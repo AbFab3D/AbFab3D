@@ -1,5 +1,15 @@
 var uiParams = [
     {
+        name: "radius",
+        desc: "Radius of the sphere",
+        label: "Radius",
+        type: "double",
+        rangeMin: 1,
+        step: 1,
+        defaultVal: 25,
+        unit: "MM"
+    },
+    {
         name: "period",
         desc: "Period of the gyroid",
         label: "Period",
@@ -21,7 +31,7 @@ var uiParams = [
 
 ];
 function main(args) {
-    var radius = 25 * MM;
+    var radius = args.radius;
     var sphere = new Sphere(radius);
     var gyroid = new VolumePatterns.Gyroid(args['period']*MM, args['thickness']*MM);
     var intersect = new Intersection();
@@ -29,6 +39,6 @@ function main(args) {
     intersect.add(sphere);
     intersect.add(gyroid);
 
-    var s = 25*MM;
+    var s = radius + 1*MM;
     return new Scene(intersect,new Bounds(-s,s,-s,s,-s,s));
 }

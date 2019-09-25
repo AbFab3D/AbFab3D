@@ -28,6 +28,9 @@ Valid Commands and Parameters
 ### Jar
 java -Xmx12000M -jar <PathToAbFab3D>/apps/shapejs_cmd/jars/abfab3d_apps_shapejs_1.0.0.jar"
 
+Syntax is:  command -option val
+example:  java -jar renderImage -script test/scripts.gyrosphere.js -width 512 -height 512 -output foo.stl
+
 ## Testing
 ant test
 
