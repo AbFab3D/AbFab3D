@@ -31,6 +31,7 @@ import abfab3d.core.ResultCodes;
 
 import abfab3d.param.Parameter;
 import abfab3d.param.IntParameter;
+import abfab3d.param.DoubleParameter;
 import abfab3d.param.BooleanParameter;
 import abfab3d.param.SNodeParameter;
 import abfab3d.param.BaseParameterizable;
@@ -54,7 +55,12 @@ import static abfab3d.shapejs.VecUtils.mulVV;
 import static abfab3d.shapejs.VecUtils.minVV;
 import static abfab3d.shapejs.VecUtils.maxVV;
 import static abfab3d.shapejs.VecUtils.exp;
+import static abfab3d.shapejs.VecUtils.vec4;
+import static abfab3d.shapejs.VecUtils.vec3;
+import static abfab3d.shapejs.VecUtils.isZero;
+import static abfab3d.shapejs.VecUtils.getLayerTransmittance;
 
+import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
 
@@ -70,6 +76,7 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
 
     static boolean DEBUG = false;
 
+    static final Vector3d UNIT3 = new Vector3d(1,1,1);
 
     static final int NO_INTERSECTION = 1,HAS_INTERSECTION = 2,INSIDE = 3;
 
@@ -78,6 +85,10 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
     SNodeParameter mp_camera = new SNodeParameter("camera");
     IntParameter mp_shadowsQuality = new IntParameter("shadowsQuality", 0);
     IntParameter mp_raytracingDepth = new IntParameter("raytracingDepth", 0);
+    IntParameter mp_maxIntersections = new IntParameter("maxIntersections", 1);
+    DoubleParameter mp_surfaceJump = new DoubleParameter("surfaceJump", 0.005);
+
+    DoubleParameter mp_volumeRendererLayerThickness = new DoubleParameter("volumeRendererLayerThickness", 0.1*MM);
     Parameter aparam[]= {
 
         mp_scene,
@@ -85,6 +96,9 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         mp_draftMode,
         mp_shadowsQuality,
         mp_raytracingDepth,
+        mp_maxIntersections,
+        mp_surfaceJump,
+        mp_volumeRendererLayerThickness,
     };
 
     private Scene m_scene;
@@ -105,13 +119,17 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
     LightData m_lights[];
     int m_shadowsQuality = 0;
     int m_raytracingDepth = 0;
+    int m_maxIntersections = 1;
+    double m_surfaceJump = 0.01;
     
 
     // size of playbox [-1,1;-1,1;-1,1]
     double m_boxSize = 2;
 
+    double m_volumeRendererLayerThickness = 1*MM;
 
     static Vector4d BAD_COLOR = new Vector4d(00,1,1,1);
+
 
     public SceneImageDataSource(Scene scene, Camera camera) {
 
@@ -142,22 +160,19 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         m_camera.getViewMatrix(m_viewMatrix);
         m_eyeOrigin = getEyeOrigin();
        
-        if(DEBUG){ 
-            Matrix4f m = m_viewMatrix;
-            printf("view Matrix:\n");
-            printf("[%7.3f %7.3f %7.3f %7.3f]\n", m.m00,m.m01,m.m02,m.m03);
-            printf("[%7.3f %7.3f %7.3f %7.3f]\n", m.m10,m.m11,m.m12,m.m13);
-            printf("[%7.3f %7.3f %7.3f %7.3f]\n", m.m20,m.m21,m.m22,m.m23);
-            printf("[%7.3f %7.3f %7.3f %7.3f]\n", m.m30,m.m31,m.m32,m.m33);
-        }
+        if(DEBUG) printf("view Matrix:\n%s",str("%7.3f",m_viewMatrix));        
 
         m_sceneBounds = m_scene.getBounds();
         m_sceneCenter = m_sceneBounds.getCenter();
         m_sceneScale = m_sceneBounds.getSizeMax()/m_boxSize;
+        m_volumeRendererLayerThickness = mp_volumeRendererLayerThickness.getValue();
         
-        m_materials = getMaterialsData(m_scene);
+        m_materials = getMaterialsData(m_scene,m_volumeRendererLayerThickness);
         m_lights = getLightData(m_scene);
         m_raytracingDepth = mp_raytracingDepth.getValue();
+        m_maxIntersections = mp_maxIntersections.getValue();
+        m_surfaceJump = mp_surfaceJump.getValue();
+
         return ResultCodes.RESULT_OK;
 
     }
@@ -165,15 +180,15 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
     /**
        return array of material data for the scene 
      */
-    static MaterialData[] getMaterialsData(Scene scene){
+    static MaterialData[] getMaterialsData(Scene scene, double layerThickness){
 
         List<Material> mats = scene.getMaterials().getMaterials();
         MaterialData materials[] = new MaterialData[mats.size()];        
 
-        if(DEBUG)printf("materialsCount: %d\n",materials.length);
+        if(DEBUG) printf("materialsCount: %d\n",materials.length);
         for(int i = 0; i < materials.length; i++){
-            materials[i] = new MaterialData((PhongParams)mats.get(i).getShader().getShaderParams());
-            if(DEBUG)printf("material[%d]:%s\n",i, materials[i].toString());
+            materials[i] = new MaterialData((PhongParams)mats.get(i).getShader().getShaderParams(), layerThickness);
+            if(DEBUG)printf("material[%d]:%s\n",i, materials[i].toString());        
         }
         return materials;
     }
@@ -219,7 +234,8 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
 
             String f = "%7.3f";            
             //if(DEBUG)printf("box hit: orig:%s dir:%s tnear:%7.3f tfar:%7.3f\n", str(f,m_eyeOrigin), str(f,direction), intersection[0],intersection[1]);
-            Vector4d color = raytracePixel(intersection[0], intersection[1], m_eyeOrigin, direction, m_raytracingDepth);
+            TracingData td = new TracingData(intersection[0], intersection[1], m_eyeOrigin, direction);
+            Vector4d color = raytracePixel(td, m_raytracingDepth);
             dataValue.v[0] = color.x;
             dataValue.v[1] = color.y;
             dataValue.v[2] = color.z;
@@ -250,27 +266,224 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
 
         return getDistance(p.x, p.y, p.z, data);
 
-
-
     }
     
 
     static int debugCount = 100;
     
     /**
+       return current material 
+     */
+    MaterialData getMaterial(Vec data){
+
+        return m_materials[data.materialIndex];
+
+    }
+    
+    
+    /**
+       
+       return color of pixel generated by ray with given origina and direction 
+       
+     */
+    Vector4d raytracePixel(TracingData td, int tracingDepth) {
+
+        if(DEBUG) printf("raytracePixel(tnear:%7.3f, tfar:%7.3f, origin:%s,direction:%s,depth:%d\n",
+                         td.tStart, td.tEnd, str("%5.3f", td.rayOrigin), str("%5.3f", td.rayDirection), tracingDepth);
+
+        Vector3d pos_world = new Vector3d();
+        Vector3d normal = new Vector3d();  // surface normal at the intersection
+        Vector3d pos_box = new Vector3d(); // position in box units
+        Vec data = new Vec(4);    // data value at the intersection point 
+        
+        int maxIntersections = m_maxIntersections;
+
+        //
+        // accumulated color (initally transparent) 
+        //
+
+        Vector3d color = new Vector3d(0,0,0); 
+        Vector3d alpha = new Vector3d(0,0,0); 
+
+        for(int i = 0; i < maxIntersections; i++){
+
+            if(DEBUG)printf("step:%d tStart: %7.4f\n", i, td.tStart); 
+
+            int res = getIntersection(td, pos_box,pos_world,normal,data);  
+
+            if (res == INSIDE){
+                if(DEBUG)printf("got INSIDE\n"); 
+                // this is bad on first step only 
+                if(i == 0) {
+                    return m_intersectionColor; 
+                } else {
+                    //color = color + env_color * env_alpha*(1-alpha)
+                    //alpha = alpha  + (1-alpha) * env_alpha
+                    Vector4d ecolor = new Vector4d(0,0,0,0);
+                    Vector3d alpha1 = sub(UNIT3, alpha);
+                    addSet(color, mul(alpha1, mul(vec3(ecolor),ecolor.w)));
+                    addSet(alpha, mul(alpha1, ecolor.w));                
+                    break;
+                    // this should not happen  
+                    //return new Vector4d(0,0,0,1);
+                }
+            } else if(res == NO_INTERSECTION) { 
+
+                if(DEBUG)printf("got NO_INTERSECTION\n"); 
+                // nothing found on this step 
+                Vector4d ecolor = getEnviroMapColor(td.rayDirection);  
+                // compose current color over envmap color 
+                Vector3d alpha1 = sub(UNIT3, alpha);
+                //color = color + env_color * env_alpha*(1-alpha)
+                //alpha = alpha  + (1-alpha) * env_alpha
+                addSet(color, mul(alpha1, mul(vec3(ecolor),ecolor.w)));
+                addSet(alpha, mul(alpha1, ecolor.w));                
+                break;
+
+            }
+            
+            if(DEBUG)printf("got INTERSECTION  t:%7.4f\n", td.tCurrent); 
+
+            // got surface intersection 
+            MaterialData mat = getMaterial(data);            
+            Vector4d scolor = shadeSurface(pos_world, pos_box, normal, td.rayDirection, data, tracingDepth);             
+            
+            if(mat.isOpaque) {
+
+                if(DEBUG)printf("isOpaque surface: color:[%s] alpha:[%s] scolor:[%s]\n", str("%5.2f", color), str("%5.2f", alpha), str("%5.2f", scolor)); 
+                // compose accumulated color over opaque surface color
+                // color += scolor*(1-alpha)
+                // alpha = UNIT3;
+                addSet(color, mul(vec3(scolor), sub(UNIT3, alpha)));
+                alpha = new Vector3d(UNIT3);
+                break;
+                       
+            } else {
+                
+                // compose accumulated color over the layer color 
+                Vector3d alpha1 = sub(UNIT3,alpha);
+                double surfaceAlpha = mat.surfaceAlpha; 
+                addSet(color, mul(mul(vec3(scolor),surfaceAlpha),alpha1));
+                addSet(alpha,mul(alpha1, surfaceAlpha));
+                
+                td.tStart = td.tCurrent; 
+                renderVolume(td, color, alpha, data);
+                if(DEBUG)printf("renderVolume returned: color:[%s] alpha:[%s]\n", str("%5.2f", color), str("%5.2f", alpha)); 
+                
+            }
+            td.tStart = td.tCurrent; 
+            td.tStart += m_surfaceJump; 
+        }
+        
+        
+        return new Vector4d(color.x, color.y, color.z, (alpha.x+alpha.y+alpha.z)/3);
+
+        
+    }
+
+    
+    /**
+       starting from given point on the surface of shape does marching along the ray accumulating the color and transparency along the ray 
+       until the ray leaves the interior of the shape 
+
+       Color and Alpha are accumulated along the ray layer by layer using composition 
+
+       each point alontg the ray may have its own color c_point and opacity a_point 
+
+       color and alpha are composed using the following 
+
+       color = c_pnt * a_point * (1-alpha) + color
+       alpha = a_pnt * (1-alpha) + alpha 
+
+       marching may terminate if opacity exceeds opacityThreshold (close to 1) which means that the total layer of material along the ray transmitts no light behind it. 
+
+     */
+    void renderVolume(TracingData td, Vector3d color, Vector3d alpha, Vec data){
+        
+        int iter = 1000;
+
+        double dt = m_volumeRendererLayerThickness / m_sceneScale; // 0.001; // step in box units 
+        //if(debugCount-- > 0)printf("dt:%8.5f\n", dt);
+        double tStart = td.tStart;
+        double tEnd = td.tEnd;
+
+        double t0 = tStart, t1 = t0;
+        
+        Vector3d pos = new Vector3d();
+        interpolate(td.rayOrigin, td.rayDirection, t0, pos);
+        double dist0 = getDistance(pos, data);
+
+                
+        MaterialData material = getMaterial(data);
+        // diffuse color of the layer 
+        Vector3d c_pnt = vec3(material.diffuseColor);
+        // alpha of the the layer 
+        //Vector3d a_pnt = new Vector3d(0.005,0.005,0.005);
+        //Vector3d a_pnt = new Vector3d(0.0025,0.0025,0.0025);
+        //Vector3d a_pnt = new Vector3d(1,1,1);
+        Vector3d a_pnt = material.getLayerAlpha();
+
+        Vector3d unit = new Vector3d(1,1,1);
+
+        int hit = 0;
+
+        for(int i = 0; i < iter; i++) {
+            
+            t1 = t0 + dt;
+            interpolate(td.rayOrigin, td.rayDirection, t1, pos);
+            double dist1 = getDistance(pos, data);
+            
+            if(dist1 >= 0.) {// we are outside
+                if( dist1 != dist0){
+                    // linear interpolation of last steps 
+                    // final adjustment to get point where distance is 0
+                    double delta = dist0 / (dist0 - dist1);
+                    t1 = t0 + dt * delta;
+                    interpolate(td.rayOrigin, td.rayDirection, t1, pos);
+                    // save last hit in the tracing data 
+                    td.tCurrent = t1;
+                    hit = 1;
+                    break;                 
+                }
+            } else {
+                Vector3d alpha1 = sub(UNIT3,alpha);
+                // compose accumulated color over layer color 
+                addSet(color, mul(c_pnt,a_pnt,alpha1));
+                addSet(alpha,mul(a_pnt, alpha1));
+                
+            }
+            
+            if(t1 > tEnd) {
+                break;
+            }
+            t0 = t1;
+            dist0 = dist1;
+        }
+        
+        //Vector4d c = mul(color, t1);//new Vector4d(1., 0.5, 0.8, 1);                 
+        //Vector4d c = mul(color, alpha);
+
+        //c.w = 1;
+
+        return;
+    }
+
+
+    /**
        find intersection of ray with the surface 
        returns position and gradient at the found intersection 
        
     */
-    int getIntersection(double tnear,double tfar,Vector3d rayOrigin,Vector3d rayDirection, Vector3d boxPos,Vector3d scenePos, Vector3d normal, Vec data){
+    int getIntersection(TracingData td, Vector3d boxPos,Vector3d scenePos, Vector3d normal, Vec data){
 
         //if(DEBUG)printf("getIntersection({tnear:%7.3f, tfar:%7.3f rayOrigin:%s)\n",tnear, tfar, str("%6.3f",rayOrigin),str("%6.3f",rayDirection));
         
         // march along ray from tnear till we hit something
-        double t0 = tnear;
+        double t0 = td.tStart;
+        double t1 = t0;
         Vector3d pos = new Vector3d();
         
-        interpolate(rayOrigin, rayDirection, t0, pos);
+        interpolate(td.rayOrigin, td.rayDirection, t0, pos);
         double dist0 = getDistance(pos, data);
 
         //if(DEBUG) printf("   pos:%s, dist0:%7.3f\n", str("%7.3f", pos), dist0);
@@ -281,7 +494,10 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         }
         
         int hit = -1;
-        
+
+        //
+        // TODO - make all these into param
+        //
         double rayStep = 0.1;
         int iter = 500; // max count of iterations
         double minStep  = 1.e-3; // minimal step to do 
@@ -289,11 +505,11 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         double factor = 0.9;//scene.factor;
         double normalFactor = 10; // maximal relative size of last adjustment
         
-        for(int i=0; i < iter; i++) {
+        for(int i = 0; i < iter; i++) {
             
             double dt = max(minStep, min(rayStep,abs(dist0*factor)));                
-            double t1 = t0 + dt;
-            interpolate(rayOrigin, rayDirection, t1, pos);
+            t1 = t0 + dt;
+            interpolate(td.rayOrigin, td.rayDirection, t1, pos);
             double dist1 = getDistance(pos, data);
             //if(DEBUG && debugCount > 0) printf("i:%d dist1: %7.3f\n", i, dist1); 
             if(dist1 < precision ) {// we are close
@@ -303,13 +519,13 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
                     double delta = dist0 / (dist0 - dist1);
                     if(abs(delta) < normalFactor){
                         t1 = t0 + dt * delta;                    
-                        interpolate(rayOrigin, rayDirection, t1, pos);
+                        interpolate(td.rayOrigin, td.rayDirection, t1, pos);
                         hit = 1;
                         break;
                     } 
                 }
             }
-            if(t1 > tfar) {
+            if(t1 > td.tEnd) {
                 break;
             }
             t0 = t1;
@@ -319,6 +535,8 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
             return NO_INTERSECTION;
         }
 
+        td.tCurrent = t1;
+        
         double dt = m_gradientStep;
         // x
         double dx0 = getDistance(pos.x + dt, pos.y, pos.z, data);
@@ -341,50 +559,9 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         
 
         return HAS_INTERSECTION;
-
-      
-        
+              
     }
-    
-    MaterialData getMaterial(Vec data){
 
-        return m_materials[data.materialIndex];
-
-
-    }
-    
-    
-    /**
-       return color of pixel generated by ray with given origina and direction 
-     */
-    Vector4d raytracePixel(double tnear, double tfar, Vector3d rayOrigin, Vector3d rayDirection, int tracingDepth) {
-
-        if(DEBUG) printf("raytracePixel(tnear:%7.3f, tfar:%7.3f, origin:%s,direction:%s,depth:%d\n",
-                         tnear, tfar, str("%5.3f", rayOrigin), str("%5.3f", rayDirection), tracingDepth);
-        Vector3d pos_world = new Vector3d();
-        Vector3d normal = new Vector3d();  // surface normal at the intersection
-        Vector3d pos_box = new Vector3d(); // position in box units
-        Vec data = new Vec(4);    // data value at the intersection point 
-        
-        int res = getIntersection(tnear,tfar,rayOrigin,rayDirection,pos_box,pos_world,normal,data);
-        
-        if (res == INSIDE){
-            return m_intersectionColor;
-        } else if(res == NO_INTERSECTION) {
-            return  getEnviroMapColor(rayDirection);
-        }
-
-        // got surface intersection 
-        MaterialData mat = getMaterial(data);
-        
-        //if(mat.diffuseColor.w < 1) return new Vector4d(0,1,1,1);
-        
-        Vector4d color = shadeSurface(pos_world, pos_box, normal, rayDirection, data, tracingDepth);        
-        return color;
-        //return new Vector4d(0.5,0.5,0.5,1);
-
-        
-    }
 
     /**
        convert box coordinates into scene coordinates 
@@ -417,7 +594,7 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
     }
 
     /**
-       return view direction is playbox units
+       return view direction in playbox units
     */
     Vector3d getEyeDirection(double u, double v){
         //
@@ -470,14 +647,13 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
                     double tnear = 0.001; 
                     double tfar = intersection[1];
                     //if(DEBUG) printf("eyeRay:%s reflectedRay:%s\n", str("%5.3f",eyeRay),str("%5.3f",reflectedRay));
-                    Vector4d reflectedColor = raytracePixel(tnear, tfar, posBox, reflectedRay, tracingDepth);             
+                    TracingData td = new TracingData(tnear, tfar, posBox, reflectedRay);
+                    Vector4d reflectedColor = raytracePixel(td, tracingDepth);             
                     return reflectedColor;
                 }
             }
             
             //reflectedRay
-            //Vector4d reflectedColor = raytracePixel(tnear, tfar, posBox, reflectedRay, tracingDepth);             
-            //Vector4d transmittedColor = raytracePixel(tnear, tfar, posBox, transmitedRay, tracingDepth);
 
             Vector4d surfaceColor = getPhongShading(material,color,posWorld,posBox,normal,eyeRay,data);
 
@@ -587,7 +763,7 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
     }
 
     Vector4d m_intersectionColor = new Vector4d(1,0,0,1);
-    Vector4d m_backgroundColor = new Vector4d(0.5,0.5,1,1);
+    Vector4d m_backgroundColor = new Vector4d(1,1,1,1);
 
     Vector4d getEnviroMapColor(Vector3d direction){
         
@@ -729,10 +905,12 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         double shininess;
         double ambientIntensity;
         double roughness;
-        Vector3d transmittanceFactor;
+        double surfaceAlpha;
+        Vector3d layerTransmittance;
+        Vector3d layerAlpha;
+        boolean isOpaque = true;
 
-
-        MaterialData(PhongParams ppar){
+        MaterialData(PhongParams ppar, double layerThickness){
             
             this.materialType = ppar.getMaterialTypeIndex();
             this.diffuseColor = vec4(ppar.getDiffuseColor());
@@ -742,10 +920,20 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
             this.roughness = ppar.getRoughness();
             this.shininess = ppar.getShininess();
             this.ambientIntensity = ppar.getAmbientIntensity();
-            Vector3d tf = (Vector3d)(ppar.getParam("transmittanceCoeff").getValue());
-            this.transmittanceFactor = exp(tf);
+            this.surfaceAlpha = (Double)ppar.getParam("surfaceAlpha").getValue();
+            this.layerTransmittance = getLayerTransmittance((Vector3d)(ppar.getParam("transmittanceCoeff").getValue()),layerThickness);
+            this.layerAlpha = sub(new Vector3d(1,1,1), this.layerTransmittance);
+
+            this.isOpaque = isZero(this.layerTransmittance);
+
         }
-        
+
+        Vector3d getLayerAlpha(){
+
+            return layerAlpha;
+
+        }
+
         public String toString(){
             String f = "%4.2f";
             return fmt("MaterialData:{type:%d,diffuse:%s,emissive:%s,specular:%s,albedo:%s,shininess:%4.2f,ambient:%4.2f,roughness:%4.2f}\n",
@@ -784,29 +972,22 @@ public class SceneImageDataSource extends BaseParameterizable implements DataSou
         
     }// static class LightData
 
-    /**
-       conversion of Color into vec4
-     */
-    static Vector4d vec4(Color c){
-        return new Vector4d(c.getr(),c.getg(), c.getb(), c.geta());
-    }
+    
+    static class TracingData {
 
-    /**
-       adding component to Vector3d 
-     */
-    static Vector4d vec4(Vector3d v, double w){
-        return new Vector4d(v.x,v.y,v.z, w);
-    }
+        double tStart, tEnd, tCurrent = 0.;
+        
+        Vector3d rayOrigin;
+        Vector3d rayDirection;
 
-    /**
-       conversiomn of scalar into Vector4d 
-     */
-    static Vector4d vec4(double v){
-        return new Vector4d(v,v,v, v);
-    }
+        TracingData(double tStart, double tEnd, Vector3d rayOrigin, Vector3d rayDirection){
+            this.tStart = tStart;
+            this.tEnd = tEnd;
+            this.rayOrigin = rayOrigin;
+            this.rayDirection = rayDirection;
+            
+        }
 
-    static Vector4d vec4(double x,double y,double z,double w){
-        return new Vector4d(x,y,z,w);
-    }
+    } // static class TracingData
 
 }

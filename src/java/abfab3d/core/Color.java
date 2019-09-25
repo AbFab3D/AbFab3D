@@ -95,6 +95,24 @@ public class Color implements Cloneable {
         a = val;
     }
 
+    public void getValue(double val[])  {
+
+        val[0] = r;
+        val[1] = g;
+        val[2] = b;
+        val[3] = a;
+    }
+
+    public void setValue(double val[])  {
+
+        r = val[0];
+        g = val[1];
+        b = val[2];
+        a = val[3];
+    }
+
+
+
     public static Color fromColor(java.awt.Color color) {
         return new Color(color.getRed()/255.0f,color.getGreen()/255.0f,color.getBlue()/255.0f, 1.);
     }

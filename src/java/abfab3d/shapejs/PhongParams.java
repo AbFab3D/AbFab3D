@@ -30,10 +30,11 @@ public class PhongParams extends RenderingParams {
     static final public int MATERIAL_MIXED = 1;
     static final public int MATERIAL_FILLCOLOR = 2;
     static final public String sm_materiaTypeNames[] = new String[]{"single color", "mixed", "full color"};
-    private EnumParameter mp_materialType = new EnumParameter("materialType","Type of Material", sm_materiaTypeNames, sm_materiaTypeNames[MATERIAL_SINGLE_COLOR]);
+    private EnumParameter mp_materialType = new EnumParameter("materialType","Type of Material", 
+                                                              sm_materiaTypeNames, sm_materiaTypeNames[MATERIAL_SINGLE_COLOR]);
     private ColorParameter mp_diffuseColor = new ColorParameter("diffuseColor","Diffuse Color",new Color(0.8,0.8,0.8));
     private ColorParameter mp_emissiveColor = new ColorParameter("emissiveColor","Emissive Color",new Color(0,0,0));
-    private ColorParameter mp_specularColor = new ColorParameter("specularColor","Diffuse Color",new Color(1,1,1));
+    private ColorParameter mp_specularColor = new ColorParameter("specularColor","Specular Color of hightlight",new Color(1,1,1));
     private DoubleParameter mp_shininess = new DoubleParameter("shininess","How reflective", 0.2);
     private DoubleParameter mp_ambientIntensity = new DoubleParameter("ambientIntensity","Ambient light", 0.2);
 
@@ -44,11 +45,22 @@ public class PhongParams extends RenderingParams {
 
     // 
     // vector of light transmittance coefficients for R, G, B channels  
-    // transmittanceFactor units are meters 
-    // amount of ligth of color [R,G,B] passing throug layer of material of thickness W and transmittanceCoeff Tc
+    // transmittanceCoeff units are meters. 
+    // It is thickness of material slab which transmitts (1/E) portion of light 
+    // fully opaque material has transmittanceCoeff = (0,0,0)
+    // very transparent (clear) material has transmittanceCoeff = (LargeNumber,LargeNumber,LargeNumber)
+    // Material which transmitt almost all blue light and almost opaque for red and green has transmittanceCoeff = (0.001,0.001,1);
+    // thie mean, that layer of this mateiral of thickness 1mm will transmitt only (1/E) portion or red and green and wil me 
+    // mostly transparent to blue
+    // amount of ligth of color [R,G,B] passing through the layer of material of thickness W and transmittanceCoeff Tc is 
+    // calculates as folow 
     //[R,G,B] -> [R*exp(-W/Tc.x), G*exp(-W/Tc.y),B*exp(-W/Tc.z)];
     // 
     private Vector3dParameter mp_transmittanceCoeff = new Vector3dParameter("transmittanceCoeff", new Vector3d(0,0,0));
+    // 
+    private DoubleParameter mp_surfaceAlpha = new DoubleParameter("surfaceAlpha","Surface Alpha", 0.2);
+    
+
 
     private Parameter m_aparam[] = new Parameter[]{
         mp_materialType,
@@ -60,7 +72,8 @@ public class PhongParams extends RenderingParams {
         mp_ambientIntensity,
         mp_roughness,
         mp_gradientFactor,
-        mp_transmittanceCoeff
+        mp_transmittanceCoeff,
+        mp_surfaceAlpha
     };
 
     public PhongParams() {

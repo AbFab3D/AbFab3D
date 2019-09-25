@@ -81,7 +81,7 @@ public class ImageUtil {
     }
 
     /**
-       overlay topColor over backgroundColor and saver result into backgroundColor;
+       overlays topColor over backgroundColor and saves result into backgroundColor;
        colors have to be in premult form normalized to [0,1]
      */
     static public final void overlay(double backgroundColor[], double topColor[]){
