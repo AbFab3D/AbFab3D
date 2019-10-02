@@ -29,6 +29,8 @@ public abstract class UtilitiesFilesMenu extends JMenu {
         File dir = new File(LOC);
         File[] dirs = dir.listFiles();
 
+        if (dirs == null) return;
+
         for(int i=0; i < dirs.length; i++) {
             if (dirs[i].isDirectory()) {
                 printf("Checking dir for manifest\n");
