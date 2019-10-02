@@ -49,6 +49,7 @@ public class ShapeJSExecutorImpl implements ShapeJSExecutor {
             Class implClass = Class.forName(className);
             impl = (ShapeJSExecutor) implClass.newInstance();
         } catch(Exception cnfe) {
+            printf("Problem loading ShapeJSExecutorImpl: %s\n",className);
             cnfe.printStackTrace();
         }
     }
@@ -60,7 +61,7 @@ public class ShapeJSExecutorImpl implements ShapeJSExecutor {
 
             return true;
         } catch(Exception cnfe) {
-            cnfe.printStackTrace();
+            //cnfe.printStackTrace();
         }
         return false;
     }
