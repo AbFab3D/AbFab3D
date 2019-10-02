@@ -1,0 +1,50 @@
+{
+  "scriptPath": "../scripts/main.shapejs",
+  "scriptParams": {
+    "bezelAngle": 49.0,
+    "bezelHeight": 1.5,
+    "bezelUndercut": 1.9,
+    "edgesRounding": 0.6,
+    "engraveDepth": 0.5,
+    "grayscale": false,
+    "groundColor": {
+      "r": 0.9607843137254902,
+      "g": 0.9686274509803922,
+      "b": 0.9725490196078431,
+      "a": 1.0
+    },
+    "hasCutoff": true,
+    "hasImage": false,
+    "hasText": true,
+    "image": "../../../shared/resources/images/sw_logo.png",
+    "imageRounding": 0.0,
+    "imageScale": 0.9,
+    "imageThickness": 0.5,
+    "imageType": "Engraved",
+    "material": "SingleColor",
+    "purpose": "RENDER",
+    "ringRounding": 0.0,
+    "ringSize": 7.0,
+    "ringThickness": 1.5,
+    "ringWidth": 2.0,
+    "scaleZ": 1.0,
+    "signetRounding": 0.1,
+    "sizeStyle": "Small",
+    "skyColor": {
+      "r": 0.9607843137254902,
+      "g": 0.9686274509803922,
+      "b": 0.9725490196078431,
+      "a": 1.0
+    },
+    "text": "SS",
+    "textAngle": 0.0,
+    "textDepth": 0.5,
+    "textScale": 1.0,
+    "textType": "Engraved",
+    "textX": 0.0,
+    "textY": 0.0,
+    "undercutRadius": 10.0,
+    "userfont": "../../../shared/resources/fonts/BerkshireSwash/BerkshireSwash-Regular.ttf",
+    "voxelSize": 0.04
+  }
+}

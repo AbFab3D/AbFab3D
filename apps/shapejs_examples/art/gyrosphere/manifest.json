@@ -1,0 +1,12 @@
+{
+  "name": "gyrosphere",
+  "author": "Alan Huson",
+  "license": "BSD",
+  "scripts": [
+    "scripts/main.shapejs"
+  ],
+  "variants": [
+	  "variants/default.shapevar"
+  ],
+  "resources": []
+}
