@@ -1,0 +1,312 @@
+var JewelryLib = require('lib/jewelry.shapejs');
+var UtilLib = require('lib/util.shapejs');
+var SignetRingLib = require('lib/signet_ring.shapejs');
+var MaterialLib = require('lib/material.shapejs');
+
+var params =  [
+    {name: "ringSize",type: "double",defaultVal: 7,group: "main"},    
+    {name: "sizeStyle",label: "Size Style",desc: "Purpose",type: "Enum",values: ["Small", "Medium"], defaultVal: "Small", group: "main"},
+    
+    {name: "ringThickness",type: "double",defaultVal: 1.5,unit:"MM",group: "main"}, 
+    {name: "ringWidth",label: "ring width (mm)",type: "double",defaultVal: 2,unit:"MM",group: "main"},  
+    {name: "bezelHeight",label: "bezel height (mm)",type: "double",defaultVal: 1.5,unit:"MM",group: "main"},    
+    {name: "bezelUndercut", label: "bezel undercut (mm)",type: "double",defaultVal: 1.0,unit:"MM",group: "main"},   
+    {name: "bezelAngle",label: "bezel angle (degree)",type: "double",defaultVal: 20,group: "main"}, 
+    {name: "undercutRadius", type: "double",defaultVal: 10.,unit:"MM",group: "main"},   
+    {name: "scaleZ",type: "double",defaultVal: 1.,group: "main"},   
+    {name: "signetRounding",type: "double",defaultVal: 0.1,unit:"MM",group: "main"},    
+    {name: "hasCutoff",type: "boolean",defaultVal: true,group: "main"},
+    {name: "purpose",label: "Purpose",desc: "Purpose",type: "Enum",values: ["MESH", "RENDER", "PICK"], defaultVal: "RENDER", group: "main"},
+    {name: "voxelSize",desc: "Voxel Size",type: "double",rangeMin: 0.03,rangeMax: 1,step: 0.05,defaultVal: 0.04,unit:"MM",group: "main"},        
+    {name: "material",desc: "Material",type: "enum",values: Materials.getAllNames(),defaultVal: "SingleColor",group: "main"},   
+
+    // Image Params
+    {name: "hasImage", desc: "Has Image",type: "boolean", defaultVal: true, group: "image"},
+    {name: "image",type: "uri", defaultVal: "resources/sw_logo.png",group: "image"},
+    {name: "imageType",type: "enum",defaultVal: "Engraved", values: ["None","Cutout","Raised","Engraved"],group: "image"},    
+    {name: "imageThickness",type: "double",defaultVal: 10, unit:"MM", group: "image"},  
+    {name: "engraveDepth",type: "double",defaultVal: 0.5, unit:"MM",group: "image"},  
+    {name: "grayscale",type: "boolean",defaultVal: false,group: "image"},    
+    {name: "imageScale",type: "double",defaultVal: 0.95,group: "image"},  
+    {name: "ringRounding",type: "double",defaultVal: 0.2,unit:"MM",group: "image"}, 
+    {name: "edgesRounding",type: "double",defaultVal: 0.1,unit:"MM",group: "image"},  
+    {name: "imageRounding",type: "double",defaultVal: 0.0,unit:"MM",group: "image"},  
+    
+    // text params 
+    {name: "hasText", desc: "Has Text",type: "boolean", defaultVal: false, group: "text"},
+    {name: "text", desc: "Letter",  type: "String",  defaultVal: "b",  group: "text" },
+    {name: "userfont", desc: "Font", type: "uri", group: "text"},
+    {name: "textType",type: "enum",defaultVal: "Engraved", values: ["None","Cutout","Raised","Engraved"],group: "text"},    
+    {name: "textScale",type: "double",defaultVal: 0.9,group: "text"},    
+    {name: "textDepth", type: "double", defaultVal: 1, rangeMin: 0.1, rangeMax: 5, step: 0.1, unit:"MM",group:"text"},
+    {name: "textAngle", type: "double", defaultVal: 0, rangeMin: -3.1415, rangeMax: 3.1415, step: 0.1, group:"text"},
+    {name: "textX", desc: "Text X coord", type: "double", defaultVal: 0.0, unit:"MM", group:"text"},
+    {name: "textY", desc: "Text Y coord", type: "double", defaultVal: 0.0, unit:"MM", group:"text"},
+
+    {name: "skyColor", label: "Sky color", desc: "Sky color", type: "Color", defaultVal: "#F5F7F8", group: "main"},
+    {name: "groundColor", label: "Ground color", desc: "Ground color", type: "Color", defaultVal: "#F5F7F8", group: "main"}
+];
+
+function makeImage(path, width, height, thickness, grayscale,voxelSize){
+
+    var img = new Image3D(path, width, height, thickness);
+    img.setBaseThickness(0.0);
+    img.setBlurWidth(0.5*voxelSize);
+    img.setUseGrayscale(grayscale);
+    img.setBaseThreshold(0.1);
+    return img;
+}
+
+function makeImageMap(path, width, height, thickness,value,voxelSize){   
+    var img = new ImageMap(path, width, height, thickness);
+    img.setBlurWidth(0.5*voxelSize);
+    img.setBlackDisplacement(value);
+    img.setWhiteDisplacement(0*MM);    
+
+    return img;
+}
+
+function isLowerCase(str) {
+    return str === str.toLowerCase();
+}
+
+var tcx;
+var tcy;
+
+function getText(text,userfont,width,height,thickness, value) {
+    print("getText.  width: %f  height: %f\n",width/MM,height/MM);
+    var tbx = width;
+    var tby = height;
+    var tbz = thickness;
+    var tvs = height/250;  // text voxel size
+    var textInsets = 4*tvs;
+    
+    var text2d = new Text2D(text);
+    if (UtilLib.isDefined(userfont)) {
+        var font = loadFont(userfont);
+        text2d.setFont(font);
+    }
+
+    text2d.setFontStyle(Text2D.BOLD);
+    var spacing = 0*MM;
+    text2d.set("kerning",true);
+    text2d.set("spacing", spacing); // additional spacing between characters
+    text2d.setInset(textInsets);  // Removed insets as I think its wrongly implemented for getImageBounds
+    text2d.setVoxelSize(tvs);
+    text2d.setFit("none");
+    
+//    var fontsize = 18.0;
+    var fontsize = 16.22;
+    text2d.set("fontSize",fontsize);
+    
+    var ibounds = text2d.getImageBounds();
+    tbx = ibounds.getSizeX();
+    tby = ibounds.getSizeY();
+
+    // Reduce size till the text box radius fits the circle
+    var sx = tbx;
+    var sy = tby;
+    var r = Math.sqrt(sx*sx + sy*sy);
+    //print("Initial size: %f %f r: %f  max: %f\n",tbx/MM,tby/MM,r/MM,width/MM);
+    var tries = 0;
+    var max = 5;
+    while(r > width && tries < max) {
+        tries++;
+        var rat = width / r;
+        //print("rat: %f\n",rat);
+
+        fontsize = fontsize * rat;
+        print("Reducing size.  fs: %f\n",fontsize);
+        text2d.set("fontSize",fontsize);
+
+        var ibounds = text2d.getImageBounds();
+
+        tbx = ibounds.getSizeX();
+        tby = ibounds.getSizeY();
+        
+        sx = tbx;
+        sy = tby;
+        r = Math.sqrt(sx*sx + sy*sy);
+       //print("New size: %f %f r: %f  max: %f\n",tbx/MM,tby/MM,r/MM,width/MM);
+    }
+/*    
+        text2d.set("fontSize",fontsize*1.05);
+
+        var ibounds = text2d.getImageBounds();
+
+        tbx = ibounds.getSizeX();
+        tby = ibounds.getSizeY();
+*/    
+/*    
+    if(tbx > width) {
+        var rat = width / tbx;
+        fontsize = fontsize * rat;
+        print("Reducing width.  fs: %f\n",fontsize);
+        text2d.set("fontSize",fontsize);
+
+        var ibounds = text2d.getImageBounds();
+
+        tbx = ibounds.getSizeX();
+        tby = ibounds.getSizeY();
+    }
+
+    if(tby > height) {
+        var rat = height / tby;
+
+        fontsize = fontsize * rat;
+        print("Reducing height.  fs: %f\n",fontsize);
+        text2d.set("fontSize",fontsize);
+
+        var ibounds = text2d.getImageBounds();
+
+        tbx = ibounds.getSizeX();
+        tby = ibounds.getSizeY();
+    }
+}
+*/
+
+    //print("img log: %s\n",text2d.getImage());
+    //print("Image size: %f x %f\n",tbx/MM,tby/MM);
+    var textBox = new ImageMap(text2d, tbx, tby, tbz);
+
+    textBox.setBlurWidth(tvs);
+    textBox.setBlackDisplacement(value);
+    textBox.setWhiteDisplacement(0*MM);
+
+    return textBox;
+}
+
+
+function main(args){    
+    // see signet_ring.svg for drawing
+
+    // user definable variables   
+    var imageThickness = args.imageThickness;
+
+    var ringSize = JewelryLib.usRingSizeToDiameter(args.ringSize);
+    var ringThickness = args.ringThickness;
+    var ringWidth = args.ringWidth;
+    var grayscale = args.grayscale;
+    var bezelAngle = args.bezelAngle*PI/180; // angle of bezel sides, good values are between PI/5 and PI/20
+  
+    var bezelHeight = args.bezelHeight;  // thickness of the ring bezel
+
+    var imagePath = args.image;
+    var imageScale = args.imageScale; // size of image relative to bezel size
+    var textScale = args.textScale; // size of image relative to bezel size
+    var rounding = args.ringRounding;
+    var edgesRounding = args.edgesRounding;
+    var signetRounding = args.signetRounding;
+    var imageRounding = args.imageRounding;
+    var scaleZ = args.scaleZ;
+    // end of user definable variables
+
+    var imageWidth = imageScale*SignetRingLib.getImageSize(args);
+    var imageHeight = imageWidth;
+    var textWidth = textScale*SignetRingLib.getImageSize(args);
+    var textHeight = textWidth;
+    
+    var ringParams = {
+            "ringSize":args.ringSize,
+            "ringThickness":args.ringThickness,
+        }
+    
+    var bezelTop = SignetRingLib.getBevelTop(args);
+    var sceneSize = JewelryLib.usRingSizeToDiameter(16) * 1.5;  // Fixed so we can see size changes
+
+    
+    var fullRing = SignetRingLib.getSignetRing(args);
+    var ringWithImage = fullRing;
+    
+    if (args.hasImage) {
+        if(args.imageType == "Cutout"){        
+            var image = makeImage(imagePath, imageWidth, imageHeight,imageThickness, grayscale,args.voxelSize);
+            image.set("rounding",imageRounding);
+            image.addTransform(new Rotation(new Vector3d(1,0,0), -Math.PI/2));
+            image.addTransform(new Translation(0,bezelTop, 0));
+            ringWithImage = new Subtraction(fullRing, image);
+            ringWithImage.setBlend(imageRounding);
+        } else if(args.imageType == "Embossed"){        
+            var image = makeImage(imagePath, imageWidth, imageHeight,imageThickness,  grayscale, args.voxelSize);
+            image.set("rounding",imageRounding);
+            image.addTransform(new Rotation(new Vector3d(1,0,0), -Math.PI/2));
+            image.addTransform(new Translation(0,bezelTop, 0));
+            ringWithImage = new Union(fullRing, image);
+            ringWithImage.setBlend(imageRounding);
+        } else if(args.imageType == "Engraved"){
+            var imageValue = args.engraveDepth;
+            var imageDepth = imageValue*2;
+    
+            if(args.imageStyle == "engraved")
+                imageValue *= -1;
+    
+            var image = makeImageMap(imagePath, imageWidth, imageHeight,imageDepth, imageValue,args.voxelSize);
+            
+            image.addTransform(new Rotation(new Vector3d(1,0,0), -Math.PI/2));
+            image.addTransform(new Translation(0,bezelTop, 0));
+            
+            ringWithImage = new Add(fullRing, image);
+        }
+    }
+    
+    if (args.hasText) {
+        if(args.textType == "Cutout"){        
+            var image = makeImage(imagePath, imageWidth, imageHeight,imageThickness, grayscale, args.voxelSize);
+            image.set("rounding",imageRounding);
+            image.addTransform(new Rotation(new Vector3d(1,0,0), -Math.PI/2));
+            image.addTransform(new Translation(0,bezelTop, 0));
+            ringWithImage = new Subtraction(fullRing, image);
+            ringWithImage.setBlend(imageRounding);
+        } else if(args.imageType == "Embossed"){        
+            var image = makeImage(imagePath, imageWidth, imageHeight,imageThickness,  grayscale, args.voxelSize);
+            image.set("rounding",imageRounding);
+            image.addTransform(new Rotation(new Vector3d(1,0,0), -Math.PI/2));
+            image.addTransform(new Translation(0,bezelTop, 0));
+            ringWithImage = new Union(fullRing, image);
+            ringWithImage.setBlend(imageRounding);
+        } else if(args.imageType == "Engraved"){
+            var textValue = args.textDepth;
+            var textDepth = textValue*2;
+    
+            if(args.textStyle == "engraved")
+                textValue *= -1;
+    
+            var image = getText(args.text,args.userfont,textWidth,textHeight,textDepth, textValue);
+            image.addTransform(new Rotation(new Vector3d(1,0,0), -Math.PI/2));
+            image.addTransform(new Translation(args.textX,bezelTop, args.textY));
+            
+            ringWithImage = new Add(fullRing, image);
+/*
+            var s = 2*5.0*MM/2;
+            var dsphere = new Box(s,s,s);
+            dsphere.addTransform(new Translation(args.textX,bezelTop, args.textY));
+            ringWithImage = new Union(ringWithImage,dsphere);
+*/
+        }
+    }
+        
+  var w = sceneSize/2;
+    var bounds = new Bounds(-w,w,-w,w,-w,w);
+    
+    ringWithImage.rotate(new Vector3d(1,0,0),Math.PI/2);  // Rotate to have top of ring face user
+        
+    var shape = new Shape(ringWithImage, Materials.get(args.material));
+    
+    var scene = new Scene(shape,bounds,args.voxelSize);
+    scene.setName("SignetRing");
+
+    // Clean up rendering
+    var tp = scene.get("tracingParams");
+    tp.clear();
+    var skip = 0.7;
+
+    tp.add(new TracingParams(TracingParams.ModeType.NORMAL, 1e-3, skip));
+    
+    MaterialLib.setEnvMap(scene, args.skyColor, args.groundColor);
+    MaterialLib.setLighting(scene);
+  
+    // This needs to be smaller for larger scenes...
+    scene.setGradientStep(0.00005);
+    
+    return scene;
+}

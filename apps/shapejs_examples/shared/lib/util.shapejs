@@ -1,0 +1,177 @@
+// General utility functions
+
+function toRad(deg) {
+    return deg * Math.PI/180;
+}
+exports.toRad = toRad;
+
+function toDeg(rad) {
+    return rad * 180/Math.PI;
+}
+exports.toDeg = toDeg;
+
+// Get a frame defined by the bounds.
+function getFrame(bounds) {
+    // bounds object for debug
+    var bbox = new Box(bounds.getCenterX(),bounds.getCenterY(),bounds.getCenterZ(),bounds.getSizeX(),bounds.getSizeY(),bounds.getSizeZ());
+    var bs = 0.99;
+
+    bbox = bbox.subtract(new Box(bounds.getCenterX(),bounds.getCenterY(),bounds.getCenterZ(),bounds.getSizeX()*1.1,bounds.getSizeY()*bs,bounds.getSizeZ()*bs));
+    bbox = bbox.subtract(new Box(bounds.getCenterX(),bounds.getCenterY(),bounds.getCenterZ(),bounds.getSizeX()*bs,bounds.getSizeY()*1.1,bounds.getSizeZ()*bs));
+    bbox = bbox.subtract(new Box(bounds.getCenterX(),bounds.getCenterY(),bounds.getCenterZ(),bounds.getSizeX()*bs,bounds.getSizeY()*bs,bounds.getSizeZ()*1.1));
+    
+    return bbox;
+}
+exports.getFrame = getFrame;
+
+function getAxisLabel(text,size,depth){	
+	var width = size;
+	var height = size;
+
+	var vs = size/100;
+	var text = new Text2D(text);
+	
+	//text.set("fontName", "Times New Roman");//Courier New");
+
+	var pwidth = text.getPreferredWidth();
+	var pheight = height;
+
+	if(pwidth > width) {
+		pheight = height * (width/pwidth);
+		pwidth = width;
+	} 
+
+    var image = new Image3D(text, pwidth, pheight, depth, vs);
+	image.set("useGrayscale", false);
+    image.setBaseThreshold(0.1);
+    image.setBaseThickness(0);
+
+	image.set("blurWidth", vs);
+	image.set("rounding", 3*vs);
+	//image.set("center", new Vector3d(size/2, size/2, size/2));
+	return image;
+
+}
+
+// Get geomtetry showing the axis coordinate system
+// Expands bounds to fit
+function getAxisGeometry(size,bounds) {
+	var axisSize = size/15;
+	var headSize = size/4;
+	var letterSize = size/5;
+	
+	var totSize = size + headSize;
+	
+	// Y axis 
+	var yline = Cylinder(new Vector3d(0,0,0),Vector3d(0,size,0),axisSize);
+	var yhead = new Cone(new Vector3d(0,size+headSize,0),new Vector3d(0,-1,0),Math.PI/7);
+	
+	var subhead = new Plane(new Vector3d(0,1,0),size);
+	yhead = yhead.subtract(subhead);
+	var ylabel = getAxisLabel("Y",letterSize,0.5*MM);
+	ylabel.translate(0,size+headSize/2,2*MM);
+		
+	var yaxis = new Union(yline,yhead);
+	yaxis.add(ylabel);
+	
+	// X axis 
+	var xline = Cylinder(new Vector3d(0,0,0),Vector3d(size,0,0),axisSize);
+	var xhead = new Cone(new Vector3d(size+headSize,0,0),new Vector3d(-1,0,0),Math.PI/7);
+	
+	var subhead = new Plane(new Vector3d(1,0,0),size);
+	xhead = xhead.subtract(subhead);
+	var xlabel = getAxisLabel("X",letterSize,0.5*MM);
+	xlabel.translate(size+headSize/2,0,2*MM);
+		
+	var xaxis = new Union(xline,xhead);
+	xaxis.add(xlabel);
+
+	// Z axis 
+	var zline = Cylinder(new Vector3d(0,0,0),Vector3d(0,0,size),axisSize);
+	var zhead = new Cone(new Vector3d(0,0,size+headSize),new Vector3d(0,0,-1),Math.PI/7);
+	
+	var subhead = new Plane(new Vector3d(0,0,1),size);
+	zhead = zhead.subtract(subhead);
+	var zlabel = getAxisLabel("Z",letterSize,0.5*MM);
+	zlabel.translate(2*MM,0,size+headSize/2);
+		
+	var zaxis = new Union(zline,zhead);
+	zaxis.add(zlabel);
+	
+	var result = new Union(xaxis,yaxis);
+	result = result.union(zaxis);
+	
+	var bsize = bounds.getSizeMin();
+	
+	if (bsize < totSize*2) {
+		bounds.expand(2*totSize-bsize);
+	}
+	
+	return result;
+}
+exports.getAxisGeometry = getAxisGeometry;
+
+// Get a rendering bounds that allows for object nav instead of scene nav
+function getRenderBounds(bounds) {        
+    var cx = bounds.getCenterX();
+    var cy = bounds.getCenterY();
+    var cz = bounds.getCenterZ();
+    
+    //var s = bounds.getSizeMax() / 2;
+    //var bounds = new Bounds(cx-s,cx+s,cy-s,cy+s,cz-s,cz+s);
+    
+    // Need to get the longest diagonal on an axis aligned plane for bounds
+    // Assuming models are designed to align with axis
+    var sx = bounds.getSizeX();
+    var sy = bounds.getSizeY();
+    var sz = bounds.getSizeZ();
+    var dxy = Math.sqrt(sx*sx + sy*sy);
+    var dxz = Math.sqrt(sx*sx + sz*sz);
+    var dyz = Math.sqrt(sy*sy + sz*sz);
+    
+    var s = Math.max(dxy, dxz, dyz) / 2;
+    var bounds = new Bounds(cx-s,cx+s,cy-s,cy+s,cz-s,cz+s);
+    
+    return bounds;
+}
+exports.getRenderBounds = getRenderBounds;
+
+// Get a rendering bounds that allows for object nav instead of scene nav
+function centerBounds(bounds) {        
+    var s = bounds.getSizeMax() / 2;
+    var bounds = new Bounds(-s,+s,-s,+s,-s,+s);
+    
+    return bounds;
+}
+exports.centerBounds = centerBounds;
+
+//
+//  helper return true if a is defined 
+//
+function isDefined(a){
+    return !(a === undefined);
+}
+exports.isDefined = isDefined;
+
+//
+//  return param if it is defined or value if param is undefined
+//
+function getParam(param, value){
+    if(isDefined(param)) 
+        return param;
+    else 
+        return value;
+}
+exports.getParam = getParam;
+
+function staticImportLib(lib,ns) { 
+    for(var key in lib) { 
+       ns[key] = lib[key];
+    }
+}
+exports.staticImportLib = staticImportLib;
+
+function staticImport(lib,ns,func) { 
+   ns[func] = lib[func];
+}
+exports.staticImport = staticImport;

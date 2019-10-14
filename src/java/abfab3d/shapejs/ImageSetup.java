@@ -50,8 +50,6 @@ public class ImageSetup implements Cloneable {
     /** Should lights cast shadows */
     public float shadowQuality;
 
-    /** How many ray samples for lights */
-    public int lightSamples;
     public int maxRayBounces;
     public RenderingStyle renderingStyle;
     /** Should we flip the image vertically */
@@ -59,7 +57,7 @@ public class ImageSetup implements Cloneable {
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality,
                       int aa, boolean bumpMaps,
-                      float shadowQuality, int lightSamples) {
+                      float shadowQuality) {
         this.width = width;
         this.height = height;
         this.view = view;
@@ -68,7 +66,6 @@ public class ImageSetup implements Cloneable {
         this.aa = aa;
         this.bumpMaps = bumpMaps;
         this.shadowQuality = shadowQuality;
-        this.lightSamples = lightSamples;
         this.renderingStyle = RenderingStyle.MATERIAL;
         this.maxRayBounces = 0;
         this.objTrans = new Matrix4f();
@@ -77,7 +74,7 @@ public class ImageSetup implements Cloneable {
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality,
                       AntiAliasingType aa, boolean bumpMaps,
-                      float shadowQuality, int lightSamples) {
+                      float shadowQuality) {
         this.width = width;
         this.height = height;
         this.view = view;
@@ -86,7 +83,6 @@ public class ImageSetup implements Cloneable {
         this.aa = AntiAliasingType.getNumSamples(aa);
         this.bumpMaps = bumpMaps;
         this.shadowQuality = shadowQuality;
-        this.lightSamples = lightSamples;
         this.renderingStyle = RenderingStyle.MATERIAL;
         this.maxRayBounces = 0;
         this.objTrans = new Matrix4f();
@@ -95,7 +91,7 @@ public class ImageSetup implements Cloneable {
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality, AntiAliasingType aa,
                       RenderingStyle style, boolean bumpMaps,
-                      float shadowQuality, int lightSamples) {
+                      float shadowQuality) {
         this.width = width;
         this.height = height;
         this.view = view;
@@ -104,7 +100,6 @@ public class ImageSetup implements Cloneable {
         this.aa = AntiAliasingType.getNumSamples(aa);
         this.bumpMaps = bumpMaps;
         this.shadowQuality = shadowQuality;
-        this.lightSamples = lightSamples;
         this.renderingStyle = style;
         this.maxRayBounces = 0;
         this.objTrans = new Matrix4f();
@@ -113,7 +108,7 @@ public class ImageSetup implements Cloneable {
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality,
                       AntiAliasingType aa, boolean bumpMaps,
-                      float shadowQuality, int lightSamples, int maxRayBounces) {
+                      float shadowQuality, int maxRayBounces) {
         this.width = width;
         this.height = height;
         this.view = view;
@@ -122,7 +117,6 @@ public class ImageSetup implements Cloneable {
         this.aa = AntiAliasingType.getNumSamples(aa);
         this.bumpMaps = bumpMaps;
         this.shadowQuality = shadowQuality;
-        this.lightSamples = lightSamples;
         this.renderingStyle = RenderingStyle.MATERIAL;
         this.maxRayBounces = maxRayBounces;
         this.objTrans = new Matrix4f();
@@ -131,7 +125,7 @@ public class ImageSetup implements Cloneable {
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality,
                       int aa, boolean bumpMaps,
-                      float shadowQuality, int lightSamples, int maxRayBounces) {
+                      float shadowQuality, int maxRayBounces) {
         this.width = width;
         this.height = height;
         this.view = view;
@@ -140,7 +134,6 @@ public class ImageSetup implements Cloneable {
         this.aa = aa;
         this.bumpMaps = bumpMaps;
         this.shadowQuality = shadowQuality;
-        this.lightSamples = lightSamples;
         this.renderingStyle = RenderingStyle.MATERIAL;
         this.maxRayBounces = maxRayBounces;
         this.objTrans = new Matrix4f();
@@ -149,7 +142,7 @@ public class ImageSetup implements Cloneable {
 
     public ImageSetup(int width, int height, Matrix4f view, int imgType, float quality, AntiAliasingType aa,
                       RenderingStyle style, boolean bumpMaps,
-                      float shadowQuality, int lightSamples, int maxRayBounces) {
+                      float shadowQuality, int maxRayBounces) {
         this.width = width;
         this.height = height;
         this.view = view;
@@ -158,7 +151,6 @@ public class ImageSetup implements Cloneable {
         this.aa = AntiAliasingType.getNumSamples(aa);
         this.bumpMaps = bumpMaps;
         this.shadowQuality = shadowQuality;
-        this.lightSamples = lightSamples;
         this.renderingStyle = style;
         this.maxRayBounces = maxRayBounces;
         this.objTrans = new Matrix4f();
@@ -175,7 +167,6 @@ public class ImageSetup implements Cloneable {
         this.aa = AntiAliasingType.getNumSamples(AntiAliasingType.NONE);
         bumpMaps = false;
         shadowQuality = 0;
-        lightSamples = 1;
         this.renderingStyle = RenderingStyle.MATERIAL;
         maxRayBounces = 0;
         this.objTrans = new Matrix4f();
@@ -259,10 +250,6 @@ public class ImageSetup implements Cloneable {
         this.shadowQuality = shadowQuality;
     }
 
-    public void setLightSamples(int lightSamples) {
-        this.lightSamples = lightSamples;
-    }
-
     public void setMaxRayBounces(int maxRayBounces) {
         this.maxRayBounces = maxRayBounces;
     }
@@ -305,10 +292,6 @@ public class ImageSetup implements Cloneable {
 
     public float getShadowQuality() {
         return shadowQuality;
-    }
-
-    public int getLightSamples() {
-        return lightSamples;
     }
 
     public int getMaxRayBounces() {

@@ -15,11 +15,7 @@ package abfab3d.intersect;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.core.MathUtil;
-import abfab3d.core.Bounds;
-import abfab3d.core.ResultCodes;
-import abfab3d.core.DataSource;
-import abfab3d.core.Vec;
+import abfab3d.core.*;
 
 import abfab3d.util.PointSetArray;
 
@@ -37,7 +33,7 @@ import static abfab3d.core.Units.MM;
 
 
 /**
-   DataSourceIntersector used to find intersectio of ray with given signed distance data source 
+   DataSourceIntersector used to find intersection of ray with given signed distance data source
 
    @author Vladimir Bulatov
  */
@@ -68,6 +64,7 @@ public class DataSourceIntersector extends BaseParameterizable{
         mp_maxDistance,
         mp_voxelSize,
         mp_dimension,
+        mp_maxSteps
     };
 
     
@@ -87,14 +84,13 @@ public class DataSourceIntersector extends BaseParameterizable{
         initialize(dataSource);
 
         int maxSteps = mp_maxSteps.getValue();
-        double minStep = mp_minStep.getValue();
         int dataChannelIndex = 0;
         double step = mp_minStep.getValue();
         double maxDistance = mp_maxDistance.getValue();
 
         Vec pnt = new Vec(3);
         Vec value = new Vec(dataSource.getChannelsCount());
-        
+
         pnt.set(start);
         dataSource.getDataValue(pnt, value);
         double dist0 = 0; // distance to travel along the ray 
@@ -117,6 +113,7 @@ public class DataSourceIntersector extends BaseParameterizable{
             pnt.addSet(dir);
             dataSource.getDataValue(pnt, value);            
             double value1 = value.v[dataChannelIndex];
+
             if(value1 < 0){
                 double d = dist0 - value0*(dist1-dist0)/(value1 - value0);
                 Vector3d end = new Vector3d(start);
@@ -140,11 +137,9 @@ public class DataSourceIntersector extends BaseParameterizable{
        
        @param shape represented via signed distance function 
        @param probe represented as signed distance function 
-       @param start initial locatiin of probe 
-       @param direction normalized ray direction 
-
-       @param intersection point of contact returned in that vector 
-       @return result of intersection 
+       @param start initial location of probe
+       @param direction normalized ray direction
+       @return result of intersection
               
      */
     public Result getShapesIntersection(DataSource shape, DataSource probe, Vector3d start, Vector3d direction){

@@ -1,0 +1,15 @@
+{
+  "name": "ring_signet",
+  "author": "Alan Huson",
+  "license": "BSD",
+  "scripts": [
+    "scripts/main.shapejs"
+  ],
+  "variants": [
+    "variants/signet_image_large.shapevar",
+    "variants/signet_image_small.shapevar",
+    "variants/signet_image_large.shapevar",
+    "variants/signet_image_small.shapevar"
+  ],
+  "resources": []
+}

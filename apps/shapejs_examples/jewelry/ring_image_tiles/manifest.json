@@ -1,0 +1,17 @@
+{
+  "name": "ring_image_tiles",
+  "author": "Alan Hudson",
+  "license": "BSD",
+  "scripts": [
+    "scripts/main.shapejs",
+    "lib/material.shapejs",
+    "lib/jewelry.shapejs"
+  ],
+  "variants": [
+    "variants/stars.shapevar",
+    "variants/tiled.shapevar",
+    "variants/mustache.shapevar",
+    "variants/honeycomb.shapevar"
+  ],
+  "resources": []
+}

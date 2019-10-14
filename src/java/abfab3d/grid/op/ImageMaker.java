@@ -37,6 +37,7 @@ import abfab3d.param.SNodeParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.Parameterizable;
 
+import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 import static abfab3d.util.ImageUtil.makeARGB;
 
@@ -54,7 +55,8 @@ import static abfab3d.util.ImageUtil.makeARGB;
    data.v[3] - ALPHA 
  */
 public class ImageMaker extends BaseParameterizable implements ImageProducer {
-    
+    private static final boolean DEBUG = true;
+
     protected int m_imgType = BufferedImage.TYPE_INT_ARGB;
 
     private Slice[] m_slices;
@@ -157,7 +159,19 @@ public class ImageMaker extends BaseParameterizable implements ImageProducer {
     }
 
     public void renderImage(int[] imageData) {
-        renderImage(mp_width.getValue(),mp_height.getValue(),getBounds(),(DataSource)mp_imgRenderer.getValue(),imageData);
+        int threadCount = mp_threadCount.getValue();
+        if (threadCount == 0) {
+            threadCount = Runtime.getRuntime().availableProcessors();
+        }
+
+        int max = (int) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY);
+        if (threadCount > max) threadCount = max;
+
+        if (threadCount == 1) {
+            renderImage(mp_width.getValue(), mp_height.getValue(), getBounds(), (DataSource) mp_imgRenderer.getValue(), imageData);
+        } else {
+            renderImageMT(mp_width.getValue(), mp_height.getValue(), getBounds(), (DataSource) mp_imgRenderer.getValue(), imageData, threadCount);
+        }
     }
     
 
@@ -181,6 +195,9 @@ public class ImageMaker extends BaseParameterizable implements ImageProducer {
         int max = (int) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY);
         if (threadCount > max) threadCount = max;
 
+        if (DEBUG) {
+            printf("ImageMaker.threads: %d\n",threadCount);
+        }
         if (threadCount == 1) {
             renderImage(width, height, bounds, imgRenderer, imageData);
         } else {
@@ -276,10 +293,13 @@ public class ImageMaker extends BaseParameterizable implements ImageProducer {
             this.bounds = bounds;
             this.imgRenderer = imgRenderer;
             this.imageData = imageData;
+
+            if (width * height > imageData.length) {
+                throw new IllegalArgumentException(fmt("ImageData is too small.  w: %d  h: %d  size: %d id.size: %d\n",width,height,width*height,imageData.length));
+            }
         }
 
         public void run(){
-
             Vec pnt = new Vec(3);
             Vec data = new Vec(4);
             double du = bounds.getSizeX()/width;
@@ -335,9 +355,9 @@ public class ImageMaker extends BaseParameterizable implements ImageProducer {
                     }
                 }
             } catch(Throwable t) {
-                printf("Problem on slice: %d / %d  off: %d / %d\n",v,height,offset,imageData.length);
                 t.printStackTrace();
                 System.out.flush();
+                printf("Problem on slice: %d / %d  off: %d / %d\n",v,height,offset,imageData.length);
             }
         }
     } //class ImageRunner

@@ -1,0 +1,115 @@
+var MaterialLib = require('lib/material.shapejs');
+var JewelryLib = require('lib/jewelry.shapejs');
+var UtilLib = require('lib/util.shapejs');
+
+/*
+ * Create a ring from image tiles
+ * 
+ * Issues:
+ *    honeycomb example:  ends do not match exactly.  Likely because of image processing
+ */
+var uiParams = [
+  {name: "image",label: "Pattern",desc: "Image",type: "uri",defaultVal: "urn:shapeways:stockImage:shapeways_logo",mimeType:["image/png","image/jpg"],group: "Pattern"},
+  {name: "grayscale",label: "Use Grayscale",type: "Boolean",defaultVal: false,group: "Pattern"},
+  {name: "size",label: "Ring Size",desc: "US Ring Size", type: "double",rangeMin: 0,rangeMax: 16,step: 0.25,defaultVal: 11.5,group: "Ring Measurements"},
+  {name: "ringWidth",desc: "The ring width(Finger Length)",type: "double",rangeMin: 2,rangeMax: 30,step: 0.25,defaultVal: 20,group: "Ring Measurements",unit: "MM"},
+  {name: "ringThickness",desc: "The thickness of the ring",type: "double",rangeMin: 0.1,rangeMax: 30,step: 0.25,defaultVal: 1.4,group: "Ring Measurements",unit: "MM"},
+  {name: "baseThickness",desc: "The thickness percent of the ring base",type: "double",rangeMin: 0,rangeMax: 1,step: 0.1,defaultVal: 0,group: "Ring Measurements"},
+  {name: "topBorderWidth",desc: "The width of the top border",type: "double",rangeMin: 0,rangeMax: 1,step: 0.1,defaultVal: 0,group: "Borders",unit: "MM"},
+  {name: "bottomBorderWidth",desc: "The width of the bottom border",type: "double",rangeMin: 0,rangeMax: 1,step: 0.1,defaultVal: 0,group: "Borders",unit: "MM"},
+  {name: "tileWidth",desc: "Tiling in Width",type: "integer",rangeMin: 1,rangeMax: 8,step: 1,defaultVal: 1,group: "Pattern"},
+  {name: "tileHeight",desc: "Tiling in Height",type: "integer",rangeMin: 1,rangeMax: 8,step: 1,defaultVal: 1,group: "Pattern"},
+  {name: "text",label: "Text",desc: "Text",type: "string",group: "Engraving"},
+  {name: "textFont",desc: "Font",type: "uri",group: "Engraving"},
+  {name: "textSize",desc: "Text Size(PT)",type: "double",rangeMin: 1,rangeMax: 16,step: 0.1,defaultVal: 7,unit: "PT",group: "Engraving"},
+  {name: "textDepth",desc: "Text Depth",type: "double",rangeMin: 0,rangeMax: 3,step: 0.05,defaultVal: 0.3,unit: "MM",group: "Engraving"},
+  {name: "material",desc: "Material",type: "enum",values: Materials.getAllNames(),defaultVal: "SingleColor",group: "Rendering"},  
+  {name: "skyColor", label: "Sky color", desc: "Sky color", type: "Color", defaultVal: "#F5F7F8", group: "Rendering"},
+  {name: "groundColor", label: "Ground color", desc: "Ground color", type: "Color", defaultVal: "#F5F7F8", group: "Rendering"}
+];
+
+var vs = 0.1 * MM;
+
+function makeBand(args) {
+  var bandLength = JewelryLib.usRingSizeToDiameter(args.size) * Math.PI;
+
+  var imgBox = new Image3D(args.image,bandLength,args.ringWidth, args.ringThickness, vs);
+  if (args.grayscale) {
+    imgBox.setUseGrayscale(true);
+  } else {
+    imgBox.setUseGrayscale(false);
+  }
+
+  imgBox.setBaseThickness(args.baseThickness);
+  imgBox.setBaseThreshold(0.5);
+  imgBox.setBlurWidth(0.1*MM);
+  imgBox.setTiles(args.tileWidth,args.tileHeight);
+  imgBox.setCenter(0,0,args.ringThickness/2);
+
+  var union = new Union();
+  union.add(imgBox);
+
+  if (args.topBorderWidth !== undefined && args.topBorderWidth > 0) {
+    var top_band = new Box(0, args.ringWidth / 2 + args.topBorderWidth / 2, args.ringThickness / 2,
+      bandLength, args.topBorderWidth, args.ringThickness);
+    union.add(top_band);
+  }
+
+  if (args.bottomBorderWidth !== undefined && args.bottomBorderWidth > 0) {
+    var bottom_band = new Box(0, -args.ringWidth / 2 - args.bottomBorderWidth / 2, args.ringThickness / 2,
+      bandLength, args.bottomBorderWidth, args.ringThickness);
+    union.add(bottom_band);
+  }
+
+  return union;
+}
+
+function main(args) {
+  var result;
+  var band = makeBand(args);
+  var result = band;
+  
+  var ct = new CompositeTransform();
+  ct.add(new RingWrap(JewelryLib.usRingSizeToDiameter(args.size) / 2));
+  result.setTransform(ct);
+
+  if (UtilLib.isDefined(args.text)) {
+    var engraving = JewelryLib.getRingText(
+      {
+        text: args.text,
+        radius: JewelryLib.usRingSizeToDiameter(args.size) / 2,
+        textDepth: args.textDepth,
+        textSize: args.textSize,
+        textFont: args.textFont
+      }
+    );
+    
+    result = new Subtraction(result,engraving);
+  }
+
+  var margin = 1*MM;
+  var w = JewelryLib.usRingSizeToDiameter(args.size) + margin;
+  var h = (args.ringWidth + args.topBorderWidth + args.bottomBorderWidth) + margin;
+  var d = w;
+
+  var bounds = new Bounds(-w,w,-h,h,-d,d);
+  
+  var shape = new Shape(result, Materials.get(args.material));
+  
+  var scene = new Scene(shape,bounds,vs);
+  scene.setMeshErrorFactor(0.1);
+  scene.setMaxPartsCount(1);
+
+  var tp = scene.get("tracingParams");
+  tp.clear();
+  var skip = 0.25;
+
+  tp.add(new TracingParams(TracingParams.ModeType.NORMAL, 1e-3, skip));
+
+  scene.setTracingParams(tp);
+
+  MaterialLib.setEnvMap(scene, args.skyColor, args.groundColor);
+  MaterialLib.setLighting(scene);
+
+  return scene;
+}

@@ -183,7 +183,7 @@ public class ShapeList extends TransformableDataSource implements SNode {
         Shape dss[] = vShapes;
         
         double value = Double.MAX_VALUE;
-        int matIdx=0;
+        int matIdx = 0;
 
         //TODO garbage collecton 
         Vec pnt1 = new Vec(pnt);
@@ -193,7 +193,6 @@ public class ShapeList extends TransformableDataSource implements SNode {
             DataSource ds = dss[i].getSource();
             pnt1.set(pnt);
             ds.getDataValue(pnt1, data);
-            double v = data.v[0];
 
             if (data.v[0] < value) {
                 value = data.v[0];

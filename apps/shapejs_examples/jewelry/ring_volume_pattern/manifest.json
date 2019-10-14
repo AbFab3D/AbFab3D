@@ -1,0 +1,14 @@
+{
+  "name": "volume_pattern_ring",
+  "author": "Alan Hudson",
+  "license": "BSD",
+  "scripts": [
+    "scripts/main.shapejs",
+    "lib/jewelry.shapejs"    
+  ],
+  "variants": [
+    "variants/schwarzp.shapevar",
+    "variants/gyroid.shapevar"
+  ],
+  "resources": []
+}

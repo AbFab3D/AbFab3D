@@ -1,0 +1,223 @@
+var UtilLib = require('lib/util.shapejs');
+
+function getNgonTransform(N) {
+    var alpha = Math.PI/N;
+
+    var splanes = [];
+    splanes[0] = new ReflectionSymmetry.getPlane(new Vector3d(0,-1,0),0);
+    splanes[1] = new ReflectionSymmetry.getPlane(new Vector3d(-Math.sin(alpha), Math.cos(alpha),0),0);
+    return new ReflectionSymmetry(splanes);
+}
+exports.getNgonTransform = getNgonTransform;
+
+function usRingSizeToDiameter(size) {
+  var diameter = 11.63*MM + (0.8128 * MM * size); // TODO: add 2% for shrinkage?
+
+  return diameter;
+}
+exports.usRingSizeToDiameter = usRingSizeToDiameter;
+
+// A earring stud
+function getStud(par) {
+    var pinLen = par.pinLen;    
+    var pinThick = par.pinThick;
+    var headLen = par.headLen;
+    var headThick = par.headThick;
+    
+    var ret = new Union();
+    var pin = new Cylinder(new Vector3d(0,0,0), new Vector3d(0,0,0-pinLen),pinThick/2);
+    var pinhead = new Sphere(0,0,0-pinLen+pinThick/12,pinThick/2);
+    var lhead = new Sphere(0,0,0-pinLen-pinThick/2,pinThick/2);
+
+    ret.add(pin);
+    ret.add(pinhead);
+    ret.add(lhead);
+    
+    return ret;
+}
+exports.getStud = getStud;
+
+// Bail made from a torus
+function getBailTorus(x0,y0,z0,stretch,rot,torusInner, bailThickness) {
+
+    // Create bail
+    var R = (torusInner + bailThickness) / 2;
+    var r = bailThickness / 2;
+    var center = new Vector3d(x0, y0, z0);
+    var axis = new Vector3d(1,0,0);
+//    var torus = new Torus(center, axis, R, r);
+    var torus = new Torus(new Vector3d(0,0,0), axis, R, r);
+    torus.addTransform(new Scale(1,stretch,1));
+    torus.addTransform(new Rotation(new Vector3d(0,0,1),rot));                    
+    torus.addTransform(new Translation(center));
+    
+    return torus;
+}
+exports.getBailTorus = getBailTorus;
+
+// V Shaped bail
+function getBailV(x0,y0,z0,w1,w2,d1,d2,bt,sd) {
+
+    var cylinder = new Cylinder(new Vector3d(x0-w1,y0,z0),new Vector3d(x0+w1,y0,z0),d1/2);
+
+    var pl1 = new Vector3d(x0-w1/2,y0+d1/2,z0);
+    var pl2 = new Vector3d(x0-w2/2,y0-d1/2,z0);
+
+    //print("pl1: " + pl1.x + " " + pl1.y + " " + pl1.z);
+
+    var dx = pl2.x - pl1.x;
+    var dy = pl2.y - pl1.y;
+    var dz = pl2.z - pl1.z;
+
+  //print("dx: " + dx + " dy: " + dy + " dz: " + dz);
+    var d = -1;
+
+    var plt = new Vector3d(pl1.x + d * dx, pl1.y + d * dy, pl1.z + d * dz);
+    var plb = new Vector3d(pl2.x - d * dx, pl2.y - d * dy, pl2.z - d * dz);
+  //print("plt: " + plt.x + " " + plt.y + " " + plt.z);
+    var pr1 = new Vector3d(x0+w1/2,y0+d1/2,z0);
+    var pr2 = new Vector3d(x0+w2/2,y0-d1/2,z0);
+
+    dx = pr2.x - pr1.x;
+    dy = pr2.y - pr1.y;
+    dz = pr2.z - pr1.z;
+
+    var prt = new Vector3d(pr1.x + d * dx, pr1.y + d * dy, pr1.z + d * dz);
+    var prb = new Vector3d(pr2.x - d * dx, pr2.y - d * dy, pr2.z - d * dz);
+
+    var cpl = new Cylinder(new Vector3d(plt.x-sd/2 ,plt.y,plt.z),
+                           new Vector3d(plb.x-sd/2,plb.y,plb.z),sd/2);
+
+    var cpr = new Cylinder(new Vector3d(prt.x+sd/2 ,prt.y,prt.z),
+                           new Vector3d(prb.x+sd/2,prb.y,prb.z),sd/2);
+
+
+    var bail;
+
+    var blend = 0.2*MM;
+    var baill = new Subtraction(cylinder,cpl);
+    baill.setBlend(blend);
+    bailr = new Subtraction(baill,cpr);
+    bailr.setBlend(blend);
+
+    var inner = new Cylinder(new Vector3d(x0-w1,y0,z0),new Vector3d(x0+w1,y0,z0),d2/2);
+    bail = new Subtraction(bailr,inner);
+    bail.setBlend(blend);
+
+    var trans = new CompositeTransform();
+    trans.add(new Scale(1,1.25,1));
+    var yscale = 1.25;
+  
+    trans.add(new Translation(0,-w1*yscale/2 - 1.25 * bt,0));
+    bail.setTransform(trans);
+    return bail;
+
+}
+exports.getBailV = getBailV;
+
+// Ring created using a profile. 
+//    profile - The profile image
+//    radius - The radius of the ring
+//    thickness - The thickness of the ring
+function getRingProfile(par) {
+    var profile = par.profile;
+    var ringRadius = par.radius;
+    var ringThickness = part.thickness;
+
+    // the length of band is longer than 2pi to smooth discontinuity or RingWrap
+    var bandLength = 2.5*Math.PI * ringRadius;	// make it longer to 
+    var image = loadImage(profile);
+    var imgWidth = image.getWidth();
+    var imgHeight = image.getHeight();
+    
+    //var ringWidth = ringThickness * imgWidth / imgHeight;
+    var ringWidth = ringThickness * 2.756 / 1.75;  // TODO: Not sure of correct math here, adjusting to work from measured values
+        
+    var vs = 0.1 * MM;
+    var imageVs = 0.5*vs;     
+     
+    // the band in yz-plane along z axis 
+    var band = new Image3D(image,ringWidth, ringThickness,bandLength,imageVs);
+    band.set("useImageProcessing",true);
+    band.setUseGrayscale(false);
+    band.setBaseThickness(0);
+    band.setBlurWidth(0.2*MM);
+    band.setImagePlace(Image3D.IMAGE_PLACE_TOP);
+        
+        
+    band.addTransform(new Rotation(0,0,1,-Math.PI/2));  // orient band in xy plane aloing x axis 
+    band.addTransform(new Rotation(0,1,0,-Math.PI/2));
+    band.addTransform(new Translation(0,0,ringThickness/2));  // to make sure interior radius equals ringRadius
+    band.addTransform(new RingWrap(ringRadius));
+    band.addTransform(new Rotation(0,0,1,Math.PI/2));
+	
+    return band;
+}
+exports.getRingProfile = getRingProfile
+
+// Get engraved text used for engraving a ring
+//   text - The text
+//   radius - The radius of the ring
+//   textSize - The text size
+//   textDepth - The depth of the engraving.  Negative for engraving, positive for embossing
+//   textFont - Specific font file url
+//   textFontName - System named font
+function getRingText(par) {
+    var text = UtilLib.getParam(par.text,"default");
+    var radius = UtilLib.getParam(par.radius,10*MM);
+    var textSize = UtilLib.getParam(par.textSize,2*MM);
+    var textDepth = UtilLib.getParam(par.textDepth,-1*MM);
+    var textFont = UtilLib.getParam(par.textFont,undefined);
+    var textFontName = UtilLib.getParam(par.textFontName,undefined);
+    var vs = 0.1*MM;  
+
+    var text2d = new Text2D(text);
+    if (UtilLib.isDefined(textFont)) {
+        var font = loadFont(textFont);
+        text2d.setFont(font);
+    }
+    if (UtilLib.isDefined(textFontName)) {
+        tex2d.setFontName(textFontName);
+    }
+    //text2d.setFontName("HelveticaRounded LT Std Bd");
+    text2d.setFontStyle(Text2D.BOLD);
+
+    var bandLength = 2*radius * Math.PI;
+
+    var tbx = bandLength;
+    var tby = textSize;
+    var tbz = 2 * Math.abs(textDepth);
+
+    //print("tbx: %f  tby: %f  tbz: %f  text: %s",tbx,tby,tbz,text);
+    var tvs = 0.05 * MM;  // text voxel size
+    text2d.setInset(2 * tvs);
+    text2d.setVoxelSize(tvs);
+    text2d.setFit("vertical"); // vertical, horizontal, both
+    text2d.setHorizAlign("center"); // left, right, center
+    text2d.setWidth(tbx);
+    text2d.setHeight(tby);
+
+    var imgBox = new Image3D(text2d, tbx, tby, tbz, vs);
+    imgBox.setUseGrayscale(false);
+    imgBox.setBaseThickness(0);
+    imgBox.setBaseThreshold(0.5);
+    imgBox.setBlurWidth(0.1 * MM);
+    //imgBox.setCenter(0,0,-par.textDepth/2);
+
+
+    var trans = new CompositeTransform();
+    trans.add(new Translation(0,0,par.textDepth/2));
+    trans.add(new Rotation(1,0,0,PI));
+
+    if (textDepth > 0) {
+        trans.add(new RingWrap(radius + textDepth));
+    } else {
+        trans.add(new RingWrap(radius));
+    }
+    trans.add(new Rotation(1,0,0,PI));
+
+    imgBox.setTransform(trans);
+
+    return imgBox;
+}
+exports.getRingText = getRingText

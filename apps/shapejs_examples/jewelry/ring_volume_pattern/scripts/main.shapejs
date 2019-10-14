@@ -1,0 +1,237 @@
+var JewelryLib = require('lib/jewelry.shapejs');
+
+var params = [
+  {
+    name: "size",
+    label: "Ring Size",
+    desc: "US Ring Size",
+    type: "double",
+    rangeMin: 0,
+    rangeMax: 16,
+    step: 0.25,
+    defaultVal: 11.5,
+    group: "Size"
+  },
+  {
+    name: "bandWidth",
+    label: "Band Width",
+    desc: "Band Width",
+    type: "double",
+    rangeMin: 2,
+    rangeMax: 10,
+    step: 0.1,
+    defaultVal: 6,
+    unit: "MM",
+    group: "Size"
+  },
+  {
+    name: "bandThick",
+    label: "Liner Thickness",
+    desc: "Liner Thickness",
+    type: "double",
+    rangeMin: 0,
+    rangeMax: 2,
+    step: 0.1,
+    defaultVal: 0.8,
+    unit: "MM",
+    group: "Size"
+  },
+  {
+    name: "pattern",
+    label: "Pattern Type",
+    desc: "Pattern Type",
+    type: "enum",
+    values: ["Gyroid", "SchwarzP", "SchwarzD", "Lidinoid", "None"],
+    defaultVal: "SchwarzP",
+    group: "Pattern"
+  },
+  {
+    name: "period",
+    label: "Pattern Period",
+    desc: "Period",
+    type: "double",
+    rangeMin: 1,
+    rangeMax: 12,
+    step: 0.05,
+    defaultVal: 3.65,
+    unit: "MM",
+    group: "Pattern"
+  },
+  {
+    name: "thickness",
+    label: "Pattern Thickness",
+    desc: "Thickness",
+    type: "double",
+    rangeMin: 0.5,
+    rangeMax: 3,
+    step: 0.1,
+    defaultVal: 0.5,
+    unit: "MM",
+    group: "Pattern"
+  },
+  {
+    name: "height",
+    label: "Pattern Height",
+    desc: "Pattern Height",
+    type: "double",
+    rangeMin: 0.5,
+    rangeMax: 4,
+    step: 0.1,
+    defaultVal: 1.6,
+    unit: "MM",
+    group: "Pattern"
+  },
+  {
+    name: "location",
+    label: "Pattern Location",
+    desc: "Location",
+    type: "double",
+    rangeMin: 0,
+    rangeMax: 5,
+    step: 0.1,
+    defaultVal: 0,
+    unit: "MM",
+    group: "Pattern"
+  },
+  {
+    name: "rotation",
+    label: "Pattern Rotation",
+    desc: "Pattern Rotation in Degrees",
+    type: "double",
+    rangeMin: 0,
+    rangeMax: 90,
+    step: 1,
+    defaultVal: 0,
+    unit: "MM",
+    group: "Pattern"
+  },
+  {
+    name: "patternBlend",
+    label: "Pattern Blend",
+    desc: "Pattern Blending",
+    type: "double",
+    rangeMin: 0,
+    rangeMax: 1.5,
+    step: 0.05,
+    defaultVal: 0.5,
+    unit: "MM",
+    group: "Pattern"
+  },
+  {
+    name: "text",
+    desc: "Text",
+    type: "string",
+    defaultVal: "Shapeways",
+    group: "Engraving"
+  },
+  {
+    name: "textDepth",
+    desc: "Text Depth",
+    type: "double",
+    rangeMin: 0,
+    rangeMax: 7,
+    step: 0.1,
+    defaultVal: 0.3,
+    unit: "MM",
+    group: "Engraving"
+  },
+  {
+    name: "textSize",
+    desc: "Text Size(PT)",
+    type: "double",
+    rangeMin: 1,
+    rangeMax: 16,
+    step: 0.1,
+    defaultVal: 7,
+    unit: "PT",
+    group: "Engraving"
+  },
+  {
+    name: "textFont",
+    desc: "Font",
+    type: "uri",
+    group: "Engraving"
+  }
+
+];
+
+function main(args) {
+  var size = JewelryLib.usRingSizeToDiameter(args.size) / 2;
+  var pattern_thick = args.height;
+  var width = args.bandWidth;
+  var gyroid;
+  var result = null;
+
+  if (args.pattern == "Gyroid") {
+    gyroid = new VolumePatterns.Gyroid(args.period, args.thickness);
+  } else if (args.pattern == "Lidinoid") {
+    gyroid = new VolumePatterns.Lidinoid(args.period, args.thickness);
+  } else if (args.pattern == "SchwarzP") {
+    gyroid = new VolumePatterns.SchwarzP(args.period, args.thickness);
+  } else if (args.pattern == "SchwarzD") {
+    gyroid = new VolumePatterns.SchwarzD(args.period, args.thickness);
+  } else if (args.pattern == "None") {
+    gyroid = null;
+    result = new Union();
+  }
+
+  var band_thick = args.bandThick;
+
+  if (gyroid != null) {
+    gyroid.setTransform(new Rotation(1, 0, 0, args.rotation * 180 / Math.PI));
+
+    var ocutter = new Cylinder(new Vector3d(0, -10 * CM, 0), new Vector3d(0, 10 * CM, 0), size + pattern_thick + band_thick);
+    var icutter = new Cylinder(new Vector3d(0, -10 * CM, 0), new Vector3d(0, 10 * CM, 0), size + band_thick);
+    var cutter = new Subtraction(ocutter, icutter);
+
+    var body = Intersection(gyroid, cutter);
+    body.setBlend(args.patternBlend);
+
+    result = body;
+  }
+
+  if (band_thick > 0) {
+    var oliner = new Cylinder(new Vector3d(0, -10 * CM, 0), new Vector3d(0, 10 * CM, 0), size + band_thick);
+    var iliner = new Cylinder(new Vector3d(0, -10 * CM, 0), new Vector3d(0, 10 * CM, 0), size);
+    var liner = new Subtraction(oliner, iliner);
+    liner.setBlend(0.5 * MM);
+    result = new Union(result, liner);
+    result.setBlend(0.5 * MM);
+  }
+
+  var fplane = new Plane(new Vector3d(0, -1, 0), new Vector3d(0, width / 2, 0));
+  var bplane = new Plane(new Vector3d(0, 1, 0), new Vector3d(0, -width / 2, 0));
+
+  result.setTransform(new Translation(0, args.location, 0));
+  result = new Subtraction(result, fplane);
+  result.setBlend(0.25 * MM);
+  result = new Subtraction(result, bplane);
+  result.setBlend(0.25 * MM);
+
+  var engraving = JewelryLib.getRingText(
+    {
+      text: args.text,
+      radius: size,
+      textDepth: args.textDepth,
+      textSize: args.textSize,
+      textFont: args.textFont
+    }
+  );
+
+  result = result.subtract(engraving);
+
+  var s = JewelryLib.usRingSizeToDiameter(16)/2 + 6 * MM;  // Hardcode to show sizes changes better
+  var scene = Scene(result, new Bounds(-s, s, -s, s, -s, s));
+  scene.setVoxelSize(0.05 * MM);
+
+  // RingWrap makes the distance functions funny so lower skip
+  var tp = scene.get("tracingParams");
+  tp.clear();
+  var skip = 0.5;
+
+  tp.add(new TracingParams(TracingParams.ModeType.NORMAL, 1e-3, skip));
+
+  scene.setTracingParams(tp);
+
+  return scene;
+}

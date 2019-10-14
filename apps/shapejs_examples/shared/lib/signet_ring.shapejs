@@ -1,0 +1,205 @@
+// Full signet ring object
+
+var JewelryLib = require('lib/jewelry.shapejs');
+
+var params =  [
+    {name: "ringSize",type: "double",defaultVal: 7,group: "main"},    
+    {name: "ringThickness",type: "double",defaultVal: 1.5,unit:"MM",group: "main"}, 
+    {name: "ringWidth",label: "ring width (mm)",type: "double",defaultVal: 2,unit:"MM",group: "main"},  
+    {name: "bezelHeight",label: "bezel height (mm)",type: "double",defaultVal: 1.5,unit:"MM",group: "main"},    
+    {name: "bezelUndercut", label: "bezel undercut (mm)",type: "double",defaultVal: 1.0,unit:"MM",group: "main"},   
+    {name: "bezelAngle",label: "bezel angle (degree)",type: "double",defaultVal: 20,group: "main"}, 
+    {name: "undercutRadius", type: "double",defaultVal: 10.,unit:"MM",group: "main"},   
+    {name: "scaleZ",type: "double",defaultVal: 1.,group: "main"},   
+    {name: "signetRounding",type: "double",defaultVal: 0.1,unit:"MM",group: "main"},    
+    {name: "hasCutoff",type: "boolean",defaultVal: true,group: "main"},
+];
+
+function getParams() {
+    return params;
+}
+exports.getParams = getParams();
+
+function makeImage(path, width, height, thickness, grayscale,voxelSize){
+
+    var img = new Image3D(path, width, height, thickness);
+    img.setBaseThickness(0.0);
+    img.setBlurWidth(0.5*voxelSize);
+    img.setUseGrayscale(grayscale);
+    img.setBaseThreshold(0.1);
+    return img;
+}
+
+function makeImageMap(path, width, height, thickness,value,voxelSize){   
+    var img = new ImageMap(path, width, height, thickness);
+    img.setBlurWidth(0.5*voxelSize);
+    img.setBlackDisplacement(value);
+    img.setWhiteDisplacement(0*MM);    
+
+    return img;
+}
+
+function getText(text,userfont,width,height,thickness, value) {
+    var tbx = width;
+    var tby = height;
+    var tbz = thickness;
+    var tvs = 0.05*MM;  // text voxel size
+    var textInsets = 4*tvs;
+    
+    text2d = new Text2D(text);
+    if (isDefined(userfont)) {
+        var font = loadFont(userfont);
+        text2d.setFont(font);
+    }
+
+    text2d.setFontStyle(Text2D.BOLD);
+    var spacing = 0*MM;
+    text2d.set("spacing", spacing); // additional spacing between characters
+    text2d.setInset(textInsets);
+    text2d.setVoxelSize(tvs);
+//    text2d.setFit("horizontal"); // vertical, horizontal, both
+    text2d.setFit("both"); // vertical, horizontal, both
+    text2d.setHorizAlign("CENTER"); // left, right, center
+    text2d.setHeight(tby);
+    text2d.setWidth(tbx);
+
+    textBox = new ImageMap(text2d, tbx, tby, tbz);
+
+    textBox.setBlurWidth(tvs);
+    textBox.setBlackDisplacement(value);
+    textBox.setWhiteDisplacement(0*MM);
+
+    return textBox;
+}
+
+function getBevelTop(args) {
+    var ringSize = JewelryLib.usRingSizeToDiameter(args.ringSize);    
+    var inRad = ringSize/2;    
+    var By = inRad + args.bezelHeight;
+    var bezelTop = By;    
+    
+    return bezelTop;
+}
+exports.getBevelTop = getBevelTop;
+
+function getImageSize(args) {
+    var ringSize = JewelryLib.usRingSizeToDiameter(args.ringSize);
+    var ringThickness = args.ringThickness;
+    var ringWidth = args.ringWidth;
+    var bezelAngle = args.bezelAngle*PI/180; // angle of bezel sides, good values are between PI/5 and PI/20    
+    var bezelHeight = args.bezelHeight;  // thickness of the ring bezel
+    var inRad = ringSize/2;
+    var outRad = inRad + ringThickness;
+    
+    var By = inRad + bezelHeight;
+
+    var sinA = Math.sin(bezelAngle);
+    var BC = (Ay - By)*Math.tan(bezelAngle);
+    var Ay = outRad/sinA;
+    var Fy = Ay*sinA*sinA;
+    var bezelBase = Fy;
+    var bezelTop = By;
+
+    var Cx = (Ay - By)*Math.tan(bezelAngle);
+    var Dx = Cx*(1 + bezelHeight/(Ay - By));
+    
+    return Cx*2;    
+}
+exports.getImageSize = getImageSize;
+
+function getSignetRing(args) {
+    // see signet_ring.svg for drawing
+
+    // user definable variables   
+    var imageThickness = args.imageThickness;
+
+    var ringSize = JewelryLib.usRingSizeToDiameter(args.ringSize);
+    var ringThickness = args.ringThickness;
+    var ringWidth = args.ringWidth;
+    var grayscale = args.grayscale;
+    var bezelAngle = args.bezelAngle*PI/180; // angle of bezel sides, good values are between PI/5 and PI/20
+    
+    var bezelHeight = args.bezelHeight;  // thickness of the ring bezel
+
+    var imagePath = args.image;
+    var imageScale = args.imageScale; // size of image relative to bezel size
+    var textScale = args.textScale; // size of image relative to bezel size
+    var rounding = args.ringRounding;
+    var edgesRounding = args.edgesRounding;
+    var signetRounding = args.signetRounding;
+    var imageRounding = args.imageRounding;
+    var scaleZ = args.scaleZ;
+    // end of user definable variables
+
+    var inRad = ringSize/2;
+    var outRad = inRad + ringThickness;
+    
+    var By = inRad + bezelHeight;
+
+    var sinA = Math.sin(bezelAngle);
+    var BC = (Ay - By)*Math.tan(bezelAngle);
+    var Ay = outRad/sinA;
+    var Fy = Ay*sinA*sinA;
+    var bezelBase = Fy;
+    var bezelTop = By;
+
+    var sceneSize = JewelryLib.usRingSizeToDiameter(16) * 1.5;  // Fixed so we can see size changes
+    
+    var Cx = (Ay - By)*Math.tan(bezelAngle);
+    var Dx = Cx*(1 + bezelHeight/(Ay - By));
+
+    var cutR = args.undercutRadius; // radius of cylindrical transition
+
+    var Ex = ringWidth/2 + cutR;
+    var dd = args.bezelUndercut;  // width of small bezel undercut
+    var Ey = inRad - Math.sqrt(cutR*cutR - (Ex - Dx + dd)*(Ex - Dx + dd));
+
+    var imageWidth = imageScale*Cx*2;
+    var imageHeight = imageWidth;
+    var textWidth = textScale*Cx*2;
+    var textHeight = textWidth;
+
+    var ringBase = new Sphere(outRad);
+
+    // bezel is cone truncated by 2 parallel planes
+    var bezel = new Intersection();
+    bezel.add(new Cone(new Vector3d(0,Ay, 0), new Vector3d(0,-1,0), bezelAngle));
+    bezel.add(new Plane(new Vector3d(0,-1,0), -bezelBase));
+
+
+    var ring = new Union(ringBase, bezel);
+
+    if(scaleZ != 1.) {
+        ring.addTransform(new Scale(1,1,scaleZ));
+    }
+    
+    ring = new Intersection(ring, new Plane(new Vector3d(0,1,0), bezelTop));
+    ring.setBlend(signetRounding);
+    //bezel.setBlend(0.);
+    
+    var fullRing = ring;
+    if(args.hasCutoff){
+        
+        var cut1 = new Union();
+        var gw = sceneSize;
+        var gw2 = gw/2;
+        // hole 
+        var hole = new Cylinder(new Vector3d(0, 0, -gw2),new Vector3d(0,0,gw2),inRad);
+        // front cylinder
+        cut1.add(new Cylinder(new Vector3d(-gw2, Ey, Ex), new Vector3d(gw2, Ey, Ex), cutR));
+        // back cylinder
+        cut1.add(new Cylinder(new Vector3d(-gw2, Ey, -Ex), new Vector3d(gw2, Ey, -Ex), cutR));
+        cut1.add(new Box(0,-inRad,  Ex,  gw, 2*(inRad+Ey), 2*cutR));
+        cut1.add(new Box(0,-inRad, -Ex,  gw, 2*(inRad+Ey), 2*cutR));
+
+        cut1.setBlend(0.); 
+
+        fullRing = new Subtraction(ring, cut1);
+        fullRing.setBlend(edgesRounding);
+        fullRing = new Subtraction(fullRing, hole);
+        fullRing.setBlend(edgesRounding);
+    }
+    
+    return fullRing;
+}
+exports.getSignetRing = getSignetRing;

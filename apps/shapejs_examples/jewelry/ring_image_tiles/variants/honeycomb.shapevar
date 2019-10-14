@@ -1,0 +1,32 @@
+{
+  "scriptPath": "../scripts/main.shapejs",
+  "scriptParams": {
+    "baseThickness": 0.0,
+    "bottomBorderWidth": 0.0,
+    "grayscale": false,
+    "groundColor": {
+      "r": 0.9607843137254902,
+      "g": 0.9686274509803922,
+      "b": 0.9725490196078431,
+      "a": 1.0
+    },
+    "image": "../resources/honeycomb5.png",
+    "material": "PLT",
+    "ringThickness": 1.4,
+    "ringWidth": 20.0,
+    "size": 7.0,
+    "skyColor": {
+      "r": 0.9607843137254902,
+      "g": 0.9686274509803922,
+      "b": 0.9725490196078431,
+      "a": 1.0
+    },
+    "text": "",
+    "textDepth": 0.35,
+    "textFont": "../../../shared/resources/fonts/OleoScriptSwashCaps/OleoScriptSwashCaps-Bold.ttf",
+    "textSize": 12.0,
+    "tileHeight": 1,
+    "tileWidth": 1,
+    "topBorderWidth": 0.0
+  }
+}

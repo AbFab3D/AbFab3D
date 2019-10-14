@@ -1,0 +1,19 @@
+{
+  "scriptPath": "../scripts/main.shapejs",
+  "scriptParams": {
+    "bandThick": 0.8,
+    "bandWidth": 6.0,
+    "height": 1.6,
+    "location": 0.0,
+    "pattern": "SchwarzP",
+    "patternBlend": 0.5,
+    "period": 3.65,
+    "rotation": 0.0,
+    "size": 11.5,
+    "text": "Shapeways",
+    "textDepth": 0.35,
+    "textFont": "../../../shared/resources/fonts/Montserrat/Montserrat-Bold.ttf",
+    "textSize": 10.0,
+    "thickness": 0.5
+  }
+}

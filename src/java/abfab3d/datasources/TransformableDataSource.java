@@ -89,7 +89,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
     protected boolean m_printable = true;
 
     SNodeListParameter mp_transform = new SNodeListParameter("transform", new BaseSNodeFactory(TransformsFactory.getNames(), TransformsFactory.getClassNames()));
-    
+
     private Parameter m_aparam[] = new Parameter[]{
         mp_transform
     };
@@ -357,7 +357,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
                 res = res | ((Initializable)m_material).initialize();
             }
             m_materialChannelsCount = m_material.getChannelsCount();
-        }        
+        }
         return res;
     }
 

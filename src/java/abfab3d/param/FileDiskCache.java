@@ -106,7 +106,7 @@ public class FileDiskCache {
                 return false;
             }
         } else {
-            printf("Using cache dir: %s\n", d.getAbsolutePath());
+            printf("FileDiskCache cache dir: %s\n", d.getAbsolutePath());
         }
         
         return true;
