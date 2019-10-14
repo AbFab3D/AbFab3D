@@ -14,6 +14,8 @@ package abfab3d.datasources;
 
 
 import abfab3d.core.ResultCodes;
+import abfab3d.core.Color;
+
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.Parameter;
@@ -33,7 +35,7 @@ public class Constant extends TransformableDataSource {//BaseParameterizable imp
     static final boolean DEBUG = false;
     int debugCount = 100;
 
-    private double m_value0,m_value1,m_value2,m_value3, m_value4, m_value5;
+    private double m_value0,m_value1,m_value2,m_value3, m_value4, m_value5, m_value6,m_value7;
     private int m_dimension = 1;
 
     private DoubleParameter mp_value0 = new DoubleParameter("value0", "value of the component 0", 0);
@@ -42,6 +44,9 @@ public class Constant extends TransformableDataSource {//BaseParameterizable imp
     private DoubleParameter mp_value3 = new DoubleParameter("value3", "value of the component 3", 0);
     private DoubleParameter mp_value4 = new DoubleParameter("value4", "value of the component 4", 0);
     private DoubleParameter mp_value5 = new DoubleParameter("value5", "value of the component 5", 0);
+    private DoubleParameter mp_value6 = new DoubleParameter("value6", "value of the component 6", 0);
+    private DoubleParameter mp_value7 = new DoubleParameter("value7", "value of the component 7", 0);
+
     private IntParameter mp_dimension = new IntParameter("dimension", "dimension of constant", 1);
 
     Parameter m_aparam[] = new Parameter[]{
@@ -52,6 +57,8 @@ public class Constant extends TransformableDataSource {//BaseParameterizable imp
             mp_value3,
             mp_value4,
             mp_value5,
+            mp_value6,
+            mp_value7,
 			
     };
 
@@ -100,6 +107,14 @@ public class Constant extends TransformableDataSource {//BaseParameterizable imp
         mp_value3.setValue(value3);
         mp_dimension.setValue(4);
     }
+
+    /**
+       constant with 4 components initialized from Color 
+     */
+    public Constant(Color color) {
+        this(color.r,color.g,color.b,color.a);
+    }
+
     /**
        constant with 5 components 
      */
@@ -125,6 +140,37 @@ public class Constant extends TransformableDataSource {//BaseParameterizable imp
         mp_value4.setValue(value4);
         mp_value5.setValue(value5);
         mp_dimension.setValue(6);
+    }
+
+    /**
+       constant with 7 components 
+     */
+    public Constant(double value0,double value1,double value2, double value3, double value4,double value5, double value6){
+        addParams(m_aparam);
+        mp_value0.setValue(value0);
+        mp_value1.setValue(value1);
+        mp_value2.setValue(value2);
+        mp_value3.setValue(value3);
+        mp_value4.setValue(value4);
+        mp_value5.setValue(value5);
+        mp_value6.setValue(value6);
+        mp_dimension.setValue(7);
+    }
+
+    /**
+       constant with 8 components 
+     */
+    public Constant(double value0,double value1,double value2, double value3, double value4,double value5, double value6, double value7){
+        addParams(m_aparam);
+        mp_value0.setValue(value0);
+        mp_value1.setValue(value1);
+        mp_value2.setValue(value2);
+        mp_value3.setValue(value3);
+        mp_value4.setValue(value4);
+        mp_value5.setValue(value5);
+        mp_value6.setValue(value6);
+        mp_value7.setValue(value7);
+        mp_dimension.setValue(8);
     }
 
     /**
@@ -165,6 +211,10 @@ public class Constant extends TransformableDataSource {//BaseParameterizable imp
      */
     public int getBaseValue(Vec pnt, Vec data) {
         switch(m_dimension){
+        case 8:
+            data.v[7] = m_value7;
+        case 7:
+            data.v[6] = m_value6;
         case 6:
             data.v[5] = m_value5;
         case 5:
@@ -187,8 +237,10 @@ public class Constant extends TransformableDataSource {//BaseParameterizable imp
         return null;
     }
 
-    public void setBounds(Bounds bounds){        
+    public void setBounds(Bounds bounds){ 
+        
     }
+
     public int getChannelsCount(){
         return m_dimension;
     }

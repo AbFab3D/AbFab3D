@@ -35,6 +35,8 @@ import abfab3d.core.Bounds;
 import abfab3d.core.Vec;
 import abfab3d.core.Color;
 import abfab3d.core.DataSource;
+import abfab3d.core.Initializable;
+
 import abfab3d.util.ImageUtil;
 import abfab3d.util.SliceCalculator;
 import abfab3d.util.AbFab3DGlobals;
@@ -43,14 +45,23 @@ import abfab3d.util.AbFab3DGlobals;
 import abfab3d.param.BaseParameterizable;
 
 import abfab3d.grid.op.ImageLoader;
+
+import abfab3d.datasources.Text2D;
+import abfab3d.datasources.Image3D;
+import abfab3d.datasources.Composition;
 import abfab3d.datasources.ImageColorMap;
+import abfab3d.datasources.ColorGrid;
 import abfab3d.datasources.Torus;
 import abfab3d.datasources.Plane;
 import abfab3d.datasources.DataSourceMixer;
 import abfab3d.datasources.Mask;
 import abfab3d.datasources.Abs;
+import abfab3d.datasources.Mul;
 import abfab3d.datasources.Sphere;
+import abfab3d.datasources.Constant;
 import abfab3d.datasources.Box;
+import abfab3d.datasources.ImageColorMap3D;
+import abfab3d.datasources.Union;
 
 import abfab3d.transforms.PeriodicWrap;
 import abfab3d.transforms.Translation;
@@ -58,6 +69,7 @@ import abfab3d.transforms.Rotation;
 
 
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.time;
 import static abfab3d.core.Units.MM;
 import static abfab3d.core.Units.CM;
@@ -78,7 +90,7 @@ public class TestPolyJetWriter {
 
     }
 
-
+    
     void devTestSingleImage()throws Exception {
         
         printf("devTestSingleImage()\n");
@@ -92,7 +104,6 @@ public class TestPolyJetWriter {
         int rasterWidth = 1000;
         double sizeX = 70*MM;
         double sizeZ = 10*MM;
-
         
 
         ImageLoader loader = new ImageLoader(inPath);
@@ -132,7 +143,6 @@ public class TestPolyJetWriter {
                 pnt.set(dx*ix, dy*iy, 0.);
                 source.getDataValue(pnt, data);
                 //gammaCorrect(data.v);
-                convertToWorkingSpace(data.v);
                 data.addSet(error);
 
                 int index = getClosestColor(data.v);
@@ -196,34 +206,6 @@ public class TestPolyJetWriter {
 
     static final double NORM = (1./255.);
 
-    static {
-        //icolors = icolors_cmyk;
-        icolors = icolors_phys;
-        //icolors = icolors_rgb;
-        colors = new double[icolors.length][];
-        colorsARGB = new int[icolors.length];
-        for(int i = 0; i < colors.length; i++){
-            int r = icolors[i][0];
-            int g = icolors[i][1];
-            int b = icolors[i][2];
-            int a = icolors[i][3];            
-            colorsARGB[i] = makeARGB(r,g,b,a);
-            colors[i] = new double[]{r*NORM,g*NORM, b*NORM,a*NORM};
-            convertToWorkingSpace(colors[i]);
-        }
-    }
-    
-    static void convertToWorkingSpace(double v[]){
-        // subtractive colors
-        //rgb2cmy(v);        
-    }
-
-    static void rgb2cmy(double v[]){
-        v[0] = 1.-v[0];
-        v[1] = 1.-v[1];
-        v[2] = 1.-v[2];
-    }
-
     int getClosestColor(double v[]){
 
         double minDist = 100;
@@ -250,7 +232,7 @@ public class TestPolyJetWriter {
     }
 
     /**
-       wrinte simple file 
+       write simple file 
      */
     void devTestWriter(){
 
@@ -286,6 +268,282 @@ public class TestPolyJetWriter {
                                             PolyJetWriter.S_WHITE, 
                                             
             });
+        writer.write();
+
+    }
+
+    /**
+       
+       
+     */
+    void devTestImageColorMap3D(){
+
+        double s = 10*MM;
+
+        int count = 275;
+        //int count = 10;  // read only 10 layers 
+        double vs = 0.09*MM;
+        double width = 1250;
+        double height = 500;
+        double depth = count;
+        double margin = 0.1*MM;
+        double colorsMixRatio = 1.;
+        double textWidth=50*MM, textHeight=5*MM, textDepth=1*MM;
+        String label = fmt("19.09.25.RGBA",colorsMixRatio);
+        //String pathTemplate = "/tmp/slices+alpha/slice%04d.png";
+        String pathTemplate = "/tmp/squid_rgba/squid - bright normed 8 bit%04d.png";
+        
+        //String pathTemplate = "/tmp/slices+white/slice%04d.png";
+
+        double sizeX = width*vs;
+        double sizeY = height*vs;
+        double sizeZ = count*vs;
+        
+        String outFolder = "/tmp/polyjet";
+
+        printf("model size: [%7.2f x %7.2f x %7.2f]mm\n", sizeX/MM, sizeY/MM,sizeZ/MM);
+
+        
+
+        long t0  = time();
+        
+        ImageColorMap3D cm = new ImageColorMap3D(pathTemplate, 0, count, sizeX, sizeY, sizeZ);
+        
+        DataSource cm1 = new Mul(cm, new Constant(1,1,1,colorsMixRatio));
+
+        Box box = new Box(sizeX, sizeY, sizeZ);
+                
+        DataSourceMixer cbox = new DataSourceMixer(box, cm1);
+
+        Image3D text3d = makeText(label, textWidth, textHeight, textDepth);
+        text3d.setTransform(new Translation(-sizeX/2+textWidth/2,sizeY/2-textHeight/2, sizeZ/2-textDepth/2));
+        DataSource ctext = new DataSourceMixer(text3d, new Constant(0,0.5,0.5,1));
+
+        Composition labeledBox = new Composition(Composition.BoverA, cbox, ctext);
+
+        //DataSource model = makeSphere(20*MM);
+
+        DataSource model = labeledBox;
+
+        ((Initializable)model).initialize();
+
+        printf("reading data done: %d ms\n", (time() - t0));
+
+        Bounds bounds = cbox.getBounds();
+        
+        bounds.expand(margin);
+
+        AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, 8);
+
+        PolyJetWriter writer = new PolyJetWriter();
+        writer.set("threadCount", 0);
+        writer.setBounds(bounds);
+        writer.set("materialsRatio", 1);
+        writer.set("model", model);        
+        //writer.set("sliceThickness", PolyJetWriter.DEFAULT_SLICE_THICKNESS);
+        //writer.set("ditheringType", 0);
+        //writer.set("firstSlice",bounds.getDepthVoxels(PolyJetWriter.SLICE_THICKNESS_HR)/2);
+        //writer.set("slicesCount", 150);
+        writer.set("outFolder",outFolder);
+        //writer.set("mapping", "materials");
+        writer.set("mapping", "color_rgba");
+        writer.set("materials",PolyJetWriter.DEFAULT_MATERIALS);
+
+        t0  = time();
+        printf("writing slices to %s\n", outFolder);
+        writer.write();
+        printf("writing slices done %d ms\n", (time() - t0));
+
+
+    }
+
+    void devTestColorConverter(){
+
+        printf("devTestColorConverter()\n");
+        Vec pnt = new Vec(1, 1,0,0,1);
+        Vec data = new Vec(7);
+
+        for(int i = 0; i <= 10; i++){
+            double ratio = i*0.1;
+            PolyJetWriter.DRGBA2Materials(pnt.v, data.v, ratio);
+            printf("%s | %5.2f -> %s\n", pnt.toString("%5.2f"),ratio, data.toString("%5.2f"));
+        }
+        
+    }
+
+
+    /**
+       
+     */
+    void devTestColorGrid(){
+
+        printf("devTestColorGrid()\n");
+
+        double margin = 1*MM;
+        double csize = 20.*MM;
+        double gap = 1*MM;
+        int dim = 6;
+        double inc = 1./(dim-1);
+
+        Vector3d dimension = new Vector3d(dim,dim,dim);
+        //Vector3d dimension = new Vector3d(5,5,1);
+        Vector3d cellSize = new Vector3d(csize, csize, csize);        
+        
+        String outFolder = "/tmp/polyjet";
+
+        ColorGrid grid = new ColorGrid();
+
+        grid.set("dimension", dimension);
+        grid.set("cellSize",cellSize);
+
+        grid.set("c0", new Color(0,0,0,1));
+        grid.set("cu", new Color(0, inc, 0, 0));
+        grid.set("cv", new Color(inc, 0, 0, 0));
+        grid.set("cw", new Color(0, 0, inc, 0));
+
+        grid.set("gap", new Vector3d(gap, gap, gap));
+        grid.set("gapColor", new Color(0.,0.,0.,0));
+        
+        Box box = new Box(cellSize.x*dimension.x, cellSize.y*dimension.y,cellSize.z*dimension.z);
+        
+        DataSourceMixer mix = new DataSourceMixer(box, grid);
+
+        DataSource model = mix;
+
+        mix.initialize();
+
+        if(false){
+            double x0 = csize*(-dimension.x+1)/2;
+            double y0 = csize*(-dimension.y+1)/2;
+            double z0 = csize*(-dimension.z+1)/2;
+            
+            for(int z = 0; z < dimension.z; z++){
+                for(int y = 0; y < dimension.y; y++){
+                    for(int x = 0; x < dimension.x; x++){                    
+                        Vec pnt = new Vec(x*csize+x0, y*csize+y0, z*csize+z0);
+                        Vec data = new Vec(5);
+                        mix.getDataValue(pnt, data);
+                        printf("%s",data.toString("%5.2f"));
+                        //printf("%s",pnt.toString("%6.3f"));
+                    }
+                    printf("\n");
+                }            
+                printf("---\n");
+            }
+        }
+
+        //if(true) return;
+        Bounds bounds = model.getBounds();        
+        bounds.expand(margin);
+
+        AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, 8);
+
+        PolyJetWriter writer = new PolyJetWriter();
+        writer.set("threadCount", 0);
+        writer.setBounds(bounds);
+        writer.set("model", model);        
+        writer.set("sliceThickness",csize);        
+        writer.set("outFolder",outFolder);
+        writer.set("mapping", "color_rgba");
+        writer.set("materials",PolyJetWriter.DEFAULT_MATERIALS);
+
+        printf("writing slices to %s\n", outFolder);
+        writer.write();
+
+    }
+
+    void devTestColorSwatch(){
+
+        printf("devTestColorGrid()\n");
+
+        double margin = 0.2*MM;
+        double boxMargins = 5*MM;
+        double csize = 15.*MM;
+        double gap = 1*MM;
+        int dim = 6;
+        double inc = 1./(dim-1);
+        Color textColor = new Color(0,0.0,0.0,1);
+
+        Vector3d dimension = new Vector3d(dim,dim,1);
+        Vector3d cellSize = new Vector3d(csize, csize, csize); 
+        
+        String outFolder = "/tmp/polyjet";
+
+
+        double boxWidth = cellSize.x*dimension.x + 2*boxMargins;
+        double boxHeight = cellSize.y*dimension.y + 2*boxMargins;
+        double boxThickness = 3*MM;
+
+        double textWidth = 20*MM, textHeight = 5*MM, textDepth=1*MM;
+
+        ColorGrid grid = new ColorGrid();
+
+        grid.set("dimension", dimension);
+        grid.set("cellSize",cellSize);
+
+        Color c0 = new Color(0,0,0,1);
+        Color cu = new Color(0, inc, 0, 0);
+        Color cv = new Color(inc, 0, 0, 0);
+        Color cw = new Color(0, 0, inc, 0);
+
+        grid.set("c0", c0);
+        grid.set("cu", cu);
+        grid.set("cv", cv);
+        grid.set("cw", cw);
+
+        grid.set("gap", new Vector3d(gap, gap, gap));
+        grid.set("gapColor", new Color(0.,0.,0.,0));
+        
+        Box box = new Box(boxWidth, boxHeight,boxThickness);
+        
+        DataSourceMixer mix = new DataSourceMixer(box, grid);
+
+
+        String f = "%3.1f  %3.1f  %3.1f  %3.1f";
+        double dd = dim-1;
+        String lab_00 = fmt(f, c0.r,                  c0.g,                  c0.b,                  c0.a);
+        String lab_10 = fmt(f, c0.r + dd*cu.r,        c0.g + dd*cu.g,        c0.b + dd*cu.b,        c0.a + dd*cu.a);
+        String lab_01 = fmt(f, c0.r + dd*cv.r,        c0.g + dd*cv.g,        c0.b + dd*cv.b,        c0.a + dd*cv.a);
+        String lab_11 = fmt(f, c0.r + dd*(cu.r+cv.r), c0.g + dd*(cu.g+cv.g), c0.b + dd*(cu.b+cv.b), c0.a + dd*(cu.a+cv.a));
+
+        Image3D label_top = makeText("r g b a", textWidth, textHeight, textDepth);
+        Image3D label_00 = makeText(lab_00, textWidth, textHeight, textDepth);
+        Image3D label_10 = makeText(lab_10, textWidth, textHeight, textDepth);
+        Image3D label_01 = makeText(lab_01, textWidth, textHeight, textDepth);
+        Image3D label_11 = makeText(lab_11, textWidth, textHeight, textDepth);
+
+        double tx = (boxWidth-textWidth)/2;
+        double ty = (boxHeight-textHeight)/2;
+        double tz = (boxThickness-textDepth)/2;
+
+        label_00.setTransform(new Translation(-tx, -ty, tz));
+        label_10.setTransform(new Translation(tx, -ty, tz));
+        label_01.setTransform(new Translation(-tx, ty, tz));
+        label_11.setTransform(new Translation(tx, ty, tz));
+        label_top.setTransform(new Translation(0, ty, tz));
+        DataSource allText = new Union(label_00,label_10,label_01,label_11,label_top);
+        DataSource ctext = new DataSourceMixer(allText, new Constant(textColor));
+        Composition labeledBox = new Composition(Composition.BoverA, mix, ctext);
+
+        DataSource model = labeledBox;
+
+        ((Initializable)model).initialize();
+
+        Bounds bounds = new Bounds(-boxWidth/2,boxWidth/2,-boxHeight/2,boxHeight/2,-boxThickness/2, boxThickness/2);//model.getBounds();        
+        bounds.expand(margin);
+
+        AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, 8);
+
+        PolyJetWriter writer = new PolyJetWriter();
+        writer.set("threadCount", 0);
+        writer.setBounds(bounds);
+        writer.set("model", model);        
+        // writer.set("sliceThickness",0.5*MM); 
+        writer.set("outFolder",outFolder);
+        writer.set("mapping", "color_rgba");
+        writer.set("materials",PolyJetWriter.DEFAULT_MATERIALS);
+
+        printf("writing slices to %s\n", outFolder);
         writer.write();
 
     }
@@ -537,13 +795,57 @@ public class TestPolyJetWriter {
         
     }
 
+    Image3D makeText(String txt, double width, double height, double depth){
+  
+        Text2D text2d = new Text2D(txt);
+        
+        text2d.setFontStyle(Text2D.BOLD);
+        //text2d.set("spacing", args.textSpacing);
+        //text2d.setInset(textInsets);
+        text2d.setVoxelSize(0.01*MM);
+        text2d.setFit("both"); // vertical, horizontal, both
+        //text2d.setHorizAlign("CENTER"); // left, right, center
+        text2d.setHorizAlign("LEFT"); // left, right, center
+        text2d.setHeight(height);
+        text2d.setWidth(width);
+        
+        Image3D textBox = new Image3D(text2d, width, height, depth,0.1*MM);
+        textBox.setUseGrayscale(false);
+        return textBox;
+    }
+
+    void devTestCopySlices() throws Exception {
+
+        String inTemplate = "/tmp/squid_matlab/Out_%04d.png";
+        String outTemplate = "/tmp/polyjet/slice_%d.png";
+        for(int i = 0; true; i++){
+            String inPath = fmt(inTemplate, i*2+1);
+            printf("%s\n",inPath);
+            File inFile = new File(inPath);
+            if(!inFile.exists()){
+                break;
+            }
+            String outPath = fmt(outTemplate, i);
+            java.nio.file.Files.copy( 
+                                     new java.io.File(inPath).toPath(), 
+                                     new java.io.File(outPath).toPath(),
+                                     java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                                     java.nio.file.StandardCopyOption.COPY_ATTRIBUTES,
+                                     java.nio.file.LinkOption.NOFOLLOW_LINKS); 
+        }
+    }
+
     public static void main(String[] args) throws Exception {
 
         //new TestPolyJetWriter().devTestSingleImage();
-        new TestPolyJetWriter().devTestWriter();
+        //new TestPolyJetWriter().devTestWriter();
         //new TestPolyJetWriter().makeMaterialSamplesTest();
         //makeMaterialsCombinations(1);
         //new TestPolyJetWriter().devTestSliceCalculator();
-
+        new TestPolyJetWriter().devTestImageColorMap3D();
+        //new TestPolyJetWriter().devTestColorGrid();
+        //new TestPolyJetWriter().devTestColorSwatch();
+        //new TestPolyJetWriter().devTestColorConverter();
+        //new TestPolyJetWriter().devTestCopySlices();
     }
 }

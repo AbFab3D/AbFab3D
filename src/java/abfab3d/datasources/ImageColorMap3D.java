@@ -238,9 +238,9 @@ public class ImageColorMap3D extends TransformableDataSource {
         Object co = ParamCache.getInstance().get(label);
         if (co == null) {
             long t0 = time();
-            m_imageData = prepareImage();
-            //if(DEBUG)printf("ImageColorMap.prepareImage() time: %d ms\n", (time() - t0));            
-            if (DEBUG) printf("ImageColorMap: caching image: %s -> %s\n",label, m_imageData);
+            m_imageData = prepareGrid();
+            //if(DEBUG)printf("ImageColorMap.prepareGrid() time: %d ms\n", (time() - t0));            
+            if (DEBUG) printf("ImageColorMap3D: caching grid: %s -> %s\n",label, m_imageData);
             if(m_imageData == null){
                 // something wrong with the image
                 throw new IllegalArgumentException("undefined image");
@@ -279,10 +279,10 @@ public class ImageColorMap3D extends TransformableDataSource {
 
     }
 
-    private AttributeGrid prepareImage() {
+    private AttributeGrid prepareGrid() {
 
         Object obj = mp_imageSource.getValue(); 
-        if(DEBUG) printf("ImageColorMap.prepareImage() source: %s\n", obj);
+        if(DEBUG) printf("ImageColorMap3D.prepareGrid() source: %s\n", obj);
         if(obj == null || !(obj instanceof GridProducer))
             throw new RuntimeException(fmt("unrecoginized grid source: %s\n",obj));
         
@@ -290,11 +290,10 @@ public class ImageColorMap3D extends TransformableDataSource {
         GridProducer producer = (GridProducer)obj; 
         
         AttributeGrid grid = producer.getGrid(); 
-        if(DEBUG) printf("ImageColorMap grid: %s\n", grid);
+        if(DEBUG) printf("ImageColorMap3D grid: %s\n", grid);
         // if we want image processing operations on the grid, we need to make a copy 
         grid.setGridBounds(getBounds());
-
-        if(DEBUG) printf("ImageColorMap() image: [%d x %d]\n", grid.getWidth(), grid.getHeight());
+        if(DEBUG) printf("ImageColorMap3D() image: [%d x %d x %d]\n", grid.getWidth(), grid.getHeight(),grid.getDepth() );
 
         return grid;
     }
@@ -376,13 +375,13 @@ public class ImageColorMap3D extends TransformableDataSource {
      * @noRefGuide
      */
     public int getBaseValue(Vec pnt, Vec dataValue) {
-
+        
         //TODO repeatX,Y,Z implementation 
         double x = pnt.v[0];
         double y = pnt.v[1];
         double z = pnt.v[2];
 
-        //printf("[%3.1f %3.1f]", x, y);
+        if(DEBUG)printf("ImageColorMap3D.getBaseValue([%7.5f %7.5f, %7.5f])\n", x,y,z);
 
         x -= m_originX;
         y -= m_originY;
@@ -406,6 +405,9 @@ public class ImageColorMap3D extends TransformableDataSource {
         x *= m_imageSizeX;
         y *= m_imageSizeY;
         z *= m_imageSizeZ;
+
+        if(DEBUG)printf("   grid coord: [%7.1f %7.1f, %7.1f])\n", x,y,z);
+
         // half pixel shift 
         x -= 0.5;
         y -= 0.5;
@@ -464,7 +466,8 @@ public class ImageColorMap3D extends TransformableDataSource {
             v101 = getPixelData(ix1, iy, iz1),
             v011 = getPixelData(ix, iy1, iz1),
             v111 = getPixelData(ix1,iy1, iz1);
-
+        
+        if(DEBUG)printf("   pixel data: 0x%08x\n", v000);
         
         int
             r000 = getRed(v000),
@@ -510,10 +513,10 @@ public class ImageColorMap3D extends TransformableDataSource {
         double b = lerp(lerp(lerp(b000, b100,dx),lerp(b010, b110,dx),dy),lerp(lerp(b001, b101,dx),lerp(b011, b111,dx),dy),dz);
         double a = lerp(lerp(lerp(a000, a100,dx),lerp(a010, a110,dx),dy),lerp(lerp(a001, a101,dx),lerp(a011, a111,dx),dy),dz);
 
-        dataValue.v[0] = r;
-        dataValue.v[1] = g;
-        dataValue.v[2] = b;
-        dataValue.v[3] = a;
+        dataValue.v[0] = r*NORM;
+        dataValue.v[1] = g*NORM;
+        dataValue.v[2] = b*NORM;
+        dataValue.v[3] = a*NORM;
 
         return ResultCodes.RESULT_OK;
     }

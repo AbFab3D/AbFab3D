@@ -11,6 +11,8 @@
  ****************************************************************************/
 package abfab3d.core;
 
+import javax.vecmath.Vector4d;
+
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 
@@ -44,10 +46,10 @@ public class Color implements Cloneable {
     public static final Color purple = new Color(1,0,1);
     public static final Color PURPLE = purple;
 
-    private double r;
-    private double g;
-    private double b;
-    private double a;
+    public double r;
+    public double g;
+    public double b;
+    public double a;
 
     public Color(double r, double g, double b) {
         this.r = r;
@@ -237,5 +239,8 @@ public class Color implements Cloneable {
         return toString(this);
     }
 
+    public Vector4d toVector4d(){
+        return new Vector4d(r,g,b,a);
+    }
 
 }

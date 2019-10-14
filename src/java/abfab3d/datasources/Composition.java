@@ -265,6 +265,9 @@ public class Composition extends TransformableDataSource {
         // density channel 
         m_channelsCount = 1;
 
+        // what are bounds of composition? 
+        m_bounds =  vDataSources[0].getBounds();
+
         return ResultCodes.RESULT_OK;
     }
 
