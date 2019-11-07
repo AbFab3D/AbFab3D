@@ -213,7 +213,7 @@ public class TestShapeJSExecutorCpu {
             Vector3f normal = new Vector3f();
 
 //            impl.pick(scene,camera,null,256,256,w,h,pos,normal,0.5f);
-            impl.pick(scene, camera, null, 256, 252, w, h, pos, normal, 0.5f);
+            impl.pick(scene, camera, null, 256, 250, w, h, pos, normal, 0.5f);
 
             printf("pos: %s  normal: %s\n", pos, normal);
         } catch (IOException ioe) {
