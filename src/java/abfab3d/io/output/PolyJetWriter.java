@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 
 // Internal Imports
+import abfab3d.core.ResultCodes;
 import abfab3d.core.Vec;
 import abfab3d.core.Color;
 import abfab3d.core.DataSource;
@@ -84,7 +85,7 @@ import static java.lang.Math.min;
 */
 public class PolyJetWriter extends BaseParameterizable {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     static final int MAX_DATA_DIMENSION = 8;
 
@@ -140,6 +141,7 @@ public class PolyJetWriter extends BaseParameterizable {
     public static final String DEFAULT_MATERIAL4 = S_BLACK;
     public static final String DEFAULT_MATERIAL5 = S_WHITE;
 
+    public static final String DEFAULT_MATERIALS[] = {S_CLEAR,S_CYAN,S_MAGENTA,S_YELLOW,S_BLACK,S_WHITE};
 
 
     public static final String sm_mappingNames[] = {"materials","color_rgb","color_rgba"};
@@ -182,6 +184,7 @@ public class PolyJetWriter extends BaseParameterizable {
     StringParameter mp_outPrefix = new StringParameter("outPrefix","slice");
     EnumParameter mp_mapping = new EnumParameter("mapping", "mapping mode of input value into materials", sm_mappingNames, sm_mappingNames[0]);
     DoubleParameter mp_sliceThickness = new DoubleParameter("sliceThickness", DEFAULT_SLICE_THICKNESS);
+    DoubleParameter mp_materialsRatio = new DoubleParameter("materialsRatio", 1.);
     BooleanParameter mp_makeMaterialsMarker = new BooleanParameter("materialsMarker",true);
     
     
@@ -204,7 +207,8 @@ public class PolyJetWriter extends BaseParameterizable {
         mp_mapping,
         mp_threadCount,
         mp_makeMaterialsMarker,
-        mp_sliceThickness
+        mp_sliceThickness,
+        mp_materialsRatio,
     };
 
     public PolyJetWriter(){
@@ -259,6 +263,7 @@ public class PolyJetWriter extends BaseParameterizable {
     int m_firstSlice = 0;
 
     int m_ditheringType = DITHERING_FLOYD_STEINBERG;
+    static final double DUMPING_FACTOR = 0.999;//0.98 error diffusion dumping factor 
 
     static final int DITHERING_NONE = -1;
     static final int DITHERING_FLOYD_STEINBERG = 0;
@@ -283,12 +288,22 @@ public class PolyJetWriter extends BaseParameterizable {
         
         m_outFolder = mp_outFolder.getValue();
         m_outPrefix = mp_outPrefix.getValue();
+        m_mapping = mp_mapping.getSelectedIndex();
+
         m_model = (DataSource)(mp_model.getValue());
+        
+        switch(m_mapping){
+        default: 
+            break;
+        case MAPPING_RGBA:
+            m_model = new RGBAConverter(m_model, mp_materialsRatio.getValue());
+            break;            
+        }
+        
         m_materialColors = getMaterialsColors(mp_materials.getList());
         m_materialCount = m_materialColors.length;
         m_materialValues = getMaterialValues(m_materialCount);
         m_ditheringType = mp_ditheringType.getValue();
-        m_mapping = mp_mapping.getSelectedIndex();
 
         m_bounds = getBounds();
 
@@ -459,10 +474,10 @@ public class PolyJetWriter extends BaseParameterizable {
             break;
         case DITHERING_FLOYD_STEINBERG:
             // floyd steinberg
-            distributeVoxelError(sliceData, ix+1, iy,   voxelError, 7/16.);
-            distributeVoxelError(sliceData, ix, iy+1, voxelError,   5/16.);
-            distributeVoxelError(sliceData, ix+1, iy+1, voxelError, 1/16.);
-            distributeVoxelError(sliceData, ix-1, iy+1, voxelError, 3/16.);
+            distributeVoxelError(sliceData, ix+1, iy,   voxelError, DUMPING_FACTOR*7/16.);
+            distributeVoxelError(sliceData, ix, iy+1, voxelError,   DUMPING_FACTOR*5/16.);
+            distributeVoxelError(sliceData, ix+1, iy+1, voxelError, DUMPING_FACTOR*1/16.);
+            distributeVoxelError(sliceData, ix-1, iy+1, voxelError, DUMPING_FACTOR*3/16.);
             break;                        
         case DITHERING_X_AXIS:
             distributeVoxelError(sliceData, ix+1, iy,   voxelError, 1.);
@@ -699,4 +714,120 @@ public class PolyJetWriter extends BaseParameterizable {
             } 
         }       
     }
+
+    /**
+       Converts RGBA data into mix of materials 
+       
+       The following model is used 
+       
+       the background color is White 
+       initilaly W = 1;
+       color is made by adding Ink using 4 colored Ink: [Cyan, Magneta, Yellow, blacK]
+       [C, Y, M] = [1,1,1] - [R,G,B]
+       K = min(C,M,Y)
+       [C,Y,M] -> [C,Y,M]-[K,K,K]
+       Ink shall be normalized into range [0,1]
+       if(C+Y+M + K > 1) {
+         [C,M,Y,K] -> [C,M,Y,K]/(C+Y+M+K)
+       }
+
+       Ink reduces amound of background white material 
+       W -> 1-(C+M+Y+K)
+       
+       Alpha A is intepreted as proportion of colored [C,M,Y,K,W] and cLear material L
+       L = [1-A]
+       [C,M,Y,K,W] -> A*[C,M,Y,K,W]
+
+     */
+    public static class RGBAConverter implements DataSource {
+        
+        int count = 0;
+
+        DataSource ds;
+        double materialsRatio = 1.;
+
+        public RGBAConverter(DataSource ds){
+            this.ds = ds;
+        }
+
+        public RGBAConverter(DataSource ds, double materialsRatio){
+            this.ds = ds;
+            this.materialsRatio = materialsRatio;
+        }
+
+        public int getDataValue(Vec pnt, Vec data){
+
+            this.ds.getDataValue(pnt, data);
+            if(DEBUG && count-- > 0) 
+                printf("%7.5f %7.5f %7.5f\n",pnt.v[0],pnt.v[1],pnt.v[2]);
+            
+            DRGBA2Materials(data.v, data.v, materialsRatio);
+
+            return ResultCodes.RESULT_OK;
+        }
+
+        public int getChannelsCount(){
+
+            return 6;
+
+        }
+
+        public Bounds getBounds(){
+            return ds.getBounds();
+        }
+    }
+
+
+    /**
+       converter from Distance RGBA to standard material mix with materialRatio coefficient 
+     */
+    public static void DRGBA2Materials(double clr[], double mat[], double materialsRatio){
+
+        if(DEBUG) printf("clr:%s\n",Vec.toString("%5.3f", clr));
+        double C = (1.-clr[1]); // cyan 
+        double M = (1.-clr[2]); // magenta
+        double Y = (1.-clr[3]); // yellow 
+        double A = materialsRatio*clr[4];  // alpha 
+        double K = min(C,min(M,Y));    // K replaces combination of equal amount of CMY
+        if(DEBUG) printf("C:%5.3f M:%5.3f Y:%5.3f K:%5.3f A:%5.3f\n",C,M,Y,K,A);
+        
+        C -= K;
+        M -= K;
+        Y -= K;
+        // adjust K 
+        //K *=1.5;
+        // total amount of ink
+        double ink = (C+M+Y+K); 
+        if(DEBUG) printf("ink:%5.3f\n",ink);
+        
+        if(ink > 1) {
+            // total amount of materials can't exceed 1
+            C /= ink;
+            M /= ink;
+            Y /= ink;                
+            K /= ink;
+            ink = 1;
+        }
+        double W = 1-ink;  // W is what remains from white background
+        if(DEBUG) printf("C:%5.3f M:%5.3f Y:%5.3f K:%5.3f A:%5.3f W:%5.3f\n",C,M,Y,K,A,W);
+
+
+        mat[0] = clr[0]; 
+        mat[1] = A*C;  // cyan 
+        mat[2] = A*M;  // magenta 
+        mat[3] = A*Y;  // yellow 
+        mat[4] = A*K;  // black 
+        mat[5] = A*W;  // white
+        
+    }
+
+    /**
+       converter from Distance RGBA to standard material mix 
+     */
+    public static void DRGBA2Materials(double clr[], double mat[]){
+            
+        DRGBA2Materials(clr, mat, 1.);
+
+    }
+       
 }

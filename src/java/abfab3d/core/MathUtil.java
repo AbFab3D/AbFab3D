@@ -14,6 +14,7 @@ package abfab3d.core;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
+import javax.vecmath.Matrix4f;
 import javax.vecmath.AxisAngle4d;
 import javax.vecmath.Quat4d;
 
@@ -27,6 +28,7 @@ import javax.vecmath.SingularMatrixException;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
+import static java.lang.Math.floor;
 import static abfab3d.core.Output.fmt;
 
 /**
@@ -876,6 +878,38 @@ public class MathUtil {
         p.scale(1./norm);
         
     }
+
+
+    /**
+       component wise scaling of vector v by compoinents of vector s
+     */
+    static public Vector3d scale3(Vector3d u, Vector3d v){
+
+        Vector3d w = new Vector3d();
+        scale3(u,v, w);
+        return w;
+
+    }
+
+    static public Vector3d scale3(Vector3d u, Vector3d v, Vector3d result){
+
+        result.set(v.x * u.x,v.y * u.y,v.z * u.z);
+
+        return result;
+        
+    }
+
+    static public Vector3d floor3(Vector3d v){
+        return new Vector3d(floor(v.x),floor(v.y),floor(v.z));
+    }
+
+    static public Vector3d abs3(Vector3d v, Vector3d w){
+
+        w.set(abs(v.x),abs(v.y),abs(v.z));
+        return w;
+
+    }
+
 
     /**
        make plane coefficients normalized 
@@ -1811,6 +1845,27 @@ public class MathUtil {
         if(obj instanceof Initializable)
             return ((Initializable)obj).initialize();
         else return ResultCodes.RESULT_OK;
+    }
+  
+
+    public static String str(String format, Vector3d v){
+        return fmt("["+format+","+format+","+format+"]", v.x,v.y,v.z);
+    }
+
+    public static String str(String format, Vector4d v){
+        return fmt("["+format+","+format+","+format+","+format+"]", v.x,v.y,v.z,v.w);
+    }
+
+    public static String str(String format, Matrix4f m){
+
+        String f = "["+format+","+format+","+format+","+format+"]\n";
+        StringBuffer sb = new StringBuffer();
+        sb.append(fmt(f, m.m00,m.m01,m.m02,m.m03));
+        sb.append(fmt(f, m.m10,m.m11,m.m12,m.m13));
+        sb.append(fmt(f, m.m20,m.m21,m.m22,m.m23));
+        sb.append(fmt(f, m.m30,m.m31,m.m32,m.m33));
+        return sb.toString();
+
     }
 
 }

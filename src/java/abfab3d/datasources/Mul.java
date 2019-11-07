@@ -25,7 +25,8 @@ import abfab3d.core.Initializable;
 
 /**
 
-   Multiplies two data sources:  source1*source2
+   Componentwise multiplies two data sources:  source1*source2
+   dimension of result is dimensipon of first component 
    <br/>
    
    @author Vladimir Bulatov
@@ -135,6 +136,8 @@ public class Mul extends TransformableDataSource {
         if(dataSource2 != null && dataSource2 instanceof Initializable){
             ((Initializable)dataSource2).initialize();
         }
+        m_channelsCount = dataSource1.getChannelsCount();
+
         return ResultCodes.RESULT_OK;
         
     }
@@ -147,12 +150,12 @@ public class Mul extends TransformableDataSource {
      */
     public int getBaseValue(Vec pnt, Vec data) {
                 
-        dataSource2.getDataValue(new Vec(pnt), data);
-        double d2 = data.v[0];
-
+        Vec data2 = new Vec(data);
+        dataSource2.getDataValue(new Vec(pnt), data2);
+        
         dataSource1.getDataValue(pnt, data);
         
-        data.v[0]*= d2;
+        data.mulSet(data2);
 
         return ResultCodes.RESULT_OK;
 

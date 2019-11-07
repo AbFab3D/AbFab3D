@@ -20,6 +20,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import abfab3d.core.Color;
+import abfab3d.core.ResultCodes;
 
 import javax.imageio.ImageIO;
 
@@ -80,6 +81,7 @@ public class ImageStackLoader extends BaseParameterizable implements ImageStackP
 
     // loaded images 
     BufferedImage m_images[];
+    boolean m_initialized = false;
 
     /**
        @param pathTemplate - image path tempate
@@ -94,6 +96,16 @@ public class ImageStackLoader extends BaseParameterizable implements ImageStackP
         mp_count.setValue(imagesCount);
     }
     
+
+    public int initialize(){
+        
+        m_images = new BufferedImage[mp_count.getValue()];
+
+        m_initialized = true;
+        return ResultCodes.RESULT_OK;
+
+    }
+
 
     public int getCount(){
         
@@ -134,7 +146,9 @@ public class ImageStackLoader extends BaseParameterizable implements ImageStackP
        @Override
     */
     public void prepareImage(int index){
-        
+
+        if(!m_initialized) initialize();
+
         Object co = null;
         String label = null;
         if(CACHING_ENABLED){

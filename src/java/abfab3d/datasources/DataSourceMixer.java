@@ -150,6 +150,7 @@ public class DataSourceMixer extends TransformableDataSource {
 
         super.initialize();
 
+       
         List sources = mp_sources.getValue();
         m_count = sources.size();
         
@@ -187,6 +188,9 @@ public class DataSourceMixer extends TransformableDataSource {
                 printf("source %d, dim: %d: %s\n", i, m_channelsCounts[i],m_sources[i]); 
             }
         }
+
+        m_bounds = m_sources[0].getBounds();
+
         return ResultCodes.RESULT_OK;
     }
 

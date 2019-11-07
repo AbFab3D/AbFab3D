@@ -57,7 +57,7 @@ public class ImageStackToGrid extends BaseParameterizable implements GridProduce
         mp_pixelSize,
     };
 
-    // loaded images converted into grid
+    // loaded images converted to grid
     AttributeGrid m_grid;
 
     /**
@@ -65,10 +65,11 @@ public class ImageStackToGrid extends BaseParameterizable implements GridProduce
      * @param useColor      - use color or convert to gray
      */
     public ImageStackToGrid(ImageStackProducer imageProducer, boolean useColor) {
+
         addParams(m_params);
         mp_imageStackProducer.setValue(imageProducer);
         mp_useColor.setValue(useColor);
-
+                
     }
 
     /**
@@ -116,6 +117,8 @@ public class ImageStackToGrid extends BaseParameterizable implements GridProduce
      */
     public AttributeGrid getGrid() {
 
+        if (DEBUG) printf("ImageStackToGrid.getGrid(useColor:%s)\n", mp_useColor.getValue());
+        
         Object co = null;
         String label = null;
 
@@ -123,7 +126,7 @@ public class ImageStackToGrid extends BaseParameterizable implements GridProduce
 
         if (CACHING_ENABLED) {
             co = ParamCache.getInstance().get(label);
-            if (DEBUG) printf("ImageToGrid2D.  label: %s  cached: %b\n",label,co!=null);
+            if (DEBUG) printf("ImageStackToGrid.  label: %s  cached: %b\n",label,co!=null);
         }
         if (co == null) {
             m_grid = prepareGrid();
@@ -134,7 +137,7 @@ public class ImageStackToGrid extends BaseParameterizable implements GridProduce
             return m_grid;
         } else {
             m_grid = (AttributeGrid) co;
-            if (DEBUG) printf("ImageToGrid: got cached image %s -> %s\n", label, m_grid);
+            if (DEBUG) printf("ImageStackToGrid: got cached image %s -> %s\n", label, m_grid);
 
             return m_grid;
         }
@@ -158,7 +161,7 @@ public class ImageStackToGrid extends BaseParameterizable implements GridProduce
         int ny = image.getHeight();
         int nz = producer.getCount();
 
-        if (DEBUG) printf("Making grayGrid.  p%d x %d x %d]\n", nx, ny, nz);
+        if (DEBUG) printf("Making grayGrid.  [%d x %d x %d]\n", nx, ny, nz);
 
         AttributeGrid grid = new ArrayAttributeGridShort(nx, ny, nz, vs, vs);
         grid.setDataDesc(GridDataDesc.getDefaultAttributeDesc(16));
@@ -174,7 +177,7 @@ public class ImageStackToGrid extends BaseParameterizable implements GridProduce
                 // convert from image (0,0) upper left to grid (0,0) lower left
                 int yoff = nx * (ny - 1 - y);
 
-                for (int x = 0; x < ny; x++) {
+                for (int x = 0; x < nx; x++) {
 
                     short d = data[x + yoff];
                     grid.setAttribute(x, y, z, d);
@@ -191,7 +194,7 @@ public class ImageStackToGrid extends BaseParameterizable implements GridProduce
         int ny = image.getHeight();
         int nz = producer.getCount();
 
-        if (DEBUG) printf("Making grayGrid.  p%d x %d x %d]\n", nx, ny, nz);
+        if (DEBUG) printf("ImageStackToGrid.makeColorGrid: [%d x %d x %d]\n", nx, ny, nz);
 
         AttributeGrid grid = new ArrayAttributeGridInt(nx, ny, nz, vs, vs);
 
@@ -205,7 +208,7 @@ public class ImageStackToGrid extends BaseParameterizable implements GridProduce
             for (int y = 0; y < ny; y++) {
                 // convert from image (0,0) upper left to grid (0,0) lower left
                 int yoff = nx * (ny - 1 - y);
-                for (int x = 0; x < nz; x++) {
+                for (int x = 0; x < nx; x++) {
                     int d = data[x + yoff];
                     grid.setAttribute(x, y, z, d);
                 }

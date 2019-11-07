@@ -13,6 +13,7 @@
 package abfab3d.core;
 
 import javax.vecmath.Tuple3d;
+import javax.vecmath.Tuple4d;
 import javax.vecmath.Matrix3d;
 
 
@@ -121,6 +122,21 @@ public class Vec {
         t.z = v[2];       
     }
 
+    public void set(Tuple4d t){
+        v[0] = t.x;
+        v[1] = t.y;
+        v[2] = t.z;       
+        v[3] = t.w;       
+    }
+
+    public void get(Tuple4d t){
+        t.x = v[0];
+        t.y = v[1];
+        t.z = v[2];       
+        t.w = v[3];       
+    }
+
+
     public final void get(double data[]){
         System.arraycopy(v, 0, data, 0,v.length); 
     }
@@ -170,15 +186,30 @@ public class Vec {
         }
     }
 
+    public void addSet(Vec a){
+        addSet(a.v);
+    }
+
+    public void mulSet(double a[]){
+        int n  = Math.min(v.length, a.length);
+        for(int i = 0; i < n; i++){
+            v[i] *= a[i];
+        }
+    }
+    
+    /**
+       componentwise multiply this by a  
+       
+     */
+    public void mulSet(Vec a){
+        mulSet(a.v);
+    }
+
     public void subSet(double a[]){
         int n  = Math.min(v.length, a.length);
         for(int i = 0; i < n; i++){
             v[i] -= a[i];
         }
-    }
-
-    public void addSet(Vec a){
-        addSet(a.v);
     }
 
     public void subSet(Vec a){
@@ -219,15 +250,28 @@ public class Vec {
     }
 
 
-    public static String toString(Vec v) {
-        StringBuilder sb = new StringBuilder();
 
-        sb.append("Vec: ");
-        for(int i=0; i < v.v.length; i++) {
-            sb.append(fmt("%8.4f",v.v[i]));
+    public String toString(String format) {
+        
+        return toString(format, v);
+        
+    }
+
+    public static String toString(Vec v) {
+        return v.toString("%8.4f");
+    }
+
+    public static String toString(String format, double v[]) {
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for(int i=0; i < v.length; i++) {
+            sb.append(fmt(format,v[i]));
             sb.append(" ");
         }
-        return sb.toString();
+        sb.append("]");
+        return sb.toString();        
+
     }
 
 
