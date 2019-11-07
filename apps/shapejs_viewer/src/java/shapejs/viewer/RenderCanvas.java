@@ -12,6 +12,7 @@
 package shapejs.viewer;
 
 import abfab3d.shapejs.*;
+import abfab3d.shapejs.ImageSetupUtils;
 import org.j3d.util.ErrorReporter;
 import shapejs.*;
 
