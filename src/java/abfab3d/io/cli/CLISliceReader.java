@@ -40,20 +40,17 @@ public class CLISliceReader extends BaseSliceReader {
     }
     private static final boolean DEBUG = false;
 
-    private static final int CMD_START_LAYER_LONG = 127;
-    private static final int CMD_START_LAYER_SHORT = 128;
-    private static final int CMD_START_POLY_LINE_SHORT = 129;
-    private static final int CMD_START_POLY_LINE_LONG = 130;
-    private static final int CMD_START_HATCHES_LONG = 131;
-    private static final int CMD_START_HATCHES_SHORT = 132;
-
-
     private State state;
     private double units = 1.0;
     private ArrayList<SliceLayer> layers = new ArrayList<>();
 
 
     public CLISliceReader() {
+
+    }
+
+    public CLISliceReader(InputStream is) throws IOException {
+        load(is);
 
     }
 
@@ -91,7 +88,7 @@ public class CLISliceReader extends BaseSliceReader {
                         }
                         if (cmd.startsWith(HEADER_END)) {
                             state = State.Geometry;
-                            if (binary) loadBinary(cmd.substring(HEADER_END.length()),is);
+                            if (binary) loadBinary(is);
                         }
 
                         break;
@@ -135,20 +132,9 @@ public class CLISliceReader extends BaseSliceReader {
         }
     }
 
-    private void loadBinary(String line,InputStream is) throws IOException {
+    private void loadBinary(InputStream is) throws IOException {
 
-        // We likely overshot reading line by line, so line contains the initial data to parse.
-        // Right now we don't care about performance so we'll just completely read into memory and parse
-
-        byte[] lbytes = line.getBytes();
-        byte[] tbytes = IOUtils.toByteArray(is);
-        byte[] tot = new byte[lbytes.length + tbytes.length];
-        System.arraycopy(lbytes,0,tot,0,lbytes.length);
-        System.arraycopy(tbytes,0,tot,lbytes.length,tbytes.length);
-
-
-        ByteArrayInputStream bais = new ByteArrayInputStream(tot);
-        DataInputStream dis = new DataInputStream(bais);
+        DataInputStream dis = new DataInputStream(is);
         SliceLayer current = new SliceLayer();
 
         try {
@@ -156,11 +142,9 @@ public class CLISliceReader extends BaseSliceReader {
                 //printf("Avail: %d\n",dis.available());
                 int b1 = dis.readUnsignedByte();
                 int b2 = dis.readUnsignedByte();
-                int b3;
-                int b4;
                 int cmd  = (b2 << 8 | b1);
 
-                if (DEBUG) printf("cmd: %d\n",cmd);
+                //if (DEBUG) printf("cmd: %d\n",cmd);
                 switch (cmd) {
                     case CMD_START_LAYER_SHORT:
                         if (DEBUG) printf("Start Layer Short\n");
@@ -190,12 +174,16 @@ public class CLISliceReader extends BaseSliceReader {
                     case CMD_START_HATCHES_LONG:
                         parseHatchesLongBinary(dis, current);
                         break;
+                    default:
+                        printf("Unknown cmd: %d\n",cmd);
                 }
             }
         } catch(EOFException e) {
             // expected
         }
     }
+
+
 
     private int parseUnsignedIntegerBinary(DataInputStream dis) throws IOException {
         int b1 = dis.readUnsignedByte();

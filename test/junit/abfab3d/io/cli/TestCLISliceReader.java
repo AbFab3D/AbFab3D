@@ -44,6 +44,27 @@ public class TestCLISliceReader {
         CLISliceReader ar = new CLISliceReader(asciiFile);
         CLISliceReader br = new CLISliceReader(binaryFile);
 
+        compareFiles(ar,br);
+    }
+
+    @Test
+    public void testCLIHatches() throws IOException {
+
+        String filePath = "test/slices/gyroplane_hatches.cli";
+
+        CLISliceReader reader = new CLISliceReader(filePath);
+
+        Assert.assertTrue("Missing slices", reader.getNumSlices() == 7);
+
+        SliceLayer[] layers = reader.getSlices();
+        PolyLine[] lines = layers[1].getPolyLines();
+        Hatches[] hatches = layers[1].getHatches();
+
+        Assert.assertEquals("Num lines",1,lines.length);
+        Assert.assertEquals("Num hatches",1,hatches.length);
+    }
+
+    public static void compareFiles(CLISliceReader ar, CLISliceReader br) {
         Assert.assertEquals("Num slices",ar.getNumSlices(),br.getNumSlices());
 
         // Binary values in ascii format are slightly different than binary so use small epsilon
@@ -71,22 +92,4 @@ public class TestCLISliceReader {
 
         }
     }
-
-    @Test
-    public void testCLIHatches() throws IOException {
-
-        String filePath = "test/slices/gyroplane_hatches.cli";
-
-        CLISliceReader reader = new CLISliceReader(filePath);
-
-        Assert.assertTrue("Missing slices", reader.getNumSlices() == 7);
-
-        SliceLayer[] layers = reader.getSlices();
-        PolyLine[] lines = layers[1].getPolyLines();
-        Hatches[] hatches = layers[1].getHatches();
-
-        Assert.assertEquals("Num lines",1,lines.length);
-        Assert.assertEquals("Num hatches",1,hatches.length);
-    }
-
 }

@@ -15,9 +15,10 @@
 package abfab3d.io.cli;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SliceLayer {
-    private double layerHeight;
+    private double layerHeight;   // Layer height in meters
     private ArrayList<PolyLine> lines = new ArrayList<>();
     private ArrayList<Hatches> hatches = new ArrayList<>();
 
@@ -50,5 +51,35 @@ public class SliceLayer {
 
     public void addHatches(Hatches h) {
         hatches.add(h);
+    }
+
+    public void setLayerHeight(double layerHeight) {
+        this.layerHeight = layerHeight;
+    }
+
+    public ArrayList<PolyLine> getLines() {
+        return lines;
+    }
+
+    public void setLines(List<PolyLine> lines) {
+        this.lines = new ArrayList<>(lines);
+    }
+
+    public void setLines(PolyLine[] lines) {
+        this.lines = new ArrayList<>();
+        for(PolyLine pl : lines) {
+            this.lines.add(pl);
+        }
+    }
+
+    public void setHatches(List<Hatches> hatches) {
+        this.hatches = new ArrayList<>(hatches);
+    }
+
+    public void setHatches(ArrayList<Hatches> hatches) {
+        this.hatches = new ArrayList<>();
+        for(Hatches pl : hatches) {
+            this.hatches.add(pl);
+        }
     }
 }

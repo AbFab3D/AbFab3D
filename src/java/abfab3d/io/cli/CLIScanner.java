@@ -34,13 +34,14 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 class CLIScanner implements Closeable {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     protected static final String COMMENT = "//";
     protected static final String HEADER_START = "$$HEADERSTART";
     protected static final String ASCII = "$$ASCII";
     protected static final String BINARY = "$$BINARY";
     protected static final String UNITS = "$$UNITS/";
+    protected static final String DATE = "$$DATE/";
     protected static final String DIMENSION = "$$DIMENSION/";
     protected static final String VERSION = "$$VERSION/";
     protected static final String ALIGN = "$$ALIGN";
@@ -54,6 +55,15 @@ class CLIScanner implements Closeable {
     protected static final String HATCHES = "$$HATCHES/";
     protected static final String GEOMETRY_END = "$$GEOMETRYEND";
 
+    protected static final int CMD_START_LAYER_LONG = 127;
+    protected static final int CMD_START_LAYER_SHORT = 128;
+    protected static final int CMD_START_POLY_LINE_SHORT = 129;
+    protected static final int CMD_START_POLY_LINE_LONG = 130;
+    protected static final int CMD_START_HATCHES_LONG = 131;
+    protected static final int CMD_START_HATCHES_SHORT = 132;
+
+
+
     private static final HashMap<Integer,String> commands;
     private static final int BINARY_HASH = BINARY.hashCode();
     private static final int HEADER_END_HASH = HEADER_END.hashCode();
@@ -65,6 +75,7 @@ class CLIScanner implements Closeable {
         commands.put(ASCII.hashCode(),ASCII);
         commands.put(BINARY.hashCode(),BINARY);
         commands.put(UNITS.hashCode(),UNITS);
+        commands.put(DATE.hashCode(),DATE);
         commands.put(DIMENSION.hashCode(),DIMENSION);
         commands.put(VERSION.hashCode(),VERSION);
         commands.put(ALIGN.hashCode(),ALIGN);
@@ -113,10 +124,12 @@ class CLIScanner implements Closeable {
         while(true) {
             int b = source.read();
 
-            //printf("%d\n",b);
+
             if (b == -1) return null;
-            //printf("%s",(char)b);
+
             if (buff.position() == 0 && b == 10) continue;  // Skip bare newlines
+            if (b == 13) continue;  // Skip carriage returns
+
             if (buff.position() == 0 && b == '/') {
                 // Skip comments
                 while((b = source.read()) != 10) {
@@ -140,6 +153,7 @@ class CLIScanner implements Closeable {
                         if (DEBUG) printf("Binary mode\n");
                         binary = true;
                     }
+                    if (DEBUG) printf("Cmd: %s\n",cmd);
                     return cmd;
                 } else {
                     printf("Unknown command: %s", new String(buff.array()));
