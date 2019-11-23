@@ -18,7 +18,8 @@ package abfab3d.param;
  */
 public enum ParameterType {
     //
-    BOOLEAN, 
+    FUNCTION, 
+        BOOLEAN,         
         DATE_TIME, 
         DOUBLE, 
         FLOAT, 

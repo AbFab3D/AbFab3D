@@ -15,6 +15,7 @@ import abfab3d.param.Parameterizable;
 import abfab3d.param.Parameter;
 import abfab3d.param.ParamChangedListener;
 import abfab3d.param.Editor;
+import abfab3d.param.ParameterType;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -185,8 +186,11 @@ public class ParamPanel extends JPanel {
 
                 double hWeight = (i < tot - 1) ? (0.) : (1.);
 
-                WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, cnt, 1, 1,
-                        GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 0., hWeight, SPACE, SPACE, SPACE, 0);
+                if(param[i].getType() != ParameterType.FUNCTION){
+                    WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, cnt, 1, 1,
+                                          GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 
+                                          0., hWeight, SPACE, SPACE, SPACE, 0);
+                }
 
                 Editor editor = sm_factory.createEditor(param[i]);
                 editor.addParamChangedListeners(m_plisteners);
@@ -212,8 +216,10 @@ public class ParamPanel extends JPanel {
             
             double hWeight = (i < param.length - 1) ? (0.) : (1.);
             
-            WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, i, 1, 1,
+            if(param[i].getType() != ParameterType.FUNCTION){
+                WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, i, 1, 1,
                                   GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 0., hWeight, SPACE, SPACE, SPACE, 0);
+            }
             
             Editor editor = sm_factory.createEditor(param[i]);
             editor.addParamChangedListeners(m_plisteners);
@@ -235,8 +241,10 @@ public class ParamPanel extends JPanel {
 
             double hWeight = (i < param.length - 1) ? (0.) : (1.);
 
-            WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, i, 1, 1,
-                    GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 0., hWeight, SPACE, SPACE, SPACE, 0);
+            if(param[i].getType() != ParameterType.FUNCTION){
+                WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, i, 1, 1,
+                                      GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 0., hWeight, SPACE, SPACE, SPACE, 0);
+            }
 
             Editor editor = sm_factory.createEditor(param[i]);
             editor.addParamChangedListeners(m_plisteners);
@@ -256,8 +264,10 @@ public class ParamPanel extends JPanel {
             
             double hWeight = (i <  param.length - 1) ? (0.) : (1.);
             
-            WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, i, 1, 1,
+            if(param[i].getType() != ParameterType.FUNCTION){
+                WindowUtils.constrain(panel, new JLabel(param[i].getName()), 0, i, 1, 1,
                                   GridBagConstraints.NONE, GridBagConstraints.NORTHEAST, 0., hWeight, SPACE, SPACE, SPACE, 0);
+            }
             
             Editor editor = sm_factory.createEditor(param[i]);
             editor.addParamChangedListener(listener);

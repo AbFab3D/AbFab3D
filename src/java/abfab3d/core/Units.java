@@ -10,7 +10,11 @@
  *
  ****************************************************************************/
 
+
 package abfab3d.core;
+
+import java.util.HashMap;
+
 
 /**
  * various conversion coefficients 
@@ -18,6 +22,7 @@ package abfab3d.core;
  * @author Vladimir Bulatov
  */
 public class Units{
+    static public final double M = 1.; // m -> meters
     static public final double CM = 0.01; // cm -> meters
     static public final double MM = 0.001; // mm -> meters
     static public final double MM3 = 1.E-9; // mm^3 -> meters^3
@@ -96,4 +101,22 @@ public class Units{
             default: throw new IllegalArgumentException("Unsupported out unit: " + outUnit);
         }
     }
+
+    static HashMap<Double,String> sm_table = new HashMap<Double,String>();
+    static {
+        sm_table.put(new Double(MM), "mm");
+        sm_table.put(new Double(M), "m");
+        sm_table.put(new Double(CM), "cm");
+        sm_table.put(new Double(IN), "in");
+
+    }
+
+    public static String getUnitsName(double unit){
+        String name = sm_table.get(new Double(unit));
+        if(name == null) 
+            return "unknown";
+        else 
+            return name;
+    }
+    
 }
