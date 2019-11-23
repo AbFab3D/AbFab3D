@@ -172,6 +172,9 @@
     <compilejava package="abfab3d/io/output"
                  jars="vecmath.jar toxiclibscore.jar volumeutils.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar commons-io-2.6.jar"
     />
+    <compilejava package="abfab3d/io/cli"
+                 jars="commons-io-2.6.jar"
+    />
     <compilejava package="abfab3d/shapejs"
                  jars=""
     />
