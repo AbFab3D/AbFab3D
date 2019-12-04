@@ -16,3 +16,4 @@ refguide
 tmp/
 *.bak
 apps/shapeways_licensed/
+/apps/shapejs_viewer/VolumeViewer.json
