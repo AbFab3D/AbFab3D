@@ -185,40 +185,6 @@ public class CLISliceReader extends BaseSliceReader {
 
 
 
-    private int parseUnsignedIntegerBinary(DataInputStream dis) throws IOException {
-        int b1 = dis.readUnsignedByte();
-        int b2 = dis.readUnsignedByte();
-
-        int bits = ((b2 << 8) + (b1 << 0));
-        return bits;
-    }
-
-    private double parseRealBinary(DataInputStream dis) throws IOException {
-        int b1 = dis.readUnsignedByte();
-        int b2 = dis.readUnsignedByte();
-        int b3 = dis.readUnsignedByte();
-        int b4 = dis.readUnsignedByte();
-
-        int bits = (b4 << 24) + (b3 << 16) + (b2 << 8) + (b1 << 0);
-        return Float.intBitsToFloat(bits);
-    }
-
-    /**
-     * Parse 32 bit value, known as long in CLI spec, its an int in Java
-     * @param dis
-     * @return
-     * @throws IOException
-     */
-    private int parseLongBinary(DataInputStream dis) throws IOException {
-        int b1 = dis.readUnsignedByte();
-        int b2 = dis.readUnsignedByte();
-        int b3 = dis.readUnsignedByte();
-        int b4 = dis.readUnsignedByte();
-
-        int bits = (b4 << 24) + (b3 << 16) + (b2 << 8) + (b1 << 0);
-        return bits;
-    }
-
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];

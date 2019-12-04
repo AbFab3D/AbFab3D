@@ -2,11 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/apps/api/APIExample.iml" filepath="$PROJECT_DIR$/apps/api/APIExample.iml" />
       <module fileurl="file://$PROJECT_DIR$/src/AbFab3D Lib.iml" filepath="$PROJECT_DIR$/src/AbFab3D Lib.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/common/src/AppCommon.iml" filepath="$PROJECT_DIR$/apps/common/src/AppCommon.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/shapejs_cmd/src/shapejs_cmd.iml" filepath="$PROJECT_DIR$/apps/shapejs_cmd/src/shapejs_cmd.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/shapejs_ide/src/java/shapejs_ide.iml" filepath="$PROJECT_DIR$/apps/shapejs_ide/src/java/shapejs_ide.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/shapejs_viewer/src/java/shapejs_viewer.iml" filepath="$PROJECT_DIR$/apps/shapejs_viewer/src/java/shapejs_viewer.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/svxconv/src/svxconv.iml" filepath="$PROJECT_DIR$/apps/svxconv/src/svxconv.iml" />
     </modules>
   </component>
 </project>
-

@@ -30,4 +30,40 @@ public abstract class BaseSliceReader implements SliceReader {
             load(bis);
         }
     }
+    
+    protected int parseUnsignedIntegerBinary(DataInputStream dis) throws IOException {
+        int b1 = dis.readUnsignedByte();
+        int b2 = dis.readUnsignedByte();
+
+        int bits = ((b2 << 8) + (b1 << 0));
+        return bits;
+    }
+
+    protected double parseRealBinary(DataInputStream dis) throws IOException {
+        int b1 = dis.readUnsignedByte();
+        int b2 = dis.readUnsignedByte();
+        int b3 = dis.readUnsignedByte();
+        int b4 = dis.readUnsignedByte();
+
+        int bits = (b4 << 24) + (b3 << 16) + (b2 << 8) + (b1 << 0);
+        return Float.intBitsToFloat(bits);
+    }
+
+    /**
+     * Parse 32 bit value, known as long in CLI spec, its an int in Java
+     * @param dis
+     * @return
+     * @throws IOException
+     */
+    protected int parseLongBinary(DataInputStream dis) throws IOException {
+        int b1 = dis.readUnsignedByte();
+        int b2 = dis.readUnsignedByte();
+        int b3 = dis.readUnsignedByte();
+        int b4 = dis.readUnsignedByte();
+
+        int bits = (b4 << 24) + (b3 << 16) + (b2 << 8) + (b1 << 0);
+        return bits;
+    }
+
+
 }

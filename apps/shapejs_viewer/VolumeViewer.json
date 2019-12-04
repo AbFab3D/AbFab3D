@@ -1,0 +1,21 @@
+{
+  "lib": [
+    "d:\\home\\00_shapeways\\projects\\abfab3d\\code\\trunk\\apps\\shapejs_viewer"
+  ],
+  "history": [
+    "D:/home/00_shapeways/projects/shapeways_1/code/3dtools/abfab3d/apps/gpu/scripts/box3.js",
+    "D:/home/00_shapeways/projects/shapeways_1/code/3dtools/abfab3d/apps/gpu/scripts/gyrosphere_params.js",
+    "D:/home/00_shapeways/projects/abfab3d/code/trunk/test/scripts/undefined.js",
+    "D:/home/00_shapeways/projects/abfab3d/code/trunk/test/scripts/undefined2.js",
+    "D:/home/00_shapeways/projects/abfab3d/code/trunk/test/scripts/user_defined_type.js",
+    "D:/home/00_shapeways/projects/abfab3d/code/trunk/test/scripts/multimaterials_balls.js",
+    "D:/home/00_shapeways/projects/abfab3d/code/trunk/test/scripts/gyrosphere_params.js",
+    "D:\\home\\00_shapeways\\projects\\abfab3d\\code\\trunk\\test\\scripts\\multimaterials_balls.json",
+    "D:/home/00_shapeways/projects/abfab3d/code/trunk/test/scripts/multimaterial_balls/multimaterials_balls.json"
+  ],
+  "canvasBackgroundColor": [
+    1.0,
+    1.0,
+    1.0
+  ]
+}
