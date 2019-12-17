@@ -30,7 +30,7 @@ import static abfab3d.core.Units.MM;
  *
  * @author Alan Hudson
  */
-public class CLISliceWriter implements Closeable {
+public class CLISliceWriter extends BaseSliceWriter implements Closeable {
     private OutputStream os;
     private PrintStream ps;
     private DataOutputStream dos;
@@ -251,26 +251,4 @@ public class CLISliceWriter implements Closeable {
             ioe.printStackTrace();
         }
     }
-
-    private void writeUnsignedIntegerBinary(DataOutputStream dos,int val) throws IOException {
-        dos.write((byte)(0xff & val));
-        dos.write((byte)(0xff & (val >> 8)));
-    }
-
-    private void writeRealBinary(DataOutputStream dos, double val) throws IOException {
-        int value = Float.floatToIntBits((float)val);
-
-        dos.write((byte) (0xff & value));
-        dos.write((byte) (0xff & (value >>  8)));
-        dos.write((byte) (0xff & (value >> 16)));
-        dos.write((byte) (0xff & (value >> 24)));
-    }
-
-    private void writeLongBinary(DataOutputStream dos, int val) throws IOException {
-        dos.write((byte) (0xff & val));
-        dos.write((byte) (0xff & (val >>  8)));
-        dos.write((byte) (0xff & (val >> 16)));
-        dos.write((byte) (0xff & (val >> 24)));
-    }
-
 }

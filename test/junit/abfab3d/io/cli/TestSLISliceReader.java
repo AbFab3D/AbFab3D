@@ -28,7 +28,17 @@ import java.io.IOException;
 public class TestSLISliceReader {
 
     @Test
-    public void testSLIBasic1() throws IOException {
+    public void testSLISimple() throws IOException {
+
+        String filePath = "test/slices/simple.sli";
+
+        SLISliceReader reader = new SLISliceReader(filePath);
+
+        //Assert.assertTrue("Missing slices", reader.getNumSlices() == 95);
+    }
+
+    @Test
+    public void testSLIGyroplane() throws IOException {
                 
         String filePath = "test/slices/gyroplane.sli";
 
@@ -38,7 +48,7 @@ public class TestSLISliceReader {
     }
 
     @Test
-    public void testSLIBasic2() throws IOException {
+    public void testSLICube() throws IOException {
 
         String filePath = "test/slices/Box.sli";
 

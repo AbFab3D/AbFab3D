@@ -21,6 +21,7 @@ public class SliceLayer {
     private double layerHeight;   // Layer height in meters
     private ArrayList<PolyLine> lines = new ArrayList<>();
     private ArrayList<Hatches> hatches = new ArrayList<>();
+    private int totalPointCnt = -1;
 
     public SliceLayer() {
 
@@ -39,6 +40,23 @@ public class SliceLayer {
 
     public PolyLine[] getPolyLines() {
         return (PolyLine[]) lines.toArray(new PolyLine[lines.size()]);
+    }
+    public int getPolyLineCount() {
+        return lines.size();
+    }
+
+    public int getTotalPointCount() {
+        if (totalPointCnt > -1) {
+            return totalPointCnt;
+        }
+
+        int cnt = 0;
+        for(int i=0; i < lines.size(); i++) {
+            cnt += lines.get(i).getPoints().length;
+        }
+
+        totalPointCnt = cnt;
+        return totalPointCnt;
     }
 
     public Hatches[] getHatches() {
