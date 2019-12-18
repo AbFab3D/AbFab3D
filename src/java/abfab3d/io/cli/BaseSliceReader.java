@@ -14,7 +14,12 @@
 
 package abfab3d.io.cli;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.*;
+
+import static abfab3d.core.Output.printf;
+import static abfab3d.io.cli.CLISliceReader.bytesToHex;
 
 /**
  * Base class for slice readers
@@ -65,5 +70,34 @@ public abstract class BaseSliceReader implements SliceReader {
         return bits;
     }
 
+    protected void hexDump(InputStream is, int max) throws IOException {
+        byte[] tbytes = IOUtils.toByteArray(is);
+
+        int len = Math.min(max,tbytes.length);
+        byte[] bytes = new byte[len];
+
+        System.arraycopy(tbytes,0,bytes,0,len);
+        printf("%s\n",bytesToHex(bytes));
+    }
+
+    protected void asciiDump(InputStream is, int len, boolean label, int maxCol) throws IOException {
+        int lines = len / maxCol;
+
+        for(int n=0; n < lines; n++) {
+            int start = n*maxCol;
+            int end = start + maxCol;
+            if (label && n==0) {
+                for (int i = start; i < end; i++) {
+                    printf("%3d ", i);
+                }
+                printf("\n");
+            }
+            for (int i = start; i < end; i++) {
+                int b = is.read();
+                printf("%3d ", b);
+            }
+            printf("\n");
+        }
+    }
 
 }

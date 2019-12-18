@@ -38,7 +38,7 @@ public class CLISliceReader extends BaseSliceReader {
     private enum State {
         BeforeHeader, Header, Geometry, PostGeometry
     }
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private State state;
     private double units = 1.0;
@@ -132,9 +132,15 @@ public class CLISliceReader extends BaseSliceReader {
         }
     }
 
-    private void loadBinary(InputStream is) throws IOException {
+    protected void loadBinary(InputStream is) throws IOException {
 
-        DataInputStream dis = new DataInputStream(is);
+        DataInputStream dis = null;
+
+        if (is instanceof  DataInputStream) {
+            dis = (DataInputStream) is;
+        } else {
+            dis = new DataInputStream(is);
+        }
         SliceLayer current = new SliceLayer();
 
         try {
@@ -196,23 +202,6 @@ public class CLISliceReader extends BaseSliceReader {
         return new String(hexChars);
     }
 
-    private void hexDump(InputStream is, int max) throws IOException {
-        byte[] tbytes = IOUtils.toByteArray(is);
-
-        int len = Math.min(max,tbytes.length);
-        byte[] bytes = new byte[len];
-
-        System.arraycopy(tbytes,0,bytes,0,len);
-        printf("%s\n",bytesToHex(bytes));
-    }
-
-    private void asciiDump(InputStream is, int len) throws IOException {
-        for(int i=0; i < len; i++) {
-            int b = is.read();
-            printf("%d ", b);
-        }
-        printf("\n");
-    }
 
     private double parseReal(String line, int pos) {
         String val = line.substring(pos);

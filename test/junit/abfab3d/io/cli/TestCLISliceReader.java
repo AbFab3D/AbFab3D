@@ -89,7 +89,6 @@ public class TestCLISliceReader {
                     Assert.assertEquals("points",apoints[n],bpoints[n],EPS);
                 }
             }
-
         }
     }
 }
