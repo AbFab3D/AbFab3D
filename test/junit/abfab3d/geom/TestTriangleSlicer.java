@@ -25,14 +25,18 @@ import java.util.Random;
 
 // Internal Imports
 import abfab3d.distance.DistanceDataHalfSpace;
+
+import abfab3d.util.PointMap;
+import abfab3d.util.PointMap2;
 import abfab3d.util.TrianglePrinter;
+
 import abfab3d.io.output.STLWriter;
 
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.time;
 import static abfab3d.core.Units.MM;
 import static abfab3d.core.MathUtil.str;
-import static java.lang.Math.max;
-import static java.lang.Math.abs;
+import static java.lang.Math.*;
 
 
 /**
@@ -136,6 +140,11 @@ public class TestTriangleSlicer extends TestCase {
         return new Vector3d(2*rnd.nextDouble()-1, 2*rnd.nextDouble()-1, 2*rnd.nextDouble()-1 );
     }
 
+    static Vector3d getRandomVect(Random rnd, Vector3d v){
+        v.set(2*rnd.nextDouble()-1, 2*rnd.nextDouble()-1, 2*rnd.nextDouble()-1 );
+        return v;
+    }
+    
     /**
      * 
      */
@@ -144,16 +153,129 @@ public class TestTriangleSlicer extends TestCase {
         double rin = 4*MM; 
         double rout = 6*MM; 
         
-        ParametricSurfaces.Torus torus = new ParametricSurfaces.Torus(rin, rout);
+        //ParametricSurfaces.Sphere ps = new ParametricSurfaces.Sphere(rin + rout);
+        ParametricSurfaces.Torus ps = new ParametricSurfaces.Torus(rin, rout);
 
-        ParametricSurfaceMaker maker = new ParametricSurfaceMaker(torus, 0.1*MM);
+        ParametricSurfaceMaker maker = new ParametricSurfaceMaker(ps, 0.01*MM);
 
-        TrianglePrinter printer = new TrianglePrinter();
-        STLWriter stl = new STLWriter("/tmp/torus_4mm_6mm_01.stl");
-        maker.getTriangles(stl);
-        stl.close();              
+        //TrianglePrinter printer = new TrianglePrinter();
+        //STLWriter stl = new STLWriter("/tmp/torus_4mm_6mm_01.stl");
+        //stl.close();              
 
-        //maker.getTriangles(printer);
+        TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer();
+        meshSlicer.setSliceNormal(new Vector3d(0,0,1));
+        meshSlicer.setSliceStep(0.1*MM);
+        long t0 = time();
+        meshSlicer.makeSlices(maker);        
+
+        printf("meshSlicer.makeSlices(maker): %d ms\n", (time() - t0));
+        printf("triangles count: %d \n", meshSlicer.getTriCount());
+        printf("slices count: %d \n", meshSlicer.getSliceCount());        
+        for(int i = 0; i < meshSlicer.getSliceCount(); i++){
+            Slice slice = meshSlicer.getSlice(i);
+            printf("slice[%4d]: segments: %5d  open contours: %d\n", i, slice.getSegmentCount(), slice.getOpenContourCount()); 
+        
+        }
+
+    }
+
+    void devTestSlice(){
+
+        int N = 1000003;
+        int K = 2;
+        printf("devTestSlice({N:%d, K:%d})\n", N,K);
+        double r = 1000*MM;
+        Slice slice = new Slice(new Vector3d(0,0,1), new Vector3d(0,0,0),1.e-8);
+
+        Vector3d 
+            v0 = new Vector3d(),
+            v1 = new Vector3d();
+        long t0 = time();
+        printf("start making contour %d poins\n", N);
+        double da = 2*PI/N;
+        for(int i = 0; i < N-10; i++){
+            int j = (K*i) % N;
+            double a0 = j*da;
+            double a1 = (j+1)*da;
+            
+            v0.set(r*cos(a0),r*sin(a0),0);
+            v1.set(r*cos(a1),r*sin(a1),0);
+            slice.addSegment(v0,v1);
+        }
+        printf("making contour time: %d ms\n",(time() - t0));
+        slice.printStat();
+        printf("pointCount:%d\n",slice.getPointCount());
+
+        printf("segmentCount:%d\n",slice.getSegmentCount());
+        printf("openContourCount:%d\n",slice.getOpenContourCount());
+        slice.getPoints();        
+    }
+
+
+    void devTestContour(){
+        int N = 10;
+
+        
+        {
+            Contour c = new Contour(0,1);
+            long t0 = time();
+            printf("test append: {N:%d}\n", N);
+            for(int i = 0; i < N; i++){
+                c.append(i+10);
+            }
+            printf("append done: %d ms\n", (time()-t0));
+            //printf("contour:%s\n", c);
+        }
+        
+        {
+            Contour c = new Contour(0,1);
+            printf("test prepend: {N:%d}\n", N);
+            long t0 = time();
+            for(int i = 0; i < N; i++){
+                c.prepend(i+10);
+            }
+            printf("prepend done: %d ms\n", (time()-t0));
+            //printf("contour:%s\n", c);
+        }
+    
+        {
+            Contour c0 = new Contour();
+            c0.append(1);
+            c0.prepend(0);            
+            Contour c1 = new Contour();
+            c1.prepend(10);
+            c1.prepend(11);
+            c1.prepend(12);
+            
+            printf("test append(contour) {N:%d}\n", N);
+            long t0 = time();
+            for(int i = 0; i < N; i++){
+                c0.append(c1);
+            }
+            printf("test append(contour) done: %d ms\n", (time()-t0));
+            //printf("contour:%s\n", c0);
+        }
+
+        {
+            Contour c0 = new Contour();
+            c0.append(1);
+            c0.prepend(0);            
+            Contour c1 = new Contour();
+            c1.prepend(10);
+            c1.prepend(11);
+            
+            printf("test append/prepend(contour) {N:%d}\n", N);
+            long t0 = time();
+            for(int i = 0; i < N; i++){
+                c0.prepend(c1);
+                c0.append(c1);
+                c0.append(30+i);
+                c0.prepend(30+i);
+
+            }
+            printf("test append/prepend(contour) done: %d ms\n", (time()-t0));
+            printf("contour:%s\n", c0);
+        }
 
     }
 
@@ -166,7 +288,7 @@ public class TestTriangleSlicer extends TestCase {
         
         ParametricSurfaces.Sphere sphere = new ParametricSurfaces.Sphere(rad);
 
-        ParametricSurfaceMaker maker = new ParametricSurfaceMaker(sphere, 1*MM);
+        ParametricSurfaceMaker maker = new ParametricSurfaceMaker(sphere, 0.01*MM);
         TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer();
         meshSlicer.makeSlices(maker);
         //STLWriter stl = new STLWriter("/tmp/sphere_10mm_1.stl");
@@ -175,13 +297,62 @@ public class TestTriangleSlicer extends TestCase {
 
     }
 
+    public static void devTestPointMap() throws IOException {
+
+        printf("devTestPointMap()\n");
+        double epsilon  = 1.e-6;
+        double delta = epsilon;
+        
+        int N = 100000;
+        int M = 100;
+        boolean debug = false;
+        printf("epsilon:%10.3e\n",epsilon);  
+        printf("N:%d\n",N);        
+        printf("M:%d\n",M);        
+        
+        //PointMap2 map = new PointMap2(N, 0.75, epsilon);
+        PointMap map = new PointMap(N, 0.75, epsilon);
+
+        Random rnd = new Random(125);
+        int errorCount = 0;
+        long t0 = time();
+        Vector3d 
+            v = new Vector3d(), 
+            u = new Vector3d();
+
+        for(int i = 0; i < N; i++){
+            getRandomVect(rnd, v);
+            int iv = map.add(v.x,v.y,v.z);
+            if(debug)printf("(%6.4f,%6.4f,%6.4f):%d\n",v.x, v.y, v.z, iv);
+            for(int k = 0; k < M; k++){
+                getRandomVect(rnd, u); 
+                u.scale(delta);
+                u.add(v);
+                int iu = map.get(u.x,u.y,u.z);
+                if(debug)printf("  -> (%6.4f,%6.4f,%6.4f):%d\n", u.x,u.y,u.z, iu);
+                //if(debug)printf(" %2d",iu);
+                if(iu != iv)errorCount++;
+            }
+            if(debug)printf("\n",iv);
+        }
+        printf("time:%d ms\n",(time() - t0));        
+        printf("point count:%d\n",map.getPointCount());        
+        printf("errorCount:%d\n",errorCount);        
+        double p[] = map.getPoints();
+        
+    }
+
 
 
     public static void main(String[] arg) throws Exception {
 
         //new TestTriangleSlicer().devTestRandom();
-        //new TestTriangleSlicer().devTestTorus(;)
-        new TestTriangleSlicer().devTestSphere();
+        //new TestTriangleSlicer().devTestTorus();
+        //new TestTriangleSlicer().devTestSphere();
+        //new TestTriangleSlicer().devTestSlice();
+        //new TestTriangleSlicer().devTestContour();
+        for(int i = 0; i < 1; i++)
+            new TestTriangleSlicer().devTestPointMap();        
         
     }
 }

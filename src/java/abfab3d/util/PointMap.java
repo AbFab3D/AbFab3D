@@ -15,6 +15,7 @@ import java.util.Arrays;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static abfab3d.core.Output.printf;
 
 /**
@@ -29,7 +30,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class PointMap {
-    private boolean COLLECT_STATS = false;
+    private boolean COLLECT_STATS = true;
     private final boolean DEBUG = false;
 
     static final double  // arbitrary constants for hashcode calculations
@@ -43,6 +44,7 @@ public class PointMap {
     private int threshold;
     private double loadFactor;
     private double epsilon;
+    private double hashEpsilon;    
     private int origCapacity;
 
     private StructMixedData entries;
@@ -56,8 +58,10 @@ public class PointMap {
     }
 
     public PointMap(int initialCapacity, double loadFactor, double epsilon) {
+      
         this.epsilon = epsilon;
-
+        this.hashEpsilon = max(epsilon, 1.e-15);
+        
         if (initialCapacity < 0)
             throw new IllegalArgumentException("Illegal Capacity: "+
                     initialCapacity);
@@ -89,7 +93,11 @@ public class PointMap {
 
     }
 
+    private int getIndex(int hash){
 
+        return (hash & 0x7FFFFFFF) % table.length;
+
+    }
     /**
      * Add a new point. If it already exists returns old point index. 
      *
@@ -101,29 +109,24 @@ public class PointMap {
     public int add(double x, double y, double z) {
 
         int hash = calcHash(x,y,z);
-        //printf("add(%7.5f, %7.5f, %7.5f) hash: %x eps: %e\n",x,y,z,hash, epsilon);
+        if(DEBUG)printf("add(%8.5f, %8.5f, %8.5f) hash: 0x%08x\n",x,y,z,hash);
 
-        int index = (hash & 0x7FFFFFFF) % table.length;
+        int index = getIndex(hash);
+        int id = findID(index, hash, x, y, z);
+        if(id >= 0 )
+            return id;
 
+        // no old point found -> add new point 
+        return addNewEntry(index, hash, x,y,z);
+    }
 
-        for(int next = table[index]; next != -1; next = Entry.getNext(entries, next)) {
-
-            if (Entry.getHash(entries, next) == hash) {
-
-                Entry.getPosition(entries, next, sd);
-
-                if (calcEquals(x,y,z,sd[0],sd[1],sd[2])) {
-                    return Entry.getID(entries, next);
-                }
-
-            }
-        }
+    private final int addNewEntry(int index, int hash, double x, double y, double z){
 
         if (count >= threshold) {
             // Rehash the table if the threshold is exceeded
             rehash();
-
-            index = (hash & 0x7FFFFFFF) % table.length;
+            // new table -> recalculate index 
+            index = getIndex(hash);
         }
 
         // Creates the new entry.
@@ -141,7 +144,16 @@ public class PointMap {
     public int get(double x, double y, double z) {
         int hash = calcHash(x,y,z);
 
-        int index = (hash & 0x7FFFFFFF) % table.length;
+        int index = getIndex(hash);
+
+        return findID(index, hash, x, y, z);
+
+    }
+
+    /**
+       scan table for ginve index and hash
+     */
+    private final int findID(int index, int hash, double x, double y, double z){
 
         for(int next = table[index]; next != -1; next = Entry.getNext(entries, next)) {
             if (Entry.getHash(entries, next) == hash) {
@@ -153,10 +165,8 @@ public class PointMap {
                 }
             }
         }
-
         return -1;
     }
-
     /**
      * Get a array of all points.  
      *  Ordering of points in returned atrray point is the order in which they were added 
@@ -203,7 +213,7 @@ public class PointMap {
         }
 
 
-        if (COLLECT_STATS) printf("Max length of entry: %d\n",max_length);
+        if (COLLECT_STATS) printf("PointMap: Max length of entry: %d\n",max_length);
         return ret_val;
         
     }
@@ -314,10 +324,18 @@ public class PointMap {
         return count;
     }
     
+    public final int calcHash(double x, double y, double z){
+        return calcHash_v2(x, y, z);
+    } 
+
     //
     // this hash value is better suited to finite precision \
     // we round each coordinate to nearest int in epsilon units 
-    public int calcHash(double x, double y, double z){
+    // VB comment 
+    // this is wrong way to calculate hash value. It places each point inside of specific cell of the epsilon grid 
+    // as a result if points are not exactly equal they will be in the different cells and will have completely different hash value 
+    // 
+    public final int calcHash_v0(double x, double y, double z){
         //printf("xh: %4x yh: %4x \n", (int)(x/epsilon), (int)(y/epsilon));
         return 
             (((int)(z/epsilon))<<20) + 
@@ -326,9 +344,23 @@ public class PointMap {
     }
 
     // this 
-    public int _calcHash(double x, double y, double z){
+    public final int calcHash_v1(double x, double y, double z){
         return (int)(CX*x + CY * y + CZ * z + CW);
     }
+
+    //
+    // this variant uses long to calculate hash and converet long into int using ALL the bits of long
+    // it also is protected against very small epsilon 
+    public final int calcHash_v2(double x, double y, double z){
+      
+        long h = (long)Math.floor((Cx*x + Cy*y + Cz*z + Cw*hashEpsilon)/hashEpsilon); 
+        return (int)(((h >> 32) & 0xFFFFFFFF) ^ (h & 0xFFFFFFFF));
+            
+    }
+    // random coeff for hash
+    //static final double Cx = 1.2396789123, Cy = 0.98914234234, Cz = 0.9937556981, Cw = 1034.034567879955;
+    static final double Cx = 0.0012345, Cy = 0.0014567, Cz = 0.0016754, Cw = 0;
+
 
     public boolean calcEquals(double ax, double ay, double az, double bx, double by, double bz){
 

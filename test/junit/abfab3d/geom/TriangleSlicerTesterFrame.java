@@ -47,10 +47,10 @@ public class TriangleSlicerTesterFrame  extends JFrame implements ParamChangedLi
     PolylinePanel m_slicePanel;
     ParamPanel m_paramPanel;
 
-    static final String sm_shapeNames[] = {"Lissajous", "torus"};
+    static final String sm_shapeNames[] = {"Lissajous", "torus", "sphere"};
 
     EnumParameter mp_shape = new EnumParameter("shape",sm_shapeNames,sm_shapeNames[0]);
-    DoubleParameter mp_slice = new DoubleParameter("slice",0.);
+    IntParameter mp_slice = new IntParameter("slice",0);
     BooleanParameter mp_grid = new BooleanParameter("grid",true);
     IntParameter mp_nu = new IntParameter("nu",1);
     IntParameter mp_nv = new IntParameter("nv",1);

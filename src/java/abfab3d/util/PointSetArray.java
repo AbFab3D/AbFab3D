@@ -308,12 +308,27 @@ public class PointSetArray implements TriangleProducer, PointSet  {
 
     }
 
+    public void getPoints(double pnts[]){
+
+        System.arraycopy(this.coord, 0, pnts, 0, m_size*m_dataDimension);
+        
+    }
+
     public void setPoint(int index, Tuple3d point){
 
         int start = index*m_dataDimension;
         coord[start] = point.x;
         coord[start+1] = point.y;
         coord[start+2] = point.z;
+
+    }
+
+    public void setPoint(int index, double x, double y, double z){
+
+        int start = index*m_dataDimension;
+        coord[start] = x;
+        coord[start+1] = y;
+        coord[start+2] = z;
 
     }
 
