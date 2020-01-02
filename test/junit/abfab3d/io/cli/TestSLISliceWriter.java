@@ -139,4 +139,13 @@ public class TestSLISliceWriter {
         }
     }
 
+    void devTestWriteCircle(){
+        
+    }
+
+    public static void main(String args[]){
+        
+    }
+
+
 }

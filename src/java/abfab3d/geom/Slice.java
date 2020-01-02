@@ -71,7 +71,10 @@ public class Slice {
 
     }
     
-
+    public double getSliceDistance(){
+        return m_normal.dot(m_pointOnPlane);
+    }
+    
     /**
        add new segment to the slice 
      */
@@ -147,6 +150,36 @@ public class Slice {
 
     }
 
+    public Contour getClosedContour(int index){
+        
+        return m_closedContours.get(index);
+
+    }
+
+    private void getCoordinates(){
+        
+    }
+
+    double m_coordinates[];
+
+    public double[] getClosedContourPoints(int index){
+        
+        if(m_coordinates == null)
+            m_coordinates = m_points.getPoints();
+        
+        Contour cnt = getClosedContour(index);
+        int size = cnt.size();
+        double pnt[] = new double[2*size+2];
+
+        for(int i = 0; i <= size; i++){
+            int k = cnt.get(i % size);
+            //printf("i: %d k: %d\n", i,k);
+            pnt[2*i] = m_coordinates[3*k];
+            pnt[2*i+1] = m_coordinates[3*k+1]; 
+        }            
+        return pnt;
+    }
+    
     public int getOpenContourCount(){
         if(m_openContours == null){
             makeOpenContours();

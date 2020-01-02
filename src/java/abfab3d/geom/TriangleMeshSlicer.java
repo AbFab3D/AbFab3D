@@ -37,21 +37,28 @@ import static abfab3d.core.Output.printf;
 public class TriangleMeshSlicer { 
     
     static final boolean DEBUG = true;
-    static final boolean DEBUG_SLICE = false;
+    static final boolean DEBUG_SLICE = true;
 
-    Vector3d m_sliceNormal = new Vector3d(0,0,1);
-    double m_units = MM;
-    String m_unitsName = "mm";
-    double m_sliceStep = 1*MM;//0.1*MM;
-    int m_sliceCount = 0;
     int m_triCount = 0;
+    int m_emptyTriCount = 0;
+    int m_interTriCount = 0;
+
 
     Slice m_slices[];
+
+    SlicingParam m_slicingParam = new SlicingParam();
 
     public TriangleMeshSlicer(){
         
     }
-    
+
+    public TriangleMeshSlicer(SlicingParam slicingParam){
+
+        m_slicingParam = slicingParam;
+        
+    }
+
+    /*
     public void setSliceStep(double sliceStep){
 
         m_sliceStep = sliceStep;
@@ -63,53 +70,59 @@ public class TriangleMeshSlicer {
         m_sliceNormal.normalize(); 
 
     }
+    */
 
     public int getTriCount(){
         return m_triCount;
     }
 
+    public int getEmptyTriCount(){
+        return m_emptyTriCount;
+    }
+
+    public int getInterTriCount(){
+        return m_interTriCount;
+    }
+
     public int getSliceCount(){
-        return m_sliceCount;
+        return m_slicingParam.sliceCount;
     }
 
     DistanceDataHalfSpace m_plane;
 
     
+    /**
+       perform slicing of the mesh 
+     */
     public void makeSlices(TriangleProducer producer){
 
         if(DEBUG) printf("TriangleMeshSlicer.makeSlices()\n");
                
         
-        // find the slices bounds 
-        DistanceDataHalfSpace plane = makeSlicingPlane(m_sliceNormal, new Vector3d(0,0,0));
-        BoundsCalculator bc = new BoundsCalculator(plane); 
-
-        producer.getTriangles(bc);
-
-        double minSlice = m_sliceStep*Math.floor(bc.minDist/m_sliceStep);
-        double maxSlice = m_sliceStep*Math.floor(bc.maxDist/m_sliceStep);
-        m_sliceCount =  (int)Math.ceil((maxSlice -  minSlice)/m_sliceStep)+1;
-        m_triCount = bc.triCount;
+        DistanceDataHalfSpace plane = makeSlicingPlane(m_slicingParam.normal, new Vector3d(0,0,0));
 
 
-        if(DEBUG){
+        // auto find the slicing bounds 
+
+        if(m_slicingParam.isAuto) {
             
-            printf("minDist: %6.3f %s\n", minSlice/m_units, m_unitsName);
-            printf("maxDist: %6.3f %s\n", maxSlice/m_units, m_unitsName);            
+            BoundsCalculator bc = new BoundsCalculator(plane); 
+            producer.getTriangles(bc);        
+            m_slicingParam.setSlicesRange(bc.minDist, bc.maxDist);
+
+            //m_triCount = bc.triCount;
         }
 
-        Vector3d minSlicePoint = new Vector3d(m_sliceNormal);
-        minSlicePoint.scale(minSlice);
 
-        m_slices = new Slice[m_sliceCount];
-
+        m_slices = new Slice[m_slicingParam.sliceCount];
+        Vector3d slicePoint = new Vector3d();
         for(int i = 0; i < m_slices.length; i++){
-            Vector3d slicePoint = new Vector3d(m_sliceNormal);
-            slicePoint.scale(minSlice + i*m_sliceStep);
-            m_slices[i] = new Slice(m_sliceNormal, slicePoint);
+            m_slicingParam.getSlicePoint(i,slicePoint);
+            m_slices[i] = new Slice(m_slicingParam.normal, slicePoint);
         }
         
-        DistanceDataHalfSpace plane1 = makeSlicingPlane(m_sliceNormal, minSlicePoint);
+        DistanceDataHalfSpace plane1 = makeSlicingPlane(m_slicingParam.normal, m_slicingParam.firstSliceLocation);
+
         /*
         BoundsCalculator bc1 = new BoundsCalculator(plane1); 
         producer.getTriangles(bc1);
@@ -181,39 +194,60 @@ public class TriangleMeshSlicer {
             this.triSlicer = triSlicer;
             this.slices = slices;
         }
-
+        
+        /**
+           process mesh triangle
+         */
         public boolean addTri(Vector3d p0,Vector3d p1,Vector3d p2){
-            
+
+            m_triCount++;
             double d0 = plane.getDistance(p0.x,p0.y,p0.z);
             double d1 = plane.getDistance(p1.x,p1.y,p1.z);
             double d2 = plane.getDistance(p2.x,p2.y,p2.z);
 
             double dmin = min3(d0,d1,d2);
             double dmax = max3(d0,d1,d2);
-            int sliceIndex0 = (int)ceil(dmin/m_sliceStep);
-            int sliceIndex1 = (int)floor(dmax/m_sliceStep);
-            //if(DEBUG)printf("d0:%8.3e d1:%8.3e d2:%8.3e\n", d0, d1, d2);
+            int sliceIndex0 = (int)floor(dmin/m_slicingParam.sliceStep);
+            int sliceIndex1 = (int)ceil(dmax/m_slicingParam.sliceStep);
+            if(sliceIndex0 >= slices.length || sliceIndex1 < 0){
+                m_emptyTriCount++;
+                return true;
+            } else {
+                m_interTriCount++;
+            }
+            double testX = 9.9*MM;
+            boolean DEBUG_TRI = false;
+            if(p0.x > testX || p1.x > testX || p2.x > testX){
+                String f = "%7.6f";
+                DEBUG_TRI = true;
+                printf("tri:%s %s %s dist:[%8.5f %8.5f %8.5f]\n", str(f,p0),str(f,p1),str(f,p2), d0, d1, d2);
+            }
+            if(DEBUG_TRI)printf("min:%8.5f max:%8.5f range:[%3d,%3d]\n", dmin, dmax, sliceIndex0, sliceIndex1);
             Vector3d q0 = new Vector3d();
             Vector3d q1 = new Vector3d();
             String format = "%7.3f";
             // cycle over potential slices 
-            if(DEBUG_SLICE)printf("sliceRange[%d, %d]\n", sliceIndex0, sliceIndex1);
+            //if(DEBUG_SLICE)printf("sliceRange[%d, %d]\n", sliceIndex0, sliceIndex1);
+            sliceIndex0 = min(slices.length-1, max(0,sliceIndex0));
+            sliceIndex1 = min(slices.length-1, max(0,sliceIndex1));
+            triSlicer.setDebug(DEBUG_TRI);
             for(int i = sliceIndex0; i <= sliceIndex1; i++){
-                double sliceD = i*m_sliceStep;
+                double sliceD = i*m_slicingParam.sliceStep;
+                if(DEBUG_TRI) printf(" slice:%7.5f  ", sliceD);
                 // cycle 
                 int res = triSlicer.getIntersection(p0, p1, p2, d0-sliceD, d1-sliceD, d2-sliceD, q0, q1);                
                 switch(res){
                 default:
                     noIntersectCount++;
-                    // should ot happens 
-                    if(DEBUG_SLICE){
-                        printf("no intersection\n");
+                    // should not happens 
+                    if(DEBUG_TRI){
+                        printf(" no intersection\n");
                     }
                     break;
                 case TriangleSlicer.INTERSECT:
                     slices[i].addSegment(q0, q1);
                     intersectCount++;
-                    if(DEBUG_SLICE){
+                    if(DEBUG_TRI){
                         //double dq0 = abs(this.plane.getDistance(q0.x,q0.y,q0.z));
                         //double dq1 = abs(this.plane.getDistance(q1.x,q1.y,q1.z));
                         printf("intersect q0: %s, q1: %s\n", str(format, q0),str(format, q1));
@@ -227,7 +261,9 @@ public class TriangleMeshSlicer {
             
             return true;
         }
-    }
+    } //     class SlicesCalculator 
+
+
 
     static final double min3(double x,double y,double z){
         return min(x,min(y,z));

@@ -1868,4 +1868,17 @@ public class MathUtil {
 
     }
 
+    public static String str(String format, double v[]){
+        StringBuffer sb  = new StringBuffer();
+        sb.append("[");
+        for(int k = 0; k < v.length; k++){
+            sb.append(fmt(format, v[k]));
+            if(k < v.length-1)
+                sb.append(",");
+        }
+        sb.append("]");        
+        return sb.toString();
+    }
+
+
 }

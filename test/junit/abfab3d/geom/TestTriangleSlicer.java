@@ -22,6 +22,9 @@ import junit.framework.TestSuite;
 import javax.vecmath.Vector3d;
 import java.util.Random;
 
+import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 
 // Internal Imports
 import abfab3d.distance.DistanceDataHalfSpace;
@@ -30,7 +33,13 @@ import abfab3d.util.PointMap;
 import abfab3d.util.PointMap2;
 import abfab3d.util.TrianglePrinter;
 
+import abfab3d.io.input.MeshReader;
 import abfab3d.io.output.STLWriter;
+import abfab3d.io.cli.CLISliceWriter;
+import abfab3d.io.cli.SliceLayer;
+import abfab3d.io.cli.PolyLine;
+
+import abfab3d.util.PointMap;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.time;
@@ -48,7 +57,7 @@ import static java.lang.Math.*;
 public class TestTriangleSlicer extends TestCase {
 
 
-    
+    static final boolean DEBUG = true;
 
     /**+
      * Creates a test suite consisting of all the methods that start with "test".
@@ -150,33 +159,180 @@ public class TestTriangleSlicer extends TestCase {
      */
     public static void devTestTorus() throws IOException {
 	
-        double rin = 4*MM; 
-        double rout = 6*MM; 
+        double rin = 3*MM; 
+        double rout = 7*MM; 
         
         //ParametricSurfaces.Sphere ps = new ParametricSurfaces.Sphere(rin + rout);
         ParametricSurfaces.Torus ps = new ParametricSurfaces.Torus(rin, rout);
 
-        ParametricSurfaceMaker maker = new ParametricSurfaceMaker(ps, 0.01*MM);
+        ParametricSurfaceMaker maker = new ParametricSurfaceMaker(ps, 1*MM);
 
         //TrianglePrinter printer = new TrianglePrinter();
         //STLWriter stl = new STLWriter("/tmp/torus_4mm_6mm_01.stl");
         //stl.close();              
 
-        TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer();
-        meshSlicer.setSliceNormal(new Vector3d(0,0,1));
-        meshSlicer.setSliceStep(0.1*MM);
+        Vector3d normal = new Vector3d(0,0,1);
+        Vector3d firstSlice = new Vector3d(0,0,0.0*MM);
+        double sliceStep = 1*MM;
+        int sliceCount = 10;
+
+        //SlicingParam sp = new SlicingParam(normal, firstSlice, sliceStep, sliceCount);
+        SlicingParam sp = new SlicingParam(normal, sliceStep);
+
+        TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer(sp);
+
         long t0 = time();
         meshSlicer.makeSlices(maker);        
 
         printf("meshSlicer.makeSlices(maker): %d ms\n", (time() - t0));
-        printf("triangles count: %d \n", meshSlicer.getTriCount());
+        printf("triangles count: %d (empty: %d, inter: %d)\n", meshSlicer.getTriCount(),meshSlicer.getEmptyTriCount(),meshSlicer.getInterTriCount());
         printf("slices count: %d \n", meshSlicer.getSliceCount());        
-        for(int i = 0; i < meshSlicer.getSliceCount(); i++){
-            Slice slice = meshSlicer.getSlice(i);
-            printf("slice[%4d]: segments: %5d  open contours: %d\n", i, slice.getSegmentCount(), slice.getOpenContourCount()); 
-        
-        }
+        writeCLISlices("/tmp/torusSlices.cli", meshSlicer);
 
+        STLWriter stl = new STLWriter("/tmp/torus_3_7_1.stl");
+        maker.getTriangles(stl);
+        stl.close();              
+
+    }
+
+    public static void devTestSphere() throws IOException {
+	
+        double R = 10*MM; 
+        
+        ParametricSurfaces.Sphere ps = new ParametricSurfaces.Sphere(R);
+        ParametricSurfaceMaker maker = new ParametricSurfaceMaker(ps, 1*MM);
+
+        Vector3d normal = new Vector3d(0,0,1);
+        Vector3d firstSlice = new Vector3d(0,0,-10.000*MM);
+        double sliceStep = 1*MM;
+        int sliceCount = 21;
+
+        SlicingParam sp = new SlicingParam(normal, firstSlice, sliceStep, sliceCount);
+        //SlicingParam sp = new SlicingParam(normal, sliceStep);
+
+        TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer(sp);
+
+        long t0 = time();
+        meshSlicer.makeSlices(maker);        
+
+        printf("meshSlicer.makeSlices(maker): %d ms\n", (time() - t0));
+        printf("triangles count: %d (empty: %d, inter: %d)\n", meshSlicer.getTriCount(),meshSlicer.getEmptyTriCount(),meshSlicer.getInterTriCount());
+        printf("slices count: %d \n", meshSlicer.getSliceCount());        
+        writeCLISlices("/tmp/sphereSlices.cli", meshSlicer);
+    }
+
+    /**
+     * 
+     */
+    public static void devTestSphereSTL() throws IOException {
+	
+        double rad = 10*MM; 
+        
+        ParametricSurfaces.Sphere sphere = new ParametricSurfaces.Sphere(rad);
+
+        ParametricSurfaceMaker maker = new ParametricSurfaceMaker(sphere, 1*MM);
+        //TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer();
+        //meshSlicer.makeSlices(maker);
+        STLWriter stl = new STLWriter("/tmp/sphere_10mm_1.stl");
+        maker.getTriangles(stl);
+        stl.close();              
+
+    }
+
+    public static void devTestOctahedron() throws IOException {
+	
+        double R = 10*MM; 
+        
+        Octahedron octa = new Octahedron(R);
+
+        Vector3d normal = new Vector3d(0,0,1);
+        Vector3d firstSlice = new Vector3d(0,0,-10*MM);
+        double sliceStep = 1*MM;
+        int sliceCount = 21;
+
+        SlicingParam sp = new SlicingParam(normal, firstSlice, sliceStep, sliceCount);
+        //SlicingParam sp = new SlicingParam(normal, sliceStep);
+
+        TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer(sp);
+
+        long t0 = time();
+        meshSlicer.makeSlices(octa);        
+
+        printf("meshSlicer.makeSlices(maker): %d ms\n", (time() - t0));
+        printf("triangles count: %d (empty: %d, inter: %d)\n", meshSlicer.getTriCount(),meshSlicer.getEmptyTriCount(),meshSlicer.getInterTriCount());
+        printf("slices count: %d \n", meshSlicer.getSliceCount());        
+        writeCLISlices("/tmp/octaSlices.cli", meshSlicer);
+
+    }
+
+
+    public static void devTestFile() throws IOException {
+	        
+        String filePath = "test/models/gyrosphere.stl";
+        String slicesPath = "/tmp/gyrosphere_slices.cli";
+
+        Vector3d normal = new Vector3d(0,0,1);
+        Vector3d firstSlice = new Vector3d(0,0,-0.5*MM);
+        double sliceStep = 0.1*MM;
+        int sliceCount = 1;
+
+        MeshReader reader = new MeshReader(filePath);
+
+        //SlicingParam sp = new SlicingParam(normal, firstSlice, sliceStep, sliceCount);
+        SlicingParam sp = new SlicingParam(normal, sliceStep);
+
+        TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer(sp);
+
+        long t0 = time();
+        meshSlicer.makeSlices(reader);        
+
+        printf("meshSlicer.makeSlices(maker): %d ms\n", (time() - t0));
+        printf("triangles count: %d (empty: %d, inter: %d)\n", meshSlicer.getTriCount(),meshSlicer.getEmptyTriCount(),meshSlicer.getInterTriCount());
+        printf("slices count: %d \n", meshSlicer.getSliceCount());        
+        writeCLISlices(slicesPath, meshSlicer);
+
+    }
+
+    static void writeCLISlices(String outPath, TriangleMeshSlicer slicer)throws IOException{
+        
+        printf("writeCLISlices(%s)\n",outPath);
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        BufferedOutputStream baos = new BufferedOutputStream(bytes);
+
+        CLISliceWriter writer = new CLISliceWriter(baos,false,MM);
+
+        int dir = 0;
+        int id = 1;
+                        
+        for(int i = 0; i < slicer.getSliceCount(); i++){
+            
+            if(DEBUG)printf("writing layer: %d\n",i);
+            
+            Slice slice = slicer.getSlice(i);
+            int ccount = slice.getClosedContourCount();
+            double z = slice.getSliceDistance();  
+            SliceLayer layer = new SliceLayer(z);            
+            for(int k = 0; k < ccount; k++){
+                
+                double pnt[] = slice.getClosedContourPoints(k);
+                PolyLine line = new PolyLine(id, dir, pnt);                
+                layer.addPolyLine(line);
+            }
+
+            writer.addLayer(layer);
+            
+        }
+        
+        writer.close();
+        
+        FileOutputStream fos = new FileOutputStream(outPath);
+        baos.close();
+        byte[] ba = bytes.toByteArray();
+        printf("writing %d bytes into CLI file:%s\n", ba.length, outPath);
+        fos.write(ba,0,ba.length);
+        fos.close();
+        
     }
 
     void devTestSlice(){
@@ -279,24 +435,6 @@ public class TestTriangleSlicer extends TestCase {
 
     }
 
-    /**
-     * 
-     */
-    public static void devTestSphere() throws IOException {
-	
-        double rad = 10*MM; 
-        
-        ParametricSurfaces.Sphere sphere = new ParametricSurfaces.Sphere(rad);
-
-        ParametricSurfaceMaker maker = new ParametricSurfaceMaker(sphere, 0.01*MM);
-        TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer();
-        meshSlicer.makeSlices(maker);
-        //STLWriter stl = new STLWriter("/tmp/sphere_10mm_1.stl");
-        //maker.getTriangles(stl);
-        //stl.close();              
-
-    }
-
     public static void devTestPointMap() throws IOException {
 
         printf("devTestPointMap()\n");
@@ -347,12 +485,15 @@ public class TestTriangleSlicer extends TestCase {
     public static void main(String[] arg) throws Exception {
 
         //new TestTriangleSlicer().devTestRandom();
-        //new TestTriangleSlicer().devTestTorus();
+        new TestTriangleSlicer().devTestTorus();
+        //new TestTriangleSlicer().devTestOctahedron();
         //new TestTriangleSlicer().devTestSphere();
+        //new TestTriangleSlicer().devTestSphereSTL();
+        //new TestTriangleSlicer().devTestFile();
         //new TestTriangleSlicer().devTestSlice();
         //new TestTriangleSlicer().devTestContour();
-        for(int i = 0; i < 1; i++)
-            new TestTriangleSlicer().devTestPointMap();        
+        //for(int i = 0; i < 1; i++)
+        //     new TestTriangleSlicer().devTestPointMap();        
         
     }
 }

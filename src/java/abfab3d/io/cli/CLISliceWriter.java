@@ -20,6 +20,7 @@ import org.web3d.util.DoubleToString;
 import java.io.*;
 import java.util.Date;
 
+import static abfab3d.core.Output.printf;
 import static abfab3d.core.Units.MM;
 
 /**
@@ -31,6 +32,9 @@ import static abfab3d.core.Units.MM;
  * @author Alan Hudson
  */
 public class CLISliceWriter extends BaseSliceWriter implements Closeable {
+
+    static final boolean DEBUG = false;
+
     private OutputStream os;
     private PrintStream ps;
     private DataOutputStream dos;
@@ -150,12 +154,15 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
     }
 
     public void startLayer(double height) throws IOException {
+
         if (!geomStarted) {
             if (binary) {
                 ps.print(CLIScanner.HEADER_END);
                 ps.flush();
                 dos = new DataOutputStream(os);
             } else {
+                if(DEBUG)printf("%s\n",CLIScanner.HEADER_END);
+                if(DEBUG)printf("%s\n",CLIScanner.GEOMETRY_START);
                 ps.print(CLIScanner.HEADER_END);
                 ps.print('\n');
                 ps.print(CLIScanner.GEOMETRY_START);
@@ -175,6 +182,8 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
     }
 
     public void addPolyLine(PolyLine pl) throws IOException {
+
+        if(DEBUG)printf("CLISliceWritewr.addPolyLine()\n"); 
         double[] points = pl.getPoints();
         if (binary) {
             writeUnsignedIntegerBinary(dos,CLIScanner.CMD_START_POLY_LINE_LONG);
@@ -185,6 +194,8 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
                 writeRealBinary(dos,points[i] * conv);
             }
         } else {
+            
+            if(DEBUG)printf("polyline: %d, %d, %d\n",pl.getId(), pl.getDir(),points.length / 2);
             ps.print(CLIScanner.POLYLINE);
             ps.print(pl.getId());
             ps.print(",");
@@ -243,6 +254,7 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
             if (binary) {
                 dos.close();
             } else {
+                if(DEBUG)printf("%s\n",CLIScanner.GEOMETRY_END);
                 ps.print(CLIScanner.GEOMETRY_END);
                 //ps.print('\n');
             }

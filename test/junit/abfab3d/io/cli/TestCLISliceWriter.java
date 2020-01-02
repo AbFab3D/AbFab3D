@@ -23,6 +23,7 @@ import java.io.*;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Units.MM;
+import static java.lang.Math.*;
 
 /**
  * Test CLISliceReader
@@ -30,6 +31,8 @@ import static abfab3d.core.Units.MM;
  * @author Alan Hudson
  */
 public class TestCLISliceWriter {
+
+    static final boolean DEBUG = false;
 
     @Test
     public void testBasic() throws IOException {
@@ -160,4 +163,73 @@ public class TestCLISliceWriter {
     }
 
 
+    void devTestWriteSphere() throws IOException {
+
+        
+        printf("devTestWriteSphere()\n");
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        BufferedOutputStream baos = new BufferedOutputStream(bytes);
+
+        CLISliceWriter writer = new CLISliceWriter(baos,false,MM);
+
+        int count = 20;// points per slice
+
+        double delta = 2*PI/count;
+        int dir = 0;
+        int id = 1;
+        
+        double R = 10*MM;
+        double layerThickness = 0.1*MM;
+        double zMin = -R + layerThickness/2;
+        
+        int layerCount = (int)floor(2*R/layerThickness);
+        
+        for(int k = 0; k < layerCount; k++){
+            
+            if(DEBUG)printf("writing layer: %d\n",k);
+
+            double z = zMin + k*layerThickness;
+            SliceLayer layer = new SliceLayer(z);
+            double points[] = new double[2*count+2];
+                        
+            double r = sqrt(R*R - z*z);
+
+            for(int i = 0; i <= count; i++){
+
+                points[2*i] = R+r*cos(i*delta);
+                points[2*i+1] = R+r*sin(i*delta);
+                
+            }
+            
+            PolyLine line = new PolyLine(id, dir, points);
+            
+            layer.addPolyLine(line);
+            
+            writer.addLayer(layer);
+
+        }
+        
+        if(DEBUG)printf("closing CLIWriter\n");
+        
+        writer.close();
+        
+        String outPath = "/tmp/Sphere.cli";
+        FileOutputStream fos = new FileOutputStream(outPath);
+        baos.close();
+        byte[] ba = bytes.toByteArray();
+        printf("writing %d bytes into CLI file:%s\n", ba.length, outPath);
+        fos.write(ba,0,ba.length);
+        fos.close();
+        
+    }
+
+    public static void main(String args[])throws IOException {
+
+        new TestCLISliceWriter().devTestWriteSphere();
+
+    }
+
+
 }
+

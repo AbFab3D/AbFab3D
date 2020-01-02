@@ -789,6 +789,7 @@
     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="**/*.jar"/>
     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/output" jars="**/*.jar"/>
     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/input" jars="**/*.jar"/>
+    <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/cli" jars="**/*.jar"/>
     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/util" jars="**/*.jar"/>
     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/symmetry" jars="**/*.jar"/>
     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/random" jars="**/*.jar"/>

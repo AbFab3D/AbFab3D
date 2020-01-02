@@ -17,6 +17,7 @@ import javax.vecmath.Vector3d;
 
 
 import static abfab3d.core.MathUtil.clamp;
+import static abfab3d.core.Output.printf;
 
 /**
    utility class to calculate intersection of single  triangle and  a plane 
@@ -63,10 +64,12 @@ public class TriangleSlicer {
     int getIntersection(Vector3d p0, Vector3d p1, Vector3d p2,
                         double d0, double d1, double d2, Vector3d q0, Vector3d q1){
         int index = 0;
-        if(d0 > 0. )index |= 1;
-        if(d1 > 0. )index |= 2;
-        if(d2 > 0. )index |= 4;
-
+        if(d0 >= 0. )index |= 1;
+        if(d1 >= 0. )index |= 2;
+        if(d2 >= 0. )index |= 4;
+        if(this.debug){
+            printf("d:[%10.3e %10.3e %10.3e], index:%d\n", d0, d1, d2, index);
+        }
         switch(index){
         default:
             // should not happens 
@@ -101,6 +104,12 @@ public class TriangleSlicer {
             return OUTSIDE;
         }        
 
+    }
+    
+    boolean debug = false;
+
+    public void setDebug(boolean value){
+        this.debug = value;
     }
 
 
