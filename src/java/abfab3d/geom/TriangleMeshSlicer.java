@@ -36,7 +36,7 @@ import static abfab3d.core.Output.printf;
  */
 public class TriangleMeshSlicer { 
     
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static final boolean DEBUG_SLICE = true;
 
     int m_triCount = 0;
@@ -55,7 +55,6 @@ public class TriangleMeshSlicer {
     public TriangleMeshSlicer(SlicingParam slicingParam){
 
         m_slicingParam = slicingParam;
-        
     }
 
     /*
@@ -217,11 +216,14 @@ public class TriangleMeshSlicer {
             }
             double testX = 9.9*MM;
             boolean DEBUG_TRI = false;
+
+            /*
             if(p0.x > testX || p1.x > testX || p2.x > testX){
                 String f = "%7.6f";
                 DEBUG_TRI = true;
                 printf("tri:%s %s %s dist:[%8.5f %8.5f %8.5f]\n", str(f,p0),str(f,p1),str(f,p2), d0, d1, d2);
             }
+             */
             if(DEBUG_TRI)printf("min:%8.5f max:%8.5f range:[%3d,%3d]\n", dmin, dmax, sliceIndex0, sliceIndex1);
             Vector3d q0 = new Vector3d();
             Vector3d q1 = new Vector3d();

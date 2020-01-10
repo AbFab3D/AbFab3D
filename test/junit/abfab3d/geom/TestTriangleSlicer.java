@@ -13,8 +13,11 @@
 package abfab3d.geom;
 
 // External Imports
-import java.io.IOException;
+import java.io.*;
 
+import abfab3d.core.Bounds;
+import abfab3d.io.cli.CLISliceReader;
+import abfab3d.util.*;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -22,16 +25,8 @@ import junit.framework.TestSuite;
 import javax.vecmath.Vector3d;
 import java.util.Random;
 
-import java.io.ByteArrayOutputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-
 // Internal Imports
 import abfab3d.distance.DistanceDataHalfSpace;
-
-import abfab3d.util.PointMap;
-import abfab3d.util.PointMap2;
-import abfab3d.util.TrianglePrinter;
 
 import abfab3d.io.input.MeshReader;
 import abfab3d.io.output.STLWriter;
@@ -57,7 +52,7 @@ import static java.lang.Math.*;
 public class TestTriangleSlicer extends TestCase {
 
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     /**+
      * Creates a test suite consisting of all the methods that start with "test".
@@ -289,11 +284,21 @@ public class TestTriangleSlicer extends TestCase {
         printf("meshSlicer.makeSlices(maker): %d ms\n", (time() - t0));
         printf("triangles count: %d (empty: %d, inter: %d)\n", meshSlicer.getTriCount(),meshSlicer.getEmptyTriCount(),meshSlicer.getInterTriCount());
         printf("slices count: %d \n", meshSlicer.getSliceCount());        
-        writeCLISlices(slicesPath, meshSlicer);
+        Slice[] slices = writeCLISlices(slicesPath, meshSlicer);
 
+        BoundingBoxCalculator bbCalc = new BoundingBoxCalculator();
+        reader.getTriangles(bbCalc);
+        Bounds b1 = bbCalc.getBounds();
+
+        CLISliceReader sliceReader = new CLISliceReader();
+        sliceReader.load(new FileInputStream(slicesPath));
+        Bounds b2 = sliceReader.getBounds();
+
+        printf("b1: %s\n",b1.toString(MM));
+        printf("b2: %s\n",b2.toString(MM));
     }
 
-    static void writeCLISlices(String outPath, TriangleMeshSlicer slicer)throws IOException{
+    static Slice[] writeCLISlices(String outPath, TriangleMeshSlicer slicer)throws IOException{
         
         printf("writeCLISlices(%s)\n",outPath);
 
@@ -304,7 +309,9 @@ public class TestTriangleSlicer extends TestCase {
 
         int dir = 0;
         int id = 1;
-                        
+
+        Slice[] slices = new Slice[slicer.getSliceCount()];
+
         for(int i = 0; i < slicer.getSliceCount(); i++){
             
             if(DEBUG)printf("writing layer: %d\n",i);
@@ -321,7 +328,7 @@ public class TestTriangleSlicer extends TestCase {
             }
 
             writer.addLayer(layer);
-            
+            slices[i] = slice;
         }
         
         writer.close();
@@ -332,7 +339,8 @@ public class TestTriangleSlicer extends TestCase {
         printf("writing %d bytes into CLI file:%s\n", ba.length, outPath);
         fos.write(ba,0,ba.length);
         fos.close();
-        
+
+        return slices;
     }
 
     void devTestSlice(){
@@ -485,11 +493,11 @@ public class TestTriangleSlicer extends TestCase {
     public static void main(String[] arg) throws Exception {
 
         //new TestTriangleSlicer().devTestRandom();
-        new TestTriangleSlicer().devTestTorus();
+        //new TestTriangleSlicer().devTestTorus();
         //new TestTriangleSlicer().devTestOctahedron();
         //new TestTriangleSlicer().devTestSphere();
         //new TestTriangleSlicer().devTestSphereSTL();
-        //new TestTriangleSlicer().devTestFile();
+        new TestTriangleSlicer().devTestFile();
         //new TestTriangleSlicer().devTestSlice();
         //new TestTriangleSlicer().devTestContour();
         //for(int i = 0; i < 1; i++)

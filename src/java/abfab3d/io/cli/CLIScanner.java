@@ -34,7 +34,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 class CLIScanner implements Closeable {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     protected static final String COMMENT = "//";
     protected static final String HEADER_START = "$$HEADERSTART";
@@ -199,6 +199,7 @@ class CLIScanner implements Closeable {
 
                 ByteBuffer newBuff = ByteBuffer.allocate(newSize);
                 newBuff.order(buff.order());
+                buff.rewind();
                 newBuff.put(buff);
                 /*
                 buff.rewind();

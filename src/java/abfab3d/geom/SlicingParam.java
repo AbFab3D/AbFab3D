@@ -25,7 +25,7 @@ import static abfab3d.core.Output.printf;
 */
 public class SlicingParam {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     // count of slices 
     int sliceCount = 0;
