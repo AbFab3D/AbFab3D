@@ -36,10 +36,13 @@ import abfab3d.io.cli.PolyLine;
 
 import abfab3d.util.PointMap;
 
+import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.time;
 import static abfab3d.core.Units.MM;
 import static abfab3d.core.MathUtil.str;
+import static abfab3d.geom.TriangleSlicer.getTriangleNormal;
+import static abfab3d.geom.TriangleSlicer.getIntersectionDirection;
 import static java.lang.Math.*;
 
 
@@ -65,15 +68,112 @@ public class TestTriangleSlicer extends TestCase {
         //this test here is to make Test happy. 
     }
 
+    public void devTestTriangleNormal(){
 
-    public void devTestRandom(){
+        printf("devTestTriangleNormal()\n");
+
+        int N = 10;
+        Random rnd = new Random(151);
+
+        Vector3d normal = new Vector3d();
+        for(int i = 0; i < N; i++){
+            Vector3d
+                p0 = getRandomVect(rnd),
+                p1 = getRandomVect(rnd),
+                p2 = getRandomVect(rnd);
+            getTriangleNormal(p0, p1, p2, normal);
+            p1.sub(p0);
+            p2.sub(p0);
+            double d1 = p1.dot(normal);
+            double d2 = p2.dot(normal);
+            String f = "%7.4f";
+            printf("p0:%s, p1:%s, p2:%s, n:%s d1:%18.15f, d2:%18.15f\n", str(f,p0),str(f,p1),str(f,p2),str(f,normal),d1, d2);
+        }
+    }
+
+    public void devTestTriangleSlice(){
+
+        printf("devTestTriangleSlice()\n");
+        TriangleSlicer slicer = new TriangleSlicer();
+        Vector3d
+            q0 = new Vector3d(),
+            q1 = new Vector3d();
+        /*
+        double vert[][] = new double[][]{
+            {0,0,-1,-1},{1,0,-1,-1},{0,1,1,1},
+            {0,1,1,1},{0,0,-1,-1},{1,0,-1,-1},
+            {1,0,-1,-1},{0,1,1,1},{0,0,-1,-1},
+            {0,0,-1,-1},{0,1,1,1},{1,0,-1,-1},
+            {1,0,-1,-1},{0,0,-1,-1},{0,1,1,1},
+            {0,1,1,1},{1,0,-1,-1},{0,0,-1,-1},
+        };
+        */
+
+        double vert[][] = new double[][]{
+            {0,0,-1,-1},{1,0,-1,-1},{0,0.01,1,1},
+            {0,0.01,1,1},{0,0,-1,-1},{1,0,-1,-1},
+            {1,0,-1,-1},{0,0.01,1,1},{0,0,-1,-1},
+
+            {0,0,-1,-1},{0,0.01,1,1},{1,0,-1,-1},
+            {1,0,-1,-1},{0,0,-1,-1},{0,0.01,1,1},
+            {0,0.01,1,1},{1,0,-1,-1},{0,0,-1,-1},
+
+            //{0,0,-1,-1},{1,0,-1,-1},{0,-0.01,1,1},
+        };
+
+        Vector3d planeNormal = new Vector3d(0,0,1);
+        Vector3d triNormal =  new Vector3d();
+        Vector3d direction =  new Vector3d();
+
+        for(int i = 0; i < vert.length; i+=3){
+
+            double v0[] = vert[i];
+            double v1[] = vert[i+1];
+            double v2[] = vert[i+2];
+            Vector3d
+                p0 = new Vector3d(v0[0],v0[1],v0[2]),
+                p1 = new Vector3d(v1[0],v1[1],v1[2]),
+                p2 = new Vector3d(v2[0],v2[1],v2[2]);
+
+            slicer.getTriangleNormal(p0, p1, p2, triNormal);
+            getIntersectionDirection(planeNormal, triNormal, direction);
+
+            String f = "%7.5f";
+            printf("triNormal:%s, direction:%s\n", str(f, triNormal), str(f, direction));
+
+            int res = slicer.getIntersection(p0, p1, p2, v0[3],v1[3],v2[3],q0, q1);
+
+            printf("getIntersection\n   p0: %s;%s \n   p1: %s;%s \n   p2: %s;%s\n", str(f, p0),fmt(f,v0[3]),str(f, p1),fmt(f,v1[3]), str(f, p2),fmt(f,v2[3]));
+            switch(res){
+            case TriangleSlicer.INTERSECT:
+                printf("intersect\n   q0: %s\n   q1: %s\n", str(f, q0),str(f, q1));
+                break;
+            case TriangleSlicer.INSIDE:
+                printf("inside\n");
+                break;
+            case TriangleSlicer.OUTSIDE:
+                printf("outside\n");
+                break;
+            case TriangleSlicer.ERROR:
+                printf("error\n");
+                break;
+            }
+        }
+
+    }
+
+
+    public void devTestRandomTriangles(){
 
         TriangleSlicer slicer = new TriangleSlicer();
-        Vector3d q0 = new Vector3d();
-        Vector3d q1 = new Vector3d();
+        Vector3d
+            q0 = new Vector3d(),
+            q1 = new Vector3d();
+
         Random rnd = new Random(151);
-        int N = 100000000;
-        printf("devTestRandom() N: %d\n", N);
+        int N = 1000000;
+
+        printf("devTestRandomTriangles() N: %d\n", N);
         double maxDist = 0;
         Vector3d 
             mp0 = new Vector3d(), 
@@ -81,7 +181,10 @@ public class TestTriangleSlicer extends TestCase {
             mp2 = new Vector3d(), 
             mNormal = new Vector3d(), 
             mpp = new Vector3d();
-        double md0 = 0., md1 = 0., md2 = 0.;
+        double md0 = 0., md1 = 0., md2 = 0., minDot = 1.;
+
+        Vector3d direction = new Vector3d();
+        Vector3d triNormal = new Vector3d();
 
         for(int i = 0; i < N; i++){
             Vector3d 
@@ -89,29 +192,42 @@ public class TestTriangleSlicer extends TestCase {
                 p1 = getRandomVect(rnd),
                 p2 = getRandomVect(rnd);
             
-            Vector3d normal = getRandomVect(rnd);
-            Vector3d pp = getRandomVect(rnd);
-            
-            
-            DistanceDataHalfSpace plane = new DistanceDataHalfSpace(normal, pp);
+            Vector3d planeNormal = getRandomVect(rnd);
+            Vector3d planePoint = getRandomVect(rnd);
+
+            DistanceDataHalfSpace plane = new DistanceDataHalfSpace(planeNormal, planePoint);
             double d0 = plane.getDistance(p0.x,p0.y,p0.z);
             double d1 = plane.getDistance(p1.x,p1.y,p1.z);
             double d2 = plane.getDistance(p2.x,p2.y,p2.z);
+
+            getTriangleNormal(p0, p1, p2, triNormal);
+
+            getIntersectionDirection(planeNormal,triNormal, direction);
+            direction.normalize();
             int res = slicer.getIntersection(p0, p1, p2, d0, d1, d2, q0, q1);
+
             String format = "%7.5f";
             
             switch(res){
             case TriangleSlicer.INTERSECT: 
                 double dq0 = abs(plane.getDistance(q0.x,q0.y,q0.z));
                 double dq1 = abs(plane.getDistance(q1.x,q1.y,q1.z));
-                //printf("intersect q0: %s, q1: %s, dq0:%18.15e dq1:%18.15e\n", str(format, q0),str(format, q1), dq0, dq1);
+                Vector3d dir = new Vector3d(q1);
+                dir.sub(q0);
+                dir.normalize();
+                double dot = direction.dot(dir);
+                if(dot < minDot) minDot = dot;
+                if(abs(dot - 1.) > 1.e-8){
+                    printf("***wrong direction***");
+                    printf("***wrong direction: q0:%s, q1:%s, predicted:%s actual:%s\n", str(format, q0),str(format, q1), str(format, direction), str(format,dir));
+                }
                 if(dq0 > maxDist || dq1 > maxDist) {
                     maxDist = max(dq0,dq1);
                     mp0 = p0;
                     mp1 = p1;
                     mp2 = p2;
-                    mNormal = normal;
-                    mpp = pp;
+                    mNormal = planeNormal;
+                    mpp = planePoint;
                     md0 = d0;
                     md1 = d1;
                     md2 = d2;
@@ -128,7 +244,7 @@ public class TestTriangleSlicer extends TestCase {
                 break;
             }
         }
-        
+
         printf("maxDist: %6.2e\n", maxDist);
         String f = "%18.15f";
         printf("mp0:   %s\n", str(f, mp0));
@@ -137,7 +253,9 @@ public class TestTriangleSlicer extends TestCase {
         printf("mNorm: %s\n", str(f, mNormal));
         printf("mpp:   %s\n", str(f, mpp));
         printf("md0: %17.15f, md1: %17.15f, md2: %17.15f\n", md0, md1, md2);
+        printf("minDot: %17.15f\n", minDot);
 
+        slicer.printStat();
     }
     
     static Vector3d getRandomVect(Random rnd){
@@ -182,7 +300,7 @@ public class TestTriangleSlicer extends TestCase {
         printf("meshSlicer.makeSlices(maker): %d ms\n", (time() - t0));
         printf("triangles count: %d (empty: %d, inter: %d)\n", meshSlicer.getTriCount(),meshSlicer.getEmptyTriCount(),meshSlicer.getInterTriCount());
         printf("slices count: %d \n", meshSlicer.getSliceCount());        
-        writeCLISlices("/tmp/torusSlices.cli", meshSlicer);
+        writeCLISlices("/tmp/torusSlices_6.cli", meshSlicer);
 
         STLWriter stl = new STLWriter("/tmp/torus_3_7_1.stl");
         maker.getTriangles(stl);
@@ -487,8 +605,6 @@ public class TestTriangleSlicer extends TestCase {
         double p[] = map.getPoints();
         
     }
-
-
 
     public static void main(String[] arg) throws Exception {
 
