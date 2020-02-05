@@ -41,11 +41,14 @@ import abfab3d.io.cli.PolyLine;
 
 import abfab3d.util.PointMap;
 
+import abfab3d.core.TriangleCollector;
+
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.time;
 import static abfab3d.core.Units.MM;
 import static abfab3d.core.MathUtil.str;
+import static abfab3d.core.MathUtil.getDistance;
 import static abfab3d.geom.TriangleSlicer.getTriangleNormal;
 import static abfab3d.geom.TriangleSlicer.getIntersectionDirection;
 import static java.lang.Math.*;
@@ -384,20 +387,48 @@ public class TestTriangleSlicer extends TestCase {
     }
 
 
+    public static void devTestFilter() throws IOException {
+	        
+        String filePath = "/tmp/slicingTestModels/8240505_6587068.v2.analytical_mesh_converter.sh.x3db";
+        MeshReader reader = new MeshReader(filePath);
+        TriangleFilter filter = new TriangleFilter("/tmp/slicingTestModels/8240505_6587068.bad_tri.stl");
+        reader.getTriangles(filter);
+        filter.close();
+    }
+    
     public static void devTestFile() throws IOException {
 	        
-        String filePath = "test/models/gyrosphere.stl";
-        String slicesPath = "/tmp/gyrosphere_slices.cli";
+        //String filePath = "test/models/gyrosphere.stl";
+        //String slicesPath = "/tmp/gyrosphere_slices.cli";
+
+        String filePath = "/tmp/slicingTestModels/8240505_6587068.v2.analytical_mesh_converter.sh.x3db";
+        //String filePath = "/tmp/slicingTestModels/8240505_6587068.bad_tri.stl";
 
         Vector3d normal = new Vector3d(0,0,1);
-        Vector3d firstSlice = new Vector3d(0,0,-0.5*MM);
         double sliceStep = 0.1*MM;
-        int sliceCount = 1;
+        //double sliceOffset = -0.103*MM;
+        //double sliceOffset = -0.102*MM;
+        //double sliceOffset = -0.002*MM;
+        int sliceCount = 3;
+        //double sliceOffset = -5.898*MM;
+        //int sliceCount = 118;
+        //double sliceOffset = -0.1*MM;
+        //double sliceOffset = 1.098*MM;
+        //double sliceOffset = -1.153000*MM; double tolerance = 0.0001*MM;
+        double sliceOffset =  4.902500*MM; double tolerance = 0.001*MM;
+        
+        Vector3d firstSlice = new Vector3d(0,0,sliceOffset);
+        //double tolerance = 0.00001*MM;
 
         MeshReader reader = new MeshReader(filePath);
+        
+        SlicingParam sp = new SlicingParam(normal, firstSlice, sliceStep, sliceCount, tolerance);
+        //SlicingParam sp = new SlicingParam(normal, sliceStep, tolerance);
 
-        //SlicingParam sp = new SlicingParam(normal, firstSlice, sliceStep, sliceCount);
-        SlicingParam sp = new SlicingParam(normal, sliceStep);
+        String slicesPath = filePath + fmt(".off.%10.8f.tol.%10.8fmm.cli", firstSlice.z/MM, tolerance/MM);
+        String openSlicesPath = filePath + fmt(".off.%10.8f.tol.%10.8fmm_open.cli", firstSlice.z/MM, tolerance/MM);
+        //String slicesPath = filePath + fmt(".tol.%10.8fmm.cli",tolerance/MM);
+        //String openSlicesPath = filePath + fmt(".tol.%10.8fmm_open.cli",tolerance/MM);
 
         TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer(sp);
 
@@ -407,11 +438,67 @@ public class TestTriangleSlicer extends TestCase {
         printf("meshSlicer.makeSlices(maker): %d ms\n", (time() - t0));
         printf("triangles count: %d (empty: %d, inter: %d)\n", meshSlicer.getTriCount(),meshSlicer.getEmptyTriCount(),meshSlicer.getInterTriCount());
         printf("slices count: %d \n", meshSlicer.getSliceCount());        
-        writeCLISlices(slicesPath, meshSlicer);
+        printf("***TriangleMeshSlicerSTAT***\n");
+        meshSlicer.printStat();
+        writeCLISlices(slicesPath, meshSlicer, false);
+        writeCLISlices(openSlicesPath, meshSlicer, true);
 
     }
 
-    static void writeCLISlices(String outPath, TriangleMeshSlicer slicer)throws IOException{
+    public static void devTestManySlices() throws IOException {
+	        
+        String filePath = "/tmp/slicingTestModels/8240505_6587068.v2.analytical_mesh_converter.sh.x3db";
+
+        Vector3d normal = new Vector3d(0,0,1);
+        double sliceStep = 0.1*MM;        
+        double sliceOffset = -5.9*MM;
+        int sliceCount = 139;
+        Vector3d firstSlice = new Vector3d(0,0,sliceOffset);
+        //double tolerance = 0.000001*MM;
+        //double tolerance = 0.00001*MM; // worst  slice -1.170000 mm length:   2 ends:[ -0.079989, 75.428668], [ -0.079989, 75.430001] dist:  0.0013331 mm
+        //double tolerance = 0.0001*MM; // slice:  -1.153000 mm open:1  length:1753 ends:[ 15.276650, 74.746388], [ -0.079989, 75.379003] dist: 15.3696645 mm
+        double tolerance = 0.001*MM; // BAD  slice:   4.902500 mm open:2
+        //                                              length:1771 ends:[ 36.405749, 28.040650], [-34.638515, -2.444935] dist: 77.3088503 mm
+        //                                             length:2086 ends:[-34.637457, -2.444400], [ 36.404983, 28.038929] dist: 77.3062842 mm
+        MeshReader reader = new MeshReader(filePath);
+        double sliceIncrement = 0.0001*MM;
+        int incCount = (int)(sliceStep/sliceIncrement);
+
+        long t0 = time();
+        printf("start slicing: %d cycles\n", incCount);
+        for(int i = 0; i < incCount;i++){
+
+            Vector3d startSlice = new Vector3d(0,0, sliceOffset + i*sliceIncrement);
+            SlicingParam sp = new SlicingParam(normal, startSlice, sliceStep, sliceCount, tolerance);
+            TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer(sp);
+            meshSlicer.makeSlices(reader);                    
+            meshSlicer.printProblems();
+        }
+        printf("done: %d ms\n", (time() - t0));
+        /*
+        String slicesPath = filePath + fmt(".tol.%10.8fmm.cli",tolerance/MM);
+        String openSlicesPath = filePath + fmt(".tol.%10.8fmm_open.cli",tolerance/MM);
+
+
+        meshSlicer.makeSlices(reader);        
+
+        printf("meshSlicer.makeSlices(maker): %d ms\n", (time() - t0));
+        printf("triangles count: %d (empty: %d, inter: %d)\n", meshSlicer.getTriCount(),meshSlicer.getEmptyTriCount(),meshSlicer.getInterTriCount());
+        printf("slices count: %d \n", meshSlicer.getSliceCount());        
+        printf("***TriangleMeshSlicerSTAT***\n");
+        meshSlicer.printStat();
+        writeCLISlices(slicesPath, meshSlicer, false);
+        writeCLISlices(openSlicesPath, meshSlicer, true);
+        */
+    }
+
+    static void writeCLISlices(String outPath, TriangleMeshSlicer slicer) throws IOException{
+
+        writeCLISlices(outPath, slicer, false);
+
+    }
+
+    static void writeCLISlices(String outPath, TriangleMeshSlicer slicer, boolean writeOpenContours) throws IOException{
         
         printf("writeCLISlices(%s)\n",outPath);
 
@@ -428,13 +515,23 @@ public class TestTriangleSlicer extends TestCase {
             if(DEBUG)printf("writing layer: %d\n",i);
             
             Slice slice = slicer.getSlice(i);
-            int ccount = slice.getClosedContourCount();
+            
+            int ccount;
+            if(writeOpenContours) 
+                ccount= slice.getOpenContourCount();
+            else
+                ccount= slice.getClosedContourCount(); 
+
             double z = slice.getSliceDistance();  
             SliceLayer layer = new SliceLayer(z);            
             for(int k = 0; k < ccount; k++){
                 
-                double pnt[] = slice.getClosedContourPoints(k);
-                PolyLine line = new PolyLine(id, dir, pnt);                
+                double pnt[];
+                if(writeOpenContours) 
+                    pnt = slice.getOpenContourPoints(k);
+                else 
+                    pnt = slice.getClosedContourPoints(k);
+                PolyLine line = new PolyLine(id, dir, pnt);  
                 layer.addPolyLine(line);
             }
 
@@ -598,16 +695,58 @@ public class TestTriangleSlicer extends TestCase {
         
     }
 
-    public static void main(String[] arg) throws Exception {
+    static class TriangleFilter implements TriangleCollector {
 
+        //Vector3d pnt = new Vector3d(24.604016*MM,-74.274*MM, -0.002*MM);
+        Vector3d pnt = new Vector3d(24.604022502899170*MM,-74.274003505706790*MM, -0.002000480890274*MM);
+
+        //[24.604022502899170,-74.274003505706790,-0.002000480890274
+        double tolerance  = 0.01*MM;
+        STLWriter writer;
+        TriangleFilter(String outPath) throws IOException {
+            writer = new STLWriter(outPath);
+        }
+        public boolean addTri(Vector3d p0,Vector3d p1,Vector3d p2){
+            String f = "%12.8f";
+            if((getDistance(p0, pnt) < tolerance) || 
+               (getDistance(p1, pnt) < tolerance) ||
+               (getDistance(p2, pnt) < tolerance)) {
+                //printf("%s, %s %s\n", str(f, p0),str(f, p1),str(f, p2));
+                Vector3d pp0 = new Vector3d(p0);
+                Vector3d pp1 = new Vector3d(p1);
+                Vector3d pp2 = new Vector3d(p2);
+                double ss = 1;
+                pp0.sub(pnt); 
+                pp0.scale(ss);
+                pp1.sub(pnt); 
+                pp1.scale(ss);
+                pp2.sub(pnt); 
+                pp2.scale(ss);
+
+                printf("%s, %s %s\n", str(f, pp0),str(f, pp1),str(f, pp2));
+                //writer.addTri(pp0, pp1, pp2);
+                writer.addTri(p0, p1, p2);
+
+            }
+            return true;
+        }
+        void close() throws IOException {
+            writer.close();
+        }
+    }
+    
+    public static void main(String[] arg) throws Exception {
+        
         //new TestTriangleSlicer().devTestTriangleNormal();
-        new TestTriangleSlicer().devTestRandomTriangles();
+        //new TestTriangleSlicer().devTestRandomTriangles();
         //new TestTriangleSlicer().devTestTriangleSlice();
         //new TestTriangleSlicer().devTestTorus();
         //new TestTriangleSlicer().devTestOctahedron();
         //new TestTriangleSlicer().devTestSphere();
         //new TestTriangleSlicer().devTestSphereSTL();
-        //new TestTriangleSlicer().devTestFile();
+        new TestTriangleSlicer().devTestFile();
+        //new TestTriangleSlicer().devTestManySlices();
+        //new TestTriangleSlicer().devTestFilter();
         //new TestTriangleSlicer().devTestSlice();
         //new TestTriangleSlicer().devTestContour();
         //for(int i = 0; i < 1; i++)

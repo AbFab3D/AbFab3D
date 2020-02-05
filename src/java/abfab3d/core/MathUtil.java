@@ -110,6 +110,12 @@ public class MathUtil {
         return sqrt(vx*vx + vy*vy + vz*vz);
     }
 
+    public static final double getDistance(double vx, double vy, double px, double py){
+        vx -= px;
+        vy -= py;
+        return sqrt(vx*vx + vy*vy);
+    }
+
     /**
        square of distance between two 3D points 
      */
@@ -1847,6 +1853,10 @@ public class MathUtil {
         else return ResultCodes.RESULT_OK;
     }
   
+
+    public static String str(String format, Vector3d v, double units){
+        return fmt("["+format+","+format+","+format+"]", v.x/units,v.y/units,v.z/units);
+    }
 
     public static String str(String format, Vector3d v){
         return fmt("["+format+","+format+","+format+"]", v.x,v.y,v.z);
