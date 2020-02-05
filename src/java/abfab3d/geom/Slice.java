@@ -19,9 +19,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import abfab3d.util.PointMap;
+import abfab3d.util.PointMap2;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Units.MM;
 import static abfab3d.core.MathUtil.str;
 import static java.lang.Math.*;
 
@@ -42,7 +44,8 @@ public class Slice {
     int m_segCount;
     int m_contourCount = 0;
 
-    PointMap m_points;
+    //PointMap m_points; // all points stored as coordinates 
+    PointMap2 m_points; // all points stored as coordinates 
     HashMap<Integer,Contour> m_starts = new HashMap<Integer,Contour>();
     HashMap<Integer,Contour> m_ends = new HashMap<Integer,Contour>();
     Vector<Contour> m_closedContours = new Vector<Contour>();
@@ -54,6 +57,7 @@ public class Slice {
     int m_joinCount = 0;
     int m_closeCount = 0;
     int m_newCount = 0;
+    double m_tolerance = EPSILON;
 
     public Slice(){
         this(new Vector3d(0,0,1),new Vector3d(0,0,0),EPSILON);
@@ -66,8 +70,9 @@ public class Slice {
     public Slice(Vector3d normal, Vector3d pointOnPlane, double epsilon){
 
         m_normal.set(normal);
+        m_tolerance = epsilon;
         m_pointOnPlane.set(pointOnPlane);        
-        m_points = new PointMap(3, 0.75, epsilon);
+        m_points = new PointMap2(3, 0.75, 0.001*epsilon);
 
     }
     
@@ -83,6 +88,10 @@ public class Slice {
         m_segCount++;
         int ind0 = m_points.add(p0.x,p0.y,p0.z);
         int ind1 = m_points.add(p1.x,p1.y,p1.z);
+        if(ind0 == ind1){
+            // ends map to the same point 
+            return;
+        }
         Integer seg0 = new Integer(ind0);
         Integer seg1 = new Integer(ind1);
         String fmt = "%7.4f";
@@ -116,19 +125,23 @@ public class Slice {
         case 3: 
             // both ends exist -> join contours 
             if(c0 != c1){
+
                 // different contours, join them together 
                 m_joinCount++;
                 c0.append(c1);
                 m_ends.remove(seg0);
                 m_starts.remove(seg1);
                 m_ends.put(new Integer(c0.getEnd()),c0);
+
             } else {
+
                 m_closeCount++;
                 //printf("closing contour\n");
                 c0.close();
                 m_ends.remove(seg0);
                 m_starts.remove(seg1);
                 m_closedContours.add(c0);
+
             }  
             break;
 
@@ -179,8 +192,27 @@ public class Slice {
         }            
         return pnt;
     }
+
+    public double[] getOpenContourPoints(int index){
+        
+        if(m_coordinates == null)
+            m_coordinates = m_points.getPoints();
+        
+        Contour cnt = getOpenContour(index);
+        int size = cnt.size();
+        double pnt[] = new double[2*size];
+
+        for(int i = 0; i < size; i++){
+            int k = cnt.get(i % size);
+            pnt[2*i] = m_coordinates[3*k];
+            pnt[2*i+1] = m_coordinates[3*k+1]; 
+        }            
+        return pnt;
+    }
     
     public int getOpenContourCount(){
+    
+
         if(m_openContours == null){
             makeOpenContours();
         }
@@ -198,9 +230,12 @@ public class Slice {
        generates open contours from non closed hashtrable entries 
      */
     private void makeOpenContours(){
+
         m_openContours = new Vector<Contour>(m_starts.size());
-        //TODO 
-        //m_starts.
+        
+        for (Integer key: m_starts.keySet()) {
+            m_openContours.add(m_starts.get(key));
+        }
     }
 
     public double[] getPoints(){
@@ -210,16 +245,18 @@ public class Slice {
     }
 
     public void printStat(){
-        printf("***Slice.printStat()***\n");
-        printf("m_newCount: %d\n", m_newCount);
-        printf("m_appendCount: %d\n", m_appendCount);
-        printf("m_prependCount: %d\n", m_prependCount);
-        printf("m_joinCount: %d\n", m_joinCount);
-        printf("m_closeCount: %d\n", m_closeCount);
-        
-        printf("m_starts.size(): %d\n", m_starts.size());
-        printf("m_ends.size(): %d\n", m_ends.size());
-        printf("m_closedContours.size(): %d\n", m_closedContours.size());        
+
+        String f = "%14.10f";
+        printf(" m_pointOnPlane:%s mm\n", fmt(f,m_pointOnPlane.z/MM));
+        //printf(" m_newCount: %d\n", m_newCount);
+        //printf(" m_appendCount: %d\n", m_appendCount);
+        //printf(" m_prependCount: %d\n", m_prependCount);
+        //printf(" m_joinCount: %d\n", m_joinCount);
+        //printf(" m_closeCount: %d\n", m_closeCount);
+        if(m_starts.size() != 0 || m_ends.size() != 0){
+            printf(" ***problem!!!  m_starts: %d m_ends: %d\n", m_starts.size(),m_ends.size());
+        }
+        printf(" closedContours: %d\n", m_closedContours.size());        
     }
 
 

@@ -21,7 +21,9 @@ import static abfab3d.core.Output.printf;
 
 /**
  * A set like interface for making points unique given some epsilon.
- *
+ * fixes problems of PointMap which may generate different hash values for very close points if points are rounded to different hash value
+ * PointMap2 calculates two hash values using different grid shifted by half period. 
+ * point is checked against both hash values 
  */
 
 public class PointMap2 {
@@ -129,6 +131,9 @@ public class PointMap2 {
      *  @return original array or new allocated array 
      */
     public double[] getPoints(double array[]) {
+        if(array.length < m_points.size()* 3){
+            array = new double[m_points.size()* 3];
+        }
         m_points.getPoints(array);
         return array;
     }

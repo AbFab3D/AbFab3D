@@ -34,7 +34,10 @@ public class SlicingParam {
     // point on the plane of the first slice 
     Vector3d firstSliceLocation = new Vector3d(0,0,0);
     double sliceStep = 0.1*MM;
-    boolean isAuto = true;
+    private boolean m_isAuto = true;
+
+    static final double DEFAULT_TOLERANCE = 0;
+    double tolerance = 0;
 
     double minSliceValue = 0;
 
@@ -58,19 +61,34 @@ public class SlicingParam {
         this.sliceCount = 0;
         setNormal(normal);
     }
+
+    public SlicingParam(Vector3d normal, double sliceStep, double tolerance){
+        
+        this.sliceStep = sliceStep;
+        this.sliceCount = 0;
+        this.tolerance = tolerance;
+        setNormal(normal);
+    }
     
+
     public SlicingParam(Vector3d normal, Vector3d firstSliceLocation, double sliceStep, int sliceCount){
 
+        this(normal, firstSliceLocation, sliceStep, sliceCount, DEFAULT_TOLERANCE);
+    }
+
+    public SlicingParam(Vector3d normal, Vector3d firstSliceLocation, double sliceStep, int sliceCount, double tolerance){
+    
         this.firstSliceLocation.set(firstSliceLocation);
         this.sliceStep = sliceStep;
         this.sliceCount = sliceCount;
+        this.tolerance = tolerance;
         setNormal(normal);
         this.minSliceValue = this.firstSliceLocation.dot(this.normal);
         if(DEBUG) {
             String f = "%7.5f";
             printf("SlicingParam(%s ,%s, %7.5f, %d)\n", str(f,normal),str(f,firstSliceLocation),sliceStep, sliceCount);
         }
-        isAuto = false;
+        m_isAuto = false;
     }
     
     public void setNormal(Vector3d normal){
@@ -87,14 +105,14 @@ public class SlicingParam {
         double step = this.sliceStep;
         // round down the values 
         double minSlice = step*Math.floor(minValue/step);
-        double maxSlice = step*Math.floor(maxValue/step);
+        double maxSlice = step*Math.ceil(maxValue/step);
         
-        this.sliceCount =  (int)Math.ceil(( maxSlice -  minSlice)/step)+1;
+        this.sliceCount =  (int)Math.round(( maxSlice -  minSlice)/step) + 1;
         // move the first slice point 
         this.firstSliceLocation.set(this.normal);
-        this.firstSliceLocation.scale(minValue);
+        this.firstSliceLocation.scale(minSlice);
         
-        this.minSliceValue = firstSliceLocation.dot(this.normal);
+        this.minSliceValue = minSlice;//firstSliceLocation.dot(this.normal);
         
     }
     
@@ -103,6 +121,10 @@ public class SlicingParam {
         slicePoint.set(this.normal);
         slicePoint.scale(this.minSliceValue + sliceIndex*this.sliceStep);
         
+    }
+
+    public boolean isAuto(){
+        return m_isAuto;
     }
     
 } // class SlicingParam

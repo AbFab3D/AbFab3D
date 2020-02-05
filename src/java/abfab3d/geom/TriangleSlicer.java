@@ -16,8 +16,12 @@ package abfab3d.geom;
 import javax.vecmath.Vector3d;
 
 
+import static abfab3d.core.MathUtil.str;
 import static abfab3d.core.MathUtil.clamp;
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
+import static abfab3d.core.Units.MM;
+
 import static java.lang.Math.abs;
 
 /**
@@ -30,10 +34,14 @@ public class TriangleSlicer {
     static final boolean DEBUG = false;
     static final boolean PRINT_STAT = true;
     // epsilon to break degenerate cases
-    private double epsilon = 1.e-8;
+    private double epsilon = 0.;//1.e-8;
     private int caseCount[]= new int[8];
-    public TriangleSlicer(){
-        
+
+    public TriangleSlicer(){        
+    }
+
+    public TriangleSlicer(double tolerance){
+        this.epsilon = tolerance;
     }
 
 
@@ -79,7 +87,7 @@ public class TriangleSlicer {
         if(d1 >= this.epsilon) index |= 2;
         if(d2 >= this.epsilon) index |= 4;
         if(this.debug){
-            printf("d:[%10.3e %10.3e %10.3e], index:%d\n", d0, d1, d2, index);
+            printf("d:[%12.10f %12.10f %12.10f]mm, index:%d\n", d0/MM, d1/MM, d2/MM, index);
         }
         if(DEBUG)printf("case: %d\n", index);
         if(PRINT_STAT)caseCount[index]++;
@@ -93,34 +101,44 @@ public class TriangleSlicer {
         case 7: 
             return OUTSIDE;
         case 1:
-            q1.interpolate(p2,p0, alpha(d2,d0));
-            q0.interpolate(p1,p0, alpha(d1,d0));
+            interpolate(q1, p2,p0, alpha(d2,d0));
+            interpolate(q0, p1,p0, alpha(d1,d0));
             break;
         case 2:
-            q1.interpolate(p0,p1, alpha(d0,d1));
-            q0.interpolate(p2,p1, alpha(d2,d1));
+            interpolate(q1, p0,p1, alpha(d0,d1));
+            interpolate(q0, p2,p1, alpha(d2,d1));
             break;
         case 3:
-            q1.interpolate(p2,p0, alpha(d2,d0));
-            q0.interpolate(p2,p1, alpha(d2,d1));
+            interpolate(q1, p2,p0, alpha(d2,d0));
+            interpolate(q0, p2,p1, alpha(d2,d1));
             break;
         case 4:
-            q1.interpolate(p1,p2, alpha(d1,d2));
-            q0.interpolate(p0,p2, alpha(d0,d2));
+            interpolate(q1, p1,p2, alpha(d1,d2));
+            interpolate(q0, p0,p2, alpha(d0,d2));
             break;
         case 5:
-            q1.interpolate(p1,p2, alpha(d1,d2));
-            q0.interpolate(p1,p0, alpha(d1,d0));
+            interpolate(q1, p1,p2, alpha(d1,d2));
+            interpolate(q0, p1,p0, alpha(d1,d0));
             break;
         case 6:
-            q1.interpolate(p0,p1, alpha(d0,d1));
-            q0.interpolate(p0,p2, alpha(d0,d2));
+            interpolate(q1, p0,p1, alpha(d0,d1));
+            interpolate(q0, p0,p2, alpha(d0,d2));
             break;
         }        
         return INTERSECT;
 
     }
-    
+
+    void interpolate(Vector3d q, Vector3d p1, Vector3d p2, double t){
+        
+        q.interpolate(p1, p2, t);
+        if(this.debug) {
+            String f = "%10.6f";
+            printf("  interpolate(%s,%s, %s) -> %s\n", str(f, p1,MM),str(f, p2,MM),fmt(f, t), str(f, q, MM));
+        }
+
+    }
+
     boolean debug = false;
 
     public void setDebug(boolean value){
