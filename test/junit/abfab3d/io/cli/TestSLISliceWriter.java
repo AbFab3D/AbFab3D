@@ -16,6 +16,7 @@ package abfab3d.io.cli;
 
 
 import abfab3d.core.Bounds;
+import abfab3d.core.Units;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -86,6 +87,7 @@ public class TestSLISliceWriter {
             Bounds bounds = reader.getBounds();
             String out = outDir + filePath;
 
+            printf("Units: %f mm\n",reader.getUnits() / Units.MM);
             SLISliceWriter writer = new SLISliceWriter(out, reader.getUnits());
             writer.write(bounds, "CPSLICECONVERTDATEI", reader.getSlices());
 
