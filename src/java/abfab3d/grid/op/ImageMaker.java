@@ -55,7 +55,7 @@ import static abfab3d.util.ImageUtil.makeARGB;
    data.v[3] - ALPHA 
  */
 public class ImageMaker extends BaseParameterizable implements ImageProducer {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     protected int m_imgType = BufferedImage.TYPE_INT_ARGB;
 

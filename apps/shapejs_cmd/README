@@ -5,7 +5,7 @@ generating triangle mesh.
 
 ## Building
 
-From the apps/shapejs directory type:  ant build
+From the apps/shapejs_cmd directory type:  ant build
 
 ## Running
 

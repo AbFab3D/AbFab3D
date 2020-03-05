@@ -157,7 +157,7 @@
         <java classname="shapejs.viewer.VolumeViewer" fork="true">
             <jvmarg line="${jvmrunargs}"/>
             <arg value="-impl" />
-            <arg value="viewer.ShapeJSBackend" />
+            <arg value="clworkers.ShapeJSExecutorOpenCL" />
 
             <classpath>
                 <pathelement path="${classes.dir}"/>

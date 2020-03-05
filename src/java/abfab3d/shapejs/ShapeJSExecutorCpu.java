@@ -45,6 +45,9 @@ public class ShapeJSExecutorCpu extends BaseShapeJSExecutor implements ShapeJSEx
     public ShapeJSExecutorCpu() {
         AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, Runtime.getRuntime().availableProcessors());
     }
+    public ShapeJSExecutorCpu(int cores) {
+        AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, cores);
+    }
 
     /**
      * Render a ShapeJS project into a raster image
