@@ -47,7 +47,7 @@ public class TriangleMeshSlicer {
 
     Slice m_slices[];
 
-    SlicingParam m_slicingParam = new SlicingParam();
+    SlicingParam m_slicingParam;// = new SlicingParam();
 
     public TriangleMeshSlicer(){
         
@@ -119,7 +119,7 @@ public class TriangleMeshSlicer {
         Vector3d slicePoint = new Vector3d();
         for(int i = 0; i < m_slices.length; i++){
             m_slicingParam.getSlicePoint(i,slicePoint);
-            m_slices[i] = new Slice(m_slicingParam.normal, slicePoint, m_slicingParam.tolerance);
+            m_slices[i] = new Slice(m_slicingParam.normal, slicePoint, m_slicingParam.precision);
         }
         
         DistanceDataHalfSpace plane1 = makeSlicingPlane(m_slicingParam.normal, m_slicingParam.firstSliceLocation);
@@ -133,12 +133,37 @@ public class TriangleMeshSlicer {
             
         }                        
         */
-        TriangleSlicer triSlicer = new TriangleSlicer(m_slicingParam.tolerance);
+        TriangleSlicer triSlicer = new TriangleSlicer(m_slicingParam.sliceShift);
 
         SlicesCalculator  sc = new SlicesCalculator(plane1,triSlicer, m_slices);
         producer.getTriangles(sc);        
         if(DEBUG)printf("segments: %d\n", sc.intersectCount);
+        
+        cleanUp();
 
+    }
+
+    private void cleanUp(){
+        
+        int count = getSliceCount();
+        for(int i = 0; i < count; i++){
+            Slice slice = getSlice(i);
+            slice.cleanUp();
+        }
+    }
+
+    public boolean getSuccess(){
+
+        int count = getSliceCount();
+        
+        for(int i = 0; i < count; i++){
+
+            Slice slice = getSlice(i);
+            if(!slice.getSuccess()){
+                return false;
+            }
+        }       
+        return true;
     }
 
     public void printStat(){
@@ -146,8 +171,10 @@ public class TriangleMeshSlicer {
         int count = getSliceCount();
         for(int i = 0; i < count; i++){
             Slice slice = getSlice(i);
-            printf("slice:%d\n", i);
-            slice.printStat();
+            if(!slice.getSuccess()){
+                printf("slice:%d\n", i);
+                slice.printStat();
+            }
         }       
     }
 
@@ -161,6 +188,7 @@ public class TriangleMeshSlicer {
         int count = getSliceCount();
         int ocount = 0;
         for(int i = 0; i < count; i++){
+            Slice slice = getSlice(i);            
             ocount += slice.getOpenContourCount();
         }
         return ocount;

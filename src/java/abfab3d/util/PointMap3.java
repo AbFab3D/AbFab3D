@@ -20,36 +20,22 @@ import static java.lang.Math.*;
 import static abfab3d.core.Output.printf;
 
 /**
- * A set like interface for making points unique given some epsilon.
- * fixes problems of PointMap which may generate different hash values for very close points if points are rounded to different hash value
- * PointMap2 calculates two hash values using different grid shifted by half period. 
- * point is checked against both hash values 
+ * A set-like interface for storing points 
+ * points are compared exactly 
  */
-
-public class PointMap2 implements IPointMap {
+public class PointMap3  implements IPointMap {
 
     static final boolean DEBUG = false;
 
     HashMap<Entry, Integer> m_map;
-    //HashMap<Entry, Integer> m_map2;
     PointSetArray m_points;
     PointSetArray m_workPoint;
     Entry m_workEntry;
-    double m_epsilon;
-    Vector3d hashVector;
 
-    public PointMap2(double epsilon) {
+    public PointMap3(int initialCapacity, double loadFactor) {
 
-        this(10000,0.75f,epsilon);
-    }
-
-    public PointMap2(int initialCapacity, double loadFactor, double epsilon) {
-
-        m_epsilon = epsilon;
         m_map = new HashMap<Entry,Integer>(initialCapacity, (float)loadFactor);
         m_points = new PointSetArray(initialCapacity);
-        hashVector = new Vector3d(1,3,4);
-        hashVector.normalize();
 
         m_workPoint = new PointSetArray(3);
         
@@ -77,12 +63,9 @@ public class PointMap2 implements IPointMap {
         if(DEBUG) printf("  new point:%d\n", newIndex);
         m_points.addPoint( x, y, z);
 
-        double hash = getHash(x,y,z,hashVector);
-        int h1 = (int)floor(hash);
-        int h2 = (int)round(hash);        
-        m_map.put(new Entry(m_points, newIndex, h1), new Integer(newIndex));
-        if(h1 != h2)
-            m_map.put(new Entry(m_points, newIndex, h2), new Integer(newIndex));
+        int hash = getHash(x,y,z);
+        m_map.put(new Entry(m_points, newIndex, hash), new Integer(newIndex));
+
         return newIndex;
     }    
     
@@ -91,27 +74,16 @@ public class PointMap2 implements IPointMap {
      */
     public int get(double x, double y, double z) {
         
-        double hash = getHash(x,y,z,hashVector);
-        int h1 = (int)floor(hash);
-        int h2 = (int)round(hash);
+        int hash = getHash(x,y,z);
 
-        if(DEBUG) printf("get(%8.6f,%8.6f,%8.6f): %5.2f, (%d, %d)\n", x, y, z, hash, h1, h2);
+        if(DEBUG) printf("get(%8.6f,%8.6f,%8.6f): %d\n", x, y, z, hash);
 
-        m_workEntry.set(h1, x,y,z);
+        m_workEntry.set(hash, x,y,z);
         Integer value = m_map.get(m_workEntry);        
         if(value != null){
-            if(DEBUG) printf(" found in 1: %d\n", value.intValue());
+            if(DEBUG) printf(" found: %d\n", value.intValue());
             return value.intValue();
         }
-        if(h1 != h2){
-            m_workEntry.set(h2, x,y,z);
-            value = m_map.get(m_workEntry); 
-            if(value != null){
-                if(DEBUG) printf(" found in 2: %d\n", value.intValue());
-                return value.intValue();
-            }
-        }
-
         return -1;
         
     }
@@ -144,11 +116,18 @@ public class PointMap2 implements IPointMap {
 
     }
 
-    private double getHash(double x,double y,double z, Vector3d v){
+    private int getHash(double x,double y,double z){
 
-        // factor 3.5 is approximation to 2*sqrt(3); double diagonal of a unit cube 
-        return (x*v.x + y*v.y+z*v.z)/(3.5*m_epsilon); 
+        long ix = Double.doubleToLongBits(x);
+        long iy = Double.doubleToLongBits(y);
+        long iz = Double.doubleToLongBits(z);
+        
+        ix ^= iy;
+        ix ^= iz;
 
+        ix = (ix & 0xFFFFFFFF) ^ ((ix >> 32) & 0xFFFFFFFF);
+
+        return (int)ix;
     }
 
     /**
@@ -182,11 +161,11 @@ public class PointMap2 implements IPointMap {
             Entry e = (Entry)obj;
             points.getPoint(index, pnt);
             e.points.getPoint(e.index, e.pnt);
-            return ((abs(pnt[0] - e.pnt[0]) < m_epsilon) && 
-                    (abs(pnt[1] - e.pnt[1]) < m_epsilon) && 
-                    (abs(pnt[2] - e.pnt[2]) < m_epsilon));
+            return ((pnt[0] == e.pnt[0]) && 
+                    (pnt[1] == e.pnt[1]) && 
+                    (pnt[2] == e.pnt[2]));
                     
         }
     } // class Entry 
 
-} // class PointMap2 
+} // class PointMap3

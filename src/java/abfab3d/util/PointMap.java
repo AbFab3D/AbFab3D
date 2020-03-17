@@ -29,7 +29,7 @@ import static abfab3d.core.Output.printf;
  *
  * @author Alan Hudson
  */
-public class PointMap {
+public class PointMap implements IPointMap {
     private boolean COLLECT_STATS = true;
     private final boolean DEBUG = false;
 

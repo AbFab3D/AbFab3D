@@ -36,8 +36,8 @@ public class SlicingParam {
     double sliceStep = 0.1*MM;
     private boolean m_isAuto = true;
 
-    static final double DEFAULT_TOLERANCE = 0;
-    double tolerance = 0;
+    double sliceShift = 0;
+    double precision = 0;
 
     double minSliceValue = 0;
 
@@ -45,7 +45,7 @@ public class SlicingParam {
     String m_unitsName = "mm";
    
     
-    
+    /*
     public SlicingParam(){
         this.sliceCount = 0;
     }
@@ -54,34 +54,33 @@ public class SlicingParam {
         this.sliceStep  = sliceStep;
         this.sliceCount = 0;
     }
-    
+    */
+
     public SlicingParam(Vector3d normal, double sliceStep){
         
-        this.sliceStep = sliceStep;
-        this.sliceCount = 0;
-        setNormal(normal);
-    }
+        this(normal, sliceStep, 0., 0.);
 
-    public SlicingParam(Vector3d normal, double sliceStep, double tolerance){
+    }
+    
+    public SlicingParam(Vector3d normal, double sliceStep, double sliceShift, double precision){
         
         this.sliceStep = sliceStep;
         this.sliceCount = 0;
-        this.tolerance = tolerance;
+        this.sliceShift = sliceShift;
+        this.precision = precision;
         setNormal(normal);
+        m_isAuto = true;
+
     }
     
-
-    public SlicingParam(Vector3d normal, Vector3d firstSliceLocation, double sliceStep, int sliceCount){
-
-        this(normal, firstSliceLocation, sliceStep, sliceCount, DEFAULT_TOLERANCE);
-    }
-
-    public SlicingParam(Vector3d normal, Vector3d firstSliceLocation, double sliceStep, int sliceCount, double tolerance){
+    public SlicingParam(Vector3d normal, Vector3d firstSliceLocation, double sliceStep, int sliceCount, double sliceShift, double precision){
     
         this.firstSliceLocation.set(firstSliceLocation);
         this.sliceStep = sliceStep;
         this.sliceCount = sliceCount;
-        this.tolerance = tolerance;
+        this.sliceShift = sliceShift;
+        this.precision = precision;
+ 
         setNormal(normal);
         this.minSliceValue = this.firstSliceLocation.dot(this.normal);
         if(DEBUG) {

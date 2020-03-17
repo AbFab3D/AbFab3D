@@ -656,7 +656,9 @@ public class TestSlicesWriter extends TestCase {
         GridMaker gm = new GridMaker();  
 
         gm.setAttributePacker(new AttributePackerGeneral(new int[]{8,8,8,8}, true));
-        gm.setSource(new Composition(Composition.AoutB, sphere1, sphere2));
+        Composition shape = new Composition(Composition.BoverA, sphere1, sphere2);
+        shape.initialize();
+        gm.setSource(shape);
         
         AttributeGrid grid = new ArrayAttributeGridLong(ng[0],ng[1],ng[2], voxelSize, voxelSize);
         grid.setGridBounds(bounds);
@@ -668,7 +670,7 @@ public class TestSlicesWriter extends TestCase {
         attDesc.addChannel(new GridDataChannel(GridDataChannel.DENSITY, "dens", 8, 0));
         attDesc.addChannel(new GridDataChannel(GridDataChannel.COLOR, "color", 24,8));
         grid.setDataDesc(attDesc);
-        new SVXWriter().write(grid, "/tmp/slices/compositionAoutB.svx");        
+        new SVXWriter().write(grid, "/tmp/slices/compositionBoverA.svx");        
     }
 
 
@@ -923,10 +925,11 @@ public class TestSlicesWriter extends TestCase {
     public static void main(String[] args) throws IOException {
         //new TestSlicesWriter().multichannelTest();
         //new TestSlicesWriter().colorTest();
+        new TestSlicesWriter().colorTest2();
         //new TestSlicesWriter().colorTest3();
         //new TestSlicesWriter().colorTestBoxSphere();
         //new TestSlicesWriter().colorTestConeSphere();
-        new TestSlicesWriter().colorTestNoise();
+        //new TestSlicesWriter().colorTestNoise();
         //new TestSlicesWriter().blackWhiteTest();
         //new TestSlicesWriter().grayTest();
     }

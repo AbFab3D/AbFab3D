@@ -279,7 +279,7 @@ public class Composition extends TransformableDataSource {
      */
     public int getBaseValue(Vec pnt, Vec data) {
 
-        //return getDdensityData(pnt, data);
+        //return getDensityData(pnt, data);
         return getDistanceData(pnt, data);
     }
 
@@ -340,7 +340,7 @@ public class Composition extends TransformableDataSource {
             lerp(ca, cb, max(step10(b,a,m_blend), step10(b,0,m_blend)), 1, out.v);
             break;
             /*   
-        case COMP_AoverB:
+        case COMP_AoverB:Te
         out->v.x = blendMin(a, b, blend);
         //out->v.yzw = mix(ca, cb, max(step01(a,b,blend),step01(a,0,blend)));
         out->v.yzw = mix(ca, cb, min(step01(a,b,blend),step01(a,0,blend)));
