@@ -188,7 +188,7 @@ public class TriangleMeshSlicer {
         int count = getSliceCount();
         int ocount = 0;
         for(int i = 0; i < count; i++){
-            Slice slice = getSlice(i);            
+            Slice slice = getSlice(i);
             ocount += slice.getOpenContourCount();
         }
         return ocount;

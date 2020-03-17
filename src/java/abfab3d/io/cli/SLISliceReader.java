@@ -29,7 +29,7 @@ import static abfab3d.core.Units.MM;
  * @author Alan Hudson
  */
 public class SLISliceReader extends BaseSliceReader {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private Bounds bounds;
     private double units;
     private SliceLayer[] slices;

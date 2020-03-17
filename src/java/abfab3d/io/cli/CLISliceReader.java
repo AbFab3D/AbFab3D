@@ -35,11 +35,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * http://web.archive.org/web/19970617041930/http://www.cranfield.ac.uk/aero/rapid/CLI/cli_v20.html
  */
 public class CLISliceReader extends BaseSliceReader {
+    private static final boolean DEBUG = false;
     private enum State {
         BeforeHeader, Header, Geometry, PostGeometry
     }
-    private static final boolean DEBUG = true;
-
     private State state;
     private double units = 1.0;
     private ArrayList<SliceLayer> layers = new ArrayList<>();
@@ -123,7 +122,8 @@ public class CLISliceReader extends BaseSliceReader {
                 parseHatches(new String(scan.nextData()),0,current);
             }
             if (cmd.startsWith(LAYER)) {
-                double h = parseReal(new String(scan.nextData()),0) * units * MM;
+                double raw = parseReal(new String(scan.nextData()),0);
+                double h = raw * units * MM;
 
                 current = new SliceLayer(h);
                 layers.add(current);
@@ -215,6 +215,7 @@ public class CLISliceReader extends BaseSliceReader {
          */
 
 
+        if (DEBUG) printf("Polyline: %s\n",line);
         int state = 0;  // 0 =id,1=dir,2=n,3=points
         int id = 0;
         int dir = 0;
@@ -400,7 +401,45 @@ public class CLISliceReader extends BaseSliceReader {
 
     @Override
     public Bounds getBounds() {
-        return null;
+        double
+                xmin = Double.MAX_VALUE, xmax = -Double.MAX_VALUE,
+                ymin = Double.MAX_VALUE, ymax = -Double.MAX_VALUE,
+                zmin = Double.MAX_VALUE, zmax = -Double.MAX_VALUE;
+
+        double z = 0;
+        for(SliceLayer layer : layers) {
+            PolyLine[] lines = layer.getPolyLines();
+            z = layer.getLayerHeight();
+
+            if (z < zmin) {
+                zmin = z;
+            }
+            if (z > zmax) {
+                zmax = z;
+            }
+            for(PolyLine line : lines) {
+                double[] verts = line.getPoints();
+                int len = verts.length / 2;
+                for(int i=0; i < len; i++) {
+                    double x = verts[i*2];
+                    double y = verts[i*2+1];
+
+                    if (x < xmin) {
+                        xmin = x;
+                    }
+                    if (x > xmax) {
+                        xmax = x;
+                    }
+                    if (y < ymin) {
+                        ymin = y;
+                    }
+                    if (y > ymax) {
+                        ymax = y;
+                    }
+                }
+            }
+        }
+        return new Bounds(xmin,xmax,ymin,ymax,zmin,zmax);
     }
 }
 

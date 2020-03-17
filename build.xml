@@ -389,6 +389,7 @@
                 abfab3d/shapejs/*
                 abfab3d/io/input/*
                 abfab3d/io/output/*
+                abfab3d/io/cli/*
                 abfab3d/opencl/*
                 abfab3d/path/*
                 abfab3d/util/*
