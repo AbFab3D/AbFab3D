@@ -30,7 +30,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 public class PointMap implements IPointMap {
-    private boolean COLLECT_STATS = true;
+    private boolean COLLECT_STATS = false;
     private final boolean DEBUG = false;
 
     static final double  // arbitrary constants for hashcode calculations

@@ -325,11 +325,12 @@ public class Slice {
      */
     private void checkOpenContours(Vector<Contour> contours, double precision){
 
+        final boolean debug = false;
         Vector3d endPoint = new Vector3d();
         Vector3d startPoint = new Vector3d();
         String f = "%10.8f";
         
-        printf("checkOpenContours(%d, %10.8f mm)\n", contours.size(), precision/MM);
+        if(debug)printf("checkOpenContours(%d, %10.8f mm)\n", contours.size(), precision/MM);
 
         for(int i = 0; i < contours.size(); i++){
             Contour cs = contours.get(i);
@@ -338,7 +339,7 @@ public class Slice {
                 Contour ce = contours.get(j);
                 getPoint(ce.getStart(), startPoint); 
                 if(startPoint.epsilonEquals(endPoint, precision)){
-                    printf("%d -> %d (%s -> %s)\n", i, j, str(f, endPoint, MM), str(f,startPoint, MM));
+                    if(debug)printf("%d -> %d (%s -> %s)\n", i, j, str(f, endPoint, MM), str(f,startPoint, MM));
                 }
             }
         }
@@ -351,7 +352,7 @@ public class Slice {
     */
     private  Vector<Contour> joinOpenContours(Vector<Contour> contours, double precision, Vector<Contour> closedContours){
 
-        final boolean debug =  true;
+        final boolean debug =  false;
         if(debug)printf("joinOpenContours(%d, %10.8f mm)\n", contours.size(), precision/MM);
         IPointMap points = (precision > 0)? new PointMap2(3, 0.75, precision): new PointMap3(3, 0.75); 
         HashMap<Integer,Contour> starts = new HashMap<Integer,Contour>();
@@ -447,7 +448,7 @@ public class Slice {
         if(debug) printf("open contour count: %d %d\n", starts.size(), ends.size());
         if((starts.size() | ends.size()) != 0){
             // few pieces remain
-            
+            printf("failed to joing contours");
         }
         //
         // return remaining open contours 
