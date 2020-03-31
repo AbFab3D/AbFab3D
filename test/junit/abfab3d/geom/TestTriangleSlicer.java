@@ -401,10 +401,20 @@ public class TestTriangleSlicer extends TestCase {
         //String filePath = "test/models/gyrosphere.stl";
         //String slicesPath = "/tmp/gyrosphere_slices.cli";
 
-        //String filePath = "/tmp/slicingTestModels/8240505_6587068.v2.analytical_mesh_converter.sh.x3db";
-        //String filePath = "/tmp/slicingTestModels/8240505_6587068.bad_tri.stl";
-        String filePath = "/tmp/slicingTestModels/8310663_6799866.v0.x3db";
+        String folder = "/tmp/slicingTestModels/";
+        //String filePath = "/8240505_6587068.v2.analytical_mesh_converter.sh.x3db";
+        //String filePath = "/8240505_6587068.bad_tri.stl";
+        //String filePath = "8310663_6799866.v0.x3db";
+        //String fileName = "1527142_5307597.v0.x3db";
+        String fileName = "1677655_5534876.v0.x3db";  // 10 failed slices at 0.0001mm
+        //String fileName = "3665693_5905400.v0.x3db";    // 
+        //String fileName = "5757986_5905406.v0.x3db";    // 
+        //String fileName = "8871781_7087703.v0.x3db";    // 
+        //String fileName = "1272568_4868304.v0.x3db";    // 
 
+        String filePath = folder + fileName;
+        String slicesFile = folder + "slices/" + fileName;
+        
         Vector3d normal = new Vector3d(0,0,1);
         double sliceStep = 0.1*MM;
         //double sliceOffset = -0.103*MM;
@@ -431,7 +441,9 @@ public class TestTriangleSlicer extends TestCase {
         //double sliceOffset =  -12.9*MM; double precision = 0.00001*MM; double sliceShift = 0.0001*MM; boolean auto = true;
         //double sliceOffset =  -12.9*MM; double precision = 0.00001*MM; double sliceShift = 0.001*MM; boolean auto = true;  // bad
         //double sliceOffset =  -12.9*MM; double precision = 0.00001*MM; double sliceShift = 0.0001*MM; boolean auto = true;  // closable contpours
-        double sliceOffset =  -12.9*MM; double precision = 0.0001*MM; double sliceShift = 0.0001*MM; boolean auto = true;  // closable contpours
+        //double sliceOffset =  -12.9*MM; double precision = 0.0001*MM; double sliceShift = 0.0001*MM; boolean auto = true;  // closable contours
+        double sliceOffset =  -12.9*MM; double precision = 0.0001*MM; double sliceShift = 0.0001*MM; boolean auto = true;  // closable contours
+        //double sliceOffset =  -12.9*MM; double precision = 0.000*MM; double sliceShift = 0.0001*MM; boolean auto = true;  // 
 
         //double sliceOffset =  -13.2*MM; double tolerance = 0.00001*MM; boolean auto = true;
         //double sliceOffset =  -13.4*MM; double tolerance = 0.00001*MM; boolean auto = false;
@@ -444,12 +456,12 @@ public class TestTriangleSlicer extends TestCase {
         String slicesPath,openSlicesPath;
         if(auto) {
             sp = new SlicingParam(normal, sliceStep, sliceShift, precision);
-            slicesPath = filePath + fmt(",shift.%10.8f,prec.%10.8f.cli",sliceShift/MM, precision/MM);
-            openSlicesPath = filePath + fmt(",shift.%10.8f,prec.%10.8f_open.cli", sliceShift/MM,precision/MM);
+            slicesPath = slicesFile+ fmt(",shift.%10.8f,prec.%10.8f.cli",sliceShift/MM, precision/MM);
+            openSlicesPath = slicesFile + fmt(",shift.%10.8f,prec.%10.8f_open.cli", sliceShift/MM,precision/MM);
         } else {
             sp = new SlicingParam(normal, firstSlice, sliceStep, sliceCount, sliceShift, precision);
-            slicesPath = filePath + fmt(",off.%10.8f,shift.%10.8f,prec.%10.8f.cli", firstSlice.z/MM, sliceShift/MM, precision/MM);
-            openSlicesPath = filePath + fmt(",off.%10.8f,shift.%10.8f,prec.%10.8f_open.cli", firstSlice.z/MM, sliceShift/MM, precision/MM);
+            slicesPath = slicesFile + fmt(",off.%10.8f,shift.%10.8f,prec.%10.8f.cli", firstSlice.z/MM, sliceShift/MM, precision/MM);
+            openSlicesPath = slicesFile + fmt(",off.%10.8f,shift.%10.8f,prec.%10.8f_open.cli", firstSlice.z/MM, sliceShift/MM, precision/MM);
         }
 
 

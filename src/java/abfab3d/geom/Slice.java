@@ -61,6 +61,7 @@ public class Slice {
     int m_closeCount = 0;
     int m_newCount = 0;
     double m_tolerance = EPSILON;
+    double m_closingTolerance = m_tolerance*5;
 
     public Slice(){
         this(new Vector3d(0,0,1),new Vector3d(0,0,0),EPSILON);
@@ -75,10 +76,12 @@ public class Slice {
         m_normal.set(normal);
         m_tolerance = epsilon;
         m_pointOnPlane.set(pointOnPlane);        
-        if(epsilon > 0) 
+        if(epsilon > 0) {
             m_points = new PointMap2(3, 0.75, epsilon);
-        else 
-            m_points = new PointMap3(3, 0.75);
+        }  else {
+            m_points = new PointMap3(3, 0.75);            
+        }
+        m_closingTolerance = Math.max(5*m_tolerance, 1.e-6);
 
     }
     
@@ -187,9 +190,8 @@ public class Slice {
         initCoordinates();
 
         if(openContours.size() != 0) {
-            checkOpenContours(openContours, m_tolerance*5);  
-            joinOpenContours(openContours, m_tolerance*5, m_closedContours);  
-            //m_openContours = openContours;
+            checkOpenContours(openContours, m_closingTolerance);  
+            m_openContours = joinOpenContours(openContours, m_closingTolerance, m_closedContours);  
         }
               
     }
@@ -321,7 +323,7 @@ public class Slice {
     }
     
     /**
-       chack if open contours form a chain 
+       check if open contours form a chain 
      */
     private void checkOpenContours(Vector<Contour> contours, double precision){
 
@@ -448,10 +450,27 @@ public class Slice {
         if(debug) printf("open contour count: %d %d\n", starts.size(), ends.size());
         if((starts.size() | ends.size()) != 0){
             // few pieces remain
-            printf("failed to joing contours");
+            HashMap<Integer,Contour> cnt = (starts.size() >= ends.size()) ? starts:m_ends;
+        
+            Vector<Contour> openContours = new Vector<Contour>();
+            for (Integer key: cnt.keySet()) {
+                
+                Contour c = cnt.get(key);
+                if(c.get(0) == c.get(c.size()-1)){
+                    m_closedContours.add(c);
+                } else {
+                    //printf("starts: %d-> %d\n", c.get(0), c.get(c.size()-1));
+                    openContours.add(c);
+                }
+            }
+            printf("failed to joing contours. slice: %18.12f openContours:%d\n", m_pointOnPlane.z, openContours.size());
+            //
+            // return open contours 
+            return openContours;
+            
         }
-        //
-        // return remaining open contours 
+
+        // nothing remains 
         return null;
     }
 
