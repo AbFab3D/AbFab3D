@@ -201,6 +201,10 @@ public class SliceV1 implements Slice {
               
     }
 
+    public boolean testManifold(){
+        return getSuccess();
+    }    
+
     /**
        
      */
