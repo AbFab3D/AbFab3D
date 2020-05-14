@@ -382,7 +382,7 @@ public class TestTriangleSlicer extends TestCase {
         printf("meshSlicer.makeSlices(maker): %d ms\n", (time() - t0));
         printf("triangles count: %d (empty: %d, inter: %d)\n", meshSlicer.getTriCount(),meshSlicer.getEmptyTriCount(),meshSlicer.getInterTriCount());
         printf("slices count: %d \n", meshSlicer.getSliceCount());        
-        writeCLISlices("/tmp/octaSlices.cli", meshSlicer);
+        writeCLISlices("/tmp/slicingTestModels/octaSlices.cli", meshSlicer);
 
     }
 
@@ -393,6 +393,7 @@ public class TestTriangleSlicer extends TestCase {
         MeshReader reader = new MeshReader(filePath);
         TriangleFilter filter = new TriangleFilter("/tmp/slicingTestModels/8240505_6587068.bad_tri.stl");
         reader.getTriangles(filter);
+
         filter.close();
     }
     
@@ -404,9 +405,11 @@ public class TestTriangleSlicer extends TestCase {
         String folder = "/tmp/slicingTestModels/";
         //String filePath = "/8240505_6587068.v2.analytical_mesh_converter.sh.x3db";
         //String filePath = "/8240505_6587068.bad_tri.stl";
-        //String filePath = "8310663_6799866.v0.x3db";
+        //String fileName = "8310663_6799866.v0.x3db";
         //String fileName = "1527142_5307597.v0.x3db";
         String fileName = "1677655_5534876.v0.x3db";  // 10 failed slices at 0.0001mm
+        //String fileName = "8288771_6787679.v0.x3db";  // 
+        //String fileName = "8196147_5861575.v2.x3db";  // 
         //String fileName = "3665693_5905400.v0.x3db";    // 
         //String fileName = "5757986_5905406.v0.x3db";    // 
         //String fileName = "8871781_7087703.v0.x3db";    // 
@@ -417,36 +420,10 @@ public class TestTriangleSlicer extends TestCase {
         
         Vector3d normal = new Vector3d(0,0,1);
         double sliceStep = 0.1*MM;
-        //double sliceOffset = -0.103*MM;
-        //double sliceOffset = -0.102*MM;
-        //double sliceOffset = -0.002*MM;
-        int sliceCount = 3;
-        //double sliceOffset = -5.898*MM;
-        //int sliceCount = 118;
-        //double sliceOffset = -0.1*MM;
-        //double sliceOffset = 1.098*MM;
-        //double sliceOffset = -1.153000*MM; double tolerance = 0.0001*MM;
-        //double sliceOffset =  4.902500*MM; double tolerance = 0.001*MM;
-        //double sliceOffset =  4.902500*MM; double tolerance = 0.00001*MM;
-        //double sliceOffset =  -13.2*MM; double tolerance = 0.001*MM; boolean auto = false;
-        //double sliceOffset =  -13.2*MM; double tolerance = 0.001*MM; boolean auto = true;
-        //double sliceOffset =  -13.2*MM; double tolerance = 0.0001*MM; boolean auto = false;
-        //double sliceOffset =  -13.2*MM; double tolerance = 0.0001*MM; boolean auto = false;
-        //double sliceOffset =  -13.2*MM; double tolerance = 0.000001*MM; boolean auto = false;
-        //double sliceOffset =  -13.2*MM; double tolerance = 0.00000*MM; boolean auto = false;
-        //double sliceOffset =  -13.2*MM; double tolerance = 0.00000*MM; boolean auto = true;
-        //double sliceOffset =  -13.2*MM; double tolerance = 0.001*MM; boolean auto = true;
-        //double sliceOffset =  -12.9*MM; double precision = 0.0000001*MM; double sliceShift = 0.001*MM; boolean auto = true;
-        //double sliceOffset =  -12.9*MM; double precision = 0.000001*MM; double sliceShift = 0.001*MM; boolean auto = true;
-        //double sliceOffset =  -12.9*MM; double precision = 0.00001*MM; double sliceShift = 0.0001*MM; boolean auto = true;
-        //double sliceOffset =  -12.9*MM; double precision = 0.00001*MM; double sliceShift = 0.001*MM; boolean auto = true;  // bad
-        //double sliceOffset =  -12.9*MM; double precision = 0.00001*MM; double sliceShift = 0.0001*MM; boolean auto = true;  // closable contpours
+        int sliceCount = 1;
         //double sliceOffset =  -12.9*MM; double precision = 0.0001*MM; double sliceShift = 0.0001*MM; boolean auto = true;  // closable contours
-        double sliceOffset =  -12.9*MM; double precision = 0.0001*MM; double sliceShift = 0.0001*MM; boolean auto = true;  // closable contours
-        //double sliceOffset =  -12.9*MM; double precision = 0.000*MM; double sliceShift = 0.0001*MM; boolean auto = true;  // 
+        double sliceOffset =  -12.9*MM; double precision = 0.000*MM; double sliceShift = 0.000*MM; boolean auto = true;  // 
 
-        //double sliceOffset =  -13.2*MM; double tolerance = 0.00001*MM; boolean auto = true;
-        //double sliceOffset =  -13.4*MM; double tolerance = 0.00001*MM; boolean auto = false;
         
         Vector3d firstSlice = new Vector3d(0,0,sliceOffset);
 
@@ -540,6 +517,66 @@ public class TestTriangleSlicer extends TestCase {
         */
     }
 
+    /**
+       writeFlags = 1 - closed contours 
+       writeFlags = 2 - open contours 
+       writeFlags = 3 - both contours        
+     */
+    static void writeCLISlices(String outPath, Slice slices[], int writeFlags) throws IOException{
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        BufferedOutputStream baos = new BufferedOutputStream(bytes);
+
+        CLISliceWriter writer = new CLISliceWriter(baos,false,MM);
+
+        int dir = 0;
+        int id = 1;
+                        
+        for(int i = 0; i < slices.length; i++){
+            
+            //if(DEBUG)printf("writing layer: %d\n",i);
+            
+            Slice slice = slices[i];
+            
+            double z = slice.getSliceDistance();  
+            SliceLayer layer = new SliceLayer(z);            
+            if((writeFlags & 1) != 0) {
+                // write closed contours 
+                int ccount= slice.getClosedContourCount(); 
+                for(int k = 0; k < ccount; k++){                    
+                    double pnt[];
+                    pnt = slice.getClosedContourPoints(k);
+                    PolyLine line = new PolyLine(id, dir, pnt);  
+                    layer.addPolyLine(line);
+                }                
+            }
+            if((writeFlags & 2) != 0) {
+                // write open contours 
+                int ccount= slice.getOpenContourCount();
+                for(int k = 0; k < ccount; k++){                    
+                    double pnt[];
+                    pnt = slice.getOpenContourPoints(k);
+                    PolyLine line = new PolyLine(id, dir, pnt);  
+                    layer.addPolyLine(line);
+                }
+
+            }
+
+            writer.addLayer(layer);
+            
+        }
+        
+        writer.close();
+        
+        FileOutputStream fos = new FileOutputStream(outPath);
+        baos.close();
+        byte[] ba = bytes.toByteArray();
+        printf("writing %d bytes into CLI file:%s\n", ba.length, outPath);
+        fos.write(ba,0,ba.length);
+        fos.close();
+        
+    }
+
     static void writeCLISlices(String outPath, TriangleMeshSlicer slicer) throws IOException{
 
         writeCLISlices(outPath, slicer, false);
@@ -602,38 +639,173 @@ public class TestTriangleSlicer extends TestCase {
         
     }
 
-    void devTestSlice(){
+    void devTestSliceV1() throws IOException {
 
-        int N = 1000003;
-        int K = 2;
+        int N = 103;
+        int K = 1;
         printf("devTestSlice({N:%d, K:%d})\n", N,K);
-        double r = 1000*MM;
-        Slice slice = new Slice(new Vector3d(0,0,1), new Vector3d(0,0,0),1.e-8);
+        double r = 10*MM;
+        Vector3d normal = new Vector3d(0,0,1);
+        double tolerance = 1.e-8;
 
         Vector3d 
             v0 = new Vector3d(),
             v1 = new Vector3d();
-        long t0 = time();
-        printf("start making contour %d poins\n", N);
         double da = 2*PI/N;
-        for(int i = 0; i < N-10; i++){
-            int j = (K*i) % N;
-            double a0 = j*da;
-            double a1 = (j+1)*da;
-            
-            v0.set(r*cos(a0),r*sin(a0),0);
-            v1.set(r*cos(a1),r*sin(a1),0);
-            slice.addSegment(v0,v1);
-        }
-        printf("making contour time: %d ms\n",(time() - t0));
-        slice.printStat();
-        printf("pointCount:%d\n",slice.getPointCount());
+        int NZ = 10;
+        double sliceStep = r/ NZ;
+        String outPath = "/tmp/slicingTestModels/testSlice.cli";
 
-        printf("segmentCount:%d\n",slice.getSegmentCount());
-        printf("openContourCount:%d\n",slice.getOpenContourCount());
-        slice.getPoints();        
+        Slice slices[] = new Slice[NZ];
+
+        printf("start making contour %d poins\n", N);
+        for(int iz = 0; iz < NZ; iz++){
+            double z = truncate(iz * sliceStep, 1.e-16);
+            Vector3d pointOnPlane = new Vector3d(0,0,z);
+            Slice slice = new SliceV1(normal,pointOnPlane, tolerance);
+            slices[iz] = slice;
+
+            long t0 = time();
+            for(int i = 0; i < N; i++){
+                int j = (i+1) % N;
+                double a0 = i*da;
+                double a1 = j*da;       
+                double rr = Math.sqrt(r*r - z*z);
+                v0.set(rr*cos(a0),rr*sin(a0),z);
+                v1.set(rr*cos(a1),rr*sin(a1),z);
+                slice.addSegment(v0,v1);
+            }
+            slice.buildContours();
+            printf("making contour time: %d ms\n",(time() - t0));
+            slice.printStat();
+            printf("closedContours:%d openContours:%d \n",slice.getClosedContourCount(), slice.getOpenContourCount());
+        }
+        
+        writeCLISlices(outPath, slices, 3);
+
     }
 
+    void devTestSliceV2() throws IOException {
+
+        int N = 4;
+        int K = 1;
+        printf("devTestSlice({N:%d, K:%d})\n", N,K);
+        double r = 10*MM;
+        Vector3d normal = new Vector3d(0,0,1);
+        double tolerance = 1.e-8;
+
+        Vector3d 
+            v0 = new Vector3d(),
+            v1 = new Vector3d();
+        double da = 2*PI/N;
+        int NZ = 1;
+        double sliceStep = r/ NZ;
+        String outPath = "/tmp/slicingTestModels/testSliceV2.cli";
+
+        Slice slices[] = new Slice[NZ];
+
+        printf("start making contour %d poins\n", N);
+        for(int iz = 0; iz < NZ; iz++){
+            double z = truncate(iz * sliceStep, 1.e-12);
+            Vector3d pointOnPlane = new Vector3d(0,0,z);
+            Slice slice = new SliceV2(normal,pointOnPlane, tolerance);
+            slices[iz] = slice;
+
+            long t0 = time();
+            for(int i = 0; i < N-1; i++){
+                int j = (i+1) % N;
+                double a0 = i*da;
+                double a1 = j*da;       
+                double rr = Math.sqrt(r*r - z*z);
+                v0.set(rr*cos(a0),rr*sin(a0),z);
+                v1.set(rr*cos(a1),rr*sin(a1),z);
+                slice.addSegment(v0,v1);
+            }
+
+            for(int i = 0; i < N; i++){
+                int j = (i+1) % N;
+                double a0 = -i*da;
+                double a1 = -j*da;       
+                double rr = Math.sqrt(r*r - z*z);
+                v0.set(rr*cos(a0),0.5*rr*sin(a0),z);
+                v1.set(rr*cos(a1),0.5*rr*sin(a1),z);
+                slice.addSegment(v0,v1);                
+            }
+
+            boolean manifold = slice.testManifold();
+            if(!manifold) printf("!!! non-manifold slice: %12.10f !!!\n", slice.getPointOnPlane().z);
+            slice.printStat();
+            slice.buildContours();
+            printf("making contour time: %d ms\n",(time() - t0));
+            slice.printStat();
+            printf("closedContours:%d openContours:%d \n",slice.getClosedContourCount(), slice.getOpenContourCount());
+        }
+        
+        writeCLISlices(outPath, slices, 3);
+
+    }
+
+
+    /**
+       makes contour consisting of array of tangent circles 
+     */
+    void devTestSliceV2_test2() throws IOException {
+
+        int N = 4; // count of point in single circle 
+        printf("devTestSliceV2_test2(%d)\n", N);
+        double r = 10*MM;
+        Vector3d normal = new Vector3d(0,0,1);
+        double tolerance = 1.e-8;
+
+        Vector3d 
+            v0 = new Vector3d(),
+            v1 = new Vector3d();
+        double da = 2*PI/N;
+        int NZ = 10;
+        double sliceStep = 0.2*MM;
+        double scale = 0.9;
+        String outPath = "/tmp/slicingTestModels/testSliceV2_test2.cli";
+
+        Slice slices[] = new Slice[NZ];
+
+        printf("start making contour %d poins\n", N);
+
+        for(int iz = 0; iz < NZ; iz++){
+            double z = iz * sliceStep;//truncate(iz * sliceStep, 1.e-12);
+            printf("sliceZ: %7.3f mm\n", z/MM);
+            Vector3d pointOnPlane = new Vector3d(0,0,z);
+            Slice slice = new SliceV2(normal,pointOnPlane, tolerance);
+            slices[iz] = slice;
+            
+            //long t0 = time();
+            for(int k = 0; k < 4; k++){
+
+                double xc = k*r*2;
+                double yc = 0;
+
+                for(int i = 0; i < N; i++){
+                    int j = (i+1) % N;
+                    double a0 = i*da;
+                    double a1 = j*da;       
+                    double rr = Math.sqrt(r*r - z*z);
+                    v0.set(xc + rr*cos(a0),yc + rr*sin(a0),z);
+                    v1.set(xc+ rr*cos(a1),yc + rr*sin(a1),z);
+                    slice.addSegment(v0,v1);
+                }
+            }
+            
+            boolean manifold = slice.testManifold();
+            if(!manifold) printf("!!! non-manifold slice: %12.10f !!!\n", slice.getPointOnPlane().z);
+            //slice.printStat();
+            slice.buildContours();
+            //printf("making contour time: %d ms\n",(time() - t0));
+            //slice.printStat();
+            printf("   closedContours:%d openContours:%d \n",slice.getClosedContourCount(), slice.getOpenContourCount());
+        }
+        
+        writeCLISlices(outPath, slices, 3);
+
+    }
 
     void devTestContour(){
         int N = 10;
@@ -786,6 +958,10 @@ public class TestTriangleSlicer extends TestCase {
             writer.close();
         }
     }
+
+    static double truncate(double v, double eps){
+        return eps*Math.round((v)/eps);
+    }
     
     public static void main(String[] arg) throws Exception {
         
@@ -794,6 +970,9 @@ public class TestTriangleSlicer extends TestCase {
         //new TestTriangleSlicer().devTestTriangleSlice();
         //new TestTriangleSlicer().devTestTorus();
         //new TestTriangleSlicer().devTestOctahedron();
+        //new TestTriangleSlicer().devTestSliceV1();
+        //new TestTriangleSlicer().devTestSliceV2();
+        //new TestTriangleSlicer().devTestSliceV2_test2();
         //new TestTriangleSlicer().devTestSphere();
         //new TestTriangleSlicer().devTestSphereSTL();
         new TestTriangleSlicer().devTestFile();

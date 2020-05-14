@@ -44,6 +44,7 @@ public class TriangleMeshSlicer {
     int m_emptyTriCount = 0;
     int m_interTriCount = 0;
 
+    int m_sliceVersion = 2;
 
     Slice m_slices[];
 
@@ -119,7 +120,15 @@ public class TriangleMeshSlicer {
         Vector3d slicePoint = new Vector3d();
         for(int i = 0; i < m_slices.length; i++){
             m_slicingParam.getSlicePoint(i,slicePoint);
-            m_slices[i] = new Slice(m_slicingParam.normal, slicePoint, m_slicingParam.precision);
+            switch(m_sliceVersion){
+            default: 
+            case 1:
+                m_slices[i] = new SliceV1(m_slicingParam.normal, slicePoint, m_slicingParam.precision);
+                break;
+            case 2: 
+                m_slices[i] = new SliceV2(m_slicingParam.normal, slicePoint, m_slicingParam.precision);
+                break;
+            }
         }
         
         DistanceDataHalfSpace plane1 = makeSlicingPlane(m_slicingParam.normal, m_slicingParam.firstSliceLocation);
@@ -148,7 +157,7 @@ public class TriangleMeshSlicer {
         int count = getSliceCount();
         for(int i = 0; i < count; i++){
             Slice slice = getSlice(i);
-            slice.cleanUp();
+            slice.buildContours();
         }
     }
 
@@ -204,7 +213,8 @@ public class TriangleMeshSlicer {
             //printf("slice:%d\n", i);
             int occ = slice.getOpenContourCount();
             if(occ != 0) {
-                printf("slice: %10.6f mm open:%d\n",slice.m_pointOnPlane.z/MM, occ);
+
+                printf("slice: %10.6f mm open:%d\n",slice.getPointOnPlane().z/MM, occ);
                 for(int c = 0; c < occ; c++){
                     double[] pnt = slice.getOpenContourPoints(c);
                     printContour(pnt);
