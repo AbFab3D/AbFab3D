@@ -25,7 +25,28 @@ import java.util.Scanner;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Units.MM;
-import static abfab3d.io.cli.CLIScanner.*;
+import static abfab3d.io.cli.CLIScanner.DIMENSION;
+import static abfab3d.io.cli.CLIScanner.LABEL;
+import static abfab3d.io.cli.CLIScanner.DATE;
+import static abfab3d.io.cli.CLIScanner.UNITS;
+import static abfab3d.io.cli.CLIScanner.VERSION;
+import static abfab3d.io.cli.CLIScanner.HEADER_START;
+import static abfab3d.io.cli.CLIScanner.BINARY;
+import static abfab3d.io.cli.CLIScanner.ASCII;
+import static abfab3d.io.cli.CLIScanner.GEOMETRY_START;
+import static abfab3d.io.cli.CLIScanner.GEOMETRY_END;
+import static abfab3d.io.cli.CLIScanner.POLYLINE;
+import static abfab3d.io.cli.CLIScanner.HEADER_END;
+import static abfab3d.io.cli.CLIScanner.HATCHES;
+import static abfab3d.io.cli.CLIScanner.LAYER;
+import static abfab3d.io.cli.CLIScanner.LAYERS;
+import static abfab3d.io.cli.CLIScanner.CMD_START_LAYER_SHORT;
+import static abfab3d.io.cli.CLIScanner.CMD_START_LAYER_LONG;
+import static abfab3d.io.cli.CLIScanner.CMD_START_POLY_LINE_SHORT;
+import static abfab3d.io.cli.CLIScanner.CMD_START_POLY_LINE_LONG;
+import static abfab3d.io.cli.CLIScanner.CMD_START_HATCHES_SHORT;
+import static abfab3d.io.cli.CLIScanner.CMD_START_HATCHES_LONG;
+
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -35,17 +56,24 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * http://web.archive.org/web/19970617041930/http://www.cranfield.ac.uk/aero/rapid/CLI/cli_v20.html
  */
 public class CLISliceReader extends BaseSliceReader {
+
     private static final boolean DEBUG = false;
     private enum State {
         BeforeHeader, Header, Geometry, PostGeometry
     }
     private State state;
     private double units = 1.0;
+    private int version = 100;
+    private int date = 0;
+    String label = "";
+    String dimension = "";
+    int layersCount = 0;
+
     private ArrayList<SliceLayer> layers = new ArrayList<>();
 
 
     public CLISliceReader() {
-
+        if(DEBUG)printf("CLISliceReader()\n");
     }
 
     public CLISliceReader(InputStream is) throws IOException {
@@ -54,6 +82,7 @@ public class CLISliceReader extends BaseSliceReader {
     }
 
     public CLISliceReader(String path) throws IOException {
+        if(DEBUG)printf("CLISliceReader.load(%s)\n", path);
         load(path);
     }
 
@@ -83,12 +112,36 @@ public class CLISliceReader extends BaseSliceReader {
                         if (cmd.startsWith(GEOMETRY_START)) state = State.Geometry;
                         if (cmd.startsWith(UNITS)) {
                             String val = new String(scan.nextData());
-                            units = parseReal(val,0);
+                            this.units = parseReal(val,0);
+                            if(DEBUG) printf("units:%12.8f\n",units);
+                        }
+                        if (cmd.startsWith(VERSION)) {
+                            String val = new String(scan.nextData());
+                            this.version = Integer.parseInt(val);                            
+                            if(DEBUG) printf("version:%d\n",this.version);
+                        }
+                        if (cmd.startsWith(DATE)) {
+                            String val = new String(scan.nextData());
+                            this.date = Integer.parseInt(val);                            
+                            if(DEBUG) printf("date:%d\n",this.date);
+                        }
+                        if (cmd.startsWith(LABEL)) {
+                            String val = new String(scan.nextData());
+                            this.label = val;
+                            if(DEBUG) printf("label:%s\n",this.label);
+                        }
+                        if (cmd.startsWith(DIMENSION)) {
+                            this.dimension = new String(scan.nextData());;
+                            if(DEBUG) printf("dimension:%s\n",this.dimension);
+                        }
+                        if (cmd.startsWith(LAYERS)) {
+                            this.layersCount = Integer.parseInt(new String(scan.nextData()));
+                            if(DEBUG) printf("layers:%d\n",this.layersCount);
                         }
                         if (cmd.startsWith(HEADER_END)) {
                             state = State.Geometry;
                             if (binary) loadBinary(is);
-                        }
+                        } 
 
                         break;
                     case Geometry:
@@ -100,6 +153,9 @@ public class CLISliceReader extends BaseSliceReader {
                         break;
                 }
             }
+        } catch(IOException ex) {
+            //printf("IOException: %s",ex);
+            ex.printStackTrace();
         } finally {
             IOUtils.closeQuietly(scan);
         }
@@ -107,12 +163,15 @@ public class CLISliceReader extends BaseSliceReader {
         if (DEBUG) {
             printf("Units: %f\n",units);
             printf("Layers: %d\n",layers.size());
-            printf("Layer0: %s\n",layers.get(1).getPolyLines()[0].toString(MM));
+            printf("Layer0: '%s...'\n",layers.get(1).getPolyLines()[0].toString(MM).substring(0,50));
 
         }
     }
 
     private void loadAscii(CLIScanner scan) throws IOException {
+        if(DEBUG) printf("CLISliceReader.loadAscii()\n");
+
+        
         SliceLayer current = new SliceLayer();
 
         String cmd;
@@ -133,6 +192,8 @@ public class CLISliceReader extends BaseSliceReader {
     }
 
     protected void loadBinary(InputStream is) throws IOException {
+
+        if(DEBUG) printf("CLISliceReader.loadAscii()\n");
 
         DataInputStream dis = null;
 
@@ -214,8 +275,7 @@ public class CLISliceReader extends BaseSliceReader {
 
          */
 
-
-        if (DEBUG) printf("Polyline: %s\n",line);
+        if (DEBUG) printf("Polyline: '%s...'\n",line.substring(0,50));
         int state = 0;  // 0 =id,1=dir,2=n,3=points
         int id = 0;
         int dir = 0;

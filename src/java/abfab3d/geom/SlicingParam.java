@@ -102,9 +102,9 @@ public class SlicingParam {
         }
         
         double step = this.sliceStep;
-        // round down the values 
-        double minSlice = step*Math.floor(minValue/step);
-        double maxSlice = step*Math.ceil(maxValue/step);
+        // round (down and up) the values 
+        double minSlice = step*(Math.floor(minValue/step));
+        double maxSlice = step*(Math.ceil(maxValue/step));
         
         this.sliceCount =  (int)Math.round(( maxSlice -  minSlice)/step) + 1;
         // move the first slice point 

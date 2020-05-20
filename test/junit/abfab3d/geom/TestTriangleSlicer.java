@@ -36,21 +36,26 @@ import abfab3d.util.TrianglePrinter;
 import abfab3d.io.input.MeshReader;
 import abfab3d.io.output.STLWriter;
 import abfab3d.io.cli.CLISliceWriter;
+import abfab3d.io.cli.CLISliceReader;
 import abfab3d.io.cli.SliceLayer;
 import abfab3d.io.cli.PolyLine;
 
 import abfab3d.util.PointMap;
 
 import abfab3d.core.TriangleCollector;
+import abfab3d.core.Bounds;
 
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.time;
 import static abfab3d.core.Units.MM;
+import static abfab3d.core.Units.CM3;
+import static abfab3d.core.Units.CM2;
 import static abfab3d.core.MathUtil.str;
 import static abfab3d.core.MathUtil.getDistance;
 import static abfab3d.geom.TriangleSlicer.getTriangleNormal;
 import static abfab3d.geom.TriangleSlicer.getIntersectionDirection;
+
 import static java.lang.Math.*;
 
 
@@ -414,7 +419,7 @@ public class TestTriangleSlicer extends TestCase {
         //String fileName = "5757986_5905406.v0.x3db";    // 
         //String fileName = "8871781_7087703.v0.x3db";    // 
         //String fileName = "1272568_4868304.v0.x3db";    // 
-
+        //String fileName = "sphere_2cm_32K_tri.stl";
         String filePath = folder + fileName;
         String slicesFile = folder + "slices/" + fileName;
         
@@ -807,6 +812,44 @@ public class TestTriangleSlicer extends TestCase {
 
     }
 
+    void devTestCLIReader() throws IOException {
+        String folder = "/tmp/slicingTestModels/slices/";
+        //String fname = "1677655_5534876_nf.cli";
+        String fname = "1677655_5534876.v0.x3db,shift.0.00000000,prec.0.00000000.cli";
+        String path = folder+fname;
+        CLISliceReader reader = new CLISliceReader();
+        reader.load(path);
+        int count = reader.getNumSlices();
+        printf("reading file: %s\n", path);
+        printf("slices count: %d\n", count);
+        Bounds bounds = reader.getBounds();
+        printf("CLI bounds: %s mm\n", bounds.toString("%8.5f", MM));
+        double layerThickness = (bounds.zmax - bounds.zmin)/(count-1);
+        printf("CLI layerThickness: %7.3f mm\n", layerThickness/MM);
+        double volume = 0;
+        for(int i = 0; i < count; i++){
+            SliceLayer layer = reader.getSlice(i);
+            double area = getSliceArea(layer); 
+            printf("%7.5f cm^2\n", area/CM2);
+            volume += area;
+        }        
+        volume *= layerThickness;
+
+        printf("model volume: %12.5f cm^3\n", volume/CM3);
+    }
+
+    double getSliceArea(SliceLayer  layer){
+        double area = 0;
+        int count = layer.getPolyLineCount();
+        
+        for(int i = 0; i < count; i++){
+            PolyLine pl = layer.getPolyLine(i);
+            double[] points = pl.getPoints();            
+            area += TriangleMeshSlicer.getContourArea(points);
+        }
+        return area;
+    }
+
     void devTestContour(){
         int N = 10;
 
@@ -983,5 +1026,7 @@ public class TestTriangleSlicer extends TestCase {
         //for(int i = 0; i < 1; i++)
         //     new TestTriangleSlicer().devTestPointMap();        
         
+        //new TestTriangleSlicer().devTestCLIReader();
+
     }
 }

@@ -34,6 +34,7 @@ import static abfab3d.core.Output.printf;
  * @author Alan Hudson
  */
 class CLIScanner implements Closeable {
+
     private static final boolean DEBUG = false;
 
     protected static final String COMMENT = "//";
@@ -87,6 +88,7 @@ class CLIScanner implements Closeable {
         commands.put(POLYLINE.hashCode(),POLYLINE);
         commands.put(HATCHES.hashCode(),HATCHES);
         commands.put(GEOMETRY_END.hashCode(),GEOMETRY_END);
+
     }
 
     // Boolean is true if source is done
@@ -115,15 +117,17 @@ class CLIScanner implements Closeable {
      * @return
      */
     public String nextCommand() throws IOException {
+        
         int runningHash = 0;
 
-        String cmd;
-
+        String cmd=null;
+        
         buff.clear();
 
         while(true) {
-            int b = source.read();
 
+            int b = source.read();
+            if(DEBUG) printf("%c ", (Character.isWhitespace(b))?' ':(char)b);
 
             if (b == -1) return null;
 
@@ -135,28 +139,34 @@ class CLIScanner implements Closeable {
                 while((b = source.read()) != 10) {
                     // Skip till linefeed
                 }
-
+                
                 continue;
             }
+
             if (buff.position() > 2 && (b == '/')) {
+                
                 buff.put(((byte)b));
                 runningHash =+ 31*runningHash + b;
-
+                //printf("runningHash:%x cmd:%s\n",runningHash, cmd);
                 cmd = commands.get(runningHash);
+                //printf("runningHash:%x cmd:%s\n",runningHash, cmd);
                 if (cmd != null) {
                     return cmd;
                 }
+
             } else if (buff.position() > 2 && (b == 10)) {
+                
                 cmd = commands.get(runningHash);
                 if (cmd != null) {
                     if (runningHash == BINARY_HASH) {
                         if (DEBUG) printf("Binary mode\n");
                         binary = true;
                     }
-                    if (DEBUG) printf("Cmd: %s\n",cmd);
+                    if (DEBUG) printf("CLIScanner: Cmd: %s\n",cmd);
                     return cmd;
+
                 } else {
-                    printf("Unknown command: %s", new String(buff.array()));
+                    printf("CLIScanner: Unknown command in buffer: '%s...'", new String(buff.array()).substring(0,50));
                     // We got an unknown command just skip
                     buff.reset();
                 }
@@ -170,7 +180,7 @@ class CLIScanner implements Closeable {
                 // In binary mode we will not have a line feed
                 return HEADER_END;
             }
-        }
+        } // while(true) 
     }
 
     /**

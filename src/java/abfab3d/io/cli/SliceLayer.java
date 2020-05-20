@@ -32,7 +32,10 @@ public class SliceLayer {
     }
 
     /*
-       Start of a layer with upper surface at height z (z*units [mm]). All layers must be sorted in ascending order with respect to z. The thickness of the layer is given by the difference between the z values of the current and previous layers. A thickness for the first (lowest) layer can be specified by including a "zero-layer" with a given z value but no polyline.
+       Start of a layer with upper surface at height z (z*units [mm]). 
+       All layers must be sorted in ascending order with respect to z. 
+       The thickness of the layer is given by the difference between the z values of the current and previous layers. 
+       A thickness for the first (lowest) layer can be specified by including a "zero-layer" with a given z value but no polyline.
      */
     public double getLayerHeight() {
         return layerHeight;
@@ -43,6 +46,10 @@ public class SliceLayer {
     }
     public int getPolyLineCount() {
         return lines.size();
+    }
+
+    public PolyLine getPolyLine(int index) {
+        return lines.get(index);
     }
 
     public int getTotalPointCount() {

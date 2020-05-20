@@ -16,6 +16,7 @@ package abfab3d.geom;
 import abfab3d.core.TriangleCollector;
 import abfab3d.core.TriangleProducer;
 import abfab3d.distance.DistanceDataHalfSpace;
+import abfab3d.mesh.AreaCalculator;
 
 
 
@@ -27,6 +28,8 @@ import static java.lang.Math.ceil;
 import static java.lang.Math.min;
 import static java.lang.Math.max;
 import static abfab3d.core.Units.MM;
+import static abfab3d.core.Units.CM3;
+import static abfab3d.core.Units.CM2;
 import static abfab3d.core.MathUtil.str;
 import static abfab3d.core.MathUtil.getDistance;
 import static abfab3d.core.Output.printf;
@@ -37,18 +40,27 @@ import static abfab3d.core.Output.printf;
  */
 public class TriangleMeshSlicer { 
     
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     static final boolean DEBUG_SLICE = false;
 
     int m_triCount = 0;
     int m_emptyTriCount = 0;
     int m_interTriCount = 0;
+    // which alg to use 
+    int m_sliceVersion = 2; 
 
-    int m_sliceVersion = 2;
-
+    double m_minSliceArea;
+    double m_maxSliceArea;
+    double m_slicesVolume;
+    double m_meshVolume;
+    int m_failedSliceCount;
+    
     Slice m_slices[];
 
+    AreaCalculator m_areaCalculator;
+
     SlicingParam m_slicingParam;// = new SlicingParam();
+
 
     public TriangleMeshSlicer(){
         
@@ -60,19 +72,6 @@ public class TriangleMeshSlicer {
         
     }
 
-    /*
-    public void setSliceStep(double sliceStep){
-
-        m_sliceStep = sliceStep;
-
-    }
-    public void setSliceNormal(Vector3d normal){
-
-        m_sliceNormal.set(normal);
-        m_sliceNormal.normalize(); 
-
-    }
-    */
 
     public int getTriCount(){
         return m_triCount;
@@ -115,7 +114,7 @@ public class TriangleMeshSlicer {
             //m_triCount = bc.triCount;
         }
 
-
+        m_areaCalculator = new AreaCalculator();
         m_slices = new Slice[m_slicingParam.sliceCount];
         Vector3d slicePoint = new Vector3d();
         for(int i = 0; i < m_slices.length; i++){
@@ -164,16 +163,110 @@ public class TriangleMeshSlicer {
     public boolean getSuccess(){
 
         int count = getSliceCount();
-        
+        int failedSliceCount = 0;
+
         for(int i = 0; i < count; i++){
 
             Slice slice = getSlice(i);
             if(!slice.getSuccess()){
-                return false;
+                failedSliceCount++;
             }
-        }       
+        }    
+
+        m_failedSliceCount = failedSliceCount;
+
+        m_slicesVolume = getSlicesVolume();
+        m_meshVolume = getMeshVolume();
+        if(DEBUG){
+            printf("TriangleMeshSlicer.getSuccess() results\n");
+            printf("meshVolume: %10.5f cm^3\n", m_meshVolume/CM3);
+            printf("slicesVolume: %10.5f cm^3\n", m_slicesVolume/CM3);
+
+            printf("maxSliceArea: %10.5f cm^2\n", m_maxSliceArea/CM2);
+            printf("minSliceArea: %10.5f cm^2\n", m_minSliceArea/CM2);
+            printf("volumeDifference: %10.5f cm^3\n", (m_meshVolume-m_slicesVolume)/CM3);
+            printf("maxSliceVolume: %10.5f cm^3\n", (m_maxSliceArea* m_slicingParam.sliceStep)/CM3);
+            
+        }
+
+        if(m_failedSliceCount > 0) {
+            printf("TriangelMeshSlicer: no zero failedSliceCount: %d\n", failedSliceCount);
+            return false;
+        }
+        if(m_minSliceArea < 0.) {
+            printf("TriangelMeshSlicer: got negative minSliceArea: %12.5f cm2\n", m_minSliceArea/CM2);
+            return false;
+        }
+        
         return true;
     }
+
+    /**
+       @return valume calculated via trinagle mesh
+     */
+    public double getMeshVolume(){
+        
+        return m_areaCalculator.getVolume();
+
+    }
+
+
+    /**
+       @return volume calculated from slices 
+     */
+    public double getSlicesVolume(){
+        
+        int count = getSliceCount();
+        double slicesVolume = 0;
+        m_minSliceArea = Double.MAX_VALUE;
+        m_maxSliceArea = -Double.MAX_VALUE;
+
+        for(int i = 0; i < count; i++){
+
+            Slice slice = getSlice(i);
+            int ccount= slice.getClosedContourCount(); 
+            double sliceArea = 0;
+
+            for(int k = 0; k < ccount; k++){                    
+                double pnt[];
+                pnt = slice.getClosedContourPoints(k);
+                sliceArea += getContourArea(pnt);
+            }                          
+  
+            m_minSliceArea = min(m_minSliceArea, sliceArea);
+            m_maxSliceArea = max(m_maxSliceArea, sliceArea);
+
+            slicesVolume += sliceArea;
+        }
+
+        return slicesVolume * m_slicingParam.sliceStep;
+
+    }
+
+    
+    /**
+       calculates area of single contour. 
+       area of CCW contour is positiuve, area of CW contour is negative 
+       assumes the contour is closed and last point is equal to the first point 
+
+     */
+    public static double getContourArea(double pnt[]){
+
+        int cnt = pnt.length/2;
+        double area = 0;
+        // calculates sum of areas of individual triangles 
+        for(int i = 0; i < cnt-1; i++){
+            int i2 = 2*i;
+            double x0 = pnt[i2];
+            double y0 = pnt[i2+1];
+            double x1 = pnt[i2+2];
+            double y1 = pnt[i2+3];
+            area += x0*y1 - x1*y0;
+        }
+        
+        return area/2;
+    }
+
 
     public void printStat(){
 
@@ -253,6 +346,9 @@ public class TriangleMeshSlicer {
         
     }
 
+    /**
+       class calculating mesh bounbs
+     */
     class BoundsCalculator implements TriangleCollector {
 
         private double minDist = 1.e10;
@@ -266,7 +362,7 @@ public class TriangleMeshSlicer {
 
         public boolean addTri(Vector3d p0,Vector3d p1,Vector3d p2){
             triCount++;
-
+            
             double d0 = plane.getDistance(p0.x,p0.y,p0.z);
             double d1 = plane.getDistance(p1.x,p1.y,p1.z);
             double d2 = plane.getDistance(p2.x,p2.y,p2.z);
@@ -286,7 +382,9 @@ public class TriangleMeshSlicer {
         }
     }
 
-    
+    /**
+       class claculating slices for each incoming triangle 
+     */
     class SlicesCalculator implements TriangleCollector {
 
         // plane of first slice 
@@ -310,6 +408,8 @@ public class TriangleMeshSlicer {
          */
         public boolean addTri(Vector3d p0,Vector3d p1,Vector3d p2){
 
+            m_areaCalculator.addTri(p0, p1, p2);
+
             m_triCount++;
             double d0 = plane.getDistance(p0.x,p0.y,p0.z);
             double d1 = plane.getDistance(p1.x,p1.y,p1.z);
@@ -328,16 +428,16 @@ public class TriangleMeshSlicer {
 
             boolean DEBUG_TRI = false;
             double unit = MM;
+
             if(false){
-                double testZ = -0.002*MM;
-                double EPS = 1.e-5;
-                if(true){
-                    //                if(abs(p0.z-testZ) < EPS || abs(p0.z-testZ) < EPS || abs(p0.z-testZ) < EPS){
-                    String f = "%10.6f";
-                    DEBUG_TRI = true;
-                    printf("tri:%s %s %s mm dist:[%10.6f %10.6f %10.6f]mm\n", str(f,p0,unit),str(f,p1,unit),str(f,p2,unit), d0/unit, d1/unit, d2/unit);
-                }
+                //double testZ = -0.002*MM;
+                //double EPS = 1.e-5;
+                //                if(abs(p0.z-testZ) < EPS || abs(p0.z-testZ) < EPS || abs(p0.z-testZ) < EPS){
+                String f = "%10.6f";
+                DEBUG_TRI = true;
+                printf("tri:%s %s %s mm dist:[%10.6f %10.6f %10.6f]mm\n", str(f,p0,unit),str(f,p1,unit),str(f,p2,unit), d0/unit, d1/unit, d2/unit);
             }
+            
             // if(DEBUG_TRI)printf("min:%8.5f max:%8.5f range:[%3d,%3d]\n", dmin, dmax, sliceIndex0, sliceIndex1);
             Vector3d q0 = new Vector3d();
             Vector3d q1 = new Vector3d();
