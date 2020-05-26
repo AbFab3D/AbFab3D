@@ -145,7 +145,36 @@ public class TestSLISliceWriter {
         
     }
 
-    public static void main(String args[]){
+
+    public void devTestSLIFile() throws IOException {
+
+        String inputDir = "/tmp/slicingTestModels/slices/";
+
+        String files[] = new String[]{
+            "393416_2836529.v2.analytical_mesh_converter.sh_11017195.sli",
+            "1272568_4868304.v0.x3db,shift.0.00000000,prec.0.00000000.cli"};
+
+        for(int i = 0; i < files.length; i++){
+
+            String filePath  = files[i];
+            printf("Testing: %s\n",filePath);
+            SliceReader reader = null;
+            if(filePath.endsWith(".sli")){
+                reader = new SLISliceReader(inputDir + filePath);
+            } else if(filePath.endsWith(".cli")){
+                reader = new CLISliceReader(inputDir + filePath);
+            }
+        
+            
+            Bounds bounds = reader.getBounds();
+            
+            printf("Units: %f mm\n",reader.getUnits() / Units.MM);
+            printf("Bounds: %s mm\n",bounds.toString());
+        }
+    }
+
+    public static void main(String args[]) throws IOException {
+        new TestSLISliceWriter().devTestSLIFile();
         
     }
 

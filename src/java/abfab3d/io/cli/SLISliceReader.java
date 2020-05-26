@@ -29,7 +29,7 @@ import static abfab3d.core.Units.MM;
  * @author Alan Hudson
  */
 public class SLISliceReader extends BaseSliceReader {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private Bounds bounds;
     private double units;
     private SliceLayer[] slices;
@@ -156,13 +156,13 @@ public class SLISliceReader extends BaseSliceReader {
                     }
                     PolyLine pl = new PolyLine(0,dir,points);  // TODO: Do we need to implement an internal unique id?
                     ret.addPolyLine(pl);
-                    printf("\n");
+                    if(DEBUG)printf("\n");
                     break;
                 case 4:
                     if (DEBUG) printf("Start Hatch\n");
                     break;
                 default:
-                    printf("Unknown cmd: %d\n",otype);
+                    if(DEBUG)printf("Unknown cmd: %d\n",otype);
             }
         }
 

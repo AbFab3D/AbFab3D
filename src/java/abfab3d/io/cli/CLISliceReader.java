@@ -112,7 +112,7 @@ public class CLISliceReader extends BaseSliceReader {
                         if (cmd.startsWith(GEOMETRY_START)) state = State.Geometry;
                         if (cmd.startsWith(UNITS)) {
                             String val = new String(scan.nextData());
-                            this.units = parseReal(val,0);
+                            this.units = MM*parseReal(val,0);
                             if(DEBUG) printf("units:%12.8f\n",units);
                         }
                         if (cmd.startsWith(VERSION)) {
