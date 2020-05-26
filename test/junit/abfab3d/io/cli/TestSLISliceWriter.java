@@ -23,6 +23,7 @@ import org.junit.Test;
 import java.io.IOException;
 
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Units.MM;
 
 /**
  * Test SLISliceReader
@@ -169,7 +170,7 @@ public class TestSLISliceWriter {
             Bounds bounds = reader.getBounds();
             
             printf("Units: %f mm\n",reader.getUnits() / Units.MM);
-            printf("Bounds: %s mm\n",bounds.toString());
+            printf("Bounds: %s mm\n",bounds.toString(MM));
         }
     }
 

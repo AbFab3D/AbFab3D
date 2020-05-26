@@ -62,7 +62,7 @@ public class CLISliceReader extends BaseSliceReader {
         BeforeHeader, Header, Geometry, PostGeometry
     }
     private State state;
-    private double units = 1.0;
+    private double units = MM;
     private int version = 100;
     private int date = 0;
     String label = "";
@@ -113,7 +113,7 @@ public class CLISliceReader extends BaseSliceReader {
                         if (cmd.startsWith(UNITS)) {
                             String val = new String(scan.nextData());
                             this.units = MM*parseReal(val,0);
-                            if(DEBUG) printf("units:%12.8f\n",units);
+                            if(DEBUG) printf("units:%12.8f mm\n",units/MM);
                         }
                         if (cmd.startsWith(VERSION)) {
                             String val = new String(scan.nextData());
@@ -161,7 +161,7 @@ public class CLISliceReader extends BaseSliceReader {
         }
 
         if (DEBUG) {
-            printf("Units: %f\n",units);
+            printf("Units: %f mm\n",units/MM);
             printf("Layers: %d\n",layers.size());
             printf("Layer0: '%s...'\n",layers.get(1).getPolyLines()[0].toString(MM).substring(0,50));
 
@@ -182,7 +182,7 @@ public class CLISliceReader extends BaseSliceReader {
             }
             if (cmd.startsWith(LAYER)) {
                 double raw = parseReal(new String(scan.nextData()),0);
-                double h = raw * units * MM;
+                double h = raw * units;
 
                 current = new SliceLayer(h);
                 layers.add(current);
@@ -216,13 +216,13 @@ public class CLISliceReader extends BaseSliceReader {
                     case CMD_START_LAYER_SHORT:
                         if (DEBUG) printf("Start Layer Short\n");
                         int hi = parseUnsignedIntegerBinary(dis);
-                        double h = hi * units * MM;
+                        double h = hi * units;
                         current = new SliceLayer(h);
                         layers.add(current);
                         break;
                     case CMD_START_LAYER_LONG:
                         double height = parseRealBinary(dis);
-                        height = height * units * MM;
+                        height = height * units;
                         if (DEBUG) printf("Start Layer Long.  height: %f mm\n",height/MM);
                         current = new SliceLayer(height);
                         layers.add(current);
@@ -311,7 +311,7 @@ public class CLISliceReader extends BaseSliceReader {
                     break;
                 case 3:
                     st = line.substring(pos,idx);
-                    double p = Double.parseDouble(st) * units * MM;  // Keep values as m internally
+                    double p = Double.parseDouble(st) * units;  // Keep values as m internally
                     points[pidx++] = p;
                     pos = idx + 1;
                     break;
@@ -321,7 +321,7 @@ public class CLISliceReader extends BaseSliceReader {
         }
 
         double lp = Double.parseDouble(line.substring(line.lastIndexOf(",")+1));
-        points[pidx] = lp * units * MM;
+        points[pidx] = lp * units;
 
         PolyLine pl = new PolyLine(id,dir,points);
         current.addPolyLine(pl);
@@ -362,7 +362,7 @@ public class CLISliceReader extends BaseSliceReader {
                     break;
                 case 2:
                     st = line.substring(pos,idx);
-                    double p = Double.parseDouble(st) * units * MM;  // Keep values as m internally
+                    double p = Double.parseDouble(st) * units;  // Keep values as m internally
                     points[pidx++] = p;
                     pos = idx + 1;
                     break;
@@ -372,7 +372,7 @@ public class CLISliceReader extends BaseSliceReader {
         }
 
         double lp = Double.parseDouble(line.substring(line.lastIndexOf(",")+1));
-        points[pidx] = lp * units * MM;
+        points[pidx] = lp * units;
 
         Hatches pl = new Hatches(id,points);
         current.addHatches(pl);
@@ -391,7 +391,7 @@ public class CLISliceReader extends BaseSliceReader {
         double[] points = new double[n*2];
 
         for(int i=0; i < n * 2; i++) {
-            points[i] = parseRealBinary(dis) * units * MM;
+            points[i] = parseRealBinary(dis) * units;
         }
 
         PolyLine pl = new PolyLine(id,dir,points);
@@ -405,7 +405,7 @@ public class CLISliceReader extends BaseSliceReader {
         double[] points = new double[n*2];
 
         for(int i=0; i < n * 2; i++) {
-            points[i] = parseUnsignedIntegerBinary(dis) * units * MM;
+            points[i] = parseUnsignedIntegerBinary(dis) * units;
         }
 
         PolyLine pl = new PolyLine(id,dir,points);
@@ -419,7 +419,7 @@ public class CLISliceReader extends BaseSliceReader {
         double[] points = new double[n*4];
 
         for(int i=0; i < n * 4; i++) {
-            points[i] = parseRealBinary(dis) * units * MM;
+            points[i] = parseRealBinary(dis) * units;
         }
 
         Hatches pl = new Hatches(id,points);
@@ -432,7 +432,7 @@ public class CLISliceReader extends BaseSliceReader {
         double[] points = new double[n*4];
 
         for(int i=0; i < n * 4; i++) {
-            points[i] = parseUnsignedIntegerBinary(dis) * units * MM;
+            points[i] = parseUnsignedIntegerBinary(dis) * units;
         }
 
         Hatches pl = new Hatches(id,points);
