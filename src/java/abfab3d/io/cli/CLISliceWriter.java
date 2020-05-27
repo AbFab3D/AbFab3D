@@ -80,7 +80,7 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
         this.ps = new PrintStream(os);
         this.binary = binary;
         this.units = units;
-        this.conv = 1.0/MM/(units/MM);  // bake the conversion factor
+        this.conv = 1.0/units;  // bake the conversion factor
 
         ps.print(CLIScanner.HEADER_START);
         ps.print('\n');

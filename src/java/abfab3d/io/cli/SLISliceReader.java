@@ -82,8 +82,7 @@ public class SLISliceReader extends BaseSliceReader {
             double y1 = parseRealBinary(dis);
             double z0 = parseRealBinary(dis);
             double z1 = parseRealBinary(dis);  // 172 bytes to here
-            bounds = new Bounds(x0,x1,y0,y1,z0,z1);
-
+            bounds = new Bounds(x0*MM,x1*MM,y0*MM,y1*MM,z0*MM,z1*MM); // bounds stored in MM ? 
 
             if (DEBUG) {
                 printf("version: %d  u1: %d  header: %d  u2: %d u3: %4d lc: %d plc: %d u4: %d fsdo: %6d fip: %6s creator: %s\n",

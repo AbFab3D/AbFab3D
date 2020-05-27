@@ -35,6 +35,7 @@ import abfab3d.util.TrianglePrinter;
 
 import abfab3d.io.input.MeshReader;
 import abfab3d.io.output.STLWriter;
+import abfab3d.io.cli.SLISliceWriter;
 import abfab3d.io.cli.CLISliceWriter;
 import abfab3d.io.cli.CLISliceReader;
 import abfab3d.io.cli.SliceLayer;
@@ -406,7 +407,7 @@ public class TestTriangleSlicer extends TestCase {
 	        
         //String filePath = "test/models/gyrosphere.stl";
         //String slicesPath = "/tmp/gyrosphere_slices.cli";
-
+        boolean writeSLI = true;
         String folder = "/tmp/slicingTestModels/";
         //String filePath = "/8240505_6587068.v2.analytical_mesh_converter.sh.x3db";
         //String filePath = "/8240505_6587068.bad_tri.stl";
@@ -438,14 +439,15 @@ public class TestTriangleSlicer extends TestCase {
         String slicesPath,openSlicesPath;
         if(auto) {
             sp = new SlicingParam(normal, sliceStep, sliceShift, precision);
-            slicesPath = slicesFile+ fmt(",shift.%10.8f,prec.%10.8f.cli",sliceShift/MM, precision/MM);
-            openSlicesPath = slicesFile + fmt(",shift.%10.8f,prec.%10.8f_open.cli", sliceShift/MM,precision/MM);
+            slicesPath = slicesFile+ fmt(",shift.%10.8f,prec.%10.8f",sliceShift/MM, precision/MM);
+            openSlicesPath = slicesFile + fmt(",shift.%10.8f,prec.%10.8f_open", sliceShift/MM,precision/MM);
         } else {
             sp = new SlicingParam(normal, firstSlice, sliceStep, sliceCount, sliceShift, precision);
-            slicesPath = slicesFile + fmt(",off.%10.8f,shift.%10.8f,prec.%10.8f.cli", firstSlice.z/MM, sliceShift/MM, precision/MM);
-            openSlicesPath = slicesFile + fmt(",off.%10.8f,shift.%10.8f,prec.%10.8f_open.cli", firstSlice.z/MM, sliceShift/MM, precision/MM);
+            slicesPath = slicesFile + fmt(",off.%10.8f,shift.%10.8f,prec.%10.8f", firstSlice.z/MM, sliceShift/MM, precision/MM);
+            openSlicesPath = slicesFile + fmt(",off.%10.8f,shift.%10.8f,prec.%10.8f_open", firstSlice.z/MM, sliceShift/MM, precision/MM);
         }
-
+        slicesPath += (writeSLI)?".sli":".cli";
+        openSlicesPath += (writeSLI)?".sli":".cli";
 
         TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer(sp);
 
@@ -455,8 +457,11 @@ public class TestTriangleSlicer extends TestCase {
         printf("meshSlicer.makeSlices(maker): %d ms\n", (time() - t0));
         printf("triangles count: %d (empty: %d, inter: %d)\n", meshSlicer.getTriCount(),meshSlicer.getEmptyTriCount(),meshSlicer.getInterTriCount());
         printf("slices count: %d \n", meshSlicer.getSliceCount());        
-
-        writeCLISlices(slicesPath, meshSlicer);
+        if(writeSLI){
+            writeSLISlices(slicesPath, meshSlicer, false);            
+        } else {
+            writeCLISlices(slicesPath, meshSlicer, false);
+        }
         
         if(meshSlicer.getSuccess()){
 
@@ -468,7 +473,11 @@ public class TestTriangleSlicer extends TestCase {
             printf("***Slicing failure***\n");            
             printf("***TriangleMeshSlicerSTAT***\n");
             meshSlicer.printStat();
-            writeCLISlices(openSlicesPath, meshSlicer, true);
+            if(writeSLI){
+                writeSLISlices(openSlicesPath, meshSlicer, true);
+            } else {
+                writeCLISlices(openSlicesPath, meshSlicer, true);
+            }
             
         }
 
@@ -582,6 +591,7 @@ public class TestTriangleSlicer extends TestCase {
         
     }
 
+
     static void writeCLISlices(String outPath, TriangleMeshSlicer slicer) throws IOException{
 
         writeCLISlices(outPath, slicer, false);
@@ -641,6 +651,70 @@ public class TestTriangleSlicer extends TestCase {
         printf("writing %d bytes into CLI file:%s\n", ba.length, outPath);
         fos.write(ba,0,ba.length);
         fos.close();
+        
+    }
+
+
+    static void writeSLISlices(String outPath, TriangleMeshSlicer slicer, boolean writeOpenContours) throws IOException{
+        
+        printf("writeSLISlices(%s)\n",outPath);
+        SLISliceWriter.writeSLISlices(outPath, slicer, writeOpenContours);
+        /*
+
+        SLISliceWriter writer = new SLISliceWriter(outPath,10*MM);
+
+        int dir = 0;
+        int id = 1;
+        SliceLayer layers[] = new SliceLayer[slicer.getSliceCount()];
+
+        double a = Double.MAX_VALUE;
+        Bounds bounds = new Bounds(a,-a,a,-a, a,-a);
+
+        for(int i = 0; i < slicer.getSliceCount(); i++){
+                        
+            Slice slice = slicer.getSlice(i);
+            
+            int ccount;
+            if(writeOpenContours) 
+                ccount= slice.getOpenContourCount();
+            else
+                ccount= slice.getClosedContourCount(); 
+
+            double z = slice.getSliceDistance();  
+            SliceLayer layer = new SliceLayer(z);
+            Bounds layerBounds = new Bounds(a,-a,a,-a,a,-a);
+
+            layerBounds.zmin = z;
+            layerBounds.zmax = z;
+            
+            for(int k = 0; k < ccount; k++){
+                
+                double pnt[];
+                if(writeOpenContours){ 
+                    pnt = slice.getOpenContourPoints(k);
+                } else {
+                    pnt = slice.getClosedContourPoints(k);
+                }
+
+                for(int m = 0; m < pnt.length; m += 2){
+                    layerBounds.xmin = min(layerBounds.xmin, pnt[m]);
+                    layerBounds.ymin = min(layerBounds.ymin, pnt[m+1]);
+                    layerBounds.xmax = max(layerBounds.xmax, pnt[m]);
+                    layerBounds.ymax = max(layerBounds.ymax, pnt[m+1]);
+                }
+
+                PolyLine line = new PolyLine(id, dir, pnt);  
+                layer.addPolyLine(line);
+            }
+
+            bounds.combine(layerBounds);
+            
+            layers[i] = layer;
+            
+        }
+        printf("SLI bounds: %s mm\n", bounds.toString(MM));
+        writer.write(bounds, SLISliceWriter.DEFAULT_CREATOR, layers);
+        */
         
     }
 

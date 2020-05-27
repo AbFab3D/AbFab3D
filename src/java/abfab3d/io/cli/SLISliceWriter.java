@@ -20,8 +20,13 @@ import org.web3d.util.DoubleToString;
 import java.io.*;
 import java.util.Date;
 
+import abfab3d.geom.TriangleMeshSlicer;
+import abfab3d.geom.Slice;
+
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Units.MM;
+import static java.lang.Math.*;
 
 /**
  * Write slices to a Common Layer Interface file.
@@ -32,11 +37,16 @@ import static abfab3d.core.Units.MM;
  * @author Alan Hudson
  */
 public class SLISliceWriter extends BaseSliceWriter implements Closeable {
+
     private static final boolean DEBUG = false;
     private static final byte CMD_START_LAYER = 1;
     private static final byte CMD_END_LAYER= 2;
     private static final byte CMD_START_POLYLINE = 3;
     private static final byte CMD_START_HATCH = 4;
+
+    public static final String DEFAULT_CREATOR = "CPSLICECONVERTDATEI";
+
+    public static final double DEFAULT_UNITS = 10*MM;
 
     private OutputStream os;
     private LoggingOutputStream los;
@@ -46,6 +56,12 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
     private int sigDigits = 6;
     private boolean geomStarted = false;
 
+
+    public SLISliceWriter(String file) throws IOException {
+
+        this(file,DEFAULT_UNITS);
+
+    }
 
     /**
      *
@@ -87,7 +103,7 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
         else dos = (DataOutputStream) os;
 
         this.units = units;
-        this.conv = 1.0/MM/(units/MM);  // bake the conversion factor
+        this.conv = 1.0/(units*MM);  // bake the conversion factor
     }
 
     public void setSigDigits(int digits) {
@@ -112,21 +128,19 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
 
         //fileIndexPos += 1;  // add end marker
 
-
-        printf("fip: %d\n",fileIndexPos);
+        if(DEBUG)printf("fip: %d\n",fileIndexPos);
 
         setHeader(103,creator,fileIndexPos,layers.length,polyLineCount,units,bounds);
-
-        if (DEBUG) {
-            dos.flush();
-            printf("Position after header: %d\n", los.getCount());
-        }
+       
+        dos.flush();
+        if (DEBUG) printf("Position after header: %d\n", los.getCount());
+        
 
         int off = 128;
         for(SliceLayer layer : layers) {
             addLayer(layer);
+            dos.flush();
             if (DEBUG) {
-                dos.flush();
                 printf("Position after layer: %d  calcSize: %d  off: %d lines: %d points: %d\n", los.getCount()-48,calcSize(layer),off,layer.getPolyLines().length,layer.getTotalPointCount());
             }
 
@@ -134,8 +148,8 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
         }
 
 
+        dos.flush();
         if (DEBUG) {
-            dos.flush();
             printf("Position after slice data: %d\n", los.getCount());
         }
         writeIndex(layers);
@@ -179,12 +193,13 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
         byte[] unknown = new byte[32];
         dos.write(unknown);
         writeRealBinary(dos,scale);
-        writeRealBinary(dos,bounds.xmin);
-        writeRealBinary(dos,bounds.xmax);
-        writeRealBinary(dos,bounds.ymin);
-        writeRealBinary(dos,bounds.ymax);
-        writeRealBinary(dos,bounds.zmin);
-        writeRealBinary(dos,bounds.zmax);
+        // bounds are stored in millimeters  
+        writeRealBinary(dos,bounds.xmin/MM);
+        writeRealBinary(dos,bounds.xmax/MM);
+        writeRealBinary(dos,bounds.ymin/MM);
+        writeRealBinary(dos,bounds.ymax/MM);
+        writeRealBinary(dos,bounds.zmin/MM);
+        writeRealBinary(dos,bounds.zmax/MM);
     }
 
 
@@ -205,9 +220,11 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
     }
 
     public void startLayer(double height) throws IOException {
+
         dos.write(CMD_START_LAYER);
 
-        int pos = (int)((height * conv / units * 10));
+        int pos = (int)((height * conv));
+        //printf("pos:%d\n", pos);
         writeUnsignedIntegerBinary(dos,pos);
 
         dos.writeByte(102);
@@ -230,10 +247,15 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
         writeUnsignedIntegerBinary(dos,points.length / 2);
         for(int i=0; i < points.length; i++) {
             double pnt = points[i];
-//            int fp = (int) (points[i] * conv);
-            int fp = (int) (points[i] * conv / units * 10) ;  // TODO: Not sure why * 10
+            int fp = (int) (points[i] * conv);
+            if((fp & 0xFFFF0000) != 0 ) {
+                // only can write 2 byte unsigned int
+                throw new RuntimeException(fmt("unsined short int overflow in SLISliceWriter:%d \n", fp));
+            }
+            //printf("%d ", fp);
             writeUnsignedIntegerBinary(dos,fp);  // TODO: round?
         }
+        //printf("\n");
     }
 
     public void addHatches(Hatches h) throws IOException {
@@ -249,19 +271,19 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
     }
 
     private void writeIndex(SliceLayer[] layers) throws IOException {
-        printf("Writing index: \n");
+        if(DEBUG)printf("Writing index: \n");
         int idx = 0;
         int slicePos = 128;  // TODO: THis is dodgy
         for(SliceLayer layer : layers) {
             // pos as 2 bytes, loc as 4 bytes
-            int fp = (int) (layer.getLayerHeight() * conv / units * 10) ;  // TODO: Not sure why * 10
+            int fp = (int) (layer.getLayerHeight() * conv) ; 
 
             writeUnsignedIntegerBinary(dos,fp);
 
 //            int pos = 192 + idx*6;
 //            int pos = 175 + idx*6;
             writeLongBinary(dos,slicePos);
-            printf("layer: %d pos: %d\n",idx,slicePos);
+            if(DEBUG)printf("layer: %d pos: %d\n",idx,slicePos);
             slicePos += calcSize(layer);
 
             idx++;
@@ -308,7 +330,83 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
             ioe.printStackTrace();
         }
     }
-}
+
+
+    /**
+       helper function to write slicer result into a file
+     */
+    public static void writeSLISlices(String outPath, TriangleMeshSlicer slicer) throws IOException {
+
+        writeSLISlices(outPath, slicer, false);
+
+    }
+
+    public static void writeSLISlices(String outPath, TriangleMeshSlicer slicer, boolean writeOpenContours) throws IOException {
+        
+        if(DEBUG) printf("SLISliceWriter.writeSLISlices(%s)\n",outPath);
+
+        SLISliceWriter writer = new SLISliceWriter(outPath);
+
+        int dir = 0;
+        int id = 1;
+        SliceLayer layers[] = new SliceLayer[slicer.getSliceCount()];
+
+        double a = Double.MAX_VALUE;
+        Bounds bounds = new Bounds(a,-a,a,-a, a,-a);
+
+        for(int i = 0; i < slicer.getSliceCount(); i++){
+                        
+            Slice slice = slicer.getSlice(i);
+            
+            int ccount;
+            if(writeOpenContours) 
+                ccount= slice.getOpenContourCount();
+            else
+                ccount= slice.getClosedContourCount(); 
+
+            double z = slice.getSliceDistance();  
+            SliceLayer layer = new SliceLayer(z);
+            Bounds layerBounds = new Bounds(a,-a,a,-a,a,-a);
+
+            layerBounds.zmin = z;
+            layerBounds.zmax = z;
+            
+            for(int k = 0; k < ccount; k++){
+                
+                double pnt[];
+                if(writeOpenContours){ 
+                    pnt = slice.getOpenContourPoints(k);
+                } else {
+                    pnt = slice.getClosedContourPoints(k);
+                }
+
+                for(int m = 0; m < pnt.length; m += 2){
+                    layerBounds.xmin = min(layerBounds.xmin, pnt[m]);
+                    layerBounds.ymin = min(layerBounds.ymin, pnt[m+1]);
+                    layerBounds.xmax = max(layerBounds.xmax, pnt[m]);
+                    layerBounds.ymax = max(layerBounds.ymax, pnt[m+1]);
+                }
+
+                PolyLine line = new PolyLine(id, dir, pnt);  
+                layer.addPolyLine(line);
+            }
+
+            bounds.combine(layerBounds);
+            
+            layers[i] = layer;
+            
+        }
+        if(DEBUG)printf("SLI bounds: %s mm\n", bounds.toString(MM));
+        writer.write(bounds, SLISliceWriter.DEFAULT_CREATOR, layers);
+
+         if(DEBUG) printf("SLISliceWriter.writeSLISlices(%s) done\n",outPath);
+               
+    }
+
+
+} // class SLISliceWriter 
+
+
 
 class LoggingOutputStream extends OutputStream  {
     private OutputStream os;
@@ -347,4 +445,8 @@ class LoggingOutputStream extends OutputStream  {
     public int getCount() {
         return cnt;
     }
+
+
+
+
 }
