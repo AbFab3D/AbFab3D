@@ -24,6 +24,7 @@ import java.io.IOException;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Units.MM;
+import static abfab3d.core.Units.CM3;
 
 /**
  * Test SLISliceReader
@@ -85,22 +86,32 @@ public class TestSLISliceWriter {
             
             printf("Testing: %s\n",filePath);
             SLISliceReader reader = new SLISliceReader(inputDir + filePath);
-
+            SlicesAnalyzer analyzer = new SlicesAnalyzer(reader);
+            double oldVolume = analyzer.getVolume();
+            Bounds oldBounds = analyzer.getBounds();
             Bounds bounds = reader.getBounds();
             String out = outDir + filePath;
             double oldUnits = reader.getUnits();
-            double newUnits = oldUnits;
-            printf("  oldUnits:%8.4f mm newUnits:%8.4f \n",oldUnits / Units.MM, newUnits/MM);
-            printf("  bounds:%s mm \n",bounds.toString(MM));
+            double newUnits = oldUnits; //SLISliceWriter.getOptimalUnits(2);
+            printf("  oldUnits:%8.4f mm\n",oldUnits / Units.MM);
+            printf("  newUnits:%8.4f mm\n",newUnits / Units.MM);
+            printf("  oldBounds:%s mm \n",oldBounds.toString(MM));
+            printf("  oldVolume:%8.3f cm^3\n",(oldVolume/CM3));
             //SLISliceWriter writer = new SLISliceWriter(out, reader.getUnits());
             SLISliceWriter writer = new SLISliceWriter(out, newUnits);
             writer.write(bounds, "CPSLICECONVERTDATEI", reader.getSlices());
 
-            printf("*** Reading output\n");
+            // printf("*** Reading output\n");
             SLISliceReader reader2 = new SLISliceReader(out);
 
+            SlicesAnalyzer analyzer2 = new SlicesAnalyzer(reader2);
+            double newVolume = analyzer2.getVolume();
+            Bounds newBounds = analyzer2.getBounds();
+            printf("  newBounds:%s mm \n",newBounds.toString(MM));
+            printf("  newVolume:%8.3f cm^3\n",(newVolume/CM3));
 
-            if(false)compareFiles(reader, reader2);
+
+            if(true)compareFiles(reader, reader2);
         }
         //Assert.assertTrue("Missing slices", reader.getNumSlices() == 95);
     }

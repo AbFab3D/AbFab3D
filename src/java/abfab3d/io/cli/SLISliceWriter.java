@@ -26,6 +26,7 @@ import abfab3d.geom.Slice;
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Output.fmt;
 import static abfab3d.core.Units.MM;
+import static abfab3d.core.Units.CM;
 import static java.lang.Math.*;
 
 /**
@@ -46,7 +47,7 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
 
     public static final String DEFAULT_CREATOR = "CPSLICECONVERTDATEI";
 
-    public static final double DEFAULT_UNITS = 10*MM;
+    public static final double DEFAULT_UNITS = 20*MM; // good for tray dimension up to 120cm 
 
     private OutputStream os;
     private LoggingOutputStream los;
@@ -223,7 +224,7 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
 
         dos.write(CMD_START_LAYER);
 
-        int pos = (int)((height * conv));
+        int pos = doubleToInt16(height * conv);
         //printf("pos:%d\n", pos);
         writeUnsignedIntegerBinary(dos,pos);
 
@@ -247,11 +248,7 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
         writeUnsignedIntegerBinary(dos,points.length / 2);
         for(int i=0; i < points.length; i++) {
             double pnt = points[i];
-            int fp = (int) (points[i] * conv);
-            if((fp & 0xFFFF0000) != 0 ) {
-                // only can write 2 byte unsigned int
-                throw new RuntimeException(fmt("unsined short int overflow in SLISliceWriter:%d \n", fp));
-            }
+            int fp = doubleToInt16(points[i] * conv); 
             //printf("%d ", fp);
             writeUnsignedIntegerBinary(dos,fp);  // TODO: round?
         }
@@ -276,7 +273,7 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
         int slicePos = 128;  // TODO: THis is dodgy
         for(SliceLayer layer : layers) {
             // pos as 2 bytes, loc as 4 bytes
-            int fp = (int) (layer.getLayerHeight() * conv) ; 
+            int fp = doubleToInt16(layer.getLayerHeight() * conv) ; 
 
             writeUnsignedIntegerBinary(dos,fp);
 
@@ -332,20 +329,48 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
     }
 
 
-    /**
-       helper function to write slicer result into a file
-     */
-    public static void writeSLISlices(String outPath, TriangleMeshSlicer slicer) throws IOException {
-
-        writeSLISlices(outPath, slicer, false);
+    public static double getOptimalUnits(double maxTrayDimension){
+        
+        // SLI format can have max value of coordinate ~ 65*units;  ((1<<16)*0.001)*units
+        // optimal unit size 
+        double units = maxTrayDimension/65;
+        
+        //
+        // round units up to the whole centimeter 
+        //
+        units = CM*Math.ceil(units/CM);
+        return units;
 
     }
 
-    public static void writeSLISlices(String outPath, TriangleMeshSlicer slicer, boolean writeOpenContours) throws IOException {
+    /**
+       helper function to write mesh slicer result into a file
+     */
+    public static void writeSLISlices(String outPath, TriangleMeshSlicer slicer, double maxTrayDimension) throws IOException {
+        
+        double units = getOptimalUnits(maxTrayDimension);
+        writeSLISlices(outPath, slicer, false, units);
+
+    }
+
+
+    /**
+       helper function to write mesh slicer result into a file
+     */
+    public static void writeSLISlices(String outPath, TriangleMeshSlicer slicer) throws IOException {
+
+        writeSLISlices(outPath, slicer, false, DEFAULT_UNITS);
+
+    }
+
+    /**
+       helper function to write mesh slicer result into a file
+     */
+    public static void writeSLISlices(String outPath, TriangleMeshSlicer slicer, boolean writeOpenContours, double units) throws IOException {
         
         if(DEBUG) printf("SLISliceWriter.writeSLISlices(%s)\n",outPath);
 
-        SLISliceWriter writer = new SLISliceWriter(outPath);
+        SLISliceWriter writer = new SLISliceWriter(outPath, units);
 
         int dir = 0;
         int id = 1;
@@ -403,6 +428,16 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
                
     }
 
+    static final int doubleToInt16(double value){
+
+        int iv = (int)(value + 0.5);
+        if((iv & 0xFFFF0000) != 0 ) {
+            // only can write 2 byte unsigned int
+            throw new RuntimeException(fmt("unsined short int overflow in SLISliceWriter:%d \n", iv));
+        }
+        return iv;
+    }
+
 
 } // class SLISliceWriter 
 
@@ -446,7 +481,4 @@ class LoggingOutputStream extends OutputStream  {
         return cnt;
     }
 
-
-
-
-}
+} // class LoggingOutputStream 
