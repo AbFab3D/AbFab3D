@@ -97,11 +97,9 @@ public class TriangleMeshSlicer {
      */
     public void makeSlices(TriangleProducer producer){
 
-        if(DEBUG) printf("TriangleMeshSlicer.makeSlices()\n");
-               
+        //if(DEBUG) printf("TriangleMeshSlicer.makeSlices()\n");
         
         DistanceDataHalfSpace plane = makeSlicingPlane(m_slicingParam.normal, new Vector3d(0,0,0));
-
 
         // auto find the slicing bounds 
 
@@ -177,16 +175,16 @@ public class TriangleMeshSlicer {
 
         m_slicesVolume = getSlicesVolume();
         m_meshVolume = getMeshVolume();
-        if(DEBUG){
-            printf("TriangleMeshSlicer.getSuccess() results\n");
+
+        // Print out result if slicing failed
+        if(DEBUG && m_failedSliceCount > 0 && m_minSliceArea < 0.){
+            printf("TriangleMeshSlicer.getSuccess() failed results\n");
             printf("meshVolume: %10.5f cm^3\n", m_meshVolume/CM3);
             printf("slicesVolume: %10.5f cm^3\n", m_slicesVolume/CM3);
-
             printf("maxSliceArea: %10.5f cm^2\n", m_maxSliceArea/CM2);
             printf("minSliceArea: %10.5f cm^2\n", m_minSliceArea/CM2);
             printf("volumeDifference: %10.5f cm^3\n", (m_meshVolume-m_slicesVolume)/CM3);
             printf("maxSliceVolume: %10.5f cm^3\n", (m_maxSliceArea* m_slicingParam.sliceStep)/CM3);
-            
         }
 
         if(m_failedSliceCount > 0) {
