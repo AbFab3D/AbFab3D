@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public interface SliceReader {
+
     void load(String file) throws IOException;
     void load(InputStream is) throws IOException;
 

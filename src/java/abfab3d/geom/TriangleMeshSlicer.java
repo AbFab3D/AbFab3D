@@ -40,9 +40,13 @@ import static abfab3d.core.Output.printf;
  */
 public class TriangleMeshSlicer { 
     
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
+
     static final boolean DEBUG_SLICE = false;
 
+    boolean m_printStat = false;
+
+    int m_segmentsCount = 0;
     int m_triCount = 0;
     int m_emptyTriCount = 0;
     int m_interTriCount = 0;
@@ -75,6 +79,10 @@ public class TriangleMeshSlicer {
 
     public int getTriCount(){
         return m_triCount;
+    }
+
+    public int getSegmentsCount(){
+        return m_segmentsCount;
     }
 
     public int getEmptyTriCount(){
@@ -126,6 +134,9 @@ public class TriangleMeshSlicer {
                 m_slices[i] = new SliceV2(m_slicingParam.normal, slicePoint, m_slicingParam.precision);
                 break;
             }
+            if(m_slicingParam.getSliceOptimization()){
+                m_slices[i].setOptimizer(new ContourOptimizer(m_slicingParam.getSegmentPrecision(), m_slicingParam.getMaxSegmentsCount()));
+            }
         }
         
         DistanceDataHalfSpace plane1 = makeSlicingPlane(m_slicingParam.normal, m_slicingParam.firstSliceLocation);
@@ -147,6 +158,66 @@ public class TriangleMeshSlicer {
         
         cleanUp();
 
+        m_segmentsCount = calcSegmentsCount();
+        
+        if(m_printStat){
+            NumberStat stat = calcSegmentsStat();        
+            stat.printStat();
+        }
+
+    }
+    
+    private NumberStat calcSegmentsStat(){
+
+        int count = getSliceCount();
+        int segCount = 0;
+
+        NumberStat stat = new NumberStat(0., 2*MM, 20);
+        
+        for(int i = 0; i < count; i++){
+            Slice slice = getSlice(i);
+            int ccount = slice.getClosedContourCount();
+            for(int c = 0;  c < ccount; c++){
+
+                Contour contour = slice.getClosedContour(c);
+                int csize = contour.size();
+                int start = contour.get(csize-1);
+
+                Vector3d p1 = slice.getPoint(start, null);
+
+                for(int p = 0; p < csize; p++){
+                    int end = contour.get(p);
+                    Vector3d p2 = slice.getPoint(end, null);                    
+                    double slen = getDistance(p1, p2);   
+                    p1.set(p2);
+                    stat.add(slen);
+                }
+            }
+            
+        }
+
+        return stat;
+
+        
+    }
+
+    private int calcSegmentsCount(){
+
+        int count = getSliceCount();
+        int segCount = 0;
+
+        for(int i = 0; i < count; i++){
+            Slice slice = getSlice(i);
+            int ccount = slice.getClosedContourCount();
+            for(int c = 0;  c < ccount; c++){
+
+                Contour contour = slice.getClosedContour(c);
+                int csize = contour.size();
+                segCount += csize;
+            }
+            
+        }
+        return segCount;
     }
 
     private void cleanUp(){

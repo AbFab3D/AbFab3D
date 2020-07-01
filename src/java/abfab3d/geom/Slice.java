@@ -34,7 +34,7 @@ import static java.lang.Math.*;
    represents single slice 
    
    typical use - 
-   1) create inastance 
+   1) create instance 
    2) make many calls  addSegment(Vector3d p0, Vector3d p1)
    3) call buildContours()
    4) check if successful getSuccess()
@@ -82,6 +82,8 @@ public interface Slice {
      */
     public Contour getClosedContour(int index);
 
+    public Vector3d getPoint(int index, Vector3d pnt);
+
     /**
        return open contour with given index 
      */
@@ -95,5 +97,7 @@ public interface Slice {
 
     public boolean testManifold();
 
+    public void setOptimizer(ContourOptimizer optimizer);
+    
 
 } // interface Slice 

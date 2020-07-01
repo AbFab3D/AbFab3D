@@ -70,7 +70,7 @@ public class SliceV2 implements Slice {
     int m_newCount = 0;
     double m_tolerance = EPSILON;
     double m_closingTolerance = m_tolerance*5;
-
+    ContourOptimizer m_optimizer = null;
 
     public SliceV2(){
         this(new Vector3d(0,0,1),new Vector3d(0,0,0),EPSILON);
@@ -91,6 +91,12 @@ public class SliceV2 implements Slice {
             m_points = new PointMap3(3, 0.75);            
         }
         m_closingTolerance = Math.max(5*m_tolerance, DEFAULT_CLOSING_TOLERANCE);
+
+    }
+    
+    public void setOptimizer(ContourOptimizer optimizer){
+
+        m_optimizer = optimizer;
 
     }
     
@@ -149,6 +155,9 @@ public class SliceV2 implements Slice {
                 
                 m_segments.set(s.index, null);
                 Contour cont = buildContour(s);
+                if(m_optimizer != null){
+                    cont = m_optimizer.optimize(m_coordinates, cont); 
+                }
                 if(cont.getStart() == cont.getEnd()){                
                     m_closedContours.add(cont);
                     if(debug)printf("closed contour: %s\n", cont.toString());
@@ -300,11 +309,11 @@ public class SliceV2 implements Slice {
 
     }
 
-    public double[] getClosedContourPoints(int index){
+    public double[] getClosedContourPoints(int contourIndex){
         
         initCoordinates();
         
-        Contour cnt = getClosedContour(index);
+        Contour cnt = getClosedContour(contourIndex);
         int size = cnt.size();
         double pnt[] = new double[2*size+2];
 
@@ -317,11 +326,11 @@ public class SliceV2 implements Slice {
         return pnt;
     }
 
-    public double[] getOpenContourPoints(int index){
+    public double[] getOpenContourPoints(int contourIndex){
         
         initCoordinates();
         
-        Contour cnt = getOpenContour(index);
+        Contour cnt = getOpenContour(contourIndex);
         int size = cnt.size();
         double pnt[] = new double[2*size];
 
@@ -402,16 +411,21 @@ public class SliceV2 implements Slice {
         return m_closedContours.get(index);
 
     }
-
+        
     /**
        return coordinates of the point with given index
      */
-    private void getPoint(int pointIndex, Vector3d p){
+    public Vector3d getPoint(int pointIndex, Vector3d pnt){
 
+        if(pnt == null)
+            pnt  = new Vector3d();
+        
         int off = pointIndex*3;
-        p.x = m_coordinates[off];
-        p.y = m_coordinates[off+1];
-        p.z = m_coordinates[off+2];
+        pnt.x = m_coordinates[off];
+        pnt.y = m_coordinates[off+1];
+        pnt.z = m_coordinates[off+2];
+
+        return pnt;
 
     }
    
@@ -444,9 +458,9 @@ public class SliceV2 implements Slice {
 
         return Math.atan2(cross, dot);
 
-
-
     }
+
+    
     
 
 } // class SliceV2

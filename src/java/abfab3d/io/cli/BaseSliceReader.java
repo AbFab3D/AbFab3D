@@ -27,6 +27,11 @@ import static abfab3d.io.cli.CLISliceReader.bytesToHex;
  * @author Alan Hudson
  */
 public abstract class BaseSliceReader implements SliceReader {
+
+    public static final String EXT_SLI = ".sli";
+    public static final String EXT_CLI = ".cli";
+
+
     public void load(String file) throws IOException {
         try (
                 FileInputStream fis = new FileInputStream(file);
@@ -98,6 +103,17 @@ public abstract class BaseSliceReader implements SliceReader {
             }
             printf("\n");
         }
+    }
+
+
+    public static SliceReader readFile(String filePath) throws IOException {
+
+        if(filePath.endsWith(EXT_SLI))
+            return new SLISliceReader(filePath);
+        else if(filePath.endsWith(EXT_CLI))
+            return new CLISliceReader(filePath);
+        else throw new IllegalArgumentException("unrecognized slice file type:\""+filePath + "\"");
+        
     }
 
 }

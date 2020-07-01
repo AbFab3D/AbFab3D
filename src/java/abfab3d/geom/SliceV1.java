@@ -54,6 +54,8 @@ public class SliceV1 implements Slice {
     Vector<Contour> m_closedContours = new Vector<Contour>();
     Vector<Contour> m_openContours = null;
 
+    ContourOptimizer m_optimizer;
+
     //
     int m_appendCount = 0;
     int m_prependCount = 0;
@@ -319,13 +321,15 @@ public class SliceV1 implements Slice {
     /**
        return coordinates of the point with given index
      */
-    private void getPoint(int pointIndex, Vector3d p){
+    public Vector3d getPoint(int pointIndex, Vector3d p){
+        if(p == null)
+            p = new Vector3d();
 
         int off = pointIndex*3;
         p.x = m_coordinates[off];
         p.y = m_coordinates[off+1];
         p.z = m_coordinates[off+2];
-
+        return p;
     }
     
     /**
@@ -480,5 +484,11 @@ public class SliceV1 implements Slice {
         return null;
     }
 
+    public void setOptimizer(ContourOptimizer optimizer){
 
-} // class Slice 
+        m_optimizer = optimizer;
+
+    }
+    
+
+} // class SliceV1

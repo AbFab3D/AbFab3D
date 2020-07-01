@@ -52,6 +52,7 @@ import static abfab3d.core.Output.time;
 import static abfab3d.core.Units.MM;
 import static abfab3d.core.Units.CM3;
 import static abfab3d.core.Units.CM2;
+import static abfab3d.core.Units.CM;
 import static abfab3d.core.MathUtil.str;
 import static abfab3d.core.MathUtil.getDistance;
 import static abfab3d.geom.TriangleSlicer.getTriangleNormal;
@@ -483,6 +484,73 @@ public class TestTriangleSlicer extends TestCase {
 
     }
 
+    public static void devTestFileOptimization() throws IOException {
+	        
+        //String filePath = "test/models/gyrosphere.stl";
+        //String slicesPath = "/tmp/gyrosphere_slices.cli";
+        boolean writeSLI = true;
+        String folder = "/tmp/slicingTestModels/";
+        //String fileName = "8310663_6799866.v0.x3db";      // [0.000 0.100] mm: 76.9% 659417
+        //String fileName = "1527142_5307597.v0.x3db";    // [0.000 0.100] mm: 84.7%  32801
+        // String fileName = "1677655_5534876.v0.x3db";  // [0.000 0.100] mm: 99.5% 127765
+        //String fileName = "8288771_6787679.v0.x3db";    // [0.000 0.100] mm: 82.7%  74787
+        //String fileName = "8196147_5861575.v2.x3db";   // [0.000 0.100] mm: 98.3% 918383 
+        String fileName = "8196147_5861575.v2a.x3db";   // [0.000 0.100] mm: 98.3% 918383 
+        //String fileName = "3665693_5905400.v0.x3db";   //  [0.000 0.100] mm: 48.1%   6005
+        //String fileName = "5757986_5905406.v0.x3db";   // 0.000 0.100] mm: 98.7% 433381
+        //String fileName = "8871781_7087703.v0.x3db";   // [0.000 0.100] mm: 87.6%  47167
+        //String fileName = "1272568_4868304.v0.x3db";     // [0.000 0.100] mm: 55.1% 271331
+        //String fileName = "sphere_2cm_32K_tri.stl";        //[0.000 0.100] mm: 36.4%  25455
+
+        String filePath = folder + fileName;
+        String slicesFile = folder + "slices/optimization/" + fileName;
+        
+        Vector3d normal = new Vector3d(0,0,1);
+        double sliceStep = 0.1*MM;
+        int sliceCount = 1;
+        double sliceOffset = 0.0;
+        double precision = 0.000*MM; 
+        double sliceShift = 0.000*MM; 
+        double segmentPrecision = 0.01*MM;
+        int maxSegmentsCount = 100;
+        boolean optimization = true;
+        boolean auto = true;  
+        
+        printf("optimization: %s\n", optimization);
+        if(optimization){
+            printf("segmentPrecision: %7.3f mm\n", segmentPrecision/MM);
+        }
+        Vector3d firstSlice = new Vector3d(0,0,sliceOffset);
+
+        MeshReader reader = new MeshReader(filePath);
+        
+        SlicingParam sp = new SlicingParam(normal, sliceStep, sliceShift, precision);        
+        sp.setOptimization(optimization, segmentPrecision, maxSegmentsCount);
+
+        String slicesPath = slicesFile+ fmt(",opt.%s,count.%d,sprec.%5.3f",optimization, maxSegmentsCount, segmentPrecision/MM) + ((writeSLI)?".sli":".cli");
+
+        TriangleMeshSlicer meshSlicer = new TriangleMeshSlicer(sp);
+
+        long t0 = time();
+        meshSlicer.makeSlices(reader);        
+
+        printf("meshSlicer.makeSlices(maker): %d ms\n", (time() - t0));
+        printf("triangles count: %d (empty: %d, inter: %d)\n", meshSlicer.getTriCount(),meshSlicer.getEmptyTriCount(),meshSlicer.getInterTriCount());
+        printf("segments count: %d \n", meshSlicer.getSegmentsCount());
+        printf("slices count: %d \n", meshSlicer.getSliceCount());   
+        if(meshSlicer.getSuccess()){
+            if(writeSLI){
+                writeSLISlices(slicesPath, meshSlicer, false);            
+            } else {
+                writeCLISlices(slicesPath, meshSlicer, false);
+            }
+        } else {
+            printf("***Slicing failure***\n");            
+            printf("***TriangleMeshSlicerSTAT***\n");
+            meshSlicer.printStat();
+        }
+    }
+
     public static void devTestManySlices() throws IOException {
 	        
         String filePath = "/tmp/slicingTestModels/8240505_6587068.v2.analytical_mesh_converter.sh.x3db";
@@ -556,7 +624,7 @@ public class TestTriangleSlicer extends TestCase {
             SliceLayer layer = new SliceLayer(z);            
             if((writeFlags & 1) != 0) {
                 // write closed contours 
-                int ccount= slice.getClosedContourCount(); 
+                int ccount = slice.getClosedContourCount(); 
                 for(int k = 0; k < ccount; k++){                    
                     double pnt[];
                     pnt = slice.getClosedContourPoints(k);
@@ -658,7 +726,8 @@ public class TestTriangleSlicer extends TestCase {
     static void writeSLISlices(String outPath, TriangleMeshSlicer slicer, boolean writeOpenContours) throws IOException{
         
         printf("writeSLISlices(%s)\n",outPath);
-        SLISliceWriter.writeSLISlices(outPath, slicer, writeOpenContours);
+        SLISliceWriter.writeSLISlices(outPath, slicer, writeOpenContours, 1*CM);
+
         /*
 
         SLISliceWriter writer = new SLISliceWriter(outPath,10*MM);
@@ -991,6 +1060,108 @@ public class TestTriangleSlicer extends TestCase {
 
     }
 
+    public static void devTestOptimizer() {
+
+        int maxChainLength = 100;
+        double precision = 0.00001;
+
+        printf("devTestOptimizer()\n");
+        printf("maxChainLength:%d\n", maxChainLength);
+        printf("precision:%7.3f\n", precision);
+
+        ContourOptimizer opt = new ContourOptimizer(precision, maxChainLength);
+        
+        Contour cnt = new Contour();
+        
+        //double points [] = getPointsLinear();
+        //double points [] = getPointsOnSquare(40);
+        double points [] = getPointsOnCircle(1000000);
+
+        for(int i = 0; i < points.length/3; i++){
+            cnt.append(i);
+            if(false)printf("[%6.3f, %6.3f, %6.3f]\n", points[3*i],points[3*i+1],points[3*i+2]);
+        }
+        
+        Contour optCont = opt.optimize(points, cnt);
+
+        printf("optcont[%d]{", optCont.size());
+        for(int i = 0; i < optCont.size(); i++){
+            printf("%d ", optCont.get(i));
+        }
+        printf("}\n");
+
+    }
+
+    static double [] getPointsLinear(){
+
+        return new double[]{
+            0,0,  0,
+            1,0,  0,
+            2,0,  0,
+            3,0.1,0,
+            4,0,  0,
+            5,0,  0,
+            6,0,  0,
+        };
+    }
+
+    static double [] getPointsOnCircle(int count){
+
+        double pnt[] = new double[(count+1)*3];
+        double alpha = 2*PI/count;
+
+        for(int i = 0; i <= count; i++){
+            int j = 3*i;
+            pnt[j] = cos(i*alpha);
+            pnt[j+1] = sin(i*alpha);
+            pnt[j+2] = sin(i*alpha);
+        }
+        return pnt;
+    }
+
+
+    static double [] getPointsOnSquare(int count){
+
+        double pnt[] = new double[(count*4+1)*3];
+
+        int offset = 0;
+        // bottom 
+        for(int i = 0; i < count; i++){
+            int j = offset + 3*i;
+            pnt[j] = -1 + i*2./count;
+            pnt[j+1] = -1;
+            pnt[j+2] = 0;
+        }
+
+        offset += count*3;
+        for(int i = 0; i < count; i++){
+            int j = offset + 3*i;
+            pnt[j] = 1;
+            pnt[j+1] = -1+ i*2./count;
+            pnt[j+2] = 0;
+        }
+        offset += count*3;
+        for(int i = 0; i < count; i++){
+            int j = offset + 3*i;
+            pnt[j] = 1 - i*2./count;
+            pnt[j+1] = 1;
+            pnt[j+2] = 0;
+        }
+        offset += count*3;
+        for(int i = 0; i < count; i++){
+            int j = offset + 3*i;
+            pnt[j] = -1;
+            pnt[j+1] = 1-i*2./count;
+            pnt[j+2] = 0;
+        }
+        offset += count*3;
+        pnt[offset] = -1;
+        pnt[offset+1] = -1;
+        pnt[offset+2] = 0;
+        
+        return pnt;
+    }
+
     public static void devTestPointMap() throws IOException {
 
         printf("devTestPointMap()\n");
@@ -1092,7 +1263,8 @@ public class TestTriangleSlicer extends TestCase {
         //new TestTriangleSlicer().devTestSliceV2_test2();
         //new TestTriangleSlicer().devTestSphere();
         //new TestTriangleSlicer().devTestSphereSTL();
-        new TestTriangleSlicer().devTestFile();
+        //new TestTriangleSlicer().devTestFile();
+        new TestTriangleSlicer().devTestFileOptimization();
         //new TestTriangleSlicer().devTestManySlices();
         //new TestTriangleSlicer().devTestFilter();
         //new TestTriangleSlicer().devTestSlice();
@@ -1101,6 +1273,7 @@ public class TestTriangleSlicer extends TestCase {
         //     new TestTriangleSlicer().devTestPointMap();        
         
         //new TestTriangleSlicer().devTestCLIReader();
+        //new TestTriangleSlicer().devTestOptimizer();
 
     }
 }

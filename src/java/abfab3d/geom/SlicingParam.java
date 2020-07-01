@@ -43,7 +43,11 @@ public class SlicingParam {
 
     double m_units = MM;
     String m_unitsName = "mm";
-   
+    
+    boolean m_sliceOptimization = true;
+    int m_maxSegmentsCount = 100;
+    double m_segmentPrecision = 0.01*MM;
+
     
     /*
     public SlicingParam(){
@@ -125,6 +129,30 @@ public class SlicingParam {
     public boolean isAuto(){
         return m_isAuto;
     }
+
+    /**
+       set parameters of slice optimization 
+     */
+    public void setOptimization(boolean sliceOptimization, double segmentPrecision, int maxSegmentsCount){
+        
+        m_sliceOptimization = sliceOptimization;
+        m_maxSegmentsCount = maxSegmentsCount;
+        m_segmentPrecision = segmentPrecision;
+    }
+
+    public boolean getSliceOptimization(){
+        return m_sliceOptimization;
+    }
+    
+    public int getMaxSegmentsCount(){
+        return m_maxSegmentsCount;
+    }
+
+    public double getSegmentPrecision(){
+        return m_segmentPrecision;
+    }
+
+
     
 } // class SlicingParam
 
