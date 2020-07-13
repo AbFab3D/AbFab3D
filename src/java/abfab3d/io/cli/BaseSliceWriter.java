@@ -26,12 +26,19 @@ import java.io.IOException;
  * @author Alan Hudson
  */
 public class BaseSliceWriter {
-    protected void writeUnsignedIntegerBinary(DataOutputStream dos, int val) throws IOException {
+    protected void writeUint16(DataOutputStream dos, int val) throws IOException {
         dos.write((byte) (0xff & val));
         dos.write((byte) (0xff & (val >> 8)));
     }
-
-    protected void writeRealBinary(DataOutputStream dos, double val) throws IOException {
+    /*
+    protected void writeUint32(DataOutputStream dos, int val) throws IOException {
+        dos.write((byte) (0xff & (val)));
+        dos.write((byte) (0xff & (val >> 8)));
+        dos.write((byte) (0xff & (val >> 16)));
+        dos.write((byte) (0xff & (val >> 24)));
+    }
+    */
+    protected void writeFloat32(DataOutputStream dos, double val) throws IOException {
         int value = Float.floatToIntBits((float) val);
 
         dos.write((byte) (0xff & value));
@@ -40,7 +47,7 @@ public class BaseSliceWriter {
         dos.write((byte) (0xff & (value >> 24)));
     }
 
-    protected void writeLongBinary(DataOutputStream dos, int val) throws IOException {
+    protected void writeInt32(DataOutputStream dos, int val) throws IOException {
         dos.write((byte) (0xff & val));
         dos.write((byte) (0xff & (val >> 8)));
         dos.write((byte) (0xff & (val >> 16)));

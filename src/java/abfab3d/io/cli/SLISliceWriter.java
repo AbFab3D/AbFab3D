@@ -45,9 +45,11 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
     private static final byte CMD_START_POLYLINE = 3;
     private static final byte CMD_START_HATCH = 4;
 
+    static final int MAXUINT16 = ((1<<16)-1);
+
     public static final String DEFAULT_CREATOR = "CPSLICECONVERTDATEI";
 
-    public static final double DEFAULT_UNITS = 20*MM; // good for tray dimension up to 120cm 
+    public static final double DEFAULT_UNITS = 0.01*MM; // good for tray dimension up to 650mm 
 
     private OutputStream os;
     private LoggingOutputStream los;
@@ -58,6 +60,9 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
     private boolean geomStarted = false;
 
 
+    // unknow marker in each layer 
+    static int LAYER_UN1 = 0x43c8e666;
+
     public SLISliceWriter(String file) throws IOException {
 
         this(file,DEFAULT_UNITS);
@@ -67,7 +72,7 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
     /**
      *
      * @param file
-     * @param units 1.0 for mm
+     * @param units 
      * @throws IOException
      */
     public SLISliceWriter(String file, double units) throws IOException {
@@ -81,7 +86,7 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
      *
      * @param os
      * @param binary
-     * @param units 1.0 for mm
+     * @param units (in meters?) 
      */
     public SLISliceWriter(OutputStream os, boolean binary, double units) {
         init(os,units);
@@ -90,7 +95,7 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
     /**
      *
      * @param os
-     * @param units 1.0 for mm
+     * @param units 
      */
     private void init(OutputStream os, double units) {
         if (DEBUG) {
@@ -104,7 +109,7 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
         else dos = (DataOutputStream) os;
 
         this.units = units;
-        this.conv = 1.0/(units*MM);  // bake the conversion factor
+        this.conv = 1.0/(units);  // bake the conversion factor
     }
 
     public void setSigDigits(int digits) {
@@ -142,7 +147,7 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
             addLayer(layer);
             dos.flush();
             if (DEBUG) {
-                printf("Position after layer: %d  calcSize: %d  off: %d lines: %d points: %d\n", los.getCount()-48,calcSize(layer),off,layer.getPolyLines().length,layer.getTotalPointCount());
+                printf("Position after layer:%6d  calcSize:%5d  off:%6d lines:%2d points: %3d\n", los.getCount()-48,calcSize(layer),off,layer.getPolyLines().length,layer.getTotalPointCount());
             }
 
             off += calcSize(layer);
@@ -158,7 +163,7 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
         close();
     }
 
-    private void setHeader(int version, String creator, int fileIndexPos, int layerCount, int polyLineCount, double scale, Bounds bounds) throws IOException {
+    private void setHeader(int version, String creator, int fileIndexPos, int layerCount, int polyLineCount, double units, Bounds bounds) throws IOException {
         byte[] magic = "EOS 1993 SLI FILE".getBytes();
         byte[] header = new byte[40];
         for(int i=0; i < header.length; i++) {
@@ -168,13 +173,13 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
 
         dos.write(header);
 
-        writeUnsignedIntegerBinary(dos,version);  // byte 41
-        writeUnsignedIntegerBinary(dos,1);  // byte 43. has always been 1
-        writeLongBinary(dos,48);  // byte 45.  header size
-        writeLongBinary(dos,16);  // byte 49.  u2, has always been 16
-        writeLongBinary(dos,128); // byte 53.  u3, has been 128 and 228
-        writeLongBinary(dos,128);  // byte 57.  fileSliceDataOffset, Some files have really large values here not sure why
-        writeLongBinary(dos, fileIndexPos);  // byte 61
+        writeUint16(dos,version);  // byte 41
+        writeUint16(dos,1);  // byte 43. has always been 1
+        writeInt32(dos,48);  // byte 45.  header size
+        writeInt32(dos,16);  // byte 49.  u2, has always been 16
+        writeInt32(dos,128); // byte 53.  u3, has been 128 and 228
+        writeInt32(dos,128);  // byte 57.  fileSliceDataOffset, Some files have really large values here not sure why
+        writeInt32(dos, fileIndexPos);  // byte 61
 
         byte[] carray = creator.getBytes();
         byte[] narray = new byte[40];
@@ -188,19 +193,20 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
         }
         dos.write(narray); // Byte 102
 
-        writeLongBinary(dos,layerCount);  // byte 106
-        writeLongBinary(dos,polyLineCount);  // byte 110
-        writeLongBinary(dos,18);  // byte 114 //u4, no idea value gets larger with file size
+        writeInt32(dos,layerCount);  // byte 106
+        writeInt32(dos,polyLineCount);  // byte 110
+        writeInt32(dos,18);  // byte 114 //u4, no idea value gets larger with file size
         byte[] unknown = new byte[32];
-        dos.write(unknown);
-        writeRealBinary(dos,scale);
+        dos.write(unknown);        
+        if(DEBUG) printf("SLI file units: %7.4f mm\n", units/MM);
+        writeFloat32(dos,units/MM);  // units are stored in MM 
         // bounds are stored in millimeters  
-        writeRealBinary(dos,bounds.xmin/MM);
-        writeRealBinary(dos,bounds.xmax/MM);
-        writeRealBinary(dos,bounds.ymin/MM);
-        writeRealBinary(dos,bounds.ymax/MM);
-        writeRealBinary(dos,bounds.zmin/MM);
-        writeRealBinary(dos,bounds.zmax/MM);
+        writeFloat32(dos,bounds.xmin/MM);
+        writeFloat32(dos,bounds.xmax/MM);
+        writeFloat32(dos,bounds.ymin/MM);
+        writeFloat32(dos,bounds.ymax/MM);
+        writeFloat32(dos,bounds.zmin/MM);
+        writeFloat32(dos,bounds.zmax/MM);
     }
 
 
@@ -224,20 +230,12 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
 
         dos.write(CMD_START_LAYER);
 
-        int pos = doubleToInt16(height * conv);
+        int pos = doubleToUint16(height * conv);
         //printf("pos:%d\n", pos);
-        writeUnsignedIntegerBinary(dos,pos);
-
-        dos.writeByte(102);
-        dos.writeByte(230);
-        dos.writeByte(200);
-        dos.writeByte(67);
-        dos.writeByte(102);
-        dos.writeByte(230);
-        dos.writeByte(200);
-        dos.writeByte(67);
-        //writeUnsignedIntegerBinary(dos,1137239654);  // Only ever seen this value in a file
-        //writeUnsignedIntegerBinary(dos,1137239654);
+        writeUint16(dos,pos);
+        // unknow number, alwayts the same 
+        writeInt32(dos, LAYER_UN1); 
+        writeInt32(dos, LAYER_UN1);        
         dos.write(0);  // Padding
     }
 
@@ -245,41 +243,39 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
         double[] points = pl.getPoints();
         dos.writeByte(CMD_START_POLYLINE);  // ascii: etx
         dos.writeByte(pl.getDir() & 0xFF);
-        writeUnsignedIntegerBinary(dos,points.length / 2);
+        writeUint16(dos,points.length / 2);
         for(int i=0; i < points.length; i++) {
             double pnt = points[i];
-            int fp = doubleToInt16(points[i] * conv); 
-            //printf("%d ", fp);
-            writeUnsignedIntegerBinary(dos,fp);  // TODO: round?
+            int fp = doubleToUint16(points[i] * conv); 
+            writeUint16(dos,fp);  
         }
-        //printf("\n");
     }
 
     public void addHatches(Hatches h) throws IOException {
         /*
         double[] points = h.getCoords();
-        writeUnsignedIntegerBinary(dos,CLIScanner.CMD_START_HATCHES_LONG);
-        writeLongBinary(dos,h.getId());
-        writeLongBinary(dos,points.length / 4);
+        writeUint16(dos,CLIScanner.CMD_START_HATCHES_LONG);
+        writeInt32(dos,h.getId());
+        writeInt32(dos,points.length / 4);
         for(int i=0; i < points.length; i++) {
-            writeRealBinary(dos,points[i] * conv);
+            writeFloat32(dos,points[i] * conv);
         }
          */
     }
 
     private void writeIndex(SliceLayer[] layers) throws IOException {
-        if(DEBUG)printf("Writing index: \n");
+        if(DEBUG)printf("SLISliceWriter.writeIndex()\n");
         int idx = 0;
         int slicePos = 128;  // TODO: THis is dodgy
         for(SliceLayer layer : layers) {
             // pos as 2 bytes, loc as 4 bytes
-            int fp = doubleToInt16(layer.getLayerHeight() * conv) ; 
+            int fp = doubleToUint16(layer.getLayerHeight() * conv) ; 
 
-            writeUnsignedIntegerBinary(dos,fp);
+            writeUint16(dos,fp);
 
 //            int pos = 192 + idx*6;
 //            int pos = 175 + idx*6;
-            writeLongBinary(dos,slicePos);
+            writeInt32(dos,slicePos);
             if(DEBUG)printf("layer: %d pos: %d\n",idx,slicePos);
             slicePos += calcSize(layer);
 
@@ -331,14 +327,15 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
 
     public static double getOptimalUnits(double maxTrayDimension){
         
-        // SLI format can have max value of coordinate ~ 65*units;  ((1<<16)*0.001)*units
+        // SLI format can have max value of coordinate ~ 65000*units;  ( MAXUINT16 (1<<16)-1)*units
         // optimal unit size 
-        double units = maxTrayDimension/65;
+        double units = maxTrayDimension/MAXUINT16;
         
         //
-        // round units up to the whole centimeter 
+        // round units up to the whole 0.005*MM 
         //
-        units = CM*Math.ceil(units/CM);
+        double minUnit = 0.005*MM;
+        units = minUnit*Math.ceil(units/minUnit);
         return units;
 
     }
@@ -428,10 +425,14 @@ public class SLISliceWriter extends BaseSliceWriter implements Closeable {
                
     }
 
-    static final int doubleToInt16(double value){
+    /**
+       convert double to unsigned 16 bits int
+       throws RuntimeException if result is out of range [0, (1<<16)-1]
+     */
+    static final int doubleToUint16(double value){
 
-        int iv = (int)(value + 0.5);
-        if((iv & 0xFFFF0000) != 0 ) {
+        int iv = (int)(value + 0.5);  // proper rounding 
+        if((iv & 0xFFFF0000) != 0 ) { 
             // only can write 2 byte unsigned int
             throw new RuntimeException(fmt("unsined short int overflow in SLISliceWriter:%d \n", iv));
         }

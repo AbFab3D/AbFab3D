@@ -107,7 +107,10 @@ public class TestSliceRenderer {
         
     }
 
-    
+    /**
+       compare renders slices from 2 folders 
+       all folders aftger baseFolder are given relative to the base folder 
+     */
     void devTestCompareFolders(String baseFolder, String folder1, String folder2, String outFolder1,String outFolder2,String outFolderDiff) throws IOException {
         
         Bounds bounds1 = new Bounds();
@@ -337,7 +340,8 @@ public class TestSliceRenderer {
         //new TestSliceRenderer().devTestAllFilesInFolder(baseFolder+"tray5n/", baseFolder+"tray5n_png/");
         //new TestSliceRenderer().devTestAllFilesInFolder(baseFolder+"tray5s/",baseFolder+"tray5s_png/");
         //new TestSliceRenderer().devTestCompareFolders(baseFolder+"tray5s/",baseFolder+"tray5n/",baseFolder+"tray5_diff_png/");
-        new TestSliceRenderer().devTestCompareFolders(baseFolder+"test_tray_1/", "nf/","nt/","png_nf/","png_nt/","png_diff/");
+        //new TestSliceRenderer().devTestCompareFolders(baseFolder+"test_tray_1/", "nf/","nt/","png_nf/","png_nt/","png_diff/");
+        new TestSliceRenderer().devTestCompareFolders(baseFolder+"test_tray_2/", "nf/","nt/","png_nf/","png_nt/","png_diff/");
         //new TestSliceRenderer().devTestCompareFiles(baseFolder+"opt1/","1272568_4868304_opt.cli","1272568_4868304_orig.cli","orig/", "opt/", "diff/");
         //new TestSliceRenderer().devTestCompareFiles(baseFolder+"opt2/","1677655_5534876_orig.cli","1677655_5534876_opt.cli","orig/", "opt/", "diff/");
         //new TestSliceRenderer().devTestCompareFiles(baseFolder+"opt3/","1527142_5307597_orig.cli","1527142_5307597_opt.cli","orig/", "opt/", "diff/");

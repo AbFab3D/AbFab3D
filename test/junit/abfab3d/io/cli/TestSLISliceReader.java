@@ -20,6 +20,8 @@ import org.junit.Test;
 
 import java.io.IOException;
 
+import static abfab3d.core.Output.printf;
+
 /**
  * Test SLISliceReader
  *
@@ -56,4 +58,26 @@ public class TestSLISliceReader {
 
         //Assert.assertTrue("Missing slices", reader.getNumSlices() == 95);
     }
+
+
+    public void devTestCompare()throws Exception {
+
+        String file1 = "/tmp/slicing/sphere_01.sli";
+        String file2 = "/tmp/slicing/sphere_01b.sli";
+        //printf("reading %s\n", file1);
+        SLISliceReader reader1 = new SLISliceReader(file1);
+
+        //printf("reading %s\n", file2);
+        SLISliceReader reader2 = new SLISliceReader(file2);
+
+        printf("slices1: %d\n", reader1.getNumSlices());
+        printf("slices2: %d\n", reader2.getNumSlices());
+        
+        
+    }
+
+    public static void main(String arg[]) throws Exception{
+        new TestSLISliceReader().devTestCompare();
+    }
+
 }

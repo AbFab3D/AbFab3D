@@ -43,6 +43,7 @@ public class SLISliceReader extends BaseSliceReader {
     }
 
     public SLISliceReader(String path) throws IOException {
+        if(DEBUG) printf("SLISliceReader(%s)\n", path);
         load(path);
     }
 
@@ -87,8 +88,8 @@ public class SLISliceReader extends BaseSliceReader {
             if (DEBUG) {
                 printf("version: %d  u1: %d  header: %d  u2: %d u3: %4d lc: %d plc: %d u4: %d fsdo: %6d fip: %6s creator: %s\n",
                         version, unknown1, headerSize, unknown2, unknown3, layerCount, polyLineCount, unknown4, fileSliceDataOffset, fileIndexPos, new String(creator));
-                printf("layers: %d  polylines: %d  scale: %8.4f\n", layerCount, polyLineCount, units);
-                printf("bounds: %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f\n", x0, x1, y0, y1, z0, z1);
+                printf("layers: %d  polylines: %d  units:%8.4f mm\n", layerCount, polyLineCount, units);
+                printf("bounds: [%7.3f %7.3f %7.3f %7.3f %7.3f %7.3f] mm\n", x0, x1, y0, y1, z0, z1);
             }
 
             int skip = (int)(fileSliceDataOffset - (172 - 44) );  // headersize - 44?  strange
@@ -99,7 +100,7 @@ public class SLISliceReader extends BaseSliceReader {
 
             for(int i=0; i < layerCount; i++) {
                 //asciiDump(is,60, true,60);
-                slices[i] = loadSliceData(dis, units);
+                slices[i] = loadSliceData(dis, units*MM);
             }
 
             //printf("index table start: %d\n",(fileIndexPos));
@@ -112,7 +113,7 @@ public class SLISliceReader extends BaseSliceReader {
                 int off = parseLongBinary(dis);
                 index[i] = off;
                 int layerOff = off + headerSize;
-                if (DEBUG) printf("Layer: %d  z: %d layerPos: %8.4f off: %d  idx: %d\n",i,z,layerPos,off,layerOff);
+                if (DEBUG) printf("Layer:%4d  z:%6d layerZ:%8.4f off: %6d  idx: %d\n",i,z,layerPos,off,layerOff);
             }
         } catch(EOFException e) {
             // expected
@@ -120,7 +121,11 @@ public class SLISliceReader extends BaseSliceReader {
 
     }
 
+    /**
+       scale - converts integer data into meters 
+     */
     private SliceLayer loadSliceData(DataInputStream dis, double scale) throws IOException {
+
         SliceLayer ret = new SliceLayer();
 
         int otype = 0;
@@ -134,8 +139,9 @@ public class SLISliceReader extends BaseSliceReader {
                     int unknown2 = parseLongBinary(dis);
 
                     int padding = dis.readUnsignedByte();
-                    if (DEBUG) printf("Start layer.  pos: %8.4f mm  %d %d %d\n",layerPos*scale,unknown1,unknown2,padding);
-                    ret.setLayerHeight(layerPos*scale * MM);  // Convert to meters for internal storage
+                    double layerZ = layerPos*scale;
+                    if (DEBUG) printf("Start layer.  {pos: %8.4f mm,  u1:0x%08x u2:0x%08x padding:%d}\n",layerZ/MM,unknown1,unknown2,padding);
+                    ret.setLayerHeight(layerZ);  
 
                     break;
                 case 2:  // End data
@@ -145,17 +151,17 @@ public class SLISliceReader extends BaseSliceReader {
                     int dir = dis.readUnsignedByte();
                     int n = parseUnsignedIntegerBinary(dis);
 
-                    if (DEBUG) printf("Start PolyLine.  dir: %d  n: %d\n",dir,n);
+                    if (DEBUG) printf("Start PolyLine {dir:%d, cnt:%d}\n",dir,n);
                     double[] points = new double[n*2];
 
                     for(int i=0; i < n * 2; i++) {
                         int fp = parseUnsignedIntegerBinary(dis);
-                        points[i] = fp * scale * MM; // Convert to meters for internal storage
+                        points[i] = fp * scale; 
                         //printf("%f,",coord);
                     }
                     PolyLine pl = new PolyLine(0,dir,points);  // TODO: Do we need to implement an internal unique id?
                     ret.addPolyLine(pl);
-                    if(DEBUG)printf("\n");
+                    if(DEBUG)printf("    end Polyline\n");
                     break;
                 case 4:
                     if (DEBUG) printf("Start Hatch\n");

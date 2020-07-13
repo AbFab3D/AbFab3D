@@ -19,6 +19,9 @@ import org.apache.tools.ant.filters.StringInputStream;
 import org.junit.Assert;
 import org.junit.Test;
 
+import abfab3d.core.Bounds;
+import java.util.Vector;
+
 import java.io.*;
 
 import static abfab3d.core.Output.printf;
@@ -168,29 +171,34 @@ public class TestCLISliceWriter {
         
         printf("devTestWriteSphere()\n");
 
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        BufferedOutputStream baos = new BufferedOutputStream(bytes);
+        String cliPath = "/tmp/slicing/sphere_1.cli";
+        String sliPath = "/tmp/slicing/sphere_1.sli";
 
-        CLISliceWriter writer = new CLISliceWriter(baos,false,MM);
+        double units = 1*MM;
+        CLISliceWriter cliWriter = new CLISliceWriter(cliPath,false,units);
+        SLISliceWriter sliWriter = new SLISliceWriter(sliPath,units);
 
-        int count = 20;// points per slice
+        int count = 16;// points per slice
 
         double delta = 2*PI/count;
         int dir = 0;
         int id = 1;
         
         double R = 10*MM;
-        double layerThickness = 0.1*MM;
-        double zMin = -R + layerThickness/2;
+        double layerThickness = 1*MM;
+        double zMin = -R+layerThickness;
         
         int layerCount = (int)floor(2*R/layerThickness);
-        
+
+        Bounds bounds = new Bounds(0, 2*R, 0, 2*R, 0, 2*R);
+        Vector<SliceLayer> layers = new Vector<SliceLayer>();
+
         for(int k = 0; k < layerCount; k++){
             
             if(DEBUG)printf("writing layer: %d\n",k);
 
             double z = zMin + k*layerThickness;
-            SliceLayer layer = new SliceLayer(z);
+            SliceLayer layer = new SliceLayer(z+R);
             double points[] = new double[2*count+2];
                         
             double r = sqrt(R*R - z*z);
@@ -203,25 +211,21 @@ public class TestCLISliceWriter {
             }
             
             PolyLine line = new PolyLine(id, dir, points);
-            
+
             layer.addPolyLine(line);
-            
-            writer.addLayer(layer);
+            layers.add(layer);
+            cliWriter.addLayer(layer);
 
         }
-        
-        if(DEBUG)printf("closing CLIWriter\n");
-        
-        writer.close();
-        
-        String outPath = "/tmp/Sphere.cli";
-        FileOutputStream fos = new FileOutputStream(outPath);
-        baos.close();
-        byte[] ba = bytes.toByteArray();
-        printf("writing %d bytes into CLI file:%s\n", ba.length, outPath);
-        fos.write(ba,0,ba.length);
-        fos.close();
-        
+
+        SliceLayer alayers[] = new SliceLayer[layers.size()];
+        layers.toArray(alayers);
+        //cliWriter.write(bounds, "abfab3d", alayers);
+        sliWriter.write(bounds, "abfab3d", alayers);
+                        
+        sliWriter.close();
+        cliWriter.close();
+                
     }
 
     public static void main(String args[])throws IOException {

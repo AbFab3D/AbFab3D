@@ -15,9 +15,15 @@
 package abfab3d.io.cli;
 
 import abfab3d.core.Bounds;
-import org.web3d.util.DoubleToString;
 
-import java.io.*;
+import java.io.PrintStream;
+import java.io.OutputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.Closeable;
+
 import java.util.Date;
 
 import static abfab3d.core.Output.printf;
@@ -33,7 +39,7 @@ import static abfab3d.core.Units.MM;
  */
 public class CLISliceWriter extends BaseSliceWriter implements Closeable {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     private OutputStream os;
     private PrintStream ps;
@@ -41,7 +47,8 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
     private boolean binary;
     private double units;
     private double conv;
-    private int sigDigits = 6;
+    private String numberFormat = "%.3f";
+
     private boolean geomStarted = false;
 
 
@@ -49,7 +56,7 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
      *
      * @param file
      * @param binary
-     * @param units 1.0 for mm
+     * @param units 
      * @throws IOException
      */
     public CLISliceWriter(String file, boolean binary, double units) throws IOException {
@@ -73,14 +80,14 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
      *
      * @param os
      * @param binary
-     * @param units 1.0 for mm
+     * @param units 
      */
     private void init(OutputStream os, boolean binary,double units) {
         this.os = os;
         this.ps = new PrintStream(os);
         this.binary = binary;
         this.units = units;
-        this.conv = 1.0/units;  // bake the conversion factor
+        this.conv = 1.0/(units);  // bake the output conversion factor
 
         ps.print(CLIScanner.HEADER_START);
         ps.print('\n');
@@ -93,12 +100,13 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
         }
 
         ps.print(CLIScanner.UNITS);
-        ps.print(units/MM);
+        ps.format("%.4f",units/MM); // output in MM 
         ps.print('\n');
     }
 
     public void setSigDigits(int digits) {
-        sigDigits = digits;
+        //sigDigits = digits;
+        this.numberFormat  = "%."+digits+"f";
     }
 
     public void setVersion(int v) {
@@ -172,11 +180,11 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
         }
 
         if (binary) {
-            writeUnsignedIntegerBinary(dos,CLIScanner.CMD_START_LAYER_LONG);
-            writeRealBinary(dos,height*conv);
+            writeUint16(dos,CLIScanner.CMD_START_LAYER_LONG);
+            writeFloat32(dos,height*conv);
         } else {
             ps.print(CLIScanner.LAYER);
-            ps.print(height*conv);
+            ps.format(numberFormat,(height*conv));
             ps.print('\n');
         }
     }
@@ -186,12 +194,12 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
         if(DEBUG)printf("CLISliceWritewr.addPolyLine()\n"); 
         double[] points = pl.getPoints();
         if (binary) {
-            writeUnsignedIntegerBinary(dos,CLIScanner.CMD_START_POLY_LINE_LONG);
-            writeLongBinary(dos,pl.getId());
-            writeLongBinary(dos,pl.getDir());
-            writeLongBinary(dos,points.length / 2);
+            writeUint16(dos,CLIScanner.CMD_START_POLY_LINE_LONG);
+            writeInt32(dos,pl.getId());
+            writeInt32(dos,pl.getDir());
+            writeInt32(dos,points.length / 2);
             for(int i=0; i < points.length; i++) {
-                writeRealBinary(dos,points[i] * conv);
+                writeFloat32(dos,points[i] * conv);
             }
         } else {
             
@@ -204,27 +212,24 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
             ps.print(points.length / 2);
             ps.print(",");
 
-            try {
-                for (int i = 0; i < points.length - 1; i++) {
-                    DoubleToString.appendFormatted(ps, points[i] * conv, sigDigits);
-                    ps.print(",");
-                }
-                DoubleToString.appendFormatted(ps, points[points.length - 1] * conv, sigDigits);
-                ps.print('\n');
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
+            for (int i = 0; i < points.length - 1; i++) {
+                ps.format(numberFormat,points[i] * conv);
+                ps.print(",");
+
             }
+            ps.format(numberFormat, points[points.length - 1] * conv);
+            ps.print('\n');
         }
     }
 
     public void addHatches(Hatches h) throws IOException {
         double[] points = h.getCoords();
         if (binary) {
-            writeUnsignedIntegerBinary(dos,CLIScanner.CMD_START_HATCHES_LONG);
-            writeLongBinary(dos,h.getId());
-            writeLongBinary(dos,points.length / 4);
+            writeUint16(dos,CLIScanner.CMD_START_HATCHES_LONG);
+            writeInt32(dos,h.getId());
+            writeInt32(dos,points.length / 4);
             for(int i=0; i < points.length; i++) {
-                writeRealBinary(dos,points[i] * conv);
+                writeFloat32(dos,points[i] * conv);
             }
         } else {
             ps.print(CLIScanner.HATCHES);
@@ -233,16 +238,12 @@ public class CLISliceWriter extends BaseSliceWriter implements Closeable {
             ps.print(points.length / 4);
             ps.print(",");
 
-            try {
-                for (int i = 0; i < points.length - 1; i++) {
-                    DoubleToString.appendFormatted(ps, points[i] * conv, sigDigits);
-                    ps.print(",");
-                }
-                DoubleToString.appendFormatted(ps, points[points.length - 1] * conv, sigDigits);
-                ps.print('\n');
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
+            for (int i = 0; i < points.length - 1; i++) {
+                ps.format(numberFormat,ps, points[i] * conv);
+                ps.print(",");
             }
+            ps.format(numberFormat, points[points.length - 1] * conv);
+            ps.print('\n');
         }
     }
     public void endLayer() {

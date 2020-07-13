@@ -283,14 +283,26 @@ public class TestSLISliceWriter {
         
     }
 
-    public static void main(String args[]) throws IOException {
+
+    void devTestOptimalUnits(){
+
+        
+        for(int i = 1; i < 100; i++){
+            double traySize = 0.05*i;
+            double units = SLISliceWriter.getOptimalUnits(traySize);
+            printf("tray:%5.0f mm units: %7.4f mm\n", traySize/MM, units/MM);
+        }
+         
+    }
+
+   public static void main(String args[]) throws IOException {
 
         //new TestSLISliceWriter().devTestSLIFile();
         //new TestSLISliceWriter().devTestCLI2SLI();
         //new TestSLISliceWriter().devTestSLI2CLI();
         //new TestSLISliceWriter().testSLICube();
-        new TestSLISliceWriter().testSLIFiles();
-        
+       //new TestSLISliceWriter().testSLIFiles();
+        new TestSLISliceWriter().devTestOptimalUnits();
     }
 
 
