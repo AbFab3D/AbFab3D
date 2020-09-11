@@ -26,9 +26,9 @@ import abfab3d.util.TrianglePrinter;
 import abfab3d.io.output.STLWriter;
 
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Units.MM;
 import static abfab3d.core.Output.fmt;
-import static java.lang.Math.sin;
-import static java.lang.Math.cos;
+import static java.lang.Math.*;
 
 
 /**
@@ -38,8 +38,6 @@ import static java.lang.Math.cos;
  * @version
  */
 public class TestTriangulatedModels extends TestCase {
-
-    static final double MM = 0.001;
 
     /**+
      * Creates a test suite consisting of all the methods that start with "test".
@@ -172,45 +170,68 @@ public class TestTriangulatedModels extends TestCase {
        
     }
 
-    public void testCylinder()throws Exception {
+    public void devTestCylinder(String outPath, double r0, double r1, double L, int facetCount)throws Exception {
         
-        STLWriter stl = new STLWriter("/tmp/cylinder.stl");
         
-        double r0 = 0.5*MM;
-        double r1 = 1.0*MM;
-
-        double L = 10*MM;
-
         TriangulatedModels.Combiner comb = new TriangulatedModels.Combiner();
         
-        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, 0,0), new Vector3d(L,0,0), r0, r1));
-        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, 0,0), new Vector3d(L,L,0), r0, r1));
-        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, L,0), new Vector3d(0,L,0), r0, r1));
-        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, L,0), new Vector3d(0,0,0), r0, r1));
-
-        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, 0,L), new Vector3d(L,0,L), r0, r1));
-        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, 0,L), new Vector3d(L,L,L), r0, r1));
-        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, L,L), new Vector3d(0,L,L), r0, r1));
-        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, L,L), new Vector3d(0,0,L), r0, r1));
-
-        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, 0,0), new Vector3d(0,0,L), r0, r1));
-        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, 0,0), new Vector3d(L,0,L), r0, r1));
-        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, L,0), new Vector3d(L,L,L), r0, r1));
-        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, L,0), new Vector3d(0,L,L), r0, r1));
-
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, 0,0), new Vector3d(L,0,0), r0, r1, facetCount));        
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, 0,0), new Vector3d(L,L,0), r0, r1, facetCount));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, L,0), new Vector3d(0,L,0), r0, r1, facetCount));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, L,0), new Vector3d(0,0,0), r0, r1, facetCount));
+        
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, 0,L), new Vector3d(L,0,L), r0, r1, facetCount));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, 0,L), new Vector3d(L,L,L), r0, r1, facetCount));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, L,L), new Vector3d(0,L,L), r0, r1, facetCount));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, L,L), new Vector3d(0,0,L), r0, r1, facetCount));
+        
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, 0,0), new Vector3d(0,0,L), r0, r1, facetCount));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, 0,0), new Vector3d(L,0,L), r0, r1, facetCount));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, L,0), new Vector3d(L,L,L), r0, r1, facetCount));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, L,0), new Vector3d(0,L,L), r0, r1, facetCount));
+        
         comb.initialize();        
-        comb.getTriangles(stl);        
 
+        STLWriter stl = new STLWriter(outPath);
+        comb.getTriangles(stl);        
         stl.close();              
        
     }
 
+    
+    public void devTestBox(String outPath, double size, Vector3d center, Vector3d offset, double scale, int count)throws Exception {
+
+        
+        TriangulatedModels.Combiner model = new TriangulatedModels.Combiner();
+
+        for(int i = 0; i < count; i++){
+            model.append(new TriangulatedModels.Box(center.x,center.y,center.z,size, size, size));
+            size *=scale;
+            //center.x += offset.x;
+            //center.y += offset.y;
+            //center.z += offset.z;
+            center.add(offset);
+            offset.scale(scale);
+
+        }
+        model.initialize();        
+        STLWriter stl = new STLWriter(outPath);
+        model.getTriangles(stl);        
+        stl.close();              
+
+    }
 
     public static void main(String[] arg) throws Exception {
 
-        new TestTriangulatedModels().devTestMakeSpheres();
-        //new TestTriangulatedModels().testCylinder();
+        //new TestTriangulatedModels().devTestMakeSpheres();
+        //new TestTriangulatedModels().devTestCylinder("/tmp/cubeFrame.stl", 5*MM, 4*MM, 50*MM, 4);
+        //new TestTriangulatedModels().devTestCylinder("/tmp/cubeFrame_100.stl", 5*MM, 4*MM, 50*MM, 100);
+        //new TestTriangulatedModels().devTestCylinder("/tmp/cubeFrame_1000.stl", 5*MM, 4*MM, 50*MM, 1000);
+        //double a = 10*MM;
+        //new TestTriangulatedModels().devTestBox("/tmp/stackedBoxes_4.stl", 2*a, new Vector3d(a,a,a),new Vector3d(2*a,0,0),1.,4);
+        double a = 10*MM;
+        double s = 0.9;        
+        new TestTriangulatedModels().devTestBox("/tmp/stackedBoxes_40.stl", 2*a, new Vector3d(a,a,a),new Vector3d((1+s)*a,0,0),s,40);
         
-
     }
 }

@@ -779,20 +779,28 @@ public class TriangulatedModels {
         Vector3d center; // cylinder center 
         Matrix3d rotation; // rotation to bring cylinder into canonical position 
 
-        int nfacets = 20; // count of facets at  cylinder side 
+        static final int DEFAULT_FACETS_COUNT = 20;
+
+        int nfacets = DEFAULT_FACETS_COUNT; // count of facets at the cylinder side 
         // working vectors
         Vector3d tv0 = new Vector3d(),tv1 = new Vector3d(),tv2 = new Vector3d();
 
         public CylinderT(Vector3d v0, Vector3d v1, double radius) {
-            this(v0, v1, radius, radius);
+            this(v0, v1, radius, radius, DEFAULT_FACETS_COUNT);
         }
 
         public CylinderT(Vector3d v0, Vector3d v1, double r0, double r1) {
+
+            this(v0, v1, r0, r1, DEFAULT_FACETS_COUNT);
+        }
+
+        public CylinderT(Vector3d v0, Vector3d v1, double r0, double r1, int facetCount) {
 
             this.v0.set(v0);
             this.v1.set(v1);
             this.r0 = r0;
             this.r1 = r1;
+            this.nfacets = facetCount;
         }
 
         public int initialize(){
