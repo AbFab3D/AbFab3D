@@ -26,6 +26,7 @@ import abfab3d.core.TriangleProducer;
 import abfab3d.core.TriangleCollector;
 
 import abfab3d.io.output.STLWriter;
+import abfab3d.util.TriangulatedSphere;
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Units.MM;

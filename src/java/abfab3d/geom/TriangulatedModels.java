@@ -189,7 +189,7 @@ public class TriangulatedModels {
         // currently used triangle collector
         TriangleCollector m_tc; 
 
-        // this called by each TriangleProducer         
+        // this is called by each TriangleProducer         
         public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2){
             
             Vec in = new Vec(3);
@@ -215,7 +215,7 @@ public class TriangulatedModels {
             return true;
         }
         
-    } // class Transformer
+    } // class Combiner 
 
 
     // class to generate stars with parameters
@@ -759,7 +759,7 @@ public class TriangulatedModels {
             return maker.getTriangles(tc);
             
         }
-    } // Torus     
+    } // class Torus     
     
     //
     // makes cylnder with given ends and radius 
@@ -895,5 +895,114 @@ public class TriangulatedModels {
             
         }
 
-    }
+    } //class CylinderT
+
+
+    /**
+       randomly moves vertices of triangles
+     */
+    static class TriangleRandomizer implements TriangleProducer, TriangleCollector {
+
+        double m_noice;
+        TriangleProducer m_triProducer;
+        TriangleCollector m_triCollector;
+        Random m_random;
+
+        TriangleRandomizer(double noice, int seed, TriangleProducer tp){
+
+            m_triProducer = tp;
+            m_noice = noice;
+            m_random = new Random(seed); // seed 
+        }
+        
+        public boolean getTriangles(TriangleCollector tc){
+
+            m_triCollector = tc;
+            return m_triProducer.getTriangles(this);
+
+        }
+
+        public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2){
+
+            return m_triCollector.addTri(getRandomV(v0),getRandomV(v1),getRandomV(v2));
+            
+        }
+
+        Vector3d getRandomV(Vector3d v){
+            return new Vector3d(v.x + noice(),v.y + noice(),v.z + noice());
+        }
+
+        double noice(){
+            return m_noice*(2*m_random.nextDouble()-1);
+        }
+
+    } // static class TriangleRandomizer
+
+
+    /**
+       discards random triangles from input
+     */
+    static class TriangleRemover implements TriangleProducer, TriangleCollector {
+
+        double m_ratio;
+        TriangleProducer m_triProducer;
+        TriangleCollector m_triCollector;
+        Random m_random;
+
+        TriangleRemover(double ratio, TriangleProducer tp){
+
+            m_triProducer = tp;
+            m_ratio = ratio;
+            m_random = new Random(123); // seed 
+        }
+        
+        public boolean getTriangles(TriangleCollector tc){
+
+            m_triCollector = tc;
+            return m_triProducer.getTriangles(this);
+
+        }
+
+        public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2){
+
+            if(m_random.nextDouble() > m_ratio) 
+                return m_triCollector.addTri(v0,v1,v2);
+            else 
+                return true;
+        }
+    } // static class TriangleRemover
+
+    /**
+       randomly flips normals of input triangles 
+     */
+    static class TriangleFlipper implements TriangleProducer, TriangleCollector {
+
+        double m_ratio;
+        TriangleProducer m_triProducer;
+        TriangleCollector m_triCollector;
+        Random m_random;
+
+        TriangleFlipper(double ratio, int seed, TriangleProducer tp){
+
+            m_triProducer = tp;
+            m_ratio = ratio;
+            m_random = new Random(seed);
+        }
+        
+        public boolean getTriangles(TriangleCollector tc){
+
+            m_triCollector = tc;
+            return m_triProducer.getTriangles(this);
+
+        }
+
+        public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2){
+
+            if(m_random.nextDouble() > m_ratio) 
+                return m_triCollector.addTri(v0,v1,v2);
+            else 
+                return m_triCollector.addTri(v1,v0,v2);
+        }
+    } // static class TriangleFlipper
+
 } // class TriangulatedModels

@@ -25,10 +25,17 @@ import static abfab3d.core.Output.printf;
  */
 public class TrianglePrinter implements TriangleCollector {
 
+    boolean debug = true;
     protected int count = 0;
     String f = "%10.5f"; // format for printing floating numbers 
+    
     public TrianglePrinter(){
         
+    }
+
+    public TrianglePrinter(boolean debug, String format){
+        this.debug = debug;
+        this.f = format;
     }
    
     /**
@@ -40,7 +47,7 @@ public class TrianglePrinter implements TriangleCollector {
      */
     public boolean addTri(Vector3d v0,Vector3d v1,Vector3d v2){
         count++;
-        printf("AddTri" + f + ","+ f + ","+ f + ","+ f + ","+ f + ","+ f + ","+ f + ","+ f + ","+ f + "):%d \n", 
+        if(this.debug)printf("AddTri" + f + ","+ f + ","+ f + ","+ f + ","+ f + ","+ f + ","+ f + ","+ f + ","+ f + "):%d \n", 
                v0.x, v0.y, v0.z,
                v1.x, v1.y, v1.z,
                v2.x, v2.y, v2.z, count);

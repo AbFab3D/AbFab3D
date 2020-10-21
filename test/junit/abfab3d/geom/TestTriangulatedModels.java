@@ -23,7 +23,10 @@ import javax.vecmath.Vector3d;
 
 // Internal Imports
 import abfab3d.util.TrianglePrinter;
+import abfab3d.util.TriangulatedSphere;
 import abfab3d.io.output.STLWriter;
+import abfab3d.core.TriangleProducer;
+
 
 import static abfab3d.core.Output.printf;
 import static abfab3d.core.Units.MM;
@@ -221,6 +224,38 @@ public class TestTriangulatedModels extends TestCase {
 
     }
 
+
+    public void devTestFlippedTriangles(String outPath, double radius, int subdivisionLevel, Vector3d center, double flipRatio, double noise)throws Exception {
+
+        TriangulatedSphere sphere = new TriangulatedSphere(radius, center, subdivisionLevel);
+        TriangulatedModels.TriangleFlipper tf = new TriangulatedModels.TriangleFlipper(flipRatio, 123, sphere);
+        TriangulatedModels.TriangleRandomizer tr = new TriangulatedModels.TriangleRandomizer(noise, 231, tf);
+        STLWriter stl = new STLWriter(outPath);
+        
+        tr.getTriangles(stl);
+
+        stl.close();
+        
+    }
+
+    public void devTestTwistedBand(String outPath, double radius, double bandWidth, double bandThickness, double twist, double spin, 
+                                   Vector3d center, double cellSize) throws Exception {
+
+        TriangleProducer tp = new TriangulatedTwistedBand(radius, bandWidth, bandThickness, twist, spin, center, cellSize);
+
+        if(false){
+            TrianglePrinter tpr = new TrianglePrinter(true, "%8.5f");    
+            tp.getTriangles(tpr);
+            printf("triangle count: %d\n", tpr.getCount());
+        }
+        if(true){
+            STLWriter stl = new STLWriter(outPath);        
+            tp.getTriangles(stl);
+            stl.close();        
+        }
+    }
+
+
     public static void main(String[] arg) throws Exception {
 
         //new TestTriangulatedModels().devTestMakeSpheres();
@@ -229,9 +264,26 @@ public class TestTriangulatedModels extends TestCase {
         //new TestTriangulatedModels().devTestCylinder("/tmp/cubeFrame_1000.stl", 5*MM, 4*MM, 50*MM, 1000);
         //double a = 10*MM;
         //new TestTriangulatedModels().devTestBox("/tmp/stackedBoxes_4.stl", 2*a, new Vector3d(a,a,a),new Vector3d(2*a,0,0),1.,4);
-        double a = 10*MM;
-        double s = 0.9;        
-        new TestTriangulatedModels().devTestBox("/tmp/stackedBoxes_40.stl", 2*a, new Vector3d(a,a,a),new Vector3d((1+s)*a,0,0),s,40);
-        
+        if(false){
+            double a = 10*MM;
+            double s = 0.9;        
+            new TestTriangulatedModels().devTestBox("/tmp/stackedBoxes_40.stl", 2*a, new Vector3d(a,a,a),new Vector3d((1+s)*a,0,0),s,40);
+        }
+        if(false){
+            double r = 50*MM;
+            double flipRatio = 0.1;
+            new TestTriangulatedModels().devTestFlippedTriangles("/tmp/flippedNormals.stl", r, 3, new Vector3d(r,r,r), flipRatio, 0.0);
+        }
+
+        if(true){
+            double r = 9*MM;
+            double w = 20*MM;
+            double th = 1*MM;
+            double cellSize = 1*MM;
+            double twist = 0.5;
+            double spin = 2;
+            new TestTriangulatedModels().devTestTwistedBand("/tmp/twistedBand.stl", r, w, th, twist, spin, new Vector3d(r+w/2,w,r+w/2+th), cellSize);
+
+        }            
     }
 }

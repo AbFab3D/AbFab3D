@@ -26,8 +26,10 @@ import static abfab3d.core.Output.printf;
 
 /**
  * Creates a triangulated parametric surface 
-   by recursively splitting domain into triangles of smaller size to make surface 
-   triangles to be small enough to be close to the surface within given tolerance 
+ *
+ * if(tolerance > 0) it splits triangles to make error below given tolerance 
+ * by recursively splitting domain into triangles of smaller size to make surface 
+ * triangles to be small enough to be close to the surface within given tolerance 
  *
  * @author Vladimir Bulatov
  */
@@ -42,7 +44,10 @@ public class ParametricSurfaceMaker implements TriangleProducer {
     public ParametricSurfaceMaker(ParametricSurface surface){
         this(surface, 0.);
     }
-
+    
+    /**
+       makes parametric surface by subdividing 
+     */
     public ParametricSurfaceMaker(ParametricSurface surface, double  tolerance){
 
         this.surface = surface; 
