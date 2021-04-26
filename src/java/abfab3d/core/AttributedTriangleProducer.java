@@ -21,7 +21,7 @@ public interface AttributedTriangleProducer {
     /**
        feeds all triangles into supplied AttributedTriangleCollector
 
-       @return true if success, false if faiure        
+       @return true if success, false if failure        
      */
     public boolean getAttTriangles(AttributedTriangleCollector tc);
 

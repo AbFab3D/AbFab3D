@@ -23,7 +23,7 @@ import javax.vecmath.Vector3d;
 import static abfab3d.core.Output.printf;
 
 /**
- * produces transformed triagles from input trinagles
+ * produces transformed triangles from input triangles
  *
  * @author Vladimir Bulatov
  */

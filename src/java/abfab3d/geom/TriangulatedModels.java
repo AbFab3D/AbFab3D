@@ -949,11 +949,17 @@ public class TriangulatedModels {
         TriangleCollector m_triCollector;
         Random m_random;
 
-        TriangleRemover(double ratio, TriangleProducer tp){
+        TriangleRemover(double ratio, int seed, TriangleProducer tp){
 
             m_triProducer = tp;
             m_ratio = ratio;
-            m_random = new Random(123); // seed 
+            m_random = new Random(seed); // seed 
+            
+        }
+
+        TriangleRemover(double ratio, TriangleProducer tp){
+            
+            this(ratio, 123, tp);
         }
         
         public boolean getTriangles(TriangleCollector tc){

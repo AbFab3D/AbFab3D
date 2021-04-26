@@ -25,6 +25,7 @@ import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
 import org.web3d.vrml.export.X3DBinarySerializer;
 import org.web3d.vrml.export.X3DClassicRetainedExporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
+import org.web3d.vrml.export.VrmlExporter;
 
 
 import abfab3d.core.TriangleCollector;
@@ -37,6 +38,7 @@ import javax.vecmath.Vector3d;
 
 
 import static abfab3d.core.Output.printf;
+import static abfab3d.core.Output.fmt;
 
 
 /**
@@ -58,8 +60,11 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
     String m_path = null;
     String m_texFileName = DEFAULT_TEX_NAME;
     boolean m_writeTexturedMesh = false;
+    boolean m_writeColoredMesh = false;
+    int m_texDimension = 2;
 
-    private static final float[] m_color = new float[] {0.5f,0.5f,0.5f};
+    private static final float[] m_specularColor = new float[] {1.f,1.f,1.f};
+    private static final float[] m_materialColor = new float[] {0.5f,0.5f,0.5f};
 
     PointSetArray m_points = null;
     PointSetArray m_texPoints = null;
@@ -73,7 +78,7 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
 
         m_path = filePath;
         m_points = new PointSetArray();
-
+        
     }
 
     public X3DWriter(String filePath, String texFileName) throws IOException {
@@ -86,11 +91,25 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
 
     }
 
+    public void setTexDimension(int dimension){
+        if(dimension < 1 || dimension > 3) throw new RuntimeException(fmt("illeange texture dimension: %d. May be only [1,2,3]", dimension));
+        m_texDimension = dimension;
+    }
+
     /**
        save textured mesh 
      */
     public void setWriteTexturedMesh(boolean value){
         m_writeTexturedMesh = value;
+    }
+
+    /**
+       save coloed mesh 
+     */
+    public void setWriteColoredMesh(boolean value){
+        m_writeColoredMesh = value;
+        m_texDimension = 3;
+        m_texPoints = new PointSetArray();
     }
 
     /**
@@ -133,10 +152,23 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
         m_points.addPoint(v0.v[0],v0.v[1],v0.v[2]);
         m_points.addPoint(v1.v[0],v1.v[1],v1.v[2]);
         m_points.addPoint(v2.v[0],v2.v[1],v2.v[2]);
-
-        m_texPoints.addPoint(v0.v[3],v0.v[4],0);
-        m_texPoints.addPoint(v1.v[3],v1.v[4],0);
-        m_texPoints.addPoint(v2.v[3],v2.v[4],0);
+        switch(m_texDimension){
+        case 1:
+            m_texPoints.addPoint(v0.v[3],0,0);
+            m_texPoints.addPoint(v1.v[3],0,0);
+            m_texPoints.addPoint(v2.v[3],0,0);
+            break;
+        case 2:
+            m_texPoints.addPoint(v0.v[3],v0.v[4],0);
+            m_texPoints.addPoint(v1.v[3],v1.v[4],0);
+            m_texPoints.addPoint(v2.v[3],v2.v[4],0);
+            break;
+        case 3: 
+            m_texPoints.addPoint(v0.v[3],v0.v[4],v0.v[5]);
+            m_texPoints.addPoint(v1.v[3],v1.v[4],v1.v[5]);
+            m_texPoints.addPoint(v2.v[3],v2.v[4],v2.v[5]);
+            break;
+        }
 
         m_triCount++;
         
@@ -165,14 +197,19 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
         float texCoord[] = null;
         int texCoordInd[] = null;
 
-        if(m_writeTexturedMesh){
+        if(m_writeTexturedMesh || m_writeColoredMesh){
             
-            texCoord = new float[pcount*2];
+            texCoord = new float[pcount*m_texDimension];
             texCoordInd = new int[m_triCount*3];
             for(int i = 0; i < pcount; i++){
                 m_texPoints.getPoint(i,pnt);
-                texCoord[i*2] = (float)pnt.x;
-                texCoord[i*2+1] = (float)pnt.y;            
+                int ii = m_texDimension*i;
+                switch(m_texDimension){
+                case 3: texCoord[ii + 2] = (float)pnt.z; // no break
+                case 2: texCoord[ii + 1] = (float)pnt.y; // no break
+                case 1: texCoord[ii]     = (float)pnt.x; // no break
+                }
+                
             }
             for(int i = 0; i < m_triCount*3; i++){
                 texCoordInd[i] = i;
@@ -183,7 +220,10 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
         BufferedOutputStream bos = new BufferedOutputStream(fos);
 
         BinaryContentHandler writer = createX3DWriter(format, bos);
-        if(m_writeTexturedMesh) 
+
+        if(m_writeColoredMesh) 
+            writeColoredMeshX3D(coord, coordInd, texCoord, texCoordInd, writer);
+        else if(m_writeTexturedMesh) 
             writeTexturedMeshX3D(coord, coordInd, texCoord, texCoordInd, m_texFileName, writer);
         else 
             writeMeshX3D(coord, coordInd, writer);
@@ -215,7 +255,7 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
         writer.startField("material");
         writer.startNode("Material",null);
         writer.startField("specularColor");
-        writer.fieldValue(m_color, 3);
+        writer.fieldValue(m_specularColor, 3);
         writer.endNode();   // Material
         
         writer.endNode();   // Appearance
@@ -263,7 +303,7 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
         writer.startField("material");
         writer.startNode("Material",null);
         writer.startField("specularColor");
-        writer.fieldValue(m_color, 3);
+        writer.fieldValue(m_specularColor, 3);
         writer.endNode();   // Material
         writer.startField("texture");
         writer.startNode("ImageTexture", null);
@@ -280,6 +320,57 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
     } // writeTexturedMeshX3D
 
 
+    private void writeColoredMeshX3D(float fcoord[], int coordIndex[], float vertColors[], int vertColorInd[],
+                                     BinaryContentHandler writer) throws IOException {
+        
+        //texCoordIndex = insertMinusOne(texCoordIndex);
+        coordIndex = insertMinusOne(coordIndex);
+
+        writer.startNode("Shape", null);
+
+        writer.startField("geometry");
+        writer.startNode("IndexedFaceSet", null);
+
+        writer.startField("coord");
+        writer.startNode("Coordinate", null);
+        writer.startField("point");
+        writer.fieldValue(fcoord, fcoord.length);
+        writer.endNode();   // Coord
+
+        writer.startField("coordIndex");        
+        writer.fieldValue(coordIndex, coordIndex.length);
+
+        writer.startField("color");
+        writer.startNode("Color", null);
+        writer.startField("color");
+        writer.fieldValue(vertColors, vertColors.length);
+        writer.endNode();   // Color
+
+        // writer.startField("colorIndex");
+        //writer.fieldValue(vertColorInd, vertColorInd.length);
+        writer.startField("colorPerVertex");
+        writer.fieldValue(true);
+
+
+        writer.endNode();   // IndexedFaceSet
+
+        writer.startField("appearance");
+        writer.startNode("Appearance", null);
+        writer.startField("material");
+        writer.startNode("Material",null);
+        writer.startField("specularColor");
+        writer.fieldValue(m_specularColor, 3);
+        writer.endNode();   // Material
+        
+        writer.endNode();   // Appearance
+        
+        writer.endNode();   // Shape
+        
+        writer.endDocument();
+
+    }
+
+
     private BinaryContentHandler createX3DWriter(String format, OutputStream os) {
 
         BinaryContentHandler x3dWriter = null;
@@ -287,31 +378,37 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
         ErrorReporter console = new PlainTextErrorReporter();
 
         int sigDigits = 6; // TODO: was -1 but likely needed
+        int vers[] = {3,0};
+        String versionTag = "V3.0";
 
         if (format.equals("x3db")) {
             x3dWriter = new X3DBinaryRetainedDirectExporter(os,
-                    3, 0, console,
-                    X3DBinarySerializer.METHOD_FASTEST_PARSING,
-                    0.001f, true);
+                                                            vers[0], vers[1],console,
+                                                            X3DBinarySerializer.METHOD_FASTEST_PARSING,
+                                                            0.001f, true);
         } else if (format.equals("x3dv")) {
             if (sigDigits > -1) {
-                x3dWriter = new X3DClassicRetainedExporter(os, 3, 0, console, sigDigits);
+                x3dWriter = new X3DClassicRetainedExporter(os, vers[0], vers[1], console, sigDigits);
             } else {
-                x3dWriter = new X3DClassicRetainedExporter(os, 3, 0, console);
+                x3dWriter = new X3DClassicRetainedExporter(os, vers[0], vers[1], console);
             }
+        } else if (format.equals("wrl")) {
+            
+            x3dWriter = new VrmlExporter(os, vers[0], vers[1], console, true);            
+                
         } else if (format.equals("x3d")) {
             if (sigDigits > -1) {
-                x3dWriter = new X3DXMLRetainedExporter(os, 3, 0, console, sigDigits);
+                x3dWriter = new X3DXMLRetainedExporter(os, vers[0], vers[1], console, sigDigits);
             } else {
-                x3dWriter = new X3DXMLRetainedExporter(os, 3, 0, console);
+                x3dWriter = new X3DXMLRetainedExporter(os, vers[0], vers[1], console);
             }
         } else {
             throw new IllegalArgumentException("Unhandled file format: " + format);
         }
+        
+        x3dWriter.startDocument("", "", "utf8", "#X3D", versionTag, fmt("exported by %s", this.getClass().getName()));
+        x3dWriter.profileDecl("Immersive");
 
-        //x3dWriter.startDocument("", "", "utf8", "#X3D", "V3.0", "");
-        x3dWriter.startDocument("", "", "utf8", "#VRML", "V2.0", "");
-        //x3dWriter.profileDecl("Immersive");
         //x3dWriter.startNode("NavigationInfo", null);
         //x3dWriter.startField("avatarSize");
         //x3dWriter.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);

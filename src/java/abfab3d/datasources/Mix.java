@@ -44,6 +44,9 @@ import static java.lang.Math.min;
  */
 public class Mix extends TransformableDataSource{
     
+    static final boolean DEBUG = true;
+    static final String dFmt = "%8.4f";
+
     DataSource m_dataSource1;
     DataSource m_dataSource2;
     DataSource m_mixer;
@@ -183,7 +186,7 @@ public class Mix extends TransformableDataSource{
         m_dimSource1 = m_dataSource1.getChannelsCount();
         m_dimSource2 = m_dataSource2.getChannelsCount();
         m_dimMix = m_mixer.getChannelsCount();
-
+        if(DEBUG) printf("Mix.initialize() m_dimSource1: %d m_dimSource1:%d m_dimMix:%d\n", m_dimSource1, m_dimSource2, m_dimMix);
         m_channelsCount = Math.max(m_dimSource1, m_dimSource2);
         
         return ResultCodes.RESULT_OK;
@@ -212,7 +215,6 @@ public class Mix extends TransformableDataSource{
             data.v[0] = d1 + (d2-d1)*t;
             
         } else {
-
             // general channel count case 
             Vec data1 = new Vec(m_dimSource1);
             Vec data2 = new Vec(m_dimSource2);
@@ -223,12 +225,13 @@ public class Mix extends TransformableDataSource{
             m_dataSource2.getDataValue(new Vec(pnt), data2);
 
             for(int i = 0; i < m_channelsCount; i++){
-                int imix = min(i,m_dimMix);
+                int imix = min(i,m_dimMix-1);
                 double t = dMix.v[imix];
                 double d1 = (i < m_dimSource1)? data1.v[i]: 0.;
                 double d2 = (i < m_dimSource2)? data2.v[i]: 0.;
                 data.v[i] = d1 + (d2-d1)*t;
             }
+            //if(DEBUG) printf("Mix.getBaseValue() %s -> %s\n", pnt.toString(dFmt), data.toString(dFmt));
         }
         
         return ResultCodes.RESULT_OK;

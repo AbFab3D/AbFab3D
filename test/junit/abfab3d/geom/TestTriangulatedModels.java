@@ -25,7 +25,16 @@ import javax.vecmath.Vector3d;
 import abfab3d.util.TrianglePrinter;
 import abfab3d.util.TriangulatedSphere;
 import abfab3d.io.output.STLWriter;
+import abfab3d.io.output.X3DWriter;
+
 import abfab3d.core.TriangleProducer;
+import abfab3d.core.AttributedTriangleProducer;
+import abfab3d.core.DataSource;
+
+import abfab3d.datasources.Constant;
+import abfab3d.datasources.VolumePatterns;
+import abfab3d.datasources.Mix;
+import abfab3d.datasources.Mask;
 
 
 import static abfab3d.core.Output.printf;
@@ -256,14 +265,8 @@ public class TestTriangulatedModels extends TestCase {
     }
 
 
-    public static void main(String[] arg) throws Exception {
-
-        //new TestTriangulatedModels().devTestMakeSpheres();
-        //new TestTriangulatedModels().devTestCylinder("/tmp/cubeFrame.stl", 5*MM, 4*MM, 50*MM, 4);
-        //new TestTriangulatedModels().devTestCylinder("/tmp/cubeFrame_100.stl", 5*MM, 4*MM, 50*MM, 100);
-        //new TestTriangulatedModels().devTestCylinder("/tmp/cubeFrame_1000.stl", 5*MM, 4*MM, 50*MM, 1000);
-        //double a = 10*MM;
-        //new TestTriangulatedModels().devTestBox("/tmp/stackedBoxes_4.stl", 2*a, new Vector3d(a,a,a),new Vector3d(2*a,0,0),1.,4);
+    static void devTestColorless()throws Exception {
+        
         if(false){
             double a = 10*MM;
             double s = 0.9;        
@@ -285,5 +288,60 @@ public class TestTriangulatedModels extends TestCase {
             new TestTriangulatedModels().devTestTwistedBand("/tmp/twistedBand.stl", r, w, th, twist, spin, new Vector3d(r+w/2,w,r+w/2+th), cellSize);
 
         }            
+
+    }
+
+    static void makeColoredSphere(String path)throws Exception {
+
+        double rad = 50*MM;
+        Vector3d center = new Vector3d(rad, rad, rad);
+        int subdiv = 5;
+        double flipRatio = 0.05;
+        double noise = 0.0*MM;
+        double holesRatio = 0.3;
+
+        TriangleProducer sphere = new TriangulatedModels.Sphere(rad, center, subdiv);
+
+        TriangulatedModels.TriangleFlipper tf = new TriangulatedModels.TriangleFlipper(flipRatio, 123, sphere);
+        TriangulatedModels.TriangleRandomizer rsphere = new TriangulatedModels.TriangleRandomizer(noise, 231, tf);
+        TriangulatedModels.TriangleRemover holedSphere = new TriangulatedModels.TriangleRemover(holesRatio, 123, sphere);
+        
+        DataSource yellow = new Constant(1,1,0); // yellow 
+        DataSource orange = new Constant(0.9,0.5,0); // orange
+        DataSource blue = new Constant(0.3,0,0.9); //  
+        DataSource gyroid = new VolumePatterns.Gyroid(rad,7*MM);
+        DataSource mgyroid = new Mask(gyroid, 0, 7*MM);
+
+        DataSource mix = new Mix(yellow, blue, mgyroid);
+
+        //AttributedTriangleProducer csphere = new TriangleColorizer(rsphere, mix);
+        AttributedTriangleProducer csphere = new TriangleColorizer(holedSphere, mix);
+
+        X3DWriter writer = new X3DWriter(path);
+        writer.setWriteColoredMesh(true);
+        csphere.getAttTriangles(writer);
+        writer.close();
+
+    }
+
+    static void devTestColored() throws Exception {
+
+        makeColoredSphere("/tmp/colored_sphere.x3db");
+
+    }
+    
+
+    public static void main(String[] arg) throws Exception {
+
+        //new TestTriangulatedModels().devTestMakeSpheres();
+        //new TestTriangulatedModels().devTestCylinder("/tmp/cubeFrame.stl", 5*MM, 4*MM, 50*MM, 4);
+        //new TestTriangulatedModels().devTestCylinder("/tmp/cubeFrame_100.stl", 5*MM, 4*MM, 50*MM, 100);
+        //new TestTriangulatedModels().devTestCylinder("/tmp/cubeFrame_1000.stl", 5*MM, 4*MM, 50*MM, 1000);
+        //double a = 10*MM;
+        //new TestTriangulatedModels().devTestBox("/tmp/stackedBoxes_4.stl", 2*a, new Vector3d(a,a,a),new Vector3d(2*a,0,0),1.,4);
+
+        //devTestColorless();
+        devTestColored();
+
     }
 }

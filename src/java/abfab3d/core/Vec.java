@@ -64,6 +64,10 @@ public class Vec {
         this.v = new double[]{p.x,p.y,p.z};        
     }
 
+    public Vec(Tuple3d p, Tuple3d q){
+        this.v = new double[]{p.x,p.y,p.z, q.x, q.y, q.z};        
+    }
+
     public Vec(Vec in){
         this.v = new double[in.v.length];
         set(in);
@@ -149,8 +153,28 @@ public class Vec {
         System.arraycopy(v, 0, data, offset,count); 
     }
 
-    public final void set(double data[], int offset){
+    /**
+       use method setFrom() instead 
+     */
+    public final void set(double data[], int offset){        
+        setFrom(data, offset);
+    }
+
+    
+    /**
+       set value of this Vec from values in the data array at given offset 
+     */
+    public final void setFrom(double data[], int offset){        
         System.arraycopy(data, offset, v, 0, v.length); 
+    }
+
+    
+    /**
+       set value of this vector at given offset to given input values 
+     */
+    public final void setAt(Vec in, int offset){
+        System.arraycopy(in.v, 0, v, offset,in.v.length); 
+
     }
 
     public void set(Vec in){
@@ -165,6 +189,8 @@ public class Vec {
         voxelSize = in.voxelSize;
         scaleFactor = in.scaleFactor;
     }
+
+
 
     public void subSet(Tuple3d a){
         v[0] -= a.x;

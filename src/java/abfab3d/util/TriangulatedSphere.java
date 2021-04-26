@@ -308,7 +308,7 @@ public class TriangulatedSphere  implements TriangleProducer, AttributedTriangle
 
 
     /**
-       adds scaled triangle to trinagle collector
+       adds scaled triangle to triangle collector
      */
     void addAttTri(AttributedTriangleCollector atc, Vec v0, Vec v1, Vec v2){
         

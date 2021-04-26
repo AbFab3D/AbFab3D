@@ -34,7 +34,7 @@ import static abfab3d.core.Units.MM;
 
 public class VolumePatterns {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     static int debugCount = 100;
 
     /**
@@ -156,6 +156,7 @@ public class VolumePatterns {
             
             data.v[0] = getShapeValue(dist, pnt);
 
+            if(DEBUG)printf("gyroid.getBaseValue: %s->%s\n", pnt.toString("%8.4f"),data.toString("%8.4f")) ;
             return ResultCodes.RESULT_OK;
         }
         
