@@ -92,7 +92,7 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
     }
 
     public void setTexDimension(int dimension){
-        if(dimension < 1 || dimension > 3) throw new RuntimeException(fmt("illeange texture dimension: %d. May be only [1,2,3]", dimension));
+        if(dimension < 0 || dimension > 3) throw new RuntimeException(fmt("illegal texture dimension: %d. May be only [0,1,2,3]", dimension));
         m_texDimension = dimension;
     }
 
@@ -101,6 +101,7 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
      */
     public void setWriteTexturedMesh(boolean value){
         m_writeTexturedMesh = value;
+        m_texDimension = 2;
     }
 
     /**
