@@ -611,6 +611,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             return true;
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException(fmt("Exception while reading file:%s\n", m_path), e);
         }
     }

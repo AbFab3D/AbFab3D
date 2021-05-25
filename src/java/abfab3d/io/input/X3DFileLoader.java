@@ -128,8 +128,10 @@ public class X3DFileLoader extends CommonEncodedBaseFilter {
         for(int i=0; i < len; i++) {
             CommonEncodable enc = nodes.get(i);
             if (enc.getNodeName().equals("Shape")) {
-                processShape(enc);
-                shapes.add(enc);
+                if(enc.getValue("geometry") != null){ // skip empty shapes 
+                    processShape(enc);
+                    shapes.add(enc);
+                }
             }
         }
 
@@ -187,8 +189,10 @@ public class X3DFileLoader extends CommonEncodedBaseFilter {
         for(int i=0; i < len; i++) {
             CommonEncodable enc = nodes.get(i);
             if (enc.getNodeName().equals("Shape")) {
-                processShape(enc);
-                shapes.add(enc);
+                if(enc.getValue("geometry") != null){ // skip empty shapes 
+                    processShape(enc);
+                    shapes.add(enc);
+                }
             }
         }
 
