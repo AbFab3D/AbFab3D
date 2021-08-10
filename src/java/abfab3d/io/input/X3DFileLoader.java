@@ -44,6 +44,8 @@ import org.web3d.vrml.sav.InputSource;
 import org.web3d.parser.x3d.X3DReader;
 import org.web3d.vrml.lang.VRMLException;
 
+import static abfab3d.core.Output.printf;
+
 // Internal Imports
 
 /**
@@ -54,6 +56,9 @@ import org.web3d.vrml.lang.VRMLException;
  * @author Alan Hudson
  */
 public class X3DFileLoader extends CommonEncodedBaseFilter {
+
+    static final boolean DEBUG = true;
+
     /** Default major spec version to export as in X3D */
     private static final int DEFAULT_OUPUT_MAJOR_VERSION = 3;
 
@@ -78,6 +83,7 @@ public class X3DFileLoader extends CommonEncodedBaseFilter {
      * Load the specified file X3D file.
      */
     public void loadFile(File input) throws IOException, IllegalArgumentException {
+        if(DEBUG)printf("X3DFileLoader.loadFile(%s)\n", input); 
         int export_major_version = DEFAULT_OUPUT_MAJOR_VERSION;
         int export_minor_version = DEFAULT_OUPUT_MINOR_VERSION;
 

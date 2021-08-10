@@ -44,6 +44,7 @@ public class AttributedMeshReader extends BaseMeshReader implements AttributedTr
     private DataSource m_attributeCalc;
     private int m_dataDimension = -1;
     private boolean m_initialized = false;
+    private String m_texURL[] = new String[]{"texture.png"};
 
     public AttributedMeshReader(String path) {
         m_path = path;
@@ -126,8 +127,12 @@ public class AttributedMeshReader extends BaseMeshReader implements AttributedTr
         if (m_producer == null) throw new IllegalArgumentException("Unsupported format: " + m_format + " path: " + m_path);
         
         if (m_producer instanceof AttributedX3DReader) {
-            m_dataDimension = ((AttributedX3DReader)m_producer).getDataDimension();
-            m_attributeCalc = ((AttributedX3DReader)m_producer).getAttributeCalculator();
+
+            AttributedX3DReader xreader = (AttributedX3DReader)m_producer;
+            m_dataDimension = xreader.getDataDimension();
+            m_attributeCalc = xreader.getAttributeCalculator();
+            m_texURL = xreader.getTexURL();
+
         } else {
             m_dataDimension = 3;
         }
@@ -165,6 +170,12 @@ public class AttributedMeshReader extends BaseMeshReader implements AttributedTr
         initialize();         
 
         return m_attributeCalc;
+    }
+
+    public String[] getTexURL(){
+
+        return m_texURL;
+
     }
 
     /**

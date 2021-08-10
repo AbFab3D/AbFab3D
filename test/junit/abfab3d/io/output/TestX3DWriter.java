@@ -48,6 +48,120 @@ public class TestX3DWriter extends TestCase {
         writer.close();
     }
 
+    /**
+       test of textured tetrahedron 
+     */
+    void devTestWriteTexTetra(String path, String texFileName)throws Exception {
+
+        X3DWriter writer = new X3DWriter(path, texFileName);
+        double a = 0.01;
+        double t = 0.8; // tex coord 
+        Vec 
+            v0 = new Vec( a, a, a, t,t),
+            v1 = new Vec(-a,-a, a, 0,0),
+            v2 = new Vec( a,-a,-a, t,0),
+            v3 = new Vec(-a, a,-a, 0,t);
+        
+        writer.addAttTri(v0, v3, v1);  
+        writer.addAttTri(v0, v1, v2);  
+        writer.addAttTri(v0, v2, v3);  
+        writer.addAttTri(v1, v3, v2);  
+                
+        writer.close();
+    }
+
+    /**
+       test of textured tetrahedron 
+     */
+    void devTestWriteTetra2Tex(String path, String tex1, String tex2)throws Exception {
+
+        X3DWriter writer = new X3DWriter(path, tex1);
+
+        double a = 0.1;
+        double b  = 0.05;
+
+        double t = 0.8; // tex coord 
+
+        Vec 
+            v0 = new Vec( a, a, a, t,t),
+            v1 = new Vec(-a,-a, a, 0,0),
+            v2 = new Vec( a,-a,-a, t,0),
+            v3 = new Vec(-a, a,-a, 0,t);
+
+        Vec 
+            u0 = new Vec(b + a, b + a, b + a, t, t),
+            u1 = new Vec(b - a, b - a, b + a, 0, 0),
+            u2 = new Vec(b + a, b - a, b - a, t, 0),
+            u3 = new Vec(b - a, b + a, b - a, 0, t);
+
+        writer.addAttTri(v0, v3, v1);  
+        writer.addAttTri(v0, v1, v2);  
+        writer.addAttTri(v0, v2, v3);  
+        writer.addAttTri(v1, v3, v2);  
+                
+        writer.addNewShape(tex2);
+        writer.addAttTri(u0, u3, u1);  
+        writer.addAttTri(u0, u1, u2);  
+        writer.addAttTri(u0, u2, u3);  
+        writer.addAttTri(u1, u3, u2);  
+
+        writer.close();
+    }
+
+
+
+
+    /**
+       test of textured tetrahedron 
+     */
+    void devTestWriteTexTetraMissingFace(String path, String texFileName)throws Exception {
+
+        X3DWriter writer = new X3DWriter(path, texFileName);
+        double a = 0.01;
+        double t = 0.8; // tex coord 
+        Vec 
+            v0 = new Vec( a, a, a, t,t),
+            v1 = new Vec(-a,-a, a, 0,0),
+            v2 = new Vec( a,-a,-a, t,0),
+            v3 = new Vec(-a, a,-a, 0,t);
+        
+        writer.addAttTri(v0, v3, v1);  
+        writer.addAttTri(v0, v1, v2);  
+        writer.addAttTri(v0, v2, v3);  
+        //writer.addAttTri(v1, v3, v2);  
+                
+        writer.close();
+    }
+
+
+    /**
+       test of textured tetrahedron 
+     */
+    void devTestWriteTexTetraGap(String path, String texFileName)throws Exception {
+
+        printf("devTestWriteTexTetraGap(%s,%s)\n",path, texFileName);
+        X3DWriter writer = new X3DWriter(path, texFileName);
+        double a = 0.01;
+        double b = 0.011;
+        double t = 0.8; // tex coord 
+        Vec 
+            v0 = new Vec( a, a, a, t,t),
+            v1 = new Vec(-a,-a, a, 0,0),
+            v2 = new Vec( a,-a,-a, t,0),
+            v3 = new Vec(-a, a,-a, 0,t),
+            v0a = new Vec( b, b, b, t,t),
+            v1a = new Vec(-b,-b, b, 0,0),
+            v2a = new Vec( b,-b,-b, t,0),
+            v3a = new Vec(-b, b,-b, 0,t);
+        
+        writer.addAttTri(v0, v3, v1);  
+        writer.addAttTri(v0, v1, v2);  
+        writer.addAttTri(v0, v2, v3);  
+        writer.addAttTri(v1a, v3a, v2a);  
+                
+        writer.close();
+    }
+
     void devTestWriteTetrahedron(String path)throws Exception {
 
         X3DWriter writer = new X3DWriter(path);
@@ -60,7 +174,7 @@ public class TestX3DWriter extends TestCase {
 
         writer.close();
     }
-    
+
 
     void devTestWriteTetrahedron2(String path)throws Exception {
 
@@ -142,10 +256,13 @@ public class TestX3DWriter extends TestCase {
         //new TestX3DWriter().devTestWriteTetrahedron2("/tmp/tetra2.x3d");
         //new TestX3DWriter().devTestWriteTetrahedron2("/tmp/tetra2.x3dv");
         //new TestX3DWriter().devTestWriteTetrahedron2("/tmp/tetra2.x3db");
-        new TestX3DWriter().devTestWriteTetrahedron2a("/tmp/tetra2a.x3db");
+        //new TestX3DWriter().devTestWriteTetrahedron2a("/tmp/tetra2a.x3db");
         //new TestX3DWriter().devTestWriteTetrahedron3("/tmp/tetra3.x3db");
         //new TestX3DWriter().devTestWriteTetrahedron4("/tmp/tetra4.x3db");
-
+        //new TestX3DWriter().devTestWriteTexTetra("/tmp/tetra_tex.x3d", "tetra_tex.png");
+        //new TestX3DWriter().devTestWriteTexTetraMissingFace("/tmp/tetra_tex_missing_face.x3d", "tetra_tex_missing_face.png");
+        new TestX3DWriter().devTestWriteTexTetraGap("/tmp/tetra_tex_gap.x3d", "tetra_tex_gap.png");
+        //new TestX3DWriter().devTestWriteTetra2Tex("/tmp/tetra_two_tex.x3d", "tetra_2_tex_1.png","tetra_2_tex_2.png");
 
     }
 

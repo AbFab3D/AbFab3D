@@ -14,12 +14,14 @@ package abfab3d.io.input;
 
 import abfab3d.datasources.Constant;
 import abfab3d.core.AttributeGrid;
+import abfab3d.core.Bounds;
 import abfab3d.io.output.GridSaver;
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.core.DataSource;
 import abfab3d.core.Vec;
 import junit.framework.TestCase;
 
+import java.io.File;
 import java.io.IOException;
 
 import static abfab3d.core.Output.printf;
@@ -412,6 +414,70 @@ public class TestAttributedMeshReader extends TestCase {
         printf("u: %4.2f v: %4.2f  color: %4.2f %4.2f %4.2f\n",uv.v[0],uv.v[1],color.v[0],color.v[1],color.v[2]);
         assertTrue("r wrong",Math.abs(color.v[0] - expected.v[0]) < EPS);
 
+    }
+
+    
+    static void devTestReadFilesInFolder(String inFolder) throws Exception {
+
+        File inF = new File(inFolder);
+        if(inF.exists()){
+        } else {
+            printf("inFolder '%s' does not exists! Exit\n", inFolder);
+            return;
+        }
+        if(!inF.isDirectory()){
+            printf("inFolder '%s' is not directory! Exit\n", inFolder);            
+            return;
+        }
+        printf("opening inFolder '%s'\n", inF.getCanonicalPath());
+        File inFiles[] = inF.listFiles();
+        printf("found %d files\n", inFiles.length);
+
+        for(int i = 0; i < inFiles.length; i++){
+            String inPath = inFiles[i].getCanonicalPath();
+            if(!is3DFile(inPath))
+                continue;
+            printf("reading file: %s\n",inPath);
+            AttributedMeshReader reader = new AttributedMeshReader(inPath);
+            BoundingBoxCalculator bb = new BoundingBoxCalculator();
+            reader.getAttTriangles(bb);
+            Bounds bounds = bb.getBounds();
+            int triCount = bb.getTriangleCount();
+            
+            printf("triangles: %d\n", triCount);
+            printf("bounbds: %s\n", bounds.toString());
+            
+        }        
+    }
+
+
+    static String getFileExt(String name){
+        int dotIndex = name.lastIndexOf('.');
+        if(dotIndex < 0)
+            return "";
+        else 
+            return name.substring(dotIndex, name.length());
+    }
+
+    static String EXT3D[] = new String[]{".x3db", ".x3d", ".wrl"};
+
+    static boolean is3DFile(String path){
+        String ext = getFileExt(path);
+        if(ext.length() == 0) 
+            return false;
+
+        ext = ext. 	toLowerCase();
+        for(int i = 0; i < EXT3D.length; i++){
+            if(ext.equals(EXT3D[i]))
+                return true;
+        }
+        return false;
+        
+    }
+
+    public static void main(String args[]) throws Exception {
+
+        devTestReadFilesInFolder("/tmp/models/input/");
     }
 
 }

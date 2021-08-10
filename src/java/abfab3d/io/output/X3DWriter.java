@@ -18,6 +18,8 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import java.util.Vector;
+
 import org.web3d.vrml.sav.BinaryContentHandler;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
@@ -53,21 +55,20 @@ import static abfab3d.core.Output.fmt;
  */
 public class X3DWriter implements TriangleCollector, AttributedTriangleCollector {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     static final String DEFAULT_TEX_NAME = "texture.png";
-    int m_triCount = 0;
     String m_path = null;
-    String m_texFileName = DEFAULT_TEX_NAME;
-    boolean m_writeTexturedMesh = false;
-    boolean m_writeColoredMesh = false;
-    int m_texDimension = 2;
+
 
     private static final float[] m_specularColor = new float[] {1.f,1.f,1.f};
     private static final float[] m_materialColor = new float[] {0.5f,0.5f,0.5f};
 
-    PointSetArray m_points = null;
-    PointSetArray m_texPoints = null;
+    boolean m_writeMaterial = true;
+
+    Shape m_currentShape;  // current active shape 
+
+    Vector<Shape> m_shapes = new Vector<Shape>(1); // all shapes
 
     /**
 
@@ -76,41 +77,81 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
      */
     public X3DWriter(String filePath) throws IOException {
 
+        this(filePath, 0);
+
+    }
+
+    public X3DWriter(String filePath, int texDimension) throws IOException {
+
         m_path = filePath;
-        m_points = new PointSetArray();
-        
+        addNewShape(texDimension);
+
     }
 
     public X3DWriter(String filePath, String texFileName) throws IOException {
-        m_writeTexturedMesh = true;
-        m_texFileName = texFileName;
-        m_path = filePath;
-        m_points = new PointSetArray();
-        m_texPoints = new PointSetArray();
-        
 
+        m_path = filePath;
+                
+        addNewShape(texFileName);
+        
+    }
+
+    public void setTexFileName(String texFileName){
+        m_currentShape.setTexFileName(texFileName);
     }
 
     public void setTexDimension(int dimension){
-        if(dimension < 0 || dimension > 3) throw new RuntimeException(fmt("illegal texture dimension: %d. May be only [0,1,2,3]", dimension));
-        m_texDimension = dimension;
+        
+        m_currentShape.setTexDimension(dimension);
+
     }
 
     /**
        save textured mesh 
      */
     public void setWriteTexturedMesh(boolean value){
-        m_writeTexturedMesh = value;
-        m_texDimension = 2;
+        m_currentShape.setWriteTexturedMesh(value);
     }
 
     /**
-       save coloed mesh 
+       save colored mesh 
      */
     public void setWriteColoredMesh(boolean value){
-        m_writeColoredMesh = value;
-        m_texDimension = 3;
-        m_texPoints = new PointSetArray();
+        
+        m_currentShape.setWriteColoredMesh(value);
+
+    }
+
+    public void addNewShape(String texFileName){
+
+        Shape shape = new Shape(texFileName); 
+        m_shapes.add(shape);
+        m_currentShape = shape;
+
+    }
+    
+    public void addNewShape(int texDimension){
+
+        
+        switch(texDimension){
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+            m_currentShape = new Shape(texDimension); 
+            break;
+        }
+        m_shapes.add(m_currentShape);
+
+    }
+
+    /**
+       sets whether or not write material for colorless meshes 
+     */
+    public void setWriteMaterial(boolean value){
+
+        m_writeMaterial = value;
+        
     }
 
     /**
@@ -118,9 +159,11 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
      */
     public void close() throws IOException{
         if(DEBUG) {
-            printf("closing export to %s\n", m_path);
-            printf("triCount: %d\n", m_triCount);
-            printf("pointsCount: %d\n", m_points.size());            
+            //printf("closing export to '%s'\n", m_path);
+            //for(int s = 0; s < m_shapes.size(); s++){
+            //    Shape shape =  m_shapes.get(s);
+            //    printf("shape(%d)= %s\n", s, shape.toString());
+            //}
         }        
         
         write(getFormat(m_path));
@@ -132,15 +175,8 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
        method of interface TriangleCollector
      */
     public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2 ){
-
-        // each point is independent (not efficient)
-        m_points.addPoint(v0.x,v0.y,v0.z);
-        m_points.addPoint(v1.x,v1.y,v1.z);
-        m_points.addPoint(v2.x,v2.y,v2.z);
-
-        m_triCount++;
         
-        return true;
+        return m_currentShape.addTri(v0, v1, v2);
         
     }
 
@@ -148,91 +184,79 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
        adds attributed (textured) triangle 
      */
     public boolean addAttTri(Vec v0,Vec v1,Vec v2){
-       
-        // each point is independent (not efficient)
-        m_points.addPoint(v0.v[0],v0.v[1],v0.v[2]);
-        m_points.addPoint(v1.v[0],v1.v[1],v1.v[2]);
-        m_points.addPoint(v2.v[0],v2.v[1],v2.v[2]);
-        switch(m_texDimension){
-        case 1:
-            m_texPoints.addPoint(v0.v[3],0,0);
-            m_texPoints.addPoint(v1.v[3],0,0);
-            m_texPoints.addPoint(v2.v[3],0,0);
-            break;
-        case 2:
-            m_texPoints.addPoint(v0.v[3],v0.v[4],0);
-            m_texPoints.addPoint(v1.v[3],v1.v[4],0);
-            m_texPoints.addPoint(v2.v[3],v2.v[4],0);
-            break;
-        case 3: 
-            m_texPoints.addPoint(v0.v[3],v0.v[4],v0.v[5]);
-            m_texPoints.addPoint(v1.v[3],v1.v[4],v1.v[5]);
-            m_texPoints.addPoint(v2.v[3],v2.v[4],v2.v[5]);
-            break;
-        }
 
-        m_triCount++;
-        
-        return true;
+        return m_currentShape.addAttTri(v0, v1, v2);
 
     }
 
 
     public void write(String format)  throws IOException {
         
-        int pcount = m_points.size();
-        float coord[] = new float[pcount*3];
-        int coordInd[] = new int[m_triCount*3];
-        Vector3d pnt = new Vector3d();
-
-        for(int i = 0; i < pcount; i++){
-            m_points.getPoint(i,pnt);
-            coord[i*3] = (float)pnt.x;
-            coord[i*3+1] = (float)pnt.y;
-            coord[i*3+2] = (float)pnt.z;
-        }
-
-        for(int i = 0; i < m_triCount*3; i++){
-            coordInd[i] = i;
-        }
-        float texCoord[] = null;
-        int texCoordInd[] = null;
-
-        if(m_writeTexturedMesh || m_writeColoredMesh){
-            
-            texCoord = new float[pcount*m_texDimension];
-            texCoordInd = new int[m_triCount*3];
-            for(int i = 0; i < pcount; i++){
-                m_texPoints.getPoint(i,pnt);
-                int ii = m_texDimension*i;
-                switch(m_texDimension){
-                case 3: texCoord[ii + 2] = (float)pnt.z; // no break
-                case 2: texCoord[ii + 1] = (float)pnt.y; // no break
-                case 1: texCoord[ii]     = (float)pnt.x; // no break
-                }
-                
-            }
-            for(int i = 0; i < m_triCount*3; i++){
-                texCoordInd[i] = i;
-            }
-        }
-
+        if(DEBUG) printf("X3DWriter.write(%s)\n", format);
         FileOutputStream fos = new FileOutputStream(m_path);
         BufferedOutputStream bos = new BufferedOutputStream(fos);
 
         BinaryContentHandler writer = createX3DWriter(format, bos);
 
-        if(m_writeColoredMesh) 
-            writeColoredMeshX3D(coord, coordInd, texCoord, texCoordInd, writer);
-        else if(m_writeTexturedMesh) 
-            writeTexturedMeshX3D(coord, coordInd, texCoord, texCoordInd, m_texFileName, writer);
-        else 
-            writeMeshX3D(coord, coordInd, writer);
+        for(int s = 0; s < m_shapes.size(); s++){
 
-        
+            Shape shape = m_shapes.get(s);
+
+            if(DEBUG) printf(" shape(%d): %s\n", s, shape.toString());
+            PointSetArray points = shape.points;
+            int triCount = shape.triCount;
+
+            int pcount = points.size();
+            float coord[] = new float[pcount*3];
+            int coordInd[] = new int[triCount*3];
+            Vector3d pnt = new Vector3d();
+            
+            for(int i = 0; i < pcount; i++){
+                points.getPoint(i,pnt);
+                coord[i*3] = (float)pnt.x;
+                coord[i*3+1] = (float)pnt.y;
+                coord[i*3+2] = (float)pnt.z;
+            }
+            
+            for(int i = 0; i < triCount*3; i++){
+                coordInd[i] = i;
+            }
+            float texCoord[] = null;
+            int texCoordInd[] = null;
+            
+            if(shape.writeTexturedMesh || shape.writeColoredMesh){
+                PointSetArray texPoints = shape.texPoints;
+                int texDimension = shape.texDimension;
+                texCoord = new float[pcount*texDimension];
+                texCoordInd = new int[triCount*3];
+                for(int i = 0; i < pcount; i++){
+                    texPoints.getPoint(i,pnt);
+                    int ii = texDimension*i;
+                    switch(texDimension){
+                    case 3: texCoord[ii + 2] = (float)pnt.z; // no break
+                    case 2: texCoord[ii + 1] = (float)pnt.y; // no break
+                    case 1: texCoord[ii]     = (float)pnt.x; // no break
+                    }                    
+                }
+                for(int i = 0; i < triCount*3; i++){
+                    texCoordInd[i] = i;
+                }
+            }
+            
+            if(shape.writeColoredMesh) 
+                writeColoredShape(coord, coordInd, texCoord, texCoordInd, writer);
+            else if(shape.writeTexturedMesh) 
+                writeTexturedShape(coord, coordInd, texCoord, texCoordInd, shape.texFileName, writer);
+            else 
+                writeColorlessShape(coord, coordInd, writer);            
+        } // for(int s = 0; s < m_shapes.size(); s++){
+
+        writer.endDocument();
+
     }
 
-    public void writeMeshX3D(float fcoord[], int coordIndex[], BinaryContentHandler writer) throws IOException {
+    
+    public void writeColorlessShape(float fcoord[], int coordIndex[], BinaryContentHandler writer) throws IOException {
         
         coordIndex = insertMinusOne(coordIndex);
 
@@ -250,27 +274,26 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
         writer.endNode();   // Coord
 
         writer.endNode();   // IndexedFaceSet
+        if(m_writeMaterial){
+            writer.startField("appearance");
+            writer.startNode("Appearance", null);
+            writer.startField("material");
+            writer.startNode("Material",null);
+            writer.startField("specularColor");
+            writer.fieldValue(m_specularColor, 3);
+            writer.endNode();   // Material            
+            writer.endNode();   // Appearance
+        }
 
-        writer.startField("appearance");
-        writer.startNode("Appearance", null);
-        writer.startField("material");
-        writer.startNode("Material",null);
-        writer.startField("specularColor");
-        writer.fieldValue(m_specularColor, 3);
-        writer.endNode();   // Material
-        
-        writer.endNode();   // Appearance
-        
         writer.endNode();   // Shape
         
-        writer.endDocument();
     } // writeMeshX3D
 
     /**
        writes textured triangles into a X3D file.
        texture file is already saved
     */
-    public void writeTexturedMeshX3D(float fcoord[], int coordIndex[], float ftexCoord[], int texCoordIndex[],String texFileName,
+    public void writeTexturedShape(float fcoord[], int coordIndex[], float ftexCoord[], int texCoordIndex[],String texFileName,
                                      BinaryContentHandler writer) throws IOException {
         
         texCoordIndex = insertMinusOne(texCoordIndex);
@@ -302,10 +325,12 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
         writer.startField("appearance");
         writer.startNode("Appearance", null);
         writer.startField("material");
-        writer.startNode("Material",null);
-        writer.startField("specularColor");
-        writer.fieldValue(m_specularColor, 3);
-        writer.endNode();   // Material
+        if(m_writeMaterial){
+            writer.startNode("Material",null);
+            writer.startField("specularColor");
+            writer.fieldValue(m_specularColor, 3);
+            writer.endNode();   // Material
+        }
         writer.startField("texture");
         writer.startNode("ImageTexture", null);
         writer.startField("url");
@@ -317,11 +342,10 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
         
         writer.endNode();   // Shape
         
-        writer.endDocument();
     } // writeTexturedMeshX3D
 
 
-    private void writeColoredMeshX3D(float fcoord[], int coordIndex[], float vertColors[], int vertColorInd[],
+    private void writeColoredShape(float fcoord[], int coordIndex[], float vertColors[], int vertColorInd[],
                                      BinaryContentHandler writer) throws IOException {
         
         //texCoordIndex = insertMinusOne(texCoordIndex);
@@ -357,18 +381,17 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
 
         writer.startField("appearance");
         writer.startNode("Appearance", null);
-        writer.startField("material");
-        writer.startNode("Material",null);
-        writer.startField("specularColor");
-        writer.fieldValue(m_specularColor, 3);
-        writer.endNode();   // Material
-        
+        if(m_writeMaterial){
+            writer.startField("material");
+            writer.startNode("Material",null);
+            writer.startField("specularColor");
+            writer.fieldValue(m_specularColor, 3);
+            writer.endNode();   // Material
+        }
         writer.endNode();   // Appearance
         
         writer.endNode();   // Shape
         
-        writer.endDocument();
-
     }
 
 
@@ -442,6 +465,134 @@ public class X3DWriter implements TriangleCollector, AttributedTriangleCollector
         else return "unknown";
         
     }
+
+    //
+    //  individual shape data 
+    //
+    static class Shape {
+
+        PointSetArray points = null;
+        PointSetArray texPoints = null;
+        int texDimension = 2;
+        int triCount = 0;
+        //    String m_texFileName = DEFAULT_TEX_NAME;
+        boolean writeTexturedMesh = false;
+        boolean writeColoredMesh = false;
+        String texFileName = DEFAULT_TEX_NAME;
+
+        Shape(String texFileName){
+
+            this.points = new PointSetArray();
+            this.texPoints = new PointSetArray();
+            texDimension = 2;
+            this.texFileName = texFileName;
+            writeTexturedMesh = true;
+        }
+
+        Shape(int texDimension){
+
+            this.points = new PointSetArray();
+            this.texDimension = texDimension;
+            switch(texDimension){                
+            case 1: 
+            case 2: 
+                this.texPoints = new PointSetArray();
+                this.writeTexturedMesh = true;
+                break;
+
+            case 3: 
+                this.texPoints = new PointSetArray();
+                this.writeTexturedMesh = true;
+                writeColoredMesh = true;
+                break;
+            }
+
+        }
+
+        void setTexFileName(String texFileName){
+            this.texFileName = texFileName;
+        }
+
+        public boolean addAttTri(Vec v0,Vec v1,Vec v2){
+            // each point is independent (not efficient)
+            points.addPoint(v0.v[0],v0.v[1],v0.v[2]);
+            points.addPoint(v1.v[0],v1.v[1],v1.v[2]);
+            points.addPoint(v2.v[0],v2.v[1],v2.v[2]);
+            switch(texDimension){
+            case 1:
+                texPoints.addPoint(v0.v[3],0,0);
+                texPoints.addPoint(v1.v[3],0,0);
+                texPoints.addPoint(v2.v[3],0,0);
+                break;
+            case 2:
+                texPoints.addPoint(v0.v[3],v0.v[4],0);
+                texPoints.addPoint(v1.v[3],v1.v[4],0);
+                texPoints.addPoint(v2.v[3],v2.v[4],0);
+                break;
+            case 3: 
+                texPoints.addPoint(v0.v[3],v0.v[4],v0.v[5]);
+                texPoints.addPoint(v1.v[3],v1.v[4],v1.v[5]);
+                texPoints.addPoint(v2.v[3],v2.v[4],v2.v[5]);
+                break;
+            }
+            
+            triCount++;
+            
+            return true;
+        }
+
+        public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2 ){
+            
+            // each point is independent (not efficient)
+            points.addPoint(v0.x,v0.y,v0.z);
+            points.addPoint(v1.x,v1.y,v1.z);
+            points.addPoint(v2.x,v2.y,v2.z);
+            
+            triCount++;
+            
+            return true;
+            
+        } // addTri         
+
+        //
+        //
+        //
+        public void setTexDimension(int dimension){
+        
+            if(dimension < 0 || dimension > 3) throw new RuntimeException(fmt("illegal texture dimension: %d. May be only [0,1,2,3]", dimension));
+            this.texDimension  = dimension;
+        }
+
+        /**
+           save textured mesh 
+        */
+        public void setWriteTexturedMesh(boolean value){
+            writeTexturedMesh = value;
+            texDimension = 2;
+        }
+        
+        /**
+           save colored mesh 
+        */
+        public void setWriteColoredMesh(boolean value){
+            writeColoredMesh = value;
+            texDimension = 3;
+            texPoints = new PointSetArray();
+        }        
+
+        public String toString(){
+            StringBuffer sb = new StringBuffer();
+            sb.append(fmt("Shape(triCount: %d, texDimension: %d, texFileName:'%s', ", triCount, texDimension, texFileName));
+            if(points != null) sb.append(fmt("points:%d, ", points.size()));
+            else  sb.append("points:null,");
+            if(texPoints != null) sb.append(fmt("texPoints:%d, ", texPoints.size()));
+            else  sb.append("texPoints:null, ");
+            sb.append(fmt("writeTexturedMesh:%b, writeColoredMesh: %b", writeTexturedMesh, writeColoredMesh));        
+            sb.append(")");        
+            return sb.toString();
+        }
+
+    }  // class Shape 
 
 } // class STLWriter
  

@@ -52,7 +52,7 @@ import static abfab3d.core.Output.printf;
  */
 public class AttributedX3DReader implements AttributedTriangleProducer, Transformer {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     /** Transformation to apply to positional vertices, null for none */
     private VecTransform m_transform;
@@ -66,12 +66,14 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
 
 
     private ImageColorMap[] m_textures;
+    private String m_texURL[] = new String[]{"texture.png"};
     private DataSource[] m_calcs = null;
     private DataSource m_attributeCalculator = null;
 
     private int m_dataDimension = 0;
     private int m_lastTex = 0;
-    private HashMap<String,Integer> texMap = new HashMap<String, Integer>();
+    private HashMap<String,Integer> m_texMap = new HashMap<String, Integer>();
+
 
     public AttributedX3DReader(String path) {
         File f = new File(path);
@@ -83,6 +85,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         m_is = is;
         m_baseURL = baseURL;
     }
+
 
     /**
      * Set the transform to be applied to each triangle before passing it to TriangleCollector.
@@ -97,8 +100,8 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         initialize(null);
     }
 
-    private void initialize(AttributedTriangleCollector out){
-        if(m_initialized)
+    private void initialize(AttributedTriangleCollector out){fileLoader
+        if(m_initialized)fileLoader
             return;
 
         try {
@@ -112,7 +115,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
 
             read(out);
         } catch(Exception e){
-            throw new RuntimeException(e);
+            throw new RuntimeException(fmt("exception while reading '%s'",m_path), e);
         }
         m_initialized = true;
     }
@@ -126,39 +129,63 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
 
         Iterator<CommonEncodable> itr = shapes.iterator();
 
-        if (m_textures == null || m_textures.length != shapes.size()) m_textures = new ImageColorMap[shapes.size()];
+        if (m_textures == null || m_textures.length != shapes.size()) {
+            m_textures = new ImageColorMap[shapes.size()];
+            m_texURL = new String[shapes.size()];
+        }
         m_dataDimension = calcDataDimension(shapes);
         int cnt = 0;
         if (m_calcs == null || m_calcs.length != shapes.size()) m_calcs = new DataSource[shapes.size()];
 
-        if (DEBUG) printf("Reading x3d.  shapes: %d dims: %d\n  output: %b",shapes.size(),m_dataDimension,out != null);
+        if (DEBUG) {
+            printf("Reading '%s'\n",m_path);
+            printf("  shapes.size: %d dataDimension: %d  output: %b\n",shapes.size(),m_dataDimension,out != null);
+        }
         while(itr.hasNext()) {
+
             boolean hasVertexColor = false;
             boolean hasMaterialColor = false;
             boolean hasTexture = false;
 
             CommonEncodable shape = itr.next();
+            if(DEBUG) printf("Shape[%d]: %s\n", cnt, shape.getNodeName());
             CommonEncodable appNode = (CommonEncodable) shape.getValue("appearance");
             CommonEncodable texNode = null;
-            CommonEncodable transNode = null;
+            CommonEncodable texTransNode = null;
             CommonEncodable matNode = null;
+
             if (appNode != null) {
                 texNode = (CommonEncodable) appNode.getValue("texture");
-                transNode = (CommonEncodable) appNode.getValue("textureTransform");
+                texTransNode = (CommonEncodable) appNode.getValue("textureTransform");
                 matNode = (CommonEncodable) appNode.getValue("material");
             }
+
             CommonEncodable its = (CommonEncodable) shape.getValue("geometry");
+            if(DEBUG && its != null) printf("   geometry: %s\n", its.getNodeName());
+
             CommonEncodable coordNode = (CommonEncodable) its.getValue("coord");
+            if(DEBUG && coordNode != null) printf("   coordNode: %s\n", coordNode.getNodeName());
+
             CommonEncodable tcoordNode = (CommonEncodable) its.getValue("texCoord");
+            if(DEBUG && tcoordNode != null) printf("   texCoord: %s\n", tcoordNode.getNodeName());
+
             CommonEncodable colorNode = (CommonEncodable) its.getValue("color");
+
+            if(DEBUG && colorNode != null) printf("   colorNode: %s\n", colorNode.getNodeName());
             float[] coord = (float[]) ((ArrayData)coordNode.getValue("point")).data;
+            if(DEBUG && coord != null) printf("   coord.length: %s\n", coord.length);
+
             int[] coordIndex = (int[]) ((ArrayData)its.getValue("index")).data;
+            if(DEBUG)printf("coordIndex:%s",coordIndex); 
+            if(DEBUG && coordIndex != null) printf("   coordIndex.length: %s\n", coordIndex.length);
+
             float[] color = null;
 
             if (colorNode != null) {
                 color = (float[]) ((ArrayData)colorNode.getValue("color")).data;
                 if (color != null) {
                     hasVertexColor = true;
+                    if(DEBUG && color != null) printf("   color.length: %s\n", color.length);
                 }
             }
 
@@ -187,8 +214,8 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
             ArrayData cci = ((ArrayData)its.getValue("colorIndex"));
             if (cci != null) colorIndex = (int[]) cci.data;
 
-            if (transNode != null) {
-                Matrix4f tmat = getMatrix(transNode);
+            if (texTransNode != null) {
+                Matrix4f tmat = getMatrix(texTransNode);
                 Point3f pnt = new Point3f();
 
                 int num_coord = tcoordData.num;
@@ -206,8 +233,8 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
                 tcoord = point_xfrm;
             }
 
-            int tex = -1;
-            if (texNode != null) tex = addTexture(texNode);
+            int texInd = -1;
+            if (texNode != null) texInd = addTexture(texNode);
 
             if (DEBUG) printf("Shape: %d  dim: %d hasTexture: %b  hasVertex: %b  hasMaterial: %b\n",cnt,m_dataDimension,hasTexture,hasVertexColor,hasMaterialColor);
             switch(m_dataDimension) {
@@ -217,12 +244,12 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
                     break;
                 case 5:
                     if (out != null) addTriangles5(coord, tcoord, coordIndex, tcoordIndex, out);
-                    m_calcs[cnt] = new SingleTextureAttributeCalculator(m_textures[tex]);
+                    m_calcs[cnt] = new SingleTextureAttributeCalculator(m_textures[texInd]);
                     break;
                 case 6:
                     if (hasTexture) {
-                        if (out != null) addTriangles6(coord, tcoord, tex, coordIndex, tcoordIndex, out);
-                        m_calcs[cnt] = new SingleTextureAttributeCalculator(m_textures[tex]);
+                        if (out != null) addTriangles6(coord, tcoord, texInd, coordIndex, tcoordIndex, out);
+                        m_calcs[cnt] = new SingleTextureAttributeCalculator(m_textures[texInd]);
                     } else if (hasVertexColor) {
                         if (out != null) addTrianglesColor(coord, color, coordIndex, colorIndex, out);
                         m_calcs[cnt] = new InterpolatedAttributeCalculator();
@@ -327,7 +354,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         Boolean repeatY = (Boolean) tex.getValue("repeatY");
 
         String path = m_baseURL + File.separator + url[0];
-        Integer idx = texMap.get(path);
+        Integer idx = m_texMap.get(path);
         if (idx != null) {
             return idx;
         }
@@ -342,7 +369,9 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
 
         icm.initialize();
         m_textures[idx] = icm;
-        texMap.put(path,idx);
+        m_texURL[idx] = url[0];
+
+        m_texMap.put(path,idx);
 
         return idx;
     }
@@ -612,7 +641,7 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException(fmt("Exception while reading file:%s\n", m_path), e);
+            throw new RuntimeException(fmt("Exception while reading '%s'\n", m_path), e);
         }
     }
 
@@ -670,6 +699,11 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         return m_dataDimension;
     }
 
+    public String[] getTexURL(){
+
+        return m_texURL;
+
+    }
 
     /**
        calculates color value for point in texture coordinates
@@ -771,9 +805,8 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
     } // class AttributeCalculator
 
     /**
-     calculates color value for point in texture coordinates
-     multiple textures are indexed by 3rd coordinate
-     supports multiple textures
+       supports shapes with color given RGB 
+       
      */
     static class InterpolatedAttributeCalculator implements DataSource {
         InterpolatedAttributeCalculator(){
