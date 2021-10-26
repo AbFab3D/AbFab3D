@@ -41,6 +41,7 @@ public class SAVExporter {
     public static final String GEOMETRY_TYPE = "GEOMETRY_TYPE";
     public static final String MATERIAL = "MATERIAL";
     public static final String FINISH = "FINISH";
+    public static final String IMAGE_TEXTURE = "IMAGE_TEXTURE";
 
     public enum GeometryType {INDEXEDTRIANGLESET, INDEXEDFACESET, INDEXEDLINESET, POINTSET}
 
@@ -59,6 +60,7 @@ public class SAVExporter {
     public void outputX3D(abfab3d.util.TriangleMesh mesh, Map<String, Object> params, BinaryContentHandler stream, String defName) {
         String material = null;
         String finish[] = null;
+        String imageTextureUrl = null;
 
         if (params != null) {
             material = (String) params.get(MATERIAL);
@@ -68,8 +70,10 @@ public class SAVExporter {
             } else {
                 finish = (String[]) o;
             }
+            
+            imageTextureUrl = (String) params.get(IMAGE_TEXTURE);
         }
-        outputX3D(mesh, params, material, finish, stream, defName);
+        outputX3D(mesh, params, material, finish, stream, defName, imageTextureUrl);
     }
 
     /**
@@ -100,7 +104,6 @@ public class SAVExporter {
         outputX3D(verts, params, material, finish, stream, defName);
     }
 
-
     /**
      * Output a WingedEdgeTriangleMesh to an X3D stream.  By default this exporter exports
      * coordinates and normals.
@@ -117,6 +120,25 @@ public class SAVExporter {
      */
     public void outputX3D(abfab3d.util.TriangleMesh mesh, Map<String, Object> params, String material, String[] finish,
                           BinaryContentHandler stream, String defName) {
+        outputX3D(mesh,  params, material, finish, stream, defName, null);
+    }
+
+    /**
+     * Output a WingedEdgeTriangleMesh to an X3D stream.  By default this exporter exports
+     * coordinates and normals.
+     * <p/>
+     * Supported params are:
+     * EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
+     * VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
+     *
+     * @param mesh     The mesh
+     * @param params   Output parameters
+     * @param material The material from MaterialMapper for the appearance
+     * @param finish   The finish.
+     * @param stream   The SAV stream
+     */
+    public void outputX3D(abfab3d.util.TriangleMesh mesh, Map<String, Object> params, String material, String[] finish,
+                          BinaryContentHandler stream, String defName, String imageTextureUrl) {
 
         boolean export_normals = false;
         boolean vertex_normals = false;
@@ -503,7 +525,16 @@ public class SAVExporter {
         stream.startField("appearance");
 
         MaterialMapper mm = new MaterialMapper();
-        mm.createAppearance(material, finish, MaterialMapper.Shading.FIXED, 5, stream);
+        if (imageTextureUrl != null) {
+            // NOTE: Quick hack to add an ImageTexture.
+            //       If imageTextureUrl is set, ignore material and finish.
+            //       If we need to include the image texture with the material and finish, then that needs to be implemented.
+            //
+            // Values for shading and quality arguments are never used in MaterialMapper, so ignoring those
+            mm.createAppearanceWithImageTexture(stream, imageTextureUrl);
+        } else {
+            mm.createAppearance(material, finish, MaterialMapper.Shading.FIXED, 5, stream);
+        }
 
         stream.startField("geometry");
         if (gtype == GeometryType.INDEXEDTRIANGLESET) {
