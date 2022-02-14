@@ -42,6 +42,7 @@ public class SAVExporter {
     public static final String MATERIAL = "MATERIAL";
     public static final String FINISH = "FINISH";
     public static final String IMAGE_TEXTURE = "IMAGE_TEXTURE";
+    public static final String CLAMP_TEXTURE = "CLAMP_TEXTURE";
 
     public enum GeometryType {INDEXEDTRIANGLESET, INDEXEDFACESET, INDEXEDLINESET, POINTSET}
 
@@ -61,6 +62,7 @@ public class SAVExporter {
         String material = null;
         String finish[] = null;
         String imageTextureUrl = null;
+        Boolean clampTexture = false;
 
         if (params != null) {
             material = (String) params.get(MATERIAL);
@@ -72,8 +74,13 @@ public class SAVExporter {
             }
             
             imageTextureUrl = (String) params.get(IMAGE_TEXTURE);
+
+            o = params.get(CLAMP_TEXTURE);
+            if (o != null) {
+                clampTexture = Boolean.valueOf((String.valueOf(o)));
+            }
         }
-        outputX3D(mesh, params, material, finish, stream, defName, imageTextureUrl);
+        outputX3D(mesh, params, material, finish, stream, defName, imageTextureUrl, clampTexture.booleanValue());
     }
 
     /**
@@ -120,7 +127,7 @@ public class SAVExporter {
      */
     public void outputX3D(abfab3d.util.TriangleMesh mesh, Map<String, Object> params, String material, String[] finish,
                           BinaryContentHandler stream, String defName) {
-        outputX3D(mesh,  params, material, finish, stream, defName, null);
+        outputX3D(mesh,  params, material, finish, stream, defName, null, false);
     }
 
     /**
@@ -138,7 +145,7 @@ public class SAVExporter {
      * @param stream   The SAV stream
      */
     public void outputX3D(abfab3d.util.TriangleMesh mesh, Map<String, Object> params, String material, String[] finish,
-                          BinaryContentHandler stream, String defName, String imageTextureUrl) {
+                          BinaryContentHandler stream, String defName, String imageTextureUrl, boolean clampTexture) {
 
         boolean export_normals = false;
         boolean vertex_normals = false;
@@ -531,7 +538,7 @@ public class SAVExporter {
             //       If we need to include the image texture with the material and finish, then that needs to be implemented.
             //
             // Values for shading and quality arguments are never used in MaterialMapper, so ignoring those
-            mm.createAppearanceWithImageTexture(stream, imageTextureUrl);
+            mm.createAppearanceWithImageTexture(stream, imageTextureUrl, clampTexture);
         } else {
             mm.createAppearance(material, finish, MaterialMapper.Shading.FIXED, 5, stream);
         }

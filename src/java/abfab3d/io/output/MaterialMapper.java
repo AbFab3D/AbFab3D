@@ -45,8 +45,8 @@ public class MaterialMapper {
      * @param handler The X3D content handler to output to
      * @param imageTextureUrl The url to the image texture
      */
-    public void createAppearanceWithImageTexture(BinaryContentHandler handler, String imageTextureUrl) {
-        applyDefaultMaterialWithImageTexture(handler, imageTextureUrl);
+    public void createAppearanceWithImageTexture(BinaryContentHandler handler, String imageTextureUrl, boolean clampTexture) {
+        applyDefaultMaterialWithImageTexture(handler, imageTextureUrl, clampTexture);
     }
     
     /**
@@ -224,7 +224,7 @@ public class MaterialMapper {
      * @param handler The X3D content handler to output too
      * @param imageTextureUrl The string url to the image texture 
      */
-    public void applyDefaultMaterialWithImageTexture(BinaryContentHandler handler, String imageTextureUrl) {
+    public void applyDefaultMaterialWithImageTexture(BinaryContentHandler handler, String imageTextureUrl, boolean clampTexture) {
         handler.startNode("Appearance", null);
         handler.startField("material");
         handler.startNode("Material", null);
@@ -233,6 +233,14 @@ public class MaterialMapper {
         handler.startNode("ImageTexture", null);
         handler.startField("url");
         handler.fieldValue(imageTextureUrl);
+        
+        if (clampTexture) {
+            handler.startField("repeatS");
+            handler.fieldValue("FALSE");
+            handler.startField("repeatT");
+            handler.fieldValue("FALSE");
+        }
+        
         handler.endNode();  // ImageTexture
         handler.endNode();  // Appearance
     }
