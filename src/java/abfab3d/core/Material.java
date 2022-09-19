@@ -1,5 +1,7 @@
 package abfab3d.core;
 
+import java.util.List;
+
 /**
  * A physical printing material
  *
@@ -13,6 +15,7 @@ public interface Material {
     public MaterialShader getShader();
     public String getName();
     public String getAlternateName();
+    public List<String> getAlternateNames();
     public String getLabel();
 
     /**

@@ -11,10 +11,8 @@
  ****************************************************************************/
 package abfab3d.shapejs;
 
-import abfab3d.core.Material;
 import abfab3d.core.MaterialType;
 import abfab3d.core.PrintableMaterial;
-import abfab3d.core.RenderableMaterial;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.EnumParameter;
 import abfab3d.param.Parameter;
@@ -22,6 +20,8 @@ import abfab3d.param.SNodeParameter;
 import abfab3d.core.DataSource;
 import abfab3d.param.StringParameter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -41,6 +41,8 @@ public abstract class BasePrintableMaterial extends BaseParameterizable implemen
             mp_renderingParams, mp_source, m_name, m_alternateName, m_matType
     };
 
+    protected List<String> m_alternateNames = new ArrayList<>();
+
     public BasePrintableMaterial(String name) {
         m_name.setValue(name);
         addParams(m_aparam);
@@ -55,6 +57,18 @@ public abstract class BasePrintableMaterial extends BaseParameterizable implemen
     public BasePrintableMaterial(String name, String alternateName, String label) {
         m_name.setValue(name);
         m_alternateName.setValue(alternateName);
+        if (alternateName != null) {
+            m_alternateNames.add(alternateName);
+        }
+        m_label.setValue(label);
+        addParams(m_aparam);
+    }
+
+    public BasePrintableMaterial(String name, List<String> alternateNames, String label) {
+        m_name.setValue(name);
+        if (alternateNames != null) {
+            m_alternateNames.addAll(alternateNames);
+        }
         m_label.setValue(label);
         addParams(m_aparam);
     }
@@ -109,4 +123,15 @@ public abstract class BasePrintableMaterial extends BaseParameterizable implemen
     public String getAlternateName() {
         return m_alternateName.getValue();
     }
+
+    public void setAlternateNames(List<String> names) {
+        if (names != null) {
+            m_alternateNames.clear();
+            m_alternateNames.addAll(names);
+        }
+    }
+    
+    public List<String> getAlternateNames() {
+        return m_alternateNames;
+    } 
 }
