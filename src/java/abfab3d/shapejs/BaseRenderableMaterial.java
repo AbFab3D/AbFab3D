@@ -22,7 +22,8 @@ import abfab3d.param.Parameter;
 import abfab3d.param.SNodeParameter;
 import abfab3d.param.StringParameter;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base implementation for all Materials
@@ -41,6 +42,8 @@ public abstract class BaseRenderableMaterial extends BaseParameterizable impleme
             mp_renderingParams, mp_source, m_name, m_alternateName, m_matType
     };
 
+    protected List<String> m_alternateNames = new ArrayList<>();
+
     public BaseRenderableMaterial(String name) {
         m_name.setValue(name);
         addParams(m_aparam);
@@ -55,6 +58,18 @@ public abstract class BaseRenderableMaterial extends BaseParameterizable impleme
     public BaseRenderableMaterial(String name, String alternateName, String label) {
         m_name.setValue(name);
         m_alternateName.setValue(alternateName);
+        if (alternateName != null) {
+            m_alternateNames.add(alternateName);
+        }
+        m_label.setValue(label);
+        addParams(m_aparam);
+    }
+
+    public BaseRenderableMaterial(String name, List<String> alternateNames, String label) {
+        m_name.setValue(name);
+        if (alternateNames != null) {
+            m_alternateNames.addAll(alternateNames);
+        }
         m_label.setValue(label);
         addParams(m_aparam);
     }
@@ -88,4 +103,15 @@ public abstract class BaseRenderableMaterial extends BaseParameterizable impleme
     public String getAlternateName() {
         return m_alternateName.getValue();
     }
+
+    public void setAlternateNames(List<String> names) {
+        if (names != null) {
+            m_alternateNames.clear();
+            m_alternateNames.addAll(names);
+        }
+    }
+    
+    public List<String> getAlternateNames() {
+        return m_alternateNames;
+    } 
 }
