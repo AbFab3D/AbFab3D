@@ -21,6 +21,8 @@ import static java.lang.Math.*;
    util to work with unit quaternions in stereographic projection 
    stereographic projection centrer is at (-1,0,0,0) 
    this makes most symetrical arrangement 
+   
+   IMPORTANT quaternion cordinates are (w; x,y,z) 
 
    @author Vladimir Bulatov 
  */
