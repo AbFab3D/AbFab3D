@@ -41,6 +41,15 @@ public class MaterialMapper {
     public enum Shading {FIXED, SHADER};
 
     /**
+     * Create an X3D appearance node with default material and a specified image texture url.
+     * @param handler The X3D content handler to output to
+     * @param imageTextureUrl The url to the image texture
+     */
+    public void createAppearanceWithImageTexture(BinaryContentHandler handler, String imageTextureUrl, boolean clampTexture) {
+        applyDefaultMaterialWithImageTexture(handler, imageTextureUrl, clampTexture);
+    }
+    
+    /**
      * Create an X3D appearance node from a material and finish specification.
      *
      * @param material The physical material
@@ -209,6 +218,33 @@ public class MaterialMapper {
         handler.endNode();  // Appearance
     }
 
+    /**
+     * Default material and image texture
+     *
+     * @param handler The X3D content handler to output too
+     * @param imageTextureUrl The string url to the image texture 
+     */
+    public void applyDefaultMaterialWithImageTexture(BinaryContentHandler handler, String imageTextureUrl, boolean clampTexture) {
+        handler.startNode("Appearance", null);
+        handler.startField("material");
+        handler.startNode("Material", null);
+        handler.endNode();  // Material
+        handler.startField("texture");
+        handler.startNode("ImageTexture", null);
+        handler.startField("url");
+        handler.fieldValue(imageTextureUrl);
+        
+        if (clampTexture) {
+            handler.startField("repeatS");
+            handler.fieldValue("FALSE");
+            handler.startField("repeatT");
+            handler.fieldValue("FALSE");
+        }
+        
+        handler.endNode();  // ImageTexture
+        handler.endNode();  // Appearance
+    }
+    
     /**
      * Default material for lighting
      *

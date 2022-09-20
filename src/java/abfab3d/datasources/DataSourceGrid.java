@@ -154,9 +154,9 @@ public class DataSourceGrid extends TransformableDataSource implements Cloneable
     }
 
     public void setGrid(AttributeGrid grid) {
-
-        printf("setGrid(%d x %d x %d) \n", grid.getWidth(), grid.getHeight(), grid.getDepth());
-
+        if (DEBUG) {
+            printf("setGrid(%d x %d x %d) \n", grid.getWidth(), grid.getHeight(), grid.getDepth());
+        }
         mp_grid.setValue(grid);
     }
 

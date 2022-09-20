@@ -52,7 +52,7 @@ import static abfab3d.core.Output.printf;
  */
 public class AttributedX3DReader implements AttributedTriangleProducer, Transformer {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     /** Transformation to apply to positional vertices, null for none */
     private VecTransform m_transform;
@@ -100,8 +100,8 @@ public class AttributedX3DReader implements AttributedTriangleProducer, Transfor
         initialize(null);
     }
 
-    private void initialize(AttributedTriangleCollector out){fileLoader
-        if(m_initialized)fileLoader
+    private void initialize(AttributedTriangleCollector out){
+        if(m_initialized)
             return;
 
         try {
