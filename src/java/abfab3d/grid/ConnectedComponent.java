@@ -166,6 +166,7 @@ public class ConnectedComponent implements Comparable, Region {
     */
     boolean fillScanLineQueue(int start[]) {
 
+        final boolean debug = false;
         //LinkedList<int[]> que = new LinkedList<int[]>();
         //ArrayDeque<int[]> que = new ArrayDeque<int[]>();
         QueueInt que = new QueueInt(100000);
@@ -187,7 +188,7 @@ public class ConnectedComponent implements Comparable, Region {
                 // this line was already visited
                 continue;
             }
-            //printf("new scanline: [%d,%d,%d]\n", x, y, z);
+            if(debug)printf("new scanline: [%d,%d,%d]\n", x, y, z);
             //dumpScanLine(x,y,z);
 
             int y1 = y;
@@ -196,7 +197,7 @@ public class ConnectedComponent implements Comparable, Region {
                 y1--;
             }
             y1++; // increment back
-            //printf("scanline [%2d,%2d,%2d]->", x,y1,z);
+            if(debug)printf("scanline [%2d,%2d,%2d]->", x,y1,z);
 
             spanxLeft = spanxRight = spanzLeft = spanzRight = false;
 
@@ -266,7 +267,7 @@ public class ConnectedComponent implements Comparable, Region {
                 }
                 y1++;
             }
-            //printf("[%2d,%2d,%2d]\n ", x,y1,z);
+            if(debug)printf("[%2d,%2d,%2d]\n ", x,y1,z);
 
         }
 
@@ -279,6 +280,7 @@ public class ConnectedComponent implements Comparable, Region {
     */
     boolean fillScanLineStackY(int start[]) {
 
+        final boolean debug = false;
 
         StackInt3 stack = new StackInt3(100);
 
@@ -306,7 +308,7 @@ public class ConnectedComponent implements Comparable, Region {
                 y1--;
             }
             y1++; // increment back
-            //printf("scanline [%2d,%2d,%2d]->", x,y1,z);
+            if(debug)printf("scanline [%2d,%2d,%2d]->", x,y1,z);
 
             spanxLeft = spanxRight = spanzLeft = spanzRight = false;
 
@@ -371,7 +373,7 @@ public class ConnectedComponent implements Comparable, Region {
                 }
                 y1++;
             }
-            //printf("[%2d,%2d,%2d]\n ", x,y1,z);
+            if(debug)printf("[%2d,%2d,%2d]\n ", x,y1,z);
 
         }
 
@@ -503,10 +505,18 @@ public class ConnectedComponent implements Comparable, Region {
         //int start_state = grid.getState(start[0], start[1], start[2] );
 
         LinkedList<int[]> que = new LinkedList<int[]>();
-
+        if(!compareAttribute(grid, start[0], start[1], start[2])){
+            // initial point is not in the region 
+            return;
+        }
         que.add(start);
-        mask.set(start[0],start[1],start[2],1);
+        
+        //mask.set(start[0],start[1],start[2],1);
 
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        
         while(!que.isEmpty()) {
             int vc[] = que.remove();
 
@@ -532,9 +542,9 @@ public class ConnectedComponent implements Comparable, Region {
                             int nj = j+n2;
                             int nk = k+n3;
 
-                            if (mask.get(ni,nj,nk) == 0) {
+                            if ((ni >= 0 && ni < nx && nj >= 0 && nj < ny && nk >= 0 && nk < nz) && (mask.get(ni,nj,nk) == 0)) {
 
-                                if (!compareAttribute(grid, ni, nj, nk))
+                                if ((mask.get(ni,nj,nk) == 1) || !compareAttribute(grid, ni, nj, nk))
                                     continue;
 
                                 que.offer(new int[]{ni,nj,nk});
