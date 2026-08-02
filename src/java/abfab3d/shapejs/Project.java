@@ -916,6 +916,7 @@ public class Project {
 
 
             }
+            zip.close();
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
